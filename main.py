@@ -2473,8 +2473,6 @@ try:
             await call.answer(text='Отличный выбор!')
             await setrasa(call.message, call.from_user, '&#129417;', 4)
             await main.delete_message(call.message.chat.id, call.message.message_id)
-        if call.data == 'cancel_action':
-            await main.delete_message(call.message.chat.id, call.message.message_id)
         if call.data == 'mailbox':
             await aschik(call.from_user.id, call.message)
         if call.data == 'reflink':
@@ -2541,50 +2539,6 @@ try:
         if call.data.startswith('buy_medicine_'):
             amr = int(call.data[13:])
             await buy(call, user=call.from_user, item='medicine', cost=500, amount=amr)
-        if call.data in ITEMS[1]:
-            try:
-                a = ITEMS[1].index(call.data)
-                cursor.execute("SELECT {0} FROM userdata WHERE user_id=?".format(call.data), (call.from_user.id,))
-                count = cursor.fetchone()[0]
-                if count<1:
-                    await call.message.answer('<i>&#10060; У вас нет этого предмета</i>', reply_markup = markup, parse_mode = 'html')
-                    return
-                cursor.execute("SELECT mask FROM userdata WHERE user_id=?", (call.from_user.id,))
-                mask = cursor.fetchone()[0]
-                status = ITEMS[4][a]
-                markup = types.InlineKeyboardMarkup()
-                if status == 'food':
-                    markup.add(types.InlineKeyboardButton(text='🍖 Съесть', callback_data='eat_{0}'.format(call.data)))
-                elif status == 'medicine':
-                    markup.add(types.InlineKeyboardButton(text='💊 Выпить', callback_data='drink_medicine'))
-                elif status == 'car':
-                    markup.add(types.InlineKeyboardButton(text='🚗 В путь!', callback_data='cardrive'))
-                elif status == 'lootbox':
-                    markup.add(types.InlineKeyboardButton(text='📦 Открыть', callback_data='open_lootbox'))
-                elif status == 'rob':
-                    markup.add(types.InlineKeyboardButton(text='🏦 Ограбить банк', callback_data='rob_bank'))
-                elif status == 'mask':
-                    isput = False
-                    if mask in ITEMS[1]:
-                        if ITEMS[1].index(mask) == ITEMS[1].index(call.data):
-                            isput = True
-                    if isput:
-                        markup.add(types.InlineKeyboardButton(text='❎ Снять', callback_data='putoff'))
-                    else:
-                        markup.add(types.InlineKeyboardButton(text='👺 Надеть', callback_data='puton_{0}'.format(call.data)))
-                elif status == 'key':
-                    markup.add(types.InlineKeyboardButton(text='🔐 Чёрный рынок', callback_data='darkweb'))
-                elif status == 'phone':
-                    markup.add(types.InlineKeyboardButton(text='📱 Использовать', callback_data='smartphone'))
-                rem = ''
-                if call.data in limiteds:
-                    cursor.execute("SELECT {0} FROM globaldata".format(call.data))
-                    itemrem = cursor.fetchone()[0]
-                    rem = "\n\n&#127978; В круглосуточном осталось <b>{0}</b> единиц этого товара".format(itemrem)
-                await call.message.answer('<i><b>{0} {1}</b> - {2}{3}\n\nУ вас <b>{4}</b> единиц этого предмета</i>'.format(ITEMS[0][a], ITEMS[2][a], ITEMS[5][a], rem, count), reply_markup = markup, parse_mode = 'html')
-            except Exception as e:
-                await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
         if call.data.startswith('trolleybus_'):
             try:
                 if not isinterval('trolleybus'):
@@ -2637,25 +2591,6 @@ try:
                     await main.delete_message(call.message.chat.id, call.message.message_id)
                 else:
                     await call.answer('❌ У вас нет маски')
-            except Exception as e:
-                await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
-        if call.data == 'inventory':
-            try:
-                a = call.from_user.id
-                markup = types.InlineKeyboardMarkup(row_width = 6)
-                itemlist = []
-                for inst in ITEMS[1]:
-                    if itemdata(a, inst)!='emptyslot':
-                        itemlist.append(itemdata(a, inst))
-                if itemlist!=[]:
-                    markup.add(*itemlist)
-                cursor.execute("SELECT mask FROM userdata WHERE user_id=?", (a,))
-                mask = cursor.fetchone()[0]
-                if mask!='':
-                    markup.add(types.InlineKeyboardButton(text='❎ Снять маску', callback_data='putoff'))
-                markup.add(types.InlineKeyboardButton(text='🏪 Круглосуточный магазин', callback_data='shop_24'))
-                await call.message.answer('<i>Ваш инвентарь</i>', reply_markup = markup, parse_mode = 'html')
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
                 await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
@@ -6004,7 +5939,3 @@ try:
             print(e)
 except:
     pass
-__import__("server").keep_alive()
-    
-if __name__ == '__main__':
-    executor.start_polling(bot, loop = loop, skip_updates=True, on_startup = on_startup)

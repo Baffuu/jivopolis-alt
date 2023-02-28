@@ -4,14 +4,22 @@ from aiogram import Dispatcher
 from loguru import logger
 from ..config import ITEMS
 from ..bot import bot
-from ..database.functions import create_acc, check
+from ..database.functions import create_acc, check, cur
 from .callbacks.other import chats
 from .callbacks.for_admins import adminpanel, itemsinfo_table, itemsinfo_item
 from .callbacks.inventory import itemdesc, inventory
+
 async def callback_handler(call: CallbackQuery):
     try:
         await check(call.from_user.id, call.message.chat.id)
 
+        health = cur.execute(f"SELECT health FROM userdata WHERE user_id={call.from_user.id}").fetchone()[0]
+
+        if health < 0:
+            await call.answer(text='☠ Вы умерли')
+            if call.message.chat.type == 'private':
+                await call.message.answer('<i>&#9760; Вы умерли. Попросите кого-нибудь вас воскресить</i>', parse_mode = 'html')
+                
         match (call.data):
             case 'sign_up':
                 await create_acc(call.from_user, call.from_user.id)

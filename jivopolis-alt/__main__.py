@@ -24,9 +24,9 @@ async def on_startup(dp : Dispatcher):
             logger.warning('log chat not found :(\nprobably you forgot to add bot to the chat')
         logger.info('bot connected')
 
-        from .modules import start, sqlrun, callback, on_photo_sent
+        from .modules import start, admin_commands, callback, on_photo_sent
         start.register(dp)
-        sqlrun.register(dp)
+        admin_commands.register(dp)
         callback.register(dp)
         on_photo_sent.register(dp)
         

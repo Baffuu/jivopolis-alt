@@ -46,7 +46,7 @@ def create_userdata() -> None:
 
     rank            INTEGER         DEFAULT 0               NOT NULL,
     process         TEXT,
-
+    is_banned       INTEGER         DEFAULT 0               NOT NULL,
     lastseen        DATETIME        DEFAULT 0               NOT NULL,
     register_date   DATETIME        DEFAULT 0               NOT NULL,
     last_fight      DATETIME        DEFAULT 0               NOT NULL,

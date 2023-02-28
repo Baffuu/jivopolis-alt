@@ -5,9 +5,9 @@ from aiogram.dispatcher.filters import Text
 
 from ..bot import bot, Dispatcher
 
-from ..database.sqlitedb import cur, conn
-
-from ..config import CREATOR
+from ..database.sqlitedb import cur, conn, encode_payload
+from ..database.functions import get_link
+from ..config import CREATOR, log_chat
 
 async def sqlrun_cmd(message: Message):
     try:
@@ -56,5 +56,36 @@ async def sqlrun_cmd(message: Message):
        '''
     except Exception as e:
         await message.answer("<i><b>Текст ошибки: </b>{0}</i>".format(e), parse_mode = "html")
+
+async def globan(message: Message):    
+    try:
+        rank = cur.execute(f"SELECT rank FROM userdata WHERE user_id = {message.from_user.id}").fetchone()[0]
+    except TypeError:
+        return message.reply("У вас нет учетной записи, сэр. Зарегистрируйтесь, пожалуйста")
+    
+    if rank < 2:
+        return message.reply("👨‍⚖️ Сударь, эта команда доступна только админам.")
+    
+    else:
+        args = message.get_args()
+
+        if args == '':
+            return message.reply("🕵🏿‍♂️ Не хватает аргументов.")
+        
+        try:
+            user_nick = cur.execute(f"SELECT nickname FROM userdata WHERE user_id = {args}").fetchone()[0]
+            admin_nick = cur.execute(f"SELECT nickname FROM userdata WHERE user_id={message.from_user.id}").fetchone()[0]
+        except TypeError:
+            user_nick = 'user'
+            cur.execute(f"INSERT INTO userdata(user_id, nickname, login_id) VALUES ({args}, 'banned_user', {encode_payload(args)}")
+            await bot.send_message(message.chat.id, f'👨‍🔬 Аккаунт <a href ="tg://user?id={args}>пользователя</a> насильно создан. | <a href="tg://user?id={message.from_user.id}>{admin_nick}</a>')
+            await bot.send_message(log_chat, f'👨‍🔬 Аккаунт <a href ="tg://user?id={args}>пользователя</a> насильно создан. | <a href="tg://user?id={message.from_user.id}>{admin_nick}</a>')
+        
+        cur.execute(f"UPDATE userdata SET is_banned=1 WHERE user_id={args}")
+        conn.commit()
+
+        await bot.send_message(message.chat.id, f'🥷 <a href="{get_link(args)}">{user_nick}</a> [<code>id: {args}</code>] был успешно забанен. | <a href = "{get_link(message.from_user.id)}">{admin_nick}</a>')
+        await bot.send_message(log_chat, f'🥷 <a href="{get_link(args)}">{user_nick}</a> [<code>id: {args}</code>] был успешно забанен. | <a href = "{get_link(message.from_user.id)}">{admin_nick}</a>')
+
 def register(dp: Dispatcher):
     dp.register_message_handler(sqlrun_cmd, Text(startswith=".sqlrun"))

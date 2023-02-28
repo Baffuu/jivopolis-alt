@@ -175,6 +175,7 @@ async def start_cmd(message: Message):
                         await bot.send_photo(chid, photo, caption=prof, reply_markup = markup)
                     except:
                         await bot.send_message(chid, prof, reply_markup = markup)
+        
         return await bot.send_message(message.chat.id, text)
     except Exception as e:
         logger.exception(e)
