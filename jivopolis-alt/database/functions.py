@@ -5,7 +5,7 @@ from datetime import datetime
 from math import floor
 from typing import Union
 
-from ..config import limeteds, CREATOR, leveldesc, levelrange, ITEMS, ach, log_chat, SUPPORT_LINK
+from ..config import limeteds, CREATOR, leveldesc, levelrange, ITEMS, ach, log_chat, SUPPORT_LINK, ADMINS
 
 from ..bot import bot
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardRemove, CallbackQuery, User, Message
@@ -27,8 +27,10 @@ async def check(user_id: str, chat_id: str) -> None:
 
         xp = cur.execute(f"SELECT xp FROM userdata WHERE user_id={user_id}").fetchone()[0]
 
-        if user_id == CREATOR:
-            cur.execute(f"UPDATE userdata SET rang=3 WHERE user_id={user_id}")
+        rank = cur.execute(f"SELECT rank FROM userdata WHERE user_id={user_id}").fetchone()[0]
+        
+        if user_id in ADMINS and rank < 2:
+            cur.execute(f"UPDATE userdata SET rank=3 WHERE user_id={user_id}")
             conn.commit()
 
         lastelec = current_time() - cur.execute(f"SELECT lastelec FROM userdata WHERE user_id={user_id}").fetchone()[0]
