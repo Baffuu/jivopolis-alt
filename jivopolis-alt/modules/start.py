@@ -1,193 +1,184 @@
+import random
+import sqlite3
+
+from loguru import logger
+
 from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
-from ..database.sqlitedb import check, cur
+from aiogram.utils.deep_linking import decode_payload
+
+from ..config import levelrange, hellos, randomtext, log_chat
+
+from ..bot import bot, Dispatcher
+
+from ..database.sqlitedb import cur, conn
+from ..database.functions import check, create_acc, profile
+
+from ..misc import get_mask, get_link
 
 async def start_cmd(message: Message):
     try:
-        user_id = message.from_user.id
-        
-        await check(user_id, message.chat.id)
-        cur.execute('select health from userdata where user_id=?', (message.from_user.id,)).fetchone()
-        health = cur.fetchone()[0]
-        if health <= 0:
-            await message.reply('<i>&#9760; Вы умерли. Попросите кого-нибудь вас воскресить</i>', parse_mode = 'html')
-            return
-    except Exception as e:
-        print(e)
-    try:
+        user_id = message.from_user.id            
         chat_id = message.chat.id
+        markup = InlineKeyboardMarkup(row_width=2)
+
         if message.chat.type == "private":
-            err = ''
-            unerrored = True
-            leader = '&#127942; Лидеры Живополиса на данный момент:'
             try:
-                rasa = cur.execute(f'SELECT rasa FROM userdata WHERE user_id = {user_id}').fetchone()
-                nick = cur.execute(f'SELECT nick FROM userdata WHERE user_id = {user_id}').fetchone()
-            except:
-                markup = InlineKeyboardMarkup()
-                button = InlineKeyboardButton(text='Создать аккаунт', callback_data='{0}'.format(createacc2))
-                markup.add(button)
-                button = InlineKeyboardButton(text='Войти', callback_data='log_in')
-                markup.add(button)
-                text = f"<i>&#128075; <b>{message.from_user.full_name}, привет!</b>\nТы попал в <code>Живополис</code>.\
-                Это лучший игровой бот в Telegram\n\nУдачной игры!</i>"
-            else:
-                cur.execute('''SELECT * FROM userdata WHERE type="public" AND rang=0 ORDER BY balance DESC LIMIT 10''')
-                for row in cur:
-                    leader+=f'\n<b><a href="tg://user?id={row[1]}">{row[9]}{row[7]}</a> - ${3}</b>'.format(row[1], row[9], row[7], row[5])
-                rank = cur.execute(f'SELECT rank FROM userdata WHERE user_id = {user_id}').fetchone()
-                phone = cur.execute(f'SELECT phone FROM userdata WHERE user_id = {user_id}').fetchone()
+                nick = cur.execute(f"SELECT nickname FROM userdata WHERE user_id = {user_id}").fetchone()[0]
+                health = cur.execute(f"SELECT health FROM userdata WHERE user_id = {user_id}").fetchone()[0]
 
-                markup = InlineKeyboardMarkup(row_width=2)
-                buttons = [InlineKeyboardButton(text='💼 Инвентарь', callback_data='inventory'),
-                    InlineKeyboardButton(text='🏛 Город', callback_data='city'),
-                    InlineKeyboardButton(text='📬 Почтовый ящик', callback_data='mailbox'), 
-                    InlineKeyboardButton(text='💬 Чаты', callback_data='chats'),
-                    InlineKeyboardButton(text='🤵 Работать', callback_data='work'),
-                    InlineKeyboardButton(text='🃏 Профиль', callback_data='profile'),
-                    InlineKeyboardButton(text='⚙ Настройки', callback_data='user_settings'),
-                    InlineKeyboardButton(text='📊 Экономика', callback_data='economics'),
-                    InlineKeyboardButton(text='❓ Помощь', callback_data='help')]
+                await check(user_id, chat_id)
 
-                if phone >= 1:
-                    buttons.append(InlineKeyboardButton(text='📱 Телефон', callback_data='smartphone'))
-
-                buttons.append(**[])
-
-                if rank >= 2:
-                    buttons.append(InlineKeyboardButton(text='👑 Админская панель', callback_data='adminpanel'))
-
-                markup.add(**buttons)
-                balance = cur.execute(f'SELECT balance FROM userdata WHERE user_id = {user_id}')
-                points = cur.execute(f'SELECT points FROM userdata WHERE user_id = {user_id}')
-                health = cur.execute(f'SELECT health FROM userdata WHERE user_id = {user_id}')
-                health = cursor.fetchone()[0]
-                cursor.execute('SELECT lvl FROM userdata WHERE user_id=?', (a,))
-                lvl = cursor.fetchone()[0]
-                if lvl<len(levelrange)-1:
-                    rem = 'из {0}'.format(levelrange[lvl+1])
-                else:
-                    rem = '- макс. уровень'
-                rand = random.choice(hellos)
-                text = '<i>{6}, <b><a href="tg://user?id={2}">{0}{1}</a></b>\n&#128178; Баланс: <b>${4}</b>\n&#128305; Уровень: {5}\n&#128138; Здоровье: <b>{7}</b>\n{3}</i>'.format(ras,nick, a, leader, balance, '<b>{0}</b> ({1} {2})'.format(lvl, points, rem), rand, health)
-                await message.answer('<i>{0}</i>'.format(random.choice(randomtext)), parse_mode='html')
-                await message.answer(text, parse_mode='html', reply_markup=markup)
-                if " " in message.text:
-                    reflink = message.text.split()[1]
-                else:
-                    return
-            cursor.execute('SELECT count(user_id) FROM userdata WHERE ref=?', (reflink,))
-            count = cursor.fetchone()[0]
-            if count!=1:
-                unerrored = False
-                err += '\n•Неверная реферальная ссылка'
-                referrer_candidate = 0
-            else:
-                cursor.execute('SELECT user_id FROM userdata WHERE ref=?', (reflink,))
-                referrer_candidate = cursor.fetchone()[0]
-            try:
-                cursor.execute('SELECT balance FROM userdata WHERE user_id = ?', (referrer_candidate,))
-                temp = cursor.fetchone()[0]
-                cursor.execute('UPDATE userdata SET balance = ? WHERE user_id = ?', (temp, referrer_candidate,))
-                conn.commit()
-            except Exception as e:
-                unerrored = False
-                err += '\n•Пользователя, по чьей реферальной ссылке вы перешли, нет в Живополисе\n•<b>Исключение:</b> {0}'.format(e)
-            if a==referrer_candidate:
-                unerrored = False
-                err += '\n•Вы перешли по собственной реферальной ссылке'
-            try:
-                cursor.execute('SELECT count(id) FROM userdata WHERE user_id=?', (a,))
-                count = cursor.fetchone()[0]
-                if count>0:
-                    unerrored = False
-                    err += '\n•У вас уже был аккаунт до перехода по ссылке'
-            except:
-                pass
-            if unerrored:
-                try:
-                    await create_acc(message.from_user, message.chat.id)
-                    cursor.execute('SELECT place FROM userdata WHERE user_id = ?', (referrer_candidate,))
-                    st = cursor.fetchone()[0]
-                    cursor.execute('UPDATE userdata SET balance=balance+100 WHERE user_id=?', (message.from_user.id,))
-                    conn.commit()
-                    cursor.execute('UPDATE userdata SET place=? WHERE user_id=?', (st, message.from_user.id,))
-                    conn.commit()
-                    cursor.execute('UPDATE userdata SET refid=? WHERE user_id=?', (referrer_candidate, message.from_user.id,))
-                    conn.commit()
-                    await message.answer('<i>&#9989; Вам зачислено $100 на баланс</i>', parse_mode = 'html');
-                except Exception as e:
-                    unerrored = False
-                    err += '\n•У вас уже был аккаунт до перехода по ссылке\n•<b>Исключение:</b> {0}'.format(e)
-            if unerrored:
-                cursor.execute('SELECT nick FROM userdata WHERE user_id = ?', (referrer_candidate,))
-                onick = cursor.fetchone()[0]
-                cursor.execute('SELECT rasa FROM userdata WHERE user_id = ?', (referrer_candidate,))
-                orasa = cursor.fetchone()[0]
-                cursor.execute('SELECT nick FROM userdata WHERE user_id = ?', (a,))
-                nick = cursor.fetchone()[0]
-                cursor.execute('SELECT rasa FROM userdata WHERE user_id = ?', (a,))
-                rasa = cursor.fetchone()[0]
-                await main.send_message(fid, '<i><b><a href="tg://user?id={2}">{1}{0}</a></b> перешёл по реферальной ссылке <b><a href="tg://user?id={5}">{4}{3}</a></b>\n#user_ref</i>'.format(nick, rasa, a, onick, orasa, referrer_candidate), parse_mode = 'html')
-                await main.send_message(a, '<i>Вы перешли по реферальной ссылке <b><a href="tg://user?id={2}">{1}{0}</a></b></i>'.format(onick, orasa, referrer_candidate), parse_mode = 'html')
-                await main.send_message(referrer_candidate, '<i>По вашей реферальной ссылке перешёл <b><a href="tg://user?id={2}">{1}{0}</a></b></i>'.format(nick, rasa, a), parse_mode = 'html')
-                try:
-                    cursor.execute('UPDATE userdata SET lootbox = lootbox+1 WHERE user_id = ?', (referrer_candidate,))
-                    conn.commit()
-                    await main.send_message(referrer_candidate, '<i>📦 Вам выдан 1 лутбокс</i>', parse_mode = 'html');
-                except Exception as e:
-                    await main.send_message(referrer_candidate, '<i><b>&#10060; Ошибка: </b>{0}</i>'.format(e), parse_mode = 'html');
-            else:
-                await main.send_message(a, '<i><b>&#10060; Произошли ошибки при переходе по реферальной ссылке: </b>\n{0}</i>'.format(err), parse_mode = 'html')
-        else:
-            a = message.from_user.id
-            chid = message.chat.id
-            cursor.execute('SELECT count(*) FROM clandata WHERE group_id = ?', (chid,))
-            count = cursor.fetchone()[0]
-            if count == 0:
-                chn = message.chat.title
-                markup = types.InlineKeyboardMarkup()
-                buttons = types.InlineKeyboardButton(text='➕ Создать', callback_data='create_clan')
-                markup.add(buttons)
-                await main.send_message(chid, '<i>Создать клан <b>{0}</b></i>'.format(chn), parse_mode = 'html', reply_markup = markup)
-            else:
-                cursor.execute('SELECT name FROM clandata WHERE group_id=?', (chid,))
-                chn = cursor.fetchone()[0]
-                cursor.execute('SELECT bio FROM clandata WHERE group_id=?', (chid,))
-                bio = cursor.fetchone()[0]
-                markup = types.InlineKeyboardMarkup()
-                buttons = types.InlineKeyboardButton(text='➕ Вступить/Выйти', callback_data='join_clan')
-                markup.add(buttons)
-                buttons = types.InlineKeyboardButton(text='👥 Участники клана', callback_data='clan_members')
-                markup.add(buttons)
-                buttons = types.InlineKeyboardButton(text='✏ Управление', callback_data='clan_settings')
-                markup.add(buttons)
-                buttons = types.InlineKeyboardButton(text='📣 Созвать клан', callback_data='call_clan')
-                markup.add(buttons)
-                markup.add(types.InlineKeyboardButton(text='🏗 Комнаты (постройки)', callback_data='clan_buildings'))
-                cursor.execute('SELECT balance FROM clandata WHERE group_id = ?', (chid,))
-                balance = cursor.fetchone()[0]
-                cursor.execute('SELECT hqplace FROM clandata WHERE group_id = ?', (chid,))
-                hqplace = cursor.fetchone()[0]
-                cursor.execute('SELECT address FROM clandata WHERE group_id = ?', (chid,))
-                address = cursor.fetchone()[0]
-                cursor.execute('SELECT photo FROM clandata WHERE group_id = ?', (chid,))
-                photo = cursor.fetchone()[0]
-                leader = '&#127942; Топ кланов на данный момент:'
-                cursor.execute('SELECT COUNT(*) FROM clandata WHERE (type=? AND balance < 1000000) OR group_id=-1001395868701', ('public',))
-                count = cursor.fetchone()[0]
-                cursor.execute('''SELECT * FROM clandata
-                WHERE (type=? AND balance < 1000000) OR group_id=-1001395868701
-                ORDER BY balance DESC
-                LIMIT 10''', ('public',))
-                for row in cursor:
-                    leader+='\n<b><a href="{0}">{1}</a> - ${2}</b>'.format(row[8], row[1], row[4])
-                prof = '<i>Клан <b>{0}</b>\n{4}&#128176; Баланс: <b>${1}</b>\n&#127970; Штаб-квартира: <b>{2}</b>\n{3}</i>'.format(chn, balance, '{0}, {1}'.format(hqplace, address) if hqplace != '' else 'отсутствует', leader if count!=0 else '', '\n{0}\n\n'.format(bio) if bio!='' else '')
-                if photo=='':
-                    await main.send_message(chid, prof, parse_mode = 'html', reply_markup = markup)
+                if health < 0:
+                    return await message.reply("<i>&#9760; Вы умерли. Попросите кого-нибудь вас воскресить</i>", parse_mode = "html")         
+            except TypeError:
+                markup.add(InlineKeyboardButton(text="Создать аккаунт", callback_data="sign_up"))
+                markup.add(InlineKeyboardButton(text="Войти", callback_data="log_in"))
+                reflink = message.get_args()
+                if reflink == '':
+                    return await bot.send_message(user_id, f"<i>&#128075; <b>{message.from_user.full_name}, привет!</b>\
+                    \nТы попал в <code>Живополис</code>.\
+                    \nЭто лучший игровой бот в Telegram\
+                    \n\
+                    \nУдачной игры!</i>", reply_markup=markup)
                 else:
                     try:
-                        await main.send_photo(chid, photo, caption=prof, parse_mode = 'html', reply_markup = markup)
+                        inviter: int = cur.execute(f"SELECT COUNT(*) FROM userdata WHERE login_id = \"{reflink}\"").fetchone()[0]
+                    except TypeError:
+                        inviter = 0
+                    
+                    if inviter == 1:
+                        await create_acc(message.from_user, message.from_user.id)
+                        cur.execute(f"UPDATE userdata SET inviter_id={decode_payload(reflink)} WHERE user_id={user_id}")
+                        conn.commit()
+                        cur.execute(f"UPDATE userdata SET balance=balance+100 WHERE login_id='{reflink}'")
+                        conn.commit()
+                        cur.execute(f"UPDATE userdata SET balance=balance+100 WHERE user_id='{user_id}'")
+                        return conn.commit()
+                        
+                    elif inviter == 0:
+                        return await bot.send_message(user_id, f"<i>&#128075; <b>{message.from_user.full_name}, привет!</b>\
+                        \nТы попал в <code>Живополис</code>.\
+                        \nЭто лучший игровой бот в Telegram\
+                        \n\
+                        \nУдачной игры!</i>", reply_markup=markup)
+                return
+            leader = "&#127942; Лидеры Живополиса на данный момент:"
+
+            args = message.get_args()
+
+            if args != '':
+                try:
+                    usercount = cur.execute(f"SELECT COUNT(*) FROM userdata WHERE user_id={args}").fetchone()[0]
+                    logger.info(usercount)
+                except sqlite3.OperationalError:
+                    usercount = 0
+                if usercount == 0:
+                    pass
+                elif usercount == 1:
+                    logger.debug('true')
+                    return await profile(args, message)
+
+            cur.execute("""
+            SELECT * FROM userdata 
+            WHERE profile_type=\"public\" AND rank=0 
+            ORDER BY balance 
+            DESC LIMIT 10""")
+
+            for row in cur:
+                if row[8]:
+                    mask = row[8]
+                else: 
+                    mask = row[7]
+                leader += f"\n<b><a href=\"{get_link(row[1])}\">{mask}{row[2]}</a> - ${row[4]}</b>"
+            
+            mask = get_mask(user_id)
+            rank = cur.execute(f"SELECT rank FROM userdata WHERE user_id = {user_id}").fetchone()[0]
+            phone = cur.execute(f"SELECT phone FROM userdata WHERE user_id = {user_id}").fetchone()[0]
+            
+            markup.add(InlineKeyboardButton(text="💼 Инвентарь", callback_data="inventory"), 
+                       InlineKeyboardButton(text="🏛 Город", callback_data="city"),
+                       InlineKeyboardButton(text="📬 Почтовый ящик", callback_data="mailbox"), 
+                       InlineKeyboardButton(text="💬 Чаты", callback_data="chats"),
+                       InlineKeyboardButton(text="🤵 Работать", callback_data="work"),
+                       InlineKeyboardButton(text="🃏 Профиль", callback_data="profile"),
+                       InlineKeyboardButton(text="⚙ Настройки", callback_data="user_settings"),
+                       InlineKeyboardButton(text="📊 Экономика", callback_data="economics"),
+                       InlineKeyboardButton(text="❓ Помощь", callback_data="help"))
+
+            if phone > 0:
+                markup.add(InlineKeyboardButton(text="📱 Телефон", callback_data="smartphone"))
+
+            if rank >= 2:
+                markup.add(InlineKeyboardButton(text="👑 Админская панель", callback_data="adminpanel"))
+
+            balance = cur.execute(f"SELECT balance FROM userdata WHERE user_id = {user_id}").fetchone()[0]
+            xp = cur.execute(f"SELECT xp FROM userdata WHERE user_id = {user_id}").fetchone()[0]
+            health = cur.execute(f"SELECT health FROM userdata WHERE user_id = {user_id}").fetchone()[0]
+            level = cur.execute(f"SELECT level FROM userdata WHERE user_id={user_id}").fetchone()[0]
+
+            if level <= len(levelrange):
+                xp_left = f"XP из {levelrange[level+1]}"
+            else:
+                xp_left = "макс. уровень"
+
+            hello = random.choice(hellos)
+            text = f"<i>{hello}, <b><a href=\"tg://user?id={user_id}\">{mask}{nick}</a></b>\n💲 Баланс: <b>${balance}</b>\n 💡 Уровень: <b>{level}</b> ({xp} {xp_left})\n❤️ Здоровье: <b>{health}</b>\n{leader}</i>"
+            
+            await message.answer(f"<i>{random.choice(randomtext)}</i>", parse_mode="html")
+            return await message.answer(text, parse_mode="html", reply_markup=markup)
+
+        else: #todo
+            user_id = message.from_user.id
+            chid = message.chat.id
+            cur.execute("SELECT count(*) FROM clandata WHERE group_id = ?", (chid,))
+            count = cur.fetchone()[0]
+            if count == 0:
+                chn = message.chat.title
+                buttons = InlineKeyboardButton(text="➕ Создать", callback_data="create_clan")
+                markup.add(buttons)
+                await bot.send_message(chid, "<i>Создать клан <b>{0}</b></i>".format(chn), reply_markup = markup)
+            else:
+                cur.execute("SELECT name FROM clandata WHERE group_id=?", (chid,))
+                chn = cur.fetchone()[0]
+                cur.execute("SELECT bio FROM clandata WHERE group_id=?", (chid,))
+                bio = cur.fetchone()[0]
+                markup = InlineKeyboardMarkup()
+                buttons = [InlineKeyboardButton(text="➕ Вступить/Выйти", callback_data="join_clan"),
+                        InlineKeyboardButton(text="👥 Участники клана", callback_data="clan_members"),
+                        InlineKeyboardButton(text="✏ Управление", callback_data="clan_settings"),
+                        InlineKeyboardButton(text="📣 Созвать клан", callback_data="call_clan"),
+                        InlineKeyboardButton(text="🏗 Комнаты (постройки)", callback_data="clan_buildings")]
+                markup.add(buttons)
+                
+                cur.execute("SELECT balance FROM clandata WHERE group_id = ?", (chid,))
+                balance = cur.fetchone()[0]
+                cur.execute("SELECT hqplace FROM clandata WHERE group_id = ?", (chid,))
+                hqplace = cur.fetchone()[0]
+                cur.execute("SELECT address FROM clandata WHERE group_id = ?", (chid,))
+                address = cur.fetchone()[0]
+                cur.execute("SELECT photo FROM clandata WHERE group_id = ?", (chid,))
+                photo = cur.fetchone()[0]
+                leader = "&#127942; Топ кланов на данный момент:"
+                cur.execute("SELECT COUNT(*) FROM clandata WHERE (type=? AND balance < 1000000) OR group_id=-1001395868701", ("public",))
+                count = cur.fetchone()[0]
+                cur.execute("""SELECT * FROM clandata
+                WHERE (type=? AND balance < 1000000) OR group_id=-1001395868701
+                ORDER BY balance DESC
+                LIMIT 10""", ("public",))
+                for row in cur:
+                    leader+="\n<b><a href=\"{0}\">{1}</a> - ${2}</b>".format(row[8], row[1], row[4])
+                prof = "<i>Клан <b>{0}</b>\n{4}&#128176; Баланс: <b>${1}</b>\n&#127970; Штаб-квартира: <b>{2}</b>\n{3}</i>".format(chn, balance, "{0}, {1}".format(hqplace, address) if hqplace != "" else "отсутствует", leader if count!=0 else "", "\n{0}\n\n".format(bio) if bio!="" else "")
+                if photo=="":
+                    await bot.send_message(chid, prof, reply_markup = markup)
+                else:
+                    try:
+                        await bot.send_photo(chid, photo, caption=prof, reply_markup = markup)
                     except:
-                        await main.send_message(chid, prof, parse_mode = 'html', reply_markup = markup)
+                        await bot.send_message(chid, prof, reply_markup = markup)
+        return await bot.send_message(message.chat.id, text)
     except Exception as e:
-        await main.send_message(chid, '<i><b>&#10060; Ошибка: </b>{0}</i>'.format(e), parse_mode = 'html')
+        logger.exception(e)
+        return await bot.send_message(chat_id, f"<i><b>&#10060; Ошибка: </b>{e}</i>")
+
+def register(dp: Dispatcher):
+    dp.register_message_handler(start_cmd, commands=['start'])
