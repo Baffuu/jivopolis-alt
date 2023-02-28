@@ -57,12 +57,16 @@ async def sqlrun_cmd(message: Message):
     except Exception as e:
         await message.answer("<i><b>Текст ошибки: </b>{0}</i>".format(e), parse_mode = "html")
 
-async def globan(message: Message):    
+async def globan_cmd(message: Message):    
     try:
         rank = cur.execute(f"SELECT rank FROM userdata WHERE user_id = {message.from_user.id}").fetchone()[0]
+        is_banned = bool(cur.execute(f"SELECT is_banned FROM userdata WHERE user_id = {message.from_user.id}").fetchone()[0])
     except TypeError:
-        return message.reply("У вас нет учетной записи, сэр. Зарегистрируйтесь, пожалуйста")
+        return message.reply("🧑‍🎨 Сэр, у вас нет аккаунта в живополисе. Прежде чем использовать любые комманды вам нужно зарегистрироваться.")
     
+    if is_banned:
+        return bot.send_message(message.from_user.id, f'🧛🏻‍♂️ Вы были забаненны в боте. Если вы считаете, что это - ошибка, обратитесь в <a href="{SUPPORT_LINK}">поддержку</a>.')
+
     if rank < 2:
         return message.reply("👨‍⚖️ Сударь, эта команда доступна только админам.")
     
@@ -73,15 +77,15 @@ async def globan(message: Message):
             return message.reply("🕵🏿‍♂️ Не хватает аргументов.")
         
         try:
-            user_nick = cur.execute(f"SELECT nickname FROM userdata WHERE user_id = {args}").fetchone()[0]
+            user_nick = cur.execute(f"SELECT nickname FROM userdata WHERE user_id = '{args}'").fetchone()[0]
             admin_nick = cur.execute(f"SELECT nickname FROM userdata WHERE user_id={message.from_user.id}").fetchone()[0]
         except TypeError:
             user_nick = 'user'
-            cur.execute(f"INSERT INTO userdata(user_id, nickname, login_id) VALUES ({args}, 'banned_user', {encode_payload(args)}")
+            cur.execute(f"INSERT INTO userdata(user_id, nickname, login_id) VALUES ({args}, 'banned_user', \"{encode_payload(args)}\"")
             await bot.send_message(message.chat.id, f'👨‍🔬 Аккаунт <a href ="tg://user?id={args}>пользователя</a> насильно создан. | <a href="tg://user?id={message.from_user.id}>{admin_nick}</a>')
             await bot.send_message(log_chat, f'👨‍🔬 Аккаунт <a href ="tg://user?id={args}>пользователя</a> насильно создан. | <a href="tg://user?id={message.from_user.id}>{admin_nick}</a>')
         
-        cur.execute(f"UPDATE userdata SET is_banned=1 WHERE user_id={args}")
+        cur.execute(f"UPDATE userdata SET is_banned=True WHERE user_id={args}")
         conn.commit()
 
         await bot.send_message(message.chat.id, f'🥷 <a href="{get_link(args)}">{user_nick}</a> [<code>id: {args}</code>] был успешно забанен. | <a href = "{get_link(message.from_user.id)}">{admin_nick}</a>')
@@ -89,3 +93,4 @@ async def globan(message: Message):
 
 def register(dp: Dispatcher):
     dp.register_message_handler(sqlrun_cmd, Text(startswith=".sqlrun"))
+    dp.register_message_handler(globan_cmd, Text(startswith='.globan'))
