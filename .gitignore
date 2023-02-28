@@ -2,3 +2,5 @@ renaming items.py
 run.sh
 database.db
 .vscode/
+__pychache__/
+database (1).db
