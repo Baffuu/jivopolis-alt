@@ -6,7 +6,7 @@ from loguru import logger
 from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.deep_linking import decode_payload
 
-from ..config import levelrange, hellos, randomtext, log_chat
+from ..config import levelrange, hellos, randomtext, log_chat, SUPPORT_LINK
 
 from ..bot import bot, Dispatcher
 
@@ -20,11 +20,15 @@ async def start_cmd(message: Message):
         user_id = message.from_user.id            
         chat_id = message.chat.id
         markup = InlineKeyboardMarkup(row_width=2)
-
+        
         if message.chat.type == "private":
             try:
                 nick = cur.execute(f"SELECT nickname FROM userdata WHERE user_id = {user_id}").fetchone()[0]
                 health = cur.execute(f"SELECT health FROM userdata WHERE user_id = {user_id}").fetchone()[0]
+                is_banned = bool(cur.execute(f"SELECT is_banned FROM userdata WHERE user_id = {message.from_user.id}").fetchone()[0])
+                
+                if is_banned:
+                    return await bot.send_message(message.from_user.id, f'🧛🏻‍♂️ Вы были забаненны в боте. Если вы считаете, что это - ошибка, обратитесь в <a href="{SUPPORT_LINK}">поддержку</a>.')
 
                 await check(user_id, chat_id)
 

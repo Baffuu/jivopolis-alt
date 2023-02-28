@@ -7,55 +7,66 @@ from ..bot import bot, Dispatcher
 
 from ..database.sqlitedb import cur, conn, encode_payload
 from ..database.functions import get_link
-from ..config import CREATOR, log_chat
+from ..config import log_chat, MEGACHAT, ADMINS, SUPPORT_LINK
 
 async def sqlrun_cmd(message: Message):
     try:
-        msg = message.text[8:]
-        if msg.startswith("SELECT"):
-            logger.info(f"someone catch data with SELECT: {msg}")
-            message.reply(cur.execute(msg).fetchone())
-        cur.execute(msg)
-        conn.commit()            
-        return logger.success(f"SQL command was runned: {msg}")
+        rank = cur.execute(f"SELECT rank FROM userdata WHERE user_id={message.from_user.id}").fetchone()[0]
+        is_banned = bool(cur.execute(f"SELECT is_banned FROM userdata WHERE user_id = {message.from_user.id}").fetchone()[0])
+    except TypeError:
+        return await message.reply('🧑‍🎨 Сэр, у вас нет аккаунта в живополисе. Прежде чем использовать любые комманды вам нужно зарегистрироваться.')
+    try:
+        args = message.text[8:]
+
+        if is_banned:
+            return await bot.send_message(message.from_user.id, f'🧛🏻‍♂️ Вы были забаненны в боте. Если вы считаете, что это - ошибка, обратитесь в <a href="{SUPPORT_LINK}">поддержку</a>.')
+
+        if rank < 2:
+            return await message.reply("👨‍⚖️ Сударь, эта команда доступна только админам.")
+
+        if args.startswith("SELECT"):
+            logger.info(f"someone catch data with SELECT: {args}")
+            return await message.reply(cur.execute(args).fetchone())
+
+        approve_cmds = ["select", "update", "set", "delete", "alter", "drop", "insert", "replace"] #команды, которые запрашивают одобрение мега-администрации
+        
+        for request in args.split(' '):
+            if request.lower() in approve_cmds:
+                approve_request = True
+
+        if approve_request and rank < 3:
+            cur.execute(f"UPDATE userdata SET sql='{request}' WHERE user_id={message.from_user.id}")
+            conn.commit()
+
+            await message.answer("<i>🪐 Запрос отправлен мега-админам на проверку. Вам придётся подождать, пока кто-нибудь примет или отклонит запрос.\n\
+                \n❗️При повторной отправке любого другого запроса текущий будет стёрт.</i>", parse_mode="html")
+
+            await bot.send_message(MEGACHAT, f"<i><a href=\"tg://user?id={message.from_user.id}\">{message.from_user.full_name}</a> хочет выполнить запрос:\n\
+                                \n<code>{request}</code></i>", reply_markup=InlineKeyboardMarkup(row_width=1).\
+                                add(InlineKeyboardButton(text="🔰 Подтвердить", callback_data=f"sqlrun:approve:{message.from_user.id}"), 
+                                InlineKeyboardButton(text="📛 Отклонить", callback_data=f"sqlrun:reject:{message.from_user.id}")))
+  
+        elif args.lower().startswith("select"):
+            cur.execute(args)
+
+            values = ''
+
+            for row in cur.fetchall():
+                for raw in row:
+                    values += "\n" + str(raw)
+
+            if values == '':
+                values = 'None'
+
+            return await message.answer(f"<i><b>🧑‍🔧 SQLRun вернуло следующие значения: \n</b>{values}</i>", parse_mode="html")
+        elif rank > 2:
+            cur.execute(args)
+            conn.commit()   
+            await message.reply('🧑‍🔧 sql cmd executed')         
+            return logger.success(f"SQL Query: {args}")
     
-        '''
-        request=message.text[8:].replace("<concat>", "||")
-        a = message.from_user
-        try:
-            cur.execute("SELECT rank FROM userdata WHERE user_id=?", (a.id,))
-            rang = cur.fetchone()[0]
-        except:
-            return
-        if rang<2:
-            return
-        rec = request.lower().replace(";", "").split(" ")
-        if not "update" in rec and not "set" in rec and not "delete" in rec and not "alter" in rec and not "drop" in rec and not "insert" in rec and not "replace" in rec:
-            try:
-                cur.execute(request)
-                conn.commit()
-                try:
-                    rval = ""
-                    for row in cur.fetchall():
-                        for raw in row:
-                            rval = rval+"\n"+str(raw)
-                    await message.answer("<i><b>Значения: \n</b>{0}</i>".format(rval), parse_mode="html")
-                except Exception as e:
-                    await message.answer("<i><b>Произошла незначительная ошибка при обработке запроса:</b> {0}</i>".format(e), parse_mode="html")
-                    await message.answer("<i>Запрос обработан</i>", parse_mode="html")
-            except Exception as e:
-                await message.answer("<i><b>Запрос не обработан: \n</b>{0}</i>".format(e), parse_mode = "html")
-            return
-        cur.execute("UPDATE userdata SET sql=? WHERE user_id=?", (request, a.id,))
-        conn.commit()
-        await message.answer("<i>Ваш запрос отправлен создателю бота на проверку. Если запрос не содержит код, вредящий базе данных, создатель одобрит код и вы получите результат.\n\n<b>Помните:</b> пока ваш запрос не будет одобрен или отклонён, вы не сможете отправить другой запрос</i>", parse_mode="html")
-        markup = InlineKeyboardMarkup()
-        markup.add(InlineKeyboardButton(text="✅ Подтвердить", callback_data="approve {0}".format(a.id)))
-        markup.add(InlineKeyboardButton(text="❌ Отклонить", callback_data="reject {0}".format(a.id)))
-        await bot.send_message(CREATOR, "<i><a href=\"tg://user?id={0}\">{1}{2}</a> хочет выполнить запрос:\n\n<code>{3}</code></i>".format(a.id, a.first_name, " "+a.last_name if a.last_name!=None else "", request), reply_markup=markup)
-       '''
     except Exception as e:
-        await message.answer("<i><b>Текст ошибки: </b>{0}</i>".format(e), parse_mode = "html")
+        await message.answer(f"<i><b>something went wrong: </b>{e}</i>", parse_mode = "html")
 
 async def globan_cmd(message: Message):    
     try:
@@ -71,7 +82,7 @@ async def globan_cmd(message: Message):
         return message.reply("👨‍⚖️ Сударь, эта команда доступна только админам.")
     
     else:
-        args = message.get_args()
+        args = message.text[7:]
 
         if args == '':
             return message.reply("🕵🏿‍♂️ Не хватает аргументов.")
