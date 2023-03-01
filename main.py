@@ -1,24 +1,13 @@
-import sqlite3
 import random
-import logging
 import asyncio
-from aiogram import Bot, Dispatcher, executor, types
-from aiogram.dispatcher import Dispatcher
-from aiogram.utils import executor
+from aiogram import types
 from aiogram.types import InlineQuery, InputTextMessageContent, InlineQueryResultArticle
 from time import time
 from datetime import datetime
-from math import ceil, floor
-import sys
-import os
-from config import locations, linez, LINES, banned, countries, capitals, intervals, regbuscost, trolleycost, walk, walks, ticket_time, villages, clanitems, limiteds, TOKEN, METRO, PRIZES, ID, CREATOR, ITEMS, traincost, metrocost, randomtext, createac, fid, createacc2, hellos, FOOD, aircost, CITY, levelrange, buscost, lvlcar, lvlclan, leveldesc, cabcost, lvlcab, ach, trains, fightlim
-from typing import Union
-loop = asyncio.get_event_loop()
-main = Bot(token=TOKEN)
-bot = Dispatcher(main)
+from math import ceil
+
 try:
     food = FOOD
-    logging.basicConfig(level=logging.INFO)
     less = 15
     more = 30
     lessair = 90
@@ -91,22 +80,7 @@ try:
             await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
     async def putoff(user, message):
         try:
-            a=user
-            cursor.execute('SELECT mask FROM userdata WHERE user_id=?', (a,))
-            mask = cursor.fetchone()[0]
-            if mask!='':
-                cursor.execute(f"SELECT {mask} FROM userdata WHERE user_id=?", (a,))
-                items = cursor.fetchone()[0]
-                cursor.execute('SELECT temp FROM userdata WHERE user_id=?', (a,))
-                temp = cursor.fetchone()[0]
-                cursor.execute('UPDATE userdata SET mask = ? WHERE user_id = ?', ('', a,))
-                conn.commit()
-                cursor.execute('UPDATE userdata SET rasa = ? WHERE user_id = ?', (temp, a,))
-                conn.commit()
-                cursor.execute(f"UPDATE userdata SET {mask} = ? WHERE user_id = ?", (items+1, a,))
-                conn.commit()
-            else:
-                return
+
         except Exception as e:
             await message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
             await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
@@ -2122,67 +2096,21 @@ try:
             await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
     @bot.callback_query_handler()
     async def query_handler(call: types.CallbackQuery):
-        try:
-            if call.from_user.id in banned:
-                return
-            await check(call.from_user.id, call.message.chat.id)
-            a = call.from_user.id
-            cursor.execute('SELECT prison FROM userdata WHERE user_id=?', (a,))
-            prison = cursor.fetchone()[0]
-            if prison>current_time():
-                diff = prison-current_time()
-                minutes = floor(diff/60)
-                seconds = floor(diff%60)
-                time = ''
-                if minutes!=0:
-                    time+=' {0} минут'.format(minutes)
-                if seconds!=0:
-                    time+=' {0} секунд'.format(seconds)
-                await call.answer('❌ Вы были арестованы и теперь сидите в тюрьме. Вам осталось сидеть {0}'.format(time),show_alert = True)
-                return
-            cursor.execute('SELECT health FROM userdata WHERE user_id=?', (call.from_user.id,))
-            health = cursor.fetchone()[0]
-            if health <= 0:
-                await call.answer(text='☠ Вы умерли')
-                if call.message.chat.type == 'private':
-                   await call.message.answer('<i>&#9760; Вы умерли. Попросите кого-нибудь вас воскресить</i>', parse_mode = 'html')
-                return
-        except Exception as e:
-            print(e)
-        if call.data == 'adminpanel':
-            try:
-                a = call.from_user.id
-                cursor.execute("select rang from userdata where user_id=?", (a,))
-                rang = cursor.fetchone()[0]
-                if rang < 2:
-                    await call.answer("❌ Эта команда доступна только администраторам Живополиса", show_alert = True)
-                    return
-                markup = types.InlineKeyboardMarkup(row_width = 1)
-                markup.add(types.InlineKeyboardButton(text = '❓ Помощь', callback_data='adminhelp'), 
-                           types.InlineKeyboardButton(text = '💼 Информация по предметам', callback_data='itemrows'), 
-                          types.InlineKeyboardButton(text = '📁 Файлы Живополиса', callback_data='backup'), 
-                           types.InlineKeyboardButton(text = '💬 Админские чаты', callback_data='adminchats'))
-                await call.message.answer("<i>Эти функции доступны админам. Только тсс</i>", parse_mode='html', reply_markup=markup)
-            except Exception as e:
-                await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
-        if call.data == 'itemrows':
-            try:
-                a = call.from_user.id
-                cursor.execute("select rang from userdata where user_id=?", (a,))
-                rang = cursor.fetchone()[0]
-                if rang < 2:
-                    await call.answer("❌ Эта команда доступна только администраторам Живополиса", show_alert = True)
-                    return
-                markup = types.InlineKeyboardMarkup(row_width = 10)
-                its = []
-                for itm in ITEMS[1]:
-                    its.append(types.InlineKeyboardButton(text = ITEMS[0][ITEMS[1].index(itm)], callback_data = 'itemrow '+itm))
-                markup.add(*its)
-                await call.message.answer("<i>Здесь вы можете получить секретную информацию обо всех предметах в Живополисе</i>", parse_mode='html', reply_markup=markup)
-            except Exception as e:
-                await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+        await check(call.from_user.id, call.message.chat.id)
+        a = call.from_user.id
+        cursor.execute('SELECT prison FROM userdata WHERE user_id=?', (a,))
+        prison = cursor.fetchone()[0]
+        if prison>current_time():
+            diff = prison-current_time()
+            minutes = floor(diff/60)
+            seconds = floor(diff%60)
+            time = ''
+            if minutes!=0:
+                time+=' {0} минут'.format(minutes)
+            if seconds!=0:
+                time+=' {0} секунд'.format(seconds)
+            await call.answer('❌ Вы были арестованы и теперь сидите в тюрьме. Вам осталось сидеть {0}'.format(time),show_alert = True)
+            return
         if call.data == 'adminhelp':
             try:
                 a = call.from_user.id
@@ -2204,23 +2132,6 @@ try:
                     await call.answer("❌ Эта команда доступна только администраторам Живополиса", show_alert = True)
                     return
                 await call.message.answer("<i><b>Админские чаты Живополиса</b>\n💻 Разработка Живополиса: https://t.me/+k2LZEIyZtpRiMjcy\n📣 Администрация Живополиса: https://t.me/+RKDH5__QhyQyNTA6\n🔧 Тестирование Живополиса: https://t.me/+qL1pdUcxPNo4YTY6\n👑 Администрация AppGrade Technologies: https://t.me/+WMu886sctHg2Y2Fi\n👀 ФСБ Живополиса: https://t.me/+YsKKpKg3BDkxNTFi</i>", parse_mode='html')
-            except Exception as e:
-                await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
-        if call.data.startswith('itemrow '):
-            try:
-                a = call.from_user.id
-                imt = call.data.split(' ')[1]
-                if imt in ITEMS[1]:
-                    itid = ITEMS[1].index(imt)
-                else:
-                    return
-                cursor.execute("select rang from userdata where user_id=?", (a,))
-                rang = cursor.fetchone()[0]
-                if rang < 2:
-                    await call.answer("❌ Эта команда доступна только администраторам Живополиса", show_alert = True)
-                    return
-                await call.answer('{0}{1}\nКод: {2}\nТип: {4}\nСтоимость: ${3}'.format(ITEMS[0][itid], ITEMS[2][itid], imt, ITEMS[3][itid], ITEMS[4][itid]), show_alert = True)
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
                 await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')

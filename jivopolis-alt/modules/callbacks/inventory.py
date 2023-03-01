@@ -1,5 +1,5 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery
-from ...database.sqlitedb import cur
+from ...database.sqlitedb import cur, conn
 from ...config import ITEMS, limeteds
 from ...database.functions import itemdata
 
@@ -70,8 +70,26 @@ async def inventory(call: CallbackQuery):
         mask = ''
         
     if mask != '':
-        markup.add(InlineKeyboardButton(text='❎ Снять маску', callback_data='putoff'))
+        markup.add(InlineKeyboardButton(text='❎ Снять маску', callback_data='put_mask_off'))
 
     markup.add(InlineKeyboardButton(text='🏪 Круглосуточный магазин', callback_data='shop_24'))
-
+    
     await call.message.answer('<i>Ваш инвентарь</i>', reply_markup = markup, parse_mode = 'html')
+
+async def put_mask_off(call: CallbackQuery, user_id: int):
+    mask = cur.execute(f"SELECT mask FROM userdata WHERE user_id={user_id}").fetchone()[0]
+
+    if mask:
+        for item in ITEMS:
+            if ITEMS[item][0] == mask:
+                mask = item
+
+        cur.execute(f"UPDATE userdata SET mask = NULL WHERE user_id = {user_id}")
+        conn.commit()
+
+        cur.execute(f"UPDATE userdata SET {mask} = {mask} + 1 WHERE user_id = {user_id}")
+        conn.commit()
+
+        return call.answer('🦹🏼 Ваша маска снята.', show_alert=True)
+    else:
+        return

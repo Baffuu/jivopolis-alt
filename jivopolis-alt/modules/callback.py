@@ -7,7 +7,7 @@ from ..database.functions import create_acc, check, cur
 
 from .callbacks.other import chats
 from .callbacks.for_admins import adminpanel, itemsinfo_table, itemsinfo_item
-from .callbacks.inventory import itemdesc, inventory
+from .callbacks.inventory import itemdesc, inventory, put_mask_off
 
 async def callback_handler(call: CallbackQuery):
     try:
@@ -44,6 +44,8 @@ async def callback_handler(call: CallbackQuery):
                 await bot.delete_message(call.message.chat.id, call.message.message_id)
             case 'no_items_in_inventory':
                 await call.answer('🙉  У вас в инвентаре нет предметов. Но вы всегда можете их купить.', show_alert=True)
+            case 'put_mask_off':
+                await put_mask_off(call, call.from_user.id)
             case _:
                 return await call.answer('command not found', show_alert=True)
     except TypeError:
