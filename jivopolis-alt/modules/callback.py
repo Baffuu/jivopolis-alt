@@ -6,8 +6,8 @@ from ..bot import bot, Dispatcher
 from ..database.functions import create_acc, check, cur, profile
 
 from .callbacks.other import chats, my_refferals
-from .callbacks.for_admins import adminpanel, itemsinfo_table, itemsinfo_item
-from .callbacks.inventory import itemdesc, inventory, put_mask_off
+from .callbacks.for_admins import adminpanel, itemsinfo_table, itemsinfo_item, adminhelp
+from .callbacks.inventory import itemdesc, inventory, put_mask_off, open_lootbox
 
 async def callback_handler(call: CallbackQuery):
     try:
@@ -50,6 +50,10 @@ async def callback_handler(call: CallbackQuery):
                 await my_refferals(call.message, call.message.id)
             case 'profile':
                 await profile(call.from_user.id, call.message, True)
+            case 'mailbox' | 'open_lootbox':
+                await open_lootbox(call.from_user.id, call.message)
+            case 'adminhelp':
+                await adminhelp(call, call.from_user.id)
             case _:
                 return await call.answer('command not found', show_alert=True)
     except TypeError:

@@ -57,3 +57,11 @@ async def itemsinfo_item(call: CallbackQuery, user_id: int):
             type = 'undefined'
 
     await call.answer(f'{ITEMS[item][0]}{ITEMS[item][2]}\nКод: {item}\nТип: {type}\nСтоимость: ${cost}', show_alert = True)
+
+async def adminhelp(call: CallbackQuery, user_id: int):
+    rank = cur.execute(f"SELECT rank FROM userdata WHERE user_id={user_id}").fetchone()[0]
+
+    if rank < 2:
+        return await call.answer("❌ Эта команда доступна только администраторам Живополиса", show_alert = True)
+        
+    return await call.message.answer("<i><b>Статьи для админов</b>\nАдминская документация: https://telegra.ph/Administratorskaya-dokumentaciya-ZHivopolisa-01-03\nПособие по использованию /sqlrun: https://telegra.ph/Administratorskaya-dokumentaciya-ZHivopolisa-Komanda-sqlrun-07-25</i>", parse_mode='html')

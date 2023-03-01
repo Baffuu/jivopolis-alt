@@ -2074,18 +2074,6 @@ try:
                 time+=' {0} секунд'.format(seconds)
             await call.answer('❌ Вы были арестованы и теперь сидите в тюрьме. Вам осталось сидеть {0}'.format(time),show_alert = True)
             return
-        if call.data == 'adminhelp':
-            try:
-                a = call.from_user.id
-                cursor.execute("select rang from userdata where user_id=?", (a,))
-                rang = cursor.fetchone()[0]
-                if rang < 2:
-                    await call.answer("❌ Эта команда доступна только администраторам Живополиса", show_alert = True)
-                    return
-                await call.message.answer("<i><b>Статьи для админов</b>\nАдминская документация: https://telegra.ph/Administratorskaya-dokumentaciya-ZHivopolisa-01-03\nПособие по использованию /sqlrun: https://telegra.ph/Administratorskaya-dokumentaciya-ZHivopolisa-Komanda-sqlrun-07-25</i>", parse_mode='html')
-            except Exception as e:
-                await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
         if call.data == 'adminchats':
             try:
                 a = call.from_user.id
