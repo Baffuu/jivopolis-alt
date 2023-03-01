@@ -1,7 +1,9 @@
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery
+import random
+from math import ceil
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, Message
 from ...database.sqlitedb import cur, conn
 from ...config import ITEMS, limeteds
-from ...database.functions import itemdata
+from ...database.functions import itemdata, current_time
 
 async def itemdesc(call: CallbackQuery, user_id: int):
     item = call.data
@@ -93,3 +95,31 @@ async def put_mask_off(call: CallbackQuery, user_id: int):
         return call.answer('🦹🏼 Ваша маска снята.', show_alert=True)
     else:
         return
+
+async def open_lootbox(user_id: int, message: Message): #todo: NEW BOXES
+    mailbox = cur.execute(f"SELECT last_box FROM userdata WHERE user_id = {user_id}").fetchone()[0]
+    difference: float = current_time() - mailbox
+    lootbox: int = cur.execute(f"SELECT lootbox FROM userdata WHERE user_id={user_id}").fetchone()[0]
+    if difference >= 86400:
+        cur.execute(f"UPDATE userdata SET last_box = {current_time()} WHERE user_id = {user_id}")
+        conn.commit()
+    elif lootbox > 0:
+        cur.execute(f"UPDATE userdata SET lootbox = lootbox - 1 WHERE user_id = {user_id}")
+        conn.commit()
+    else:
+        h = int(24-ceil(difference/3600))
+        m = int(60-ceil(difference%3600/60))
+        s = int(60-ceil(difference%3600%60))
+        markup = InlineKeyboardMarkup().add(InlineKeyboardButton(text='🖇 Пригласить пользователей', callback_data='reflink'))
+        return await message.answer(f'<i>&#10060; Проверять почтовый ящик можно только 1 раз в 24 часа. До следующей проверки осталось {h} часов {m} минут {s} секунд.\n\nЧтобы получать внеочередные ящики, приглашайте пользователей в Живополис. За каждого приглашённого пользователя вы получаете лутбокс, с помощью которого можно открыть ящик в любое время</i>', parse_mode='html', reply_markup=markup)
+    
+    situation = random.uniform(0, 1)
+
+    if situation>=0.2:
+        rand = random.randint(1,26)
+
+        cur.execute(f"UPDATE userdata SET balance = balance + {rand} WHERE user_id = {user_id}")
+        conn.commit()
+        return await message.answer(f'<i><b>Поздравляем!</b>\nВы заработали <b>${rand}</b></i>', parse_mode = 'html')
+    else:
+        return await message.answer('<i>В ящике вы нашли только старую газету, которая теперь не стоит ни гроша</i>', parse_mode = 'html')

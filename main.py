@@ -198,37 +198,6 @@ try:
         markup.add(*stops)
         markup.add(types.InlineKeyboardButton(text='🏛 Выйти в город', callback_data='city'))
         await call.message.answer('🚏 <i>Вы находитесь на остановке <b>{0}</b>\n\n❗ Стоимость одной поездки на маршрутке 🚐 составляет <b>${1}</b>, на автобусе 🚌 - <b>${2}</b></i>'.format(station, buscost, regbuscost), parse_mode = 'html', reply_markup = markup)
-    async def aschik(user, message):
-        try:
-            a = user
-            cursor.execute('SELECT box FROM userdata WHERE user_id = ?', (a,))
-            box = cursor.fetchone()[0]
-            cursor.execute('SELECT box FROM userdata WHERE user_id = ?', (a,))
-            box = cursor.fetchone()[0]
-            diff = current_time() - box
-            if diff >= 86400:
-                cursor.execute('UPDATE userdata SET box = ? WHERE user_id = ?', (current_time(), a,))
-                conn.commit()
-                situation = random.uniform(0,1)
-                if situation>=0.2:
-                    rand = random.randint(1,26)
-                    cursor.execute('SELECT balance FROM userdata WHERE user_id = ?', (a,))
-                    balance = cursor.fetchone()[0]
-                    cursor.execute('UPDATE userdata SET balance = ? WHERE user_id = ?', (balance+rand, a,))
-                    conn.commit()
-                    await message.answer('<i><b>Поздравляем!</b>\nВы заработали <b>${0}</b></i>'.format(rand), parse_mode = 'html')
-                else:
-                    await message.answer('<i>В ящике вы нашли только старую газету, которая теперь не стоит ни гроша</i>', parse_mode = 'html')
-            else:
-                h = int(24-ceil(diff/3600))
-                m = int(60-ceil(diff%3600/60))
-                s = int(60-ceil(diff%3600%60))
-                markup = types.InlineKeyboardMarkup()
-                markup.add(types.InlineKeyboardButton(text='🖇 Пригласить пользователей', callback_data='reflink'))
-                await message.answer('<i>&#10060; Проверять почтовый ящик можно только 1 раз в 24 часа. До следующей проверки осталось {0} часов {1} минут {2} секунд.\n\nЧтобы получать внеочередные ящики, приглашайте пользователей в Живополис. За каждого приглашённого пользователя вы получаете лутбокс, с помощью которого можно открыть ящик в любое время</i>'.format(h,m,s), parse_mode='html', reply_markup=markup)
-        except Exception as e:
-            await message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-            await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
     async def ask(user, message):
         try:
             a = user
@@ -2378,8 +2347,6 @@ try:
             await call.answer(text='Отличный выбор!')
             await setrasa(call.message, call.from_user, '&#129417;', 4)
             await main.delete_message(call.message.chat.id, call.message.message_id)
-        if call.data == 'mailbox':
-            await aschik(call.from_user.id, call.message)
         if call.data == 'reflink':
             try:
                 a = call.from_user.id
@@ -2465,22 +2432,6 @@ try:
                 cursor.execute('UPDATE userdata SET place=? WHERE user_id=?', (nextstation,a,))
                 conn.commit()
                 await buscall(call)
-            except Exception as e:
-                await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
-        if call.data == 'open_lootbox':
-            try:
-                a = call.from_user.id
-                cursor.execute('SELECT lootbox FROM userdata WHERE user_id=?', (a,))
-                lootbox = cursor.fetchone()[0]
-                if lootbox>=1:
-                    cursor.execute('UPDATE userdata SET box=0 WHERE user_id=?', (a,))
-                    conn.commit()
-                    cursor.execute('UPDATE userdata SET lootbox=? WHERE user_id=?', (lootbox-1, a,))
-                    conn.commit()
-                    await aschik(call.from_user.id, call.message)
-                else:
-                    await call.message.answer('&#10060; <i>У вас нет этого предмета</i>', parse_mode='html')
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
                 await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
