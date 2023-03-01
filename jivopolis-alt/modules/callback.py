@@ -3,7 +3,7 @@ from aiogram.types import CallbackQuery
 from ..config import ITEMS, SUPPORT_LINK
 from ..bot import bot, Dispatcher
 
-from ..database.functions import create_acc, check, cur
+from ..database.functions import create_acc, check, cur, profile
 
 from .callbacks.other import chats, my_refferals
 from .callbacks.for_admins import adminpanel, itemsinfo_table, itemsinfo_item
@@ -48,6 +48,8 @@ async def callback_handler(call: CallbackQuery):
                 await put_mask_off(call, call.from_user.id)
             case 'my_refferals':
                 await my_refferals(call.message, call.message.id)
+            case 'profile':
+                await profile(call.from_user.id, call.message, True)
             case _:
                 return await call.answer('command not found', show_alert=True)
     except TypeError:
