@@ -13,7 +13,7 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeybo
 from ..database.sqlitedb import cur, conn, insert_user
 from ..misc import current_time, get_link, get_mask
 
-async def check(user_id: str, chat_id: str) -> None:
+async def check(user_id: int, chat_id: str) -> None:
     try:
         lastfill = current_time() - cur.execute("SELECT lastfill FROM globaldata").fetchone()[0]
 
@@ -66,7 +66,7 @@ async def check(user_id: str, chat_id: str) -> None:
                  
     except Exception as e:
         if "NoneType" in str(e):
-            pass
+            logger.exception(e)
         else:
             return logger.exception(e)
 
@@ -394,7 +394,7 @@ async def profile(user_id: int, message: Message, called: bool = False):
 
     lastseen = ""
 
-    if years > 0:
+    if years > 1:
         lastseen = "очень давно"
     elif monthes != 0:
         match (monthes):
@@ -459,8 +459,11 @@ async def profile(user_id: int, message: Message, called: bool = False):
     register_date = f"{reg_day} {reg_month} {reg_year}"
     
     markup = InlineKeyboardMarkup()
+    
+    print(user_id)
+    print(message.from_user.id)
+    if (message.chat.type == "private" and message.from_user.id == user_id) or called:
 
-    if message.chat.type == "private" and message.from_user.id == user_id:
         markup.add(InlineKeyboardButton(text="💡 Достижения", callback_data="achievements"))
         markup.add(InlineKeyboardButton(text="⚙ Настройки", callback_data="user_settings"))
         markup.add(InlineKeyboardButton(text="🖇 Реферальная ссылка", callback_data="reflink"))
