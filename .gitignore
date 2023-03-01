@@ -4,3 +4,4 @@ database.db
 .vscode/
 __pychache__/
 database (1).db
+main.py

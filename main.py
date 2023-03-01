@@ -2484,21 +2484,6 @@ try:
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
                 await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
-        if call.data == 'putoff':
-            try:
-                a = call.from_user.id
-                cursor.execute('SELECT mask FROM userdata WHERE user_id=?', (a,))
-                mask = cursor.fetchone()[0]
-                if mask!='':
-                    await putoff(call.from_user.id, call.message)
-                    cursor.execute('SELECT rasa FROM userdata WHERE user_id=?', (a,))
-                    await call.message.answer('<i>Ваша раса: {0}</i>'.format(cursor.fetchone()[0]), parse_mode='html')
-                    await main.delete_message(call.message.chat.id, call.message.message_id)
-                else:
-                    await call.answer('❌ У вас нет маски')
-            except Exception as e:
-                await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
         if call.data == 'central_market':
             try:
                 a = call.from_user.id
@@ -3919,8 +3904,6 @@ try:
             await main.delete_message(call.message.chat.id, call.message.message_id)
         if call.data == 'chats':
             await chats(call.from_user.id, call.message)
-        if call.data == 'profile':
-            await profile(call.from_user.id, call.message, called=True)
         if call.data == 'economics':
             try:
                 cursor.execute("SELECT kazna FROM globaldata")
