@@ -44,6 +44,7 @@ def create_userdata() -> None:
     current_place   TEXT            DEFAULT \"Вокзальная\"  NOT NULL,
     line            INTEGER         DEFAULT 2               NOT NULL,
 
+    sql             TEXT,
     rank            INTEGER         DEFAULT 0               NOT NULL,
     process         TEXT,
     is_banned       BOOL            DEFAULT False           NOT NULL,

@@ -6,7 +6,7 @@ from ..bot import bot, Dispatcher
 from ..database.functions import create_acc, check, cur, profile
 
 from .callbacks.other import chats, my_refferals
-from .callbacks.for_admins import adminpanel, itemsinfo_table, itemsinfo_item, adminhelp
+from .callbacks.for_admins import adminpanel, itemsinfo_table, itemsinfo_item, adminhelp, sqlapprove, sqldecline
 from .callbacks.inventory import itemdesc, inventory, put_mask_off, open_lootbox
 
 async def callback_handler(call: CallbackQuery):
@@ -47,13 +47,18 @@ async def callback_handler(call: CallbackQuery):
             case 'put_mask_off':
                 await put_mask_off(call, call.from_user.id)
             case 'my_refferals':
-                await my_refferals(call.message, call.message.id)
+                await my_refferals(call.message, call.from_user.id)
             case 'profile':
                 await profile(call.from_user.id, call.message, True)
             case 'mailbox' | 'open_lootbox':
                 await open_lootbox(call.from_user.id, call.message)
             case 'adminhelp':
                 await adminhelp(call, call.from_user.id)
+            case sql_request if sql_request.startswith('sqlrun:'):
+                if call.data.startswith('sqlrun:approve:'):
+                    await sqlapprove(call)
+                elif call.data.startswith('sqlrun:decline:'):
+                    await sqldecline(call)
             case _:
                 return await call.answer('command not found', show_alert=True)
     except TypeError:

@@ -33,6 +33,8 @@ async def sqlrun_cmd(message: Message):
         for request in args.split(' '):
             if request.lower() in approve_cmds:
                 approve_request = True
+            else:
+                approve_request = False
 
         if approve_request and rank < 3:
             cur.execute(f"UPDATE userdata SET sql='{request}' WHERE user_id={message.from_user.id}")
@@ -44,7 +46,7 @@ async def sqlrun_cmd(message: Message):
             await bot.send_message(MEGACHAT, f"<i><a href=\"tg://user?id={message.from_user.id}\">{message.from_user.full_name}</a> хочет выполнить запрос:\n\
                                 \n<code>{request}</code></i>", reply_markup=InlineKeyboardMarkup(row_width=1).\
                                 add(InlineKeyboardButton(text="🔰 Подтвердить", callback_data=f"sqlrun:approve:{message.from_user.id}"), 
-                                InlineKeyboardButton(text="📛 Отклонить", callback_data=f"sqlrun:reject:{message.from_user.id}")))
+                                InlineKeyboardButton(text="📛 Отклонить", callback_data=f"sqlrun:decline:{message.from_user.id}")))
   
         elif args.lower().startswith("select"):
             cur.execute(args)

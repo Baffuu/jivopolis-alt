@@ -7,7 +7,6 @@ from datetime import datetime
 from math import ceil
 
 try:
-    food = FOOD
     less = 15
     more = 30
     lessair = 90
@@ -16,8 +15,6 @@ try:
     moretrain = 60
     lessbus = 5
     morebus = 20
-    prizes = PRIZES
-    items = ITEMS
 
     async def battle(message, a, oth):
         try:
@@ -604,7 +601,6 @@ try:
         except Exception as e:
             await message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
             await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
-    metro = METRO
     @bot.message_handler(commands='start')
     async def startdef(message: types.Message):
             else:
@@ -2113,55 +2109,8 @@ try:
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
                 await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
-        if call.data.startswith('approve '):
-            try:
-                a = int(call.data.split(' ')[1])
-                b = call.from_user.id
-                cursor.execute("SELECT rang FROM userdata WHERE user_id=?", (b,))
-                rang = cursor.fetchone()[0]
-                if rang<3:
-                    return
-                cursor.execute("SELECT sql FROM userdata WHERE user_id=?", (a,))
-                request = cursor.fetchone()[0]
-                cursor.execute("UPDATE userdata SET sql=? WHERE user_id=?", ('', a,))
-                conn.commit()
-                await main.send_message(a, '✅ <i>Ваш запрос был подтверждён создателем:\n\n<code>{0}</code></i>'.format(request), parse_mode='html')
-                cursor.execute(request)
-                conn.commit()
-                try:
-                    rval = ''
-                    for row in cursor.fetchall():
-                        for raw in row:
-                            rval = rval+'\n'+str(raw)
-                    await call.message.answer('<i><b>Значения: \n</b>{0}</i>'.format(rval), parse_mode='html')
-                    if a!=b:
-                        await main.send_message(a, '<i><b>Значения: \n</b>{0}</i>'.format(rval), parse_mode='html')
-                except Exception as e:
-                    await call.message.answer('<i><b>Произошла незначительная ошибка при обработке запроса:</b> {0}</i>'.format(e), parse_mode='html')
-                    await call.message.answer('<i>Запрос обработан</i>', parse_mode='html')
-                    if a!=b:
-                        await main.send_message(a, '<i>Запрос обработан</i>', parse_mode='html')
-            except Exception as e:
-                await call.message.answer('<i><b>Запрос не обработан: \n</b>{0}</i>'.format(e), parse_mode = 'html')
-                if a!=b:
-                    await main.send_message(a, '<i><b>Запрос не обработан: \n</b>{0}</i>'.format(e), parse_mode = 'html')
-        if call.data.startswith('reject '):
-            try:
-                a = int(call.data.split(' ')[1])
-                b = call.from_user.id
-                cursor.execute("SELECT rang FROM userdata WHERE user_id=?", (b,))
-                rang = cursor.fetchone()[0]
-                if rang<3:
-                    return
-                cursor.execute("SELECT sql FROM userdata WHERE user_id=?", (a,))
-                request = cursor.fetchone()[0]
-                cursor.execute("UPDATE userdata SET sql=? WHERE user_id=?", ('', a,))
-                conn.commit()
-                await call.answer('Запрос отклонён', show_alert=True)
-                await main.send_message(a, '❌ <i>Ваш запрос был отклонён создателем:\n\n<code>{0}</code></i>'.format(request), parse_mode='html')
-                await main.delete_message(call.message.chat.id, call.message.message_id)
-            except Exception as e:
-                await call.message.answer('<i><b>&#10060; Ошибка: </b>{0}</i>'.format(e), parse_mode = 'html')
+
+        
         if call.data.startswith('eat_'):
             try:
                 a = call.from_user.id

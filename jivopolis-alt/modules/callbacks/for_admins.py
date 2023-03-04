@@ -1,5 +1,5 @@
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
-from ...database.sqlitedb import cur
+from ...database.functions import cur, conn, bot
 from ...config import ITEMS
 
 async def adminpanel(call: CallbackQuery, user_id: int):
@@ -62,6 +62,69 @@ async def adminhelp(call: CallbackQuery, user_id: int):
     rank = cur.execute(f"SELECT rank FROM userdata WHERE user_id={user_id}").fetchone()[0]
 
     if rank < 2:
-        return await call.answer("❌ Эта команда доступна только администраторам Живополиса", show_alert = True)
+        return await call.answer("👨‍⚖️ Сударь, эта команда доступна только администраторам. ", show_alert = True)
         
     return await call.message.answer("<i><b>Статьи для админов</b>\nАдминская документация: https://telegra.ph/Administratorskaya-dokumentaciya-ZHivopolisa-01-03\nПособие по использованию /sqlrun: https://telegra.ph/Administratorskaya-dokumentaciya-ZHivopolisa-Komanda-sqlrun-07-25</i>", parse_mode='html')
+
+async def sqlapprove(call: CallbackQuery):
+    try:
+        request_user_id = call.data.split(':')[2]
+        user_id = call.from_user.id
+        rank = cur.execute(f"SELECT rank FROM userdata WHERE user_id={user_id}").fetchone()[0]
+
+        if rank < 3:
+            return call.answer('👨‍⚖️ Сударь, эта команда доступна только администраторам.', show_alert=True)
+        
+        request: str = cur.execute(f"SELECT sql FROM userdata WHERE user_id={request_user_id}").fetchone()[0]
+
+        if not request:
+            return call.answer("404: request not found")
+        
+        cur.execute(f"UPDATE userdata SET sql=NULL WHERE user_id={request_user_id}")
+        conn.commit()
+
+        await bot.send_message(user_id, f'✅ <i>Ваш запрос был подтверждёn:\n\n<code>{request}</code></i>')
+        
+        cur.execute(request)
+        if "select" in request.lower():
+            try:
+                rval = ''
+                for row in cur.fetchall():
+                    for slot in row:
+                        rval = rval+'\n'+str(slot)
+                await call.message.answer(f'<i><b>Значения: \n</b>{rval}</i>', parse_mode='html')
+                if request_user_id  !=  user_id:
+                    await bot.send_message(request_user_id, f'<i><b>Значения: \n</b>{rval}</i>', parse_mode='html')
+            except Exception as e:
+                await call.message.answer(f'<i><b>Произошла незначительная ошибка при обработке запроса:</b> {e}</i>', parse_mode='html')
+                await call.message.answer('<i>Запрос обработан</i>', parse_mode='html')
+                if request_user_id!=user_id:
+                    await bot.send_message(request_user_id, '<i>Запрос обработан</i>')
+        else:
+            conn.commit()
+        
+    except Exception as e:
+        await call.message.answer(f'<i><b>Запрос не обработан: \n</b>{e}</i>', parse_mode = 'html')
+        if request_user_id!=user_id:
+            await bot.send_message(request_user_id, f'<i><b>Запрос не обработан: \n</b>{e}</i>')
+
+async def sqldecline(call: CallbackQuery):
+    try:
+        request_user_id = call.data.split(':')[2]
+        user_id = call.from_user.id
+        rank = cur.execute(f"SELECT rank FROM userdata WHERE user_id={user_id}").fetchone()[0]
+        
+        if rank < 3:
+            return call.answer('👨‍⚖️ Сударь, эта команда доступна только администраторам.', show_alert=True)
+
+        request = cur.execute(f"SELECT sql FROM userdata WHERE user_id={request_user_id}").fetchone()[0]
+       
+        cur.execute(f"UPDATE userdata SET sql=NULL WHERE user_id={request_user_id}")
+        conn.commit()
+
+        await call.answer('Запрос отклонён', show_alert=True)
+        await bot.send_message(request_user_id, f'❌ <i>Ваш запрос был отклонён создателем:\n\n<code>{request}</code></i>', parse_mode='html')
+        return await bot.delete_message(call.message.chat.id, call.message.message_id)
+    
+    except Exception as e:
+        return await call.message.answer(f'<i><b>&#10060; Ошибка: </b>{e}</i>', parse_mode = 'html')
