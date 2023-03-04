@@ -33,13 +33,14 @@ async def check(user_id: int, chat_id: str) -> None:
             cur.execute(f"UPDATE userdata SET rank=3 WHERE user_id={user_id}")
             conn.commit()
 
+        '''
         lastelec = current_time() - cur.execute(f"SELECT lastelec FROM userdata WHERE user_id={user_id}").fetchone()[0]
 
         if lastelec > 86400:
             cur.execute(f"UPDATE userdata set electimes=0 WHERE user_id={user_id}")
             conn.commit()
             cur.execute(f"UPDATE userdata set lastelec={current_time()} WHERE user_id={user_id}")
-            conn.commit()
+            conn.commit()'''
 
         lvl = cur.execute(f"SELECT level FROM userdata WHERE user_id={user_id}").fetchone()[0]
 

@@ -18,6 +18,11 @@ if sys.version_info < (3, 10, 0):
 async def on_startup(dp : Dispatcher):
     try:
         connect_database()
+        
+        from .database.sqlitedb import cur, conn
+        cur.execute("INSERT INTO globaldata(treasury) VALUES (0)")
+        conn.commit()
+
         try:
             await bot.send_message(log_chat, '✅ <i>Бот перезагружен\n#bot_reload</i>')
         except ChatNotFound:

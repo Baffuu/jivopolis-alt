@@ -143,7 +143,8 @@ def create_globaldata() -> None:
     pelmeni         INTEGER,
     soup            INTEGER,
     meat_on_bone    INTEGER,
-    pita            INTEGER
+    pita            INTEGER,
+    tea             INTEGER
 )""")
 
 def create_clandata() -> None:
