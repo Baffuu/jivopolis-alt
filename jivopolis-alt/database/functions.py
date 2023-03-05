@@ -5,7 +5,7 @@ from datetime import datetime
 from math import floor
 from typing import Union
 
-from ..config import limeteds, CREATOR, leveldesc, levelrange, ITEMS, ach, log_chat, SUPPORT_LINK, ADMINS
+from ..config import limeteds, CREATOR, leveldesc, levelrange, ITEMS, ach, log_chat, SUPPORT_LINK, ADMINS, clanitems
 
 from ..bot import bot
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardRemove, CallbackQuery, User, Message
@@ -82,6 +82,29 @@ async def itemdata(user_id: int, item: str) -> Union[str, None, InlineKeyboardBu
             return "emptyslot"           
     except Exception as e:         
         return logger.exception(e)
+
+def buybutton(item: str, status: str = None, tip: int = 0) -> Union[str, InlineKeyboardButton]:
+    if item in ITEMS:
+        name = ITEMS[2][ITEMS[1].index(item)]
+        icon = ITEMS[0][ITEMS[1].index(item)]
+        cost = ITEMS[item][3] + tip
+
+        if not status:
+            return InlineKeyboardButton(f'{icon} {name} - ${cost}', callback_data=f'buy_{item} {tip}')
+        elif status == 'limited':
+            if item in limeteds:
+                return InlineKeyboardButton(f'{icon} {name} - ${cost}', callback_data=f'buy24_{item}')
+            else:
+                return 'emptyslot'
+        elif status == 'clan':
+            if item in clanitems[0]:
+                return InlineKeyboardButton(text=f'{icon} {name} - ${clanitems[1][clanitems[0].index(item)+tip]}', callback_data=f'buyclan_{item}')
+            else:
+                return 'emptyslot'
+        else:
+            return 'emptyslot'
+    else:
+        return 'emptyslot'
 
 async def eat(call: CallbackQuery, food: str) -> None:
     user_id = call.from_user.id

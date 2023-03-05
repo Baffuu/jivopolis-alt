@@ -430,56 +430,7 @@ try:
         except Exception as e:
             await message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
             await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
-    def buybutton(item, status='', tip = 0):
-        if item in ITEMS[1]:
-            name = ITEMS[2][ITEMS[1].index(item)]
-            icon = ITEMS[0][ITEMS[1].index(item)]
-            if status == '':
-                return types.InlineKeyboardButton(text='{0} {1} - ${2}'.format(icon, name, ITEMS[3][ITEMS[1].index(item)]+tip), callback_data='buy_{0} {1}'.format(item, tip))
-            elif status == 'limited':
-                if item in limiteds:
-                    return types.InlineKeyboardButton(text='{0} {1} - ${2}'.format(icon, name, ITEMS[3][ITEMS[1].index(item)]+tip), callback_data='buy24_{0}'.format(item))
-                else:
-                    return 'emptyslot'
-            elif status == 'clan':
-                if item in clanitems[0]:
-                    return types.InlineKeyboardButton(text='{0} {1} - ${2}'.format(icon, name, clanitems[1][clanitems[0].index(item)]+tip), callback_data='buyclan_{0}'.format(item))
-                else:
-                    return 'emptyslot'
-            else:
-                return 'emptyslot'
-        else:
-            return 'emptyslot'
-    async def put(call, item, emoji, code, user):
-        try:
-            a = user.id
-            message = call.message
-            await putoff(a, message)
-            cursor.execute('SELECT {0} FROM userdata WHERE user_id = ?'.format(code), (a,))
-            itm = cursor.fetchone()[0]
-            if itm>=1:
-                cursor.execute('SELECT rasa FROM userdata WHERE user_id = ?', (a,))
-                rasa = cursor.fetchone()[0]
-                cursor.execute('UPDATE userdata SET temp = ? WHERE user_id = ?', (rasa, a,))
-                conn.commit()
-                cursor.execute('UPDATE userdata SET rasa = ? WHERE user_id = ?', (emoji, a,))
-                conn.commit()
-                cursor.execute('UPDATE userdata SET mask = ? WHERE user_id = ?', (code, a,))
-                conn.commit()
-                cursor.execute('UPDATE userdata SET {0} = ? WHERE user_id = ?'.format(code), (itm-1, a,))
-                conn.commit()
-                cursor.execute('SELECT rasa FROM userdata WHERE user_id = ?', (a,))
-                rasa = cursor.fetchone()[0]
-                if rasa in ITEMS[6]:
-                    await call.answer(text='Отличный выбор! Ваша маска: {0}'.format(ITEMS[0][ITEMS[6].index(rasa)]), show_alert = True)
-                else:
-                    await message.answer('<i>Ваша маска: {0}</i>'.format(rasa), parse_mode='html')
-                await achieve(a, message.chat.id, 'msqrd')
-            else:
-                await call.answer(text='❌ У вас нет этого предмета', show_alert = True)
-        except Exception as e:
-            await message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-            await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+  
     async def setrasa(message, user, rasa, photo):
         photos = ['https://te.legra.ph/file/e088cc301adede07db382.jpg', 'https://te.legra.ph/file/ae98cd7c2cad60f6fdcd1.jpg', 'https://te.legra.ph/file/3f3cbfb04a7d1c39bb849.jpg', 'https://te.legra.ph/file/debe702d527967f9afd9a.jpg', 'https://te.legra.ph/file/5a07905d42444f2294418.jpg']
         try:
@@ -1938,10 +1889,7 @@ try:
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
                 await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
-        if call.data.startswith('eat_'):
 
-            except Exception as e:
-                await call.message.answer('<i><b>&#10060; Ошибка: </b>{0}</i>'.format(e), parse_mode = 'html');
         if call.data.startswith('buy_'):
             try:
                 a = call.from_user

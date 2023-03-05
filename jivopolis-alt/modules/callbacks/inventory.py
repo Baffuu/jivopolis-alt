@@ -17,7 +17,7 @@ async def itemdesc(call: CallbackQuery, user_id: int):
     except TypeError:
         mask = None
 
-    status = ITEMS[item][4][1]
+    status = ITEMS[item][4][0]
 
     markup = InlineKeyboardMarkup()
 

@@ -2,13 +2,13 @@ from aiogram.types import CallbackQuery
 
 from ..config import ITEMS, SUPPORT_LINK
 from ..bot import bot, Dispatcher
-
+from loguru import logger
 from ..database.functions import create_acc, check, cur, profile, eat
 
 from .callbacks.other import chats, my_refferals
 from .callbacks.for_admins import adminpanel, itemsinfo_table, itemsinfo_item, adminhelp, sqlapprove, sqldecline, restart
-from .callbacks.inventory import itemdesc, inventory, put_mask_off, open_lootbox
-from .callbacks.user_profile import set_user_bio
+from .callbacks.inventory import itemdesc, inventory, open_lootbox
+from .callbacks.user_profile import set_user_bio, put_mask_off, put_mask_on
 
 async def callback_handler(call: CallbackQuery):
     try:
@@ -47,6 +47,8 @@ async def callback_handler(call: CallbackQuery):
                 await call.answer('🙉  У вас в инвентаре нет предметов. Но вы всегда можете их купить.', show_alert=True)
             case 'put_mask_off':
                 await put_mask_off(call, call.from_user.id)
+            case mask if mask.startswith('put_mask_on_'):
+                await put_mask_on(call, call.data[12:])
             case 'my_refferals':
                 await my_refferals(call.message, call.from_user.id)
             case 'profile':
@@ -68,10 +70,11 @@ async def callback_handler(call: CallbackQuery):
                 await eat(call, call.data[4:])
             case _:
                 return await call.answer('♿️ 404: команда не найдена.', show_alert=True)
-    except TypeError:
+    except TypeError as e:
+        logger.exception(e)
         if call.data == 'sign_up':
             await create_acc(call.from_user, call.message.chat.id)
-            return call.answer('☁️ Записываем ваши данные…')
+            return await call.answer('☁️ Записываем ваши данные…')
         return await call.answer("🧑‍🎨 Сэр, у вас нет аккаунта в живополисе. Прежде чем использовать любые комманды вам нужно зарегистрироваться.", show_alert=True)
     return await call.answer('...')
         
