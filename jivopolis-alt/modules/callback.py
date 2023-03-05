@@ -8,6 +8,7 @@ from ..database.functions import create_acc, check, cur, profile
 from .callbacks.other import chats, my_refferals
 from .callbacks.for_admins import adminpanel, itemsinfo_table, itemsinfo_item, adminhelp, sqlapprove, sqldecline, restart
 from .callbacks.inventory import itemdesc, inventory, put_mask_off, open_lootbox
+from .callbacks.user_profile import set_user_bio
 
 async def callback_handler(call: CallbackQuery):
     try:
@@ -61,12 +62,14 @@ async def callback_handler(call: CallbackQuery):
                     await sqldecline(call)
             case 'restart_bot':
                 await restart(call)
+            case 'set_user_bio':
+                await set_user_bio(call)
             case _:
-                return await call.answer('command not found', show_alert=True)
+                return await call.answer('♿️ 404: команда не найдена.', show_alert=True)
     except TypeError:
         if call.data == 'sign_up':
             await create_acc(call.from_user, call.message.chat.id)
-            return #todo
+            return call.answer('☁️ Записываем ваши данные…')
         return await call.answer("🧑‍🎨 Сэр, у вас нет аккаунта в живополисе. Прежде чем использовать любые комманды вам нужно зарегистрироваться.", show_alert=True)
     return await call.answer('...')
         
