@@ -532,4 +532,13 @@ async def profile(user_id: int, message: Message, called: bool = False):
         except:
             await message.answer(prof, parse_mode = "html", reply_markup = markup)'''
 
+async def earn(message: Message, money: int, user_id: int = None):
+    if user_id:
+        pass
+    else:
+        user_id = message.from_user.id
+
+    cur.execute(f"UPDATE userdata SET balance = balance+{money} WHERE user_id = {user_id}")
+    conn.commit()
+    
 # todo battle
