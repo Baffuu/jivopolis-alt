@@ -4320,15 +4320,7 @@ try:
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
                 await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
-        if call.data == 'restart_bot':
-            try:
-                if call.from_user.id!=CREATOR:
-                    await call.answer("❌ Эта команда доступна только создателю Живополиса :>", show_alert = True)
-                    return
-                await call.answer("Перезагрузка...")
-                os.execv(sys.executable, ['python3'] + sys.argv)
-            except Exception as e:
-                await call.message.answer('<i><b>Ошибка: </b>{0}</i>'.format(e), parse_mode = 'html')
+
         if call.data == 'clear_user_photo':
             try:
                 a = call.from_user.id

@@ -1,6 +1,7 @@
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
 from ...database.functions import cur, conn, bot
 from ...config import ITEMS
+import os, sys
 
 async def adminpanel(call: CallbackQuery, user_id: int):
     rank = cur.execute(f"SELECT rank FROM userdata WHERE user_id={user_id}").fetchone()[0]
@@ -13,8 +14,11 @@ async def adminpanel(call: CallbackQuery, user_id: int):
                InlineKeyboardButton(text = '💼 Информация по предметам', callback_data='itemsinfo_table'), 
                InlineKeyboardButton(text = '📁 Файлы Живополиса', callback_data='backup'), 
                InlineKeyboardButton(text = '💬 Админские чаты', callback_data='adminchats'))
+
+    if rank > 2:
+        markup.add(InlineKeyboardButton(text='♻️ Перезапустить бота', callback_data='restart_bot'))
     await call.message.answer("<i>Эти функции доступны админам. Только тсс</i>", parse_mode='html', reply_markup=markup)
-            
+        
 async def itemsinfo_table(call: CallbackQuery, user_id: int):
     rank = cur.execute(f"SELECT rank FROM userdata WHERE user_id={user_id}").fetchone()[0]
 
@@ -128,3 +132,16 @@ async def sqldecline(call: CallbackQuery):
     
     except Exception as e:
         return await call.message.answer(f'<i><b>&#10060; Ошибка: </b>{e}</i>', parse_mode = 'html')
+
+async def restart(call: CallbackQuery):
+    try:
+        rank = cur.execute(f"SELECT rank FROM userdata WHERE user_id = {call.from_user.id}").fetchone()[0]
+        
+        if rank < 3:
+            return await call.answer("👨‍⚖️ Сударь, эта команда доступна только администраторам.", show_alert = True)
+            
+        await call.answer("🌀 Перезагрузка...")
+        os.execv(sys.executable, ['python3'] + sys.argv)
+        
+    except Exception as e:
+        await call.message.answer(f'<i><b>♨️ Ошибка: </b>{e}</i>', parse_mode = 'html')

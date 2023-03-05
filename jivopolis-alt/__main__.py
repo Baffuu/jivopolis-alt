@@ -1,5 +1,4 @@
 from loguru import logger
-import sys
 
 from aiogram.utils import executor
 from aiogram.utils.exceptions import ChatNotFound
@@ -20,7 +19,7 @@ async def on_startup(dp : Dispatcher):
         conn.commit()
 
         try:
-            await bot.send_message(log_chat, '✅ <i>🔰 Бот успешно перезагружен. #restart</i>')
+            await bot.send_message(log_chat, '<i>🔰 Бот успешно перезагружен. #restart</i>')
         except ChatNotFound:
             logger.warning('log chat not found :(\nprobably you forgot to add bot to the chat')
         logger.info('bot connected')
@@ -37,7 +36,7 @@ async def on_startup(dp : Dispatcher):
 async def on_shutdown(dp: Dispatcher):
     from .database.sqlitedb import cur, conn
     cur.close(); conn.close()
-    bot.send_message(log_chat, '<i>❗️Выключаюсь… #shutdown</i>')
+    await bot.send_message(log_chat, '<i>❗️Выключаюсь… #shutdown</i>')
+
 if __name__ == '__main__':
-    executor.start_polling(dispatcher=dp, on_startup=on_startup, skip_updates=True)
-    
+    executor.start_polling(dispatcher=dp, on_startup=on_startup, on_shutdown=on_shutdown, skip_updates=True)

@@ -6,7 +6,7 @@ from ..bot import bot, Dispatcher
 from ..database.functions import create_acc, check, cur, profile
 
 from .callbacks.other import chats, my_refferals
-from .callbacks.for_admins import adminpanel, itemsinfo_table, itemsinfo_item, adminhelp, sqlapprove, sqldecline
+from .callbacks.for_admins import adminpanel, itemsinfo_table, itemsinfo_item, adminhelp, sqlapprove, sqldecline, restart
 from .callbacks.inventory import itemdesc, inventory, put_mask_off, open_lootbox
 
 async def callback_handler(call: CallbackQuery):
@@ -59,6 +59,8 @@ async def callback_handler(call: CallbackQuery):
                     await sqlapprove(call)
                 elif call.data.startswith('sqlrun:decline:'):
                     await sqldecline(call)
+            case 'restart_bot':
+                await restart(call)
             case _:
                 return await call.answer('command not found', show_alert=True)
     except TypeError:

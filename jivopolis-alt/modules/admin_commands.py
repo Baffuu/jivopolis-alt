@@ -6,8 +6,8 @@ from aiogram.dispatcher.filters import Text
 from ..bot import bot, Dispatcher
 
 from ..database.sqlitedb import cur, conn, encode_payload
-from ..database.functions import get_link
-from ..config import log_chat, MEGACHAT, ADMINS, SUPPORT_LINK
+from ..database.functions import get_link, check
+from ..config import log_chat, MEGACHAT, SUPPORT_LINK
 
 async def sqlrun_cmd(message: Message):
     try:
@@ -16,6 +16,8 @@ async def sqlrun_cmd(message: Message):
     except TypeError:
         return await message.reply('🧑‍🎨 Сэр, у вас нет аккаунта в живополисе. Прежде чем использовать любые комманды вам нужно зарегистрироваться.')
     try:
+        await check(message.from_user.id, message.chat.id)
+        
         args = message.text[8:]
 
         if is_banned:
