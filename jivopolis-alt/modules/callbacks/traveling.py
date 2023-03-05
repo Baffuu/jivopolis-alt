@@ -1,5 +1,6 @@
-from ...database.functions import cur, conn, Message, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, buy
+from ...database.functions import cur, conn, Message, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, buy, bot
 from ...config import METRO, WALK, CITY, trains, villages, walks, ITEMS, lvlcar
+import asyncio
 
 async def city(message: Message, user_id: str):
     place = cur.execute(f"SELECT place FROM userdata WHERE user_id={user_id}").fetchone()[0]
@@ -127,3 +128,22 @@ async def buycall(call: CallbackQuery):
         await buy(call, item, user_id, cost=ITEMS[item][3]+tip)
     else:
         raise ValueError("no such item")
+
+async def goto_on_car(call: CallbackQuery):
+    user_id = call.from_user.id
+    car = cur.execute(f"SELECT car+bluecar FROM userdata WHERE user_id = {user_id}").fetchone()[0]
+
+    if car < 1:
+        return await call.message.answer('<i>&#128663; У вас нет машины</i>', parse_mode='html')
+        
+    station = call.data[6:]
+    await call.message.answer('<i>Скоро приедем!</i>', parse_mode='html')
+
+    try:
+        await bot.delete_message(call.message.chat.id, call.message.message_id)
+    except:
+        pass
+
+    await asyncio.sleep(15)
+    cur.execute(f"UPDATE userdata SET place={station} WHERE user_id={user_id}"); conn.commit()
+    await city(call.message, call.from_user.id)
