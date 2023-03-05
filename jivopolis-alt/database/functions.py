@@ -76,7 +76,7 @@ async def itemdata(user_id: int, item: str) -> Union[str, None, InlineKeyboardBu
         items = cur.execute(f"SELECT {item} FROM userdata WHERE user_id={user_id}").fetchone()[0]
 
         if items > 0:      
-            return InlineKeyboardButton(text=f"{ITEMS[item]} {items}", callback_data=item)
+            return InlineKeyboardButton(text=f"{ITEMS[item][0]} {items}", callback_data=item)
                 
         else:      
             return "emptyslot"           
