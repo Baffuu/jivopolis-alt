@@ -449,15 +449,20 @@ async def profile(user_id: int, message: Message, called: bool = False):
         lastseen += "назад"
 
     if lastseen == "назад":
-        last = "только что"
-
-    register_date = datetime.fromtimestamp(cur.execute(f"SELECT register_date FROM userdata WHERE user_id={user_id}").fetchone()[0])
-    reg_year = register_date.year
-    reg_month = register_date.month
-    reg_day = register_date.day
-    months = ["января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря"]
-    reg_month = months[reg_month-1]
-    register_date = f"{reg_day} {reg_month} {reg_year}"
+        lastseen = "только что"
+    try:
+        register_date = datetime.fromtimestamp(cur.execute(f"SELECT register_date FROM userdata WHERE user_id={user_id}").fetchone()[0])
+        reg_year = register_date.year
+        reg_month = register_date.month
+        reg_day = register_date.day
+        months = ["января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря"]
+        reg_month = months[reg_month-1]
+        register_date = f"{reg_day} {reg_month} {reg_year}"
+    except ValueError as e:
+        if str(e).endswith('is out of range'):
+            register_date = '🧌 Старше нашей планеты.'
+        else: return logger.exception(e)
+    
     
     markup = InlineKeyboardMarkup()
     

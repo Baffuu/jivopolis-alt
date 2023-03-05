@@ -66,14 +66,13 @@ async def start_cmd(message: Message):
                         \n\
                         \nУдачной игры!</i>", reply_markup=markup)
                 return
-            leader = "&#127942; Лидеры Живополиса на данный момент:"
+            leaders = "&#127942; Лидеры Живополиса на данный момент:"
 
             args = message.get_args()
 
             if args != '':
                 try:
                     usercount = cur.execute(f"SELECT COUNT(*) FROM userdata WHERE user_id={args}").fetchone()[0]
-                    logger.info(usercount)
                 except sqlite3.OperationalError:
                     usercount = 0
                 if usercount == 0:
@@ -93,7 +92,7 @@ async def start_cmd(message: Message):
                     mask = row[8]
                 else: 
                     mask = row[7]
-                leader += f"\n<b><a href=\"{get_link(row[1])}\">{mask}{row[2]}</a> - ${row[4]}</b>"
+                leaders += f"\n<b><a href=\"{get_link(row[1])}\">{mask}{row[2]}</a> - ${row[4]}</b>"
             
             mask = get_mask(user_id)
             rank = cur.execute(f"SELECT rank FROM userdata WHERE user_id = {user_id}").fetchone()[0]
@@ -126,59 +125,67 @@ async def start_cmd(message: Message):
                 xp_left = "макс. уровень"
 
             hello = random.choice(hellos)
-            text = f"<i>{hello}, <b><a href=\"tg://user?id={user_id}\">{mask}{nick}</a></b>\n💲 Баланс: <b>${balance}</b>\n 💡 Уровень: <b>{level}</b> ({xp} {xp_left})\n❤️ Здоровье: <b>{health}</b>\n{leader}</i>"
+            text = f"<i>{hello}, <b><a href=\"tg://user?id={user_id}\">{mask}{nick}</a></b>\
+                \n💲 Баланс: <b>${balance}</b>\
+                \n 💡 Уровень: <b>{level}</b> ({xp} {xp_left})\
+                \n❤️ Здоровье: <b>{health}</b>\
+                \n{leaders}</i>"
             
             await message.answer(f"<i>{random.choice(randomtext)}</i>", parse_mode="html")
             return await message.answer(text, parse_mode="html", reply_markup=markup)
 
         else: #todo
             user_id = message.from_user.id
-            chid = message.chat.id
-            cur.execute("SELECT count(*) FROM clandata WHERE group_id = ?", (chid,))
-            count = cur.fetchone()[0]
+            chat_id = message.chat.id
+
+            count = cur.execute(f"SELECT count(*) FROM clandata WHERE clan_id = {chat_id}").fetchone()[0]
+            
             if count == 0:
-                chn = message.chat.title
-                buttons = InlineKeyboardButton(text="➕ Создать", callback_data="create_clan")
-                markup.add(buttons)
-                await bot.send_message(chid, "<i>Создать клан <b>{0}</b></i>".format(chn), reply_markup = markup)
+                markup.add(InlineKeyboardButton(text="➕ Создать", callback_data="create_clan"))
+                return await bot.send_message(chat_id, f"<i>Создать клан <b>{message.chat.title}</b></i>", reply_markup = markup)
             else:
-                cur.execute("SELECT name FROM clandata WHERE group_id=?", (chid,))
-                chn = cur.fetchone()[0]
-                cur.execute("SELECT bio FROM clandata WHERE group_id=?", (chid,))
-                bio = cur.fetchone()[0]
-                markup = InlineKeyboardMarkup()
-                buttons = [InlineKeyboardButton(text="➕ Вступить/Выйти", callback_data="join_clan"),
-                        InlineKeyboardButton(text="👥 Участники клана", callback_data="clan_members"),
-                        InlineKeyboardButton(text="✏ Управление", callback_data="clan_settings"),
-                        InlineKeyboardButton(text="📣 Созвать клан", callback_data="call_clan"),
-                        InlineKeyboardButton(text="🏗 Комнаты (постройки)", callback_data="clan_buildings")]
-                markup.add(buttons)
+
+                description = cur.execute(f"SELECT description FROM clandata WHERE group_id={chat_id}").fetchone()[0]
+
+                markup.add(InlineKeyboardButton(text="➕ Вступить/Выйти", callback_data="join_clan"),
+                    InlineKeyboardButton(text="👥 Участники клана", callback_data="clan_members"),
+                    InlineKeyboardButton(text="✏ Управление", callback_data="clan_settings"),
+                    InlineKeyboardButton(text="📣 Созвать клан", callback_data="call_clan"),
+                    InlineKeyboardButton(text="🏗 Комнаты (постройки)", callback_data="clan_buildings"))
                 
-                cur.execute("SELECT balance FROM clandata WHERE group_id = ?", (chid,))
-                balance = cur.fetchone()[0]
-                cur.execute("SELECT hqplace FROM clandata WHERE group_id = ?", (chid,))
-                hqplace = cur.fetchone()[0]
-                cur.execute("SELECT address FROM clandata WHERE group_id = ?", (chid,))
-                address = cur.fetchone()[0]
-                cur.execute("SELECT photo FROM clandata WHERE group_id = ?", (chid,))
-                photo = cur.fetchone()[0]
-                leader = "&#127942; Топ кланов на данный момент:"
-                cur.execute("SELECT COUNT(*) FROM clandata WHERE (type=? AND balance < 1000000) OR group_id=-1001395868701", ("public",))
-                count = cur.fetchone()[0]
+                clan_name = cur.execute(f"SELECT clan_name FROM clandata WHERE group_id = {chat_id}").fetchone()[0]
+                clan_balance = cur.execute(f"SELECT balance FROM clandata WHERE group_id = {chat_id}").fetchone()[0]
+                HQplace = cur.execute(f"SELECT hqplace FROM clandata WHERE group_id = {chat_id}").fetchone()[0]
+                address = cur.execute(f"SELECT address FROM clandata WHERE group_id = {chat_id}").fetchone()[0]
+                clanphoto = cur.execute(f"SELECT photo_id FROM clandata WHERE group_id = {chat_id}").fetchone()[0]
+
+                leaders = "&#127942; Топ кланов на данный момент:"
+                
+                count = cur.execute("SELECT COUNT(*) FROM clandata WHERE (type=? AND balance < 1000000) OR clan_id=-1001395868701", ("public",)).fetchone()[0]
+                
                 cur.execute("""SELECT * FROM clandata
-                WHERE (type=? AND balance < 1000000) OR group_id=-1001395868701
+                WHERE (type=? AND balance < 1000000) OR clan_id=-1001395868701
                 ORDER BY balance DESC
                 LIMIT 10""", ("public",))
+
                 for row in cur:
-                    leader+="\n<b><a href=\"{0}\">{1}</a> - ${2}</b>".format(row[8], row[1], row[4])
-                prof = "<i>Клан <b>{0}</b>\n{4}&#128176; Баланс: <b>${1}</b>\n&#127970; Штаб-квартира: <b>{2}</b>\n{3}</i>".format(chn, balance, "{0}, {1}".format(hqplace, address) if hqplace != "" else "отсутствует", leader if count!=0 else "", "\n{0}\n\n".format(bio) if bio!="" else "")
-                if photo=="":
-                    await bot.send_message(chid, prof, reply_markup = markup)
+                    leaders += f"\n<b><a href=\"{row[8]}\">{row[1]}</a> - ${row[4]}</b>"
+
+                description = ("\n" + description + '\n\n') if description else ""
+                hqplace = (f"{HQplace}, {address}") if hqplace else "отсутствует"
+
+                text = f"<i>Клан <b>{clan_name}</b>\
+                    \n{description}&#128176; Баланс: <b>${clan_balance}</b>\
+                    \n&#127970; Штаб-квартира: <b>{hqplace}</b>\
+                    \n{leaders if count != 0 else ''}</i>"
+                
+                if not clanphoto:
+                    await bot.send_message(chat_id, text, reply_markup = markup)
                 else:
                     try:
-                        await bot.send_photo(chid, photo, caption=prof, reply_markup = markup)
+                        await bot.send_photo(chat_id, clanphoto, caption=text, reply_markup = markup)
                     except:
-                        await bot.send_message(chid, prof, reply_markup = markup)
+                        await bot.send_message(chat_id, text, reply_markup = markup)
         
         return await bot.send_message(message.chat.id, text)
     except Exception as e:

@@ -11,6 +11,7 @@ def connect_database() -> None:
     if conn:
         create_userdata()
         create_globaldata()
+        create_clandata()
         return logger.success('database connected')
     return logger.critical('database is not connected')
 
@@ -162,8 +163,7 @@ def create_clandata() -> None:
     lootbox         INTEGER         DEFAULT 0               NOT NULL,
     last_box        DATETIME        DEFAULT 0               NOT NULL, 
     description     TEXT,
-    photo_id        TEXT,
-
+    photo_id        TEXT
 )
     """)
 
