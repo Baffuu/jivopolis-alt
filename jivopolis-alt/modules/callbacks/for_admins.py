@@ -1,6 +1,6 @@
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
 from ...database.functions import cur, conn, bot
-from ...config import ITEMS
+from ...config import ITEMS, TESTCHAT, JIVADMCHAT, LOGCHATLINK, BAFFUADM, MEGACHATLINK
 import os, sys
 
 async def adminpanel(call: CallbackQuery, user_id: int):
@@ -132,6 +132,26 @@ async def sqldecline(call: CallbackQuery):
     
     except Exception as e:
         return await call.message.answer(f'<i><b>&#10060; Ошибка: </b>{e}</i>', parse_mode = 'html')
+
+async def adminchats(call: CallbackQuery):
+    user_id = call.from_user.id
+    rank = cur.execute(f"SELECT rang FROM userdata WHERE user_id={user_id}").fetchone()[0]
+
+    markup = InlineKeyboardMarkup(row_width=2)
+
+    if rank < 1:
+        return await call.answer("👨‍⚖️ Сударь, эта команда доступна только администраторам.", show_alert = True)
+    if rank > 0:
+        markup.add(InlineKeyboardButton('👾 Тестирование Живополиса', TESTCHAT),
+        InlineKeyboardButton('📣 Администрация Живополиса', JIVADMCHAT),
+        InlineKeyboardButton('👨‍🔧 LOG CHAT', LOGCHATLINK))
+    if rank > 1:
+        markup.add(InlineKeyboardButton('🧞 Администрация Baffu', BAFFUADM))
+    if rank > 2:
+        markup.add(InlineKeyboardButton('🦹🏼 МегаЧат', MEGACHATLINK))
+
+    await call.message.answer_sticker('CAACAgIAAxkBAAIEN2QE3dP0FVb2HNOHw1QC2TMpUEpsAAK7IAACEkDwSZtWAAEk41obpC4E')
+    await call.message.answer("<i><b>🧑‍💻 Админские чаты живополиса:</b>\n💻 Разработка Живополиса: https://t.me/+k2LZEIyZtpRiMjcy</i>", parse_mode='html', reply_markup=markup)
 
 async def restart(call: CallbackQuery):
     try:

@@ -6,7 +6,7 @@ from loguru import logger
 from ..database.functions import create_acc, check, cur, profile, eat
 
 from .callbacks.other import chats, my_refferals
-from .callbacks.for_admins import adminpanel, itemsinfo_table, itemsinfo_item, adminhelp, sqlapprove, sqldecline, restart
+from .callbacks.for_admins import adminpanel, itemsinfo_table, itemsinfo_item, adminhelp, sqlapprove, sqldecline, restart, adminchats
 from .callbacks.inventory import itemdesc, inventory, open_lootbox
 from .callbacks.user_profile import set_user_bio, put_mask_off, put_mask_on
 from .callbacks.traveling import buycall
@@ -38,7 +38,7 @@ async def callback_handler(call: CallbackQuery):
                 await itemsinfo_table(call, call.from_user.id)
             case 'inventory':
                 await inventory(call)
-            case data if data.startswith('iteminfo_'):
+            case item if item.startswith('iteminfo_'):
                 await itemsinfo_item(call, call.from_user.id)
             case item if item in ITEMS:
                 await itemdesc(call, call.from_user.id)
@@ -71,6 +71,8 @@ async def callback_handler(call: CallbackQuery):
                 await eat(call, call.data[4:])
             case buy if buy.startswith('buy_'):
                 await buycall(call)
+            case 'adminchats':
+                await adminchats(call)
             case _:
                 return await call.answer('♿️ 404: команда не найдена.', show_alert=True)
     except TypeError as e:
