@@ -1,5 +1,5 @@
-from ...database.functions import cur, conn, Message, InlineKeyboardButton, InlineKeyboardMarkup
-from ...config import METRO, WALK, CITY, trains, villages, walks
+from ...database.functions import cur, conn, Message, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, buy
+from ...config import METRO, WALK, CITY, trains, villages, walks, ITEMS, lvlcar
 
 async def city(message: Message, user_id: str):
     place = cur.execute(f"SELECT place FROM userdata WHERE user_id={user_id}").fetchone()[0]
@@ -109,3 +109,21 @@ async def city(message: Message, user_id: str):
     markup.add(InlineKeyboardButton(text="🏢 Кланы рядом", callback_data="local_clans"), InlineKeyboardButton(text="👤 Кто здесь?", callback_data="local_people"))
     await message.answer("<i>В Живополисе есть много чего интересного!\n&#127963; <b>{0}</b></i>".format(place), parse_mode = "html", reply_markup = markup)
     chid = message.chat.id
+
+async def buycall(call: CallbackQuery):
+    user_id = call.from_user.id
+    item = call.data.split(':')[0][4:]
+    try:
+        tip = int(call.data.split(':')[1])
+    except:
+        tip = 0
+    if item in ITEMS:
+        if ITEMS[item][4][0] == 'car':
+            level = cur.execute(f"SELECT level FROM userdata WHERE user_id={user_id}").fetchone()[0]
+            if level<lvlcar:
+                return await call.answer(text='❌ Данная функция доступна только с уровня {0}'.format(lvlcar), show_alert = True)
+                
+            #await achieve(a.id, call.message.chat.id, 'myauto')
+        await buy(call, item, user_id, cost=ITEMS[item][3]+tip)
+    else:
+        raise ValueError("no such item")

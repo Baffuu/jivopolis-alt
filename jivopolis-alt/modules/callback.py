@@ -9,6 +9,7 @@ from .callbacks.other import chats, my_refferals
 from .callbacks.for_admins import adminpanel, itemsinfo_table, itemsinfo_item, adminhelp, sqlapprove, sqldecline, restart
 from .callbacks.inventory import itemdesc, inventory, open_lootbox
 from .callbacks.user_profile import set_user_bio, put_mask_off, put_mask_on
+from .callbacks.traveling import buycall
 
 async def callback_handler(call: CallbackQuery):
     try:
@@ -68,6 +69,8 @@ async def callback_handler(call: CallbackQuery):
                 await set_user_bio(call)
             case food if food.startswith('eat_'):
                 await eat(call, call.data[4:])
+            case buy if buy.startswith('buy_'):
+                await buycall(call)
             case _:
                 return await call.answer('♿️ 404: команда не найдена.', show_alert=True)
     except TypeError as e:

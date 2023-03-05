@@ -90,7 +90,7 @@ def buybutton(item: str, status: str = None, tip: int = 0) -> Union[str, InlineK
         cost = ITEMS[item][3] + tip
 
         if not status:
-            return InlineKeyboardButton(f'{icon} {name} - ${cost}', callback_data=f'buy_{item} {tip}')
+            return InlineKeyboardButton(f'{icon} {name} - ${cost}', callback_data=f'buy_{item}:{tip}')
         elif status == 'limited':
             if item in limeteds:
                 return InlineKeyboardButton(f'{icon} {name} - ${cost}', callback_data=f'buy24_{item}')
@@ -533,12 +533,32 @@ async def profile(user_id: int, message: Message, called: bool = False):
             await message.answer(prof, parse_mode = "html", reply_markup = markup)'''
 
 async def earn(message: Message, money: int, user_id: int = None):
-    if user_id:
-        pass
-    else:
+    if not user_id:
         user_id = message.from_user.id
 
     cur.execute(f"UPDATE userdata SET balance = balance+{money} WHERE user_id = {user_id}")
     conn.commit()
-    
+
+async def buy(call: CallbackQuery, item, user_id: int, cost: int = None, amount: int = 1):
+    if not item in ITEMS:
+        raise ValueError("no such item")
+
+    message = call.message
+
+    if not cost:
+        cost = ITEMS[item][3]
+    itemcount = cur.execute(f"SELECT {item} FROM userdata WHERE user_id = {user_id}").fetchone()[0]
+
+    balance = cur.execute(f"SELECT balance FROM userdata WHERE user_id = {user_id}").fetchone()[0]
+
+    if balance >= cost*amount:
+        cur.execute(f"UPDATE userdata SET {item} = {item} + {amount} WHERE user_id = {user_id}"); conn.commit()
+
+        cur.execute(f"UPDATE userdata SET balance = balance - {cost*amount} WHERE user_id = {user_id}"); conn.commit()
+        
+        await call.answer(f'Покупка прошла успешно. Ваш баланс: ${balance-cost*amount}', show_alert = True)
+
+        cur.execute(f"UPDATE globaldata SET treasury=treasury+{cost*amount//2}"); conn.commit()
+    else:
+        await call.answer('🚫 У вас недостаточно денег', show_alert = True)
 # todo battle

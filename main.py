@@ -390,46 +390,6 @@ try:
             if i!=line and station in metro[i]:
                 return i
         return ''
-    async def earn(message, money, user=0):
-        try:
-            if user==0:
-                a = message.from_user.id
-            else:
-                a = user
-            cursor.execute('SELECT balance FROM userdata WHERE user_id = ?', (a,))
-            balance = cursor.fetchone()[0]
-            cursor.execute('UPDATE userdata SET balance = ? WHERE user_id = ?', (balance+money, a,))
-            conn.commit()
-        except Exception as e:
-            await message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-            await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
-    async def buy(call, item, user, cost=0, amount=1):
-        try:
-            a = user.id
-            message = call.message
-            cursor.execute('SELECT balance FROM userdata WHERE user_id = ?', (a,))
-            balance = cursor.fetchone()[0]
-            if not item in ITEMS[1]:
-                return
-            if cost == 0:
-                cost = ITEMS[3][ITEMS[1].index(item)]
-            cursor.execute('SELECT {0} FROM userdata WHERE user_id = ?'.format(item), (a,))
-            itm = cursor.fetchone()[0]
-            if balance >= cost*amount:
-                cursor.execute('UPDATE userdata SET {0} = ? WHERE user_id = ?'.format(item), (itm+amount, a,))
-                cursor.execute('UPDATE userdata SET balance = ? WHERE user_id = ?', (balance-cost*amount, a,))
-                conn.commit()
-                cursor.execute('SELECT balance FROM userdata WHERE user_id = ?', (a,))
-                bal = cursor.fetchone()[0]
-                await call.answer(text='Покупка прошла успешно. Ваш баланс: ${0}'.format(bal), show_alert = True)
-                a = (cost*amount)//2
-                cursor.execute('UPDATE globaldata SET kazna=kazna+?', (a,))
-                conn.commit()
-            else:
-                await call.answer(text='❌ У вас недостаточно денег', show_alert = True)
-        except Exception as e:
-            await message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-            await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
   
     async def setrasa(message, user, rasa, photo):
         photos = ['https://te.legra.ph/file/e088cc301adede07db382.jpg', 'https://te.legra.ph/file/ae98cd7c2cad60f6fdcd1.jpg', 'https://te.legra.ph/file/3f3cbfb04a7d1c39bb849.jpg', 'https://te.legra.ph/file/debe702d527967f9afd9a.jpg', 'https://te.legra.ph/file/5a07905d42444f2294418.jpg']
@@ -445,8 +405,7 @@ try:
         except Exception as e:
             await message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
             await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
-    @bot.message_handler(commands='start')
-    async def startdef(message: types.Message): 
+
     @bot.message_handler(content_types=['text'])
     async def get_text_messages(message: types.Message):
         try:
@@ -1889,24 +1848,7 @@ try:
                 await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
 
         if call.data.startswith('buy_'):
-            try:
-                a = call.from_user
-                t = call.data.split(' ')[0][4:]
-                try:
-                    tip = int(call.data.split(' ')[1])
-                except:
-                    tip = 0
-                if t in ITEMS[1]:
-                    if ITEMS[4][ITEMS[1].index(t)] == 'car':
-                        cursor.execute('SELECT lvl FROM userdata WHERE user_id=?', (a.id,))
-                        lvl = cursor.fetchone()[0]
-                        if lvl<lvlcar:
-                            await call.answer(text='❌ Данная функция доступна только с уровня {0}'.format(lvlcar), show_alert = True)
-                            return
-                        await achieve(a.id, call.message.chat.id, 'myauto')
-                    await buy(call, user=a, item=t, cost=ITEMS[3][ITEMS[1].index(t)]+tip)
-            except Exception as e:
-                await call.message.answer('<i><b>&#10060; Ошибка: </b>{0}</i>'.format(e), parse_mode = 'html');
+
         if call.data.startswith('buy24_'):
             try:
                 a = call.from_user
