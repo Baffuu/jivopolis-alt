@@ -78,23 +78,6 @@ async def inventory(call: CallbackQuery):
     
     await call.message.answer('<i>Ваш инвентарь</i>', reply_markup = markup, parse_mode = 'html')
 
-async def put_mask_off(call: CallbackQuery, user_id: int):
-    mask = cur.execute(f"SELECT mask FROM userdata WHERE user_id={user_id}").fetchone()[0]
-
-    if mask:
-        for item in ITEMS:
-            if ITEMS[item][0] == mask:
-                mask = item
-
-        cur.execute(f"UPDATE userdata SET mask = NULL WHERE user_id = {user_id}")
-        conn.commit()
-
-        cur.execute(f"UPDATE userdata SET {mask} = {mask} + 1 WHERE user_id = {user_id}")
-        conn.commit()
-
-        return call.answer('🦹🏼 Ваша маска снята.', show_alert=True)
-    else:
-        return
 
 async def open_lootbox(user_id: int, message: Message): #todo: NEW BOXES
     mailbox = cur.execute(f"SELECT last_box FROM userdata WHERE user_id = {user_id}").fetchone()[0]
