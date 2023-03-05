@@ -135,9 +135,9 @@ async def sqldecline(call: CallbackQuery):
 
 async def adminchats(call: CallbackQuery):
     user_id = call.from_user.id
-    rank = cur.execute(f"SELECT rang FROM userdata WHERE user_id={user_id}").fetchone()[0]
+    rank = cur.execute(f"SELECT rank FROM userdata WHERE user_id={user_id}").fetchone()[0]
 
-    markup = InlineKeyboardMarkup(row_width=2)
+    markup = InlineKeyboardMarkup(row_width=1)
 
     if rank < 1:
         return await call.answer("👨‍⚖️ Сударь, эта команда доступна только администраторам.", show_alert = True)
