@@ -83,35 +83,45 @@ async def itemdata(user_id: int, item: str) -> Union[str, None, InlineKeyboardBu
     except Exception as e:         
         return logger.exception(e)
 
-async def eat(call: CallbackQuery, food: str, heal: int) -> None:
+async def eat(call: CallbackQuery, food: str) -> None:
     user_id = call.from_user.id
-    chat = call.message.chat.id
+    chat_id = call.message.chat.id
 
-    try:
+    if food in ITEMS:
+        heal = ITEMS[food][4][1]
+    else:
+        raise ValueError('no such food')
+
+    health = cur.execute(f"SELECT health FROM userdata WHERE user_id={user_id}").fetchone()[0]
+    
+    if heal == 1000:
+        heal = random.randint(-100,10)
+    if heal == 900:
+        heal = random.randint(-10,5)
+
+    if health + heal > 100:
+        return await call.answer('🧘 Вы недостаточно голодны для такой пищи', show_alert = True)
+            
+    health = cur.execute(f"SELECT health FROM userdata WHERE user_id={user_id}").fetchone()[0]
+    food_amount = cur.execute(f"SELECT {food} FROM userdata WHERE user_id={user_id}").fetchone()[0]
+
+    if food_amount < 1:
+        return await call.answer(text="🚫 У вас нет такой еды", show_alert = True)
+
+    cur.execute(f"UPDATE userdata SET {food}={food}-1 WHERE user_id={user_id}")
+    conn.commit()
+
+    cur.execute(f"UPDATE userdata SET health=health+{heal} WHERE user_id={user_id}")
+    conn.commit()
+
+    if heal > 0:
+        await call.answer(f"❤ +{heal} HP на здоровье!", show_alert = True)
+    else:
+        await call.answer("🤢 Зачем я это съел? Теперь мне нехорошо", show_alert = True)
         health = cur.execute(f"SELECT health FROM userdata WHERE user_id={user_id}").fetchone()[0]
-        food_amount = cur.execute(f"SELECT {food} FROM userdata WHERE user_id={user_id}").fetchone()[0]
 
-        if food_amount < 1:
-            return await call.answer(text="❌ У вас нет такой еды", show_alert = True)
-
-        cur.execute(f"UPDATE userdata SET {food}={food}-1 WHERE user_id={user_id}")
-        conn.commit()
-
-        cur.execute(f"UPDATE userdata SET health=health+{heal} WHERE user_id={user_id}")
-        conn.commit()
-
-        if heal > 0:
-            await call.answer(text=f"❤ +{heal} HP на здоровье!", show_alert = True)
-        else:
-            await call.answer(text="🤢 Зачем я это съел? Теперь мне нехорошо", show_alert = True)
-            health = cur.execute(f"SELECT health FROM userdata WHERE user_id={user_id}").fetchone()[0]
-
-            if health < 1:
-                await bot.send_message(chat, "<i>&#9760; Вы умерли</i>")
-
-    except Exception as e:
-        await bot.send_message(chat, "&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>")
-        await bot.send_message(chat, f"<i><b>Текст ошибки: </b>{e}</i>")
+        if health < 1:
+            return await bot.send_message(chat_id, "<i>&#9760; Вы умерли</i>")
 
 async def create_acc(user: User, chat_id: str) -> None: 
     try:

@@ -495,9 +495,7 @@ try:
             await message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
             await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
     @bot.message_handler(commands='start')
-    async def startdef(message: types.Message):
-
-    
+    async def startdef(message: types.Message): 
     @bot.message_handler(content_types=['text'])
     async def get_text_messages(message: types.Message):
         try:
@@ -1941,21 +1939,7 @@ try:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
                 await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
         if call.data.startswith('eat_'):
-            try:
-                a = call.from_user.id
-                chat = call.message.chat.id
-                foodname = call.data[4:]
-                healthid = food[1][food[0].index(foodname)]
-                cursor.execute('SELECT health FROM userdata WHERE user_id=?', (a,))
-                health = cursor.fetchone()[0]
-                if healthid == 1000:
-                    healthid = random.randint(-100,10)
-                if healthid == 900:
-                    healthid = random.randint(-10,5)
-                if health+healthid>100:
-                    await call.answer(text='Вы недостаточно голодны для такой пищи', show_alert = True)
-                    return
-                await eat(call, foodname, healthid)
+
             except Exception as e:
                 await call.message.answer('<i><b>&#10060; Ошибка: </b>{0}</i>'.format(e), parse_mode = 'html');
         if call.data.startswith('buy_'):
@@ -5358,6 +5342,7 @@ try:
 🤬 У нас всё под контролем. За нарушение правил добрые админы вам обнулят аккаунт</i>''', parse_mode = 'html')
         else:
             await startdef(message)
+    
     @bot.inline_handler()
     async def inline_mode(inline_query: InlineQuery):
         if inline_query.from_user.id in banned:
@@ -5499,5 +5484,3 @@ try:
                     await main.send_message(fid, '<i><b><a href="tg://user?id={3}">{0}{1}</a></b> продаёт <b>{4}</b> за <b>${2}</b>\n#user_sellitem</i>'.format(rasa, nick, cost, a, itm), parse_mode='html')
         except Exception as e:
             print(e)
-except:
-    pass

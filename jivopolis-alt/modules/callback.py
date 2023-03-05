@@ -3,7 +3,7 @@ from aiogram.types import CallbackQuery
 from ..config import ITEMS, SUPPORT_LINK
 from ..bot import bot, Dispatcher
 
-from ..database.functions import create_acc, check, cur, profile
+from ..database.functions import create_acc, check, cur, profile, eat
 
 from .callbacks.other import chats, my_refferals
 from .callbacks.for_admins import adminpanel, itemsinfo_table, itemsinfo_item, adminhelp, sqlapprove, sqldecline, restart
@@ -64,6 +64,8 @@ async def callback_handler(call: CallbackQuery):
                 await restart(call)
             case 'set_user_bio':
                 await set_user_bio(call)
+            case food if food.startswith('eat_'):
+                await eat(call, call.data[4:])
             case _:
                 return await call.answer('♿️ 404: команда не найдена.', show_alert=True)
     except TypeError:
