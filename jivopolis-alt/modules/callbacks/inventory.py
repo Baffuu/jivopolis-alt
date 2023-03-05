@@ -17,7 +17,7 @@ async def itemdesc(call: CallbackQuery, user_id: int):
     except TypeError:
         mask = None
 
-    status = ITEMS[item][4][0]
+    status = ITEMS[item][4][1]
 
     markup = InlineKeyboardMarkup()
 
@@ -33,9 +33,9 @@ async def itemdesc(call: CallbackQuery, user_id: int):
         markup.add(InlineKeyboardButton(text='🏦 Ограбить банк', callback_data='rob_bank'))
     elif status == 'mask':
         if ITEMS[item][0] == mask:
-            markup.add(InlineKeyboardButton(text='❎ Снять', callback_data='putoff'))
+            markup.add(InlineKeyboardButton(text='❎ Снять', callback_data='put_mask_off'))
         else:
-            markup.add(InlineKeyboardButton(text='👺 Надеть', callback_data=f'puton_{item}'))
+            markup.add(InlineKeyboardButton(text='👺 Надеть', callback_data=f'put_mask_on_{item}'))
     elif status == 'key':
         markup.add(InlineKeyboardButton(text='🔐 Чёрный рынок', callback_data='darkweb'))
     elif status == 'phone':
@@ -77,7 +77,6 @@ async def inventory(call: CallbackQuery):
     markup.add(InlineKeyboardButton(text='🏪 Круглосуточный магазин', callback_data='shop_24'))
     
     await call.message.answer('<i>Ваш инвентарь</i>', reply_markup = markup, parse_mode = 'html')
-
 
 async def open_lootbox(user_id: int, message: Message): #todo: NEW BOXES
     mailbox = cur.execute(f"SELECT last_box FROM userdata WHERE user_id = {user_id}").fetchone()[0]
