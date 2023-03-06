@@ -3198,11 +3198,7 @@ try:
             except:
                 pass
         if call.data.startswith('go_to_'):
-            try:
-
-            except Exception as e:
-                await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+            return
         if call.data.startswith('go_bycab_'):
             try:
                 a = call.from_user.id
@@ -3251,19 +3247,7 @@ try:
                 await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
         if call.data == 'cardrive':
             try:
-                message = call.message
-                a = call.from_user.id
-                cursor.execute('SELECT car+bluecar FROM userdata WHERE user_id=?', (a,))
-                car = cursor.fetchone()[0]
-                if car<1:
-                    await call.answer('❌ У вас нет машины', show_alert = True)
-                    return
-                markup = types.InlineKeyboardMarkup(row_width=2)
-                temps = []
-                for temp in CITY:
-                    temps.append(types.InlineKeyboardButton(text='{0}'.format(temp), callback_data='go_to_{0}'.format(temp)))
-                markup.add(*temps)
-                await message.answer('<i>&#128663; Куда поедем?</i>', parse_mode='html', reply_markup=markup)
+
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
                 await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')

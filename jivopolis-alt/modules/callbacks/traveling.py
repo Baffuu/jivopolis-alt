@@ -3,9 +3,9 @@ from ...config import METRO, WALK, CITY, trains, villages, walks, ITEMS, lvlcar
 import asyncio
 
 async def city(message: Message, user_id: str):
-    place = cur.execute(f"SELECT place FROM userdata WHERE user_id={user_id}").fetchone()[0]
+    place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={user_id}").fetchone()[0]
     line = cur.execute(f"SELECT line FROM userdata WHERE user_id={user_id}").fetchone()[0]
-    car = cur.execute(f"SELECT car+bluecar FROM userdata WHERE user_id={user_id}").fetchone()[0] #todo MORE CARS
+    car = cur.execute(f"SELECT blue_car+red_car FROM userdata WHERE user_id={user_id}").fetchone()[0] #todo MORE CARS
     
     markup = InlineKeyboardMarkup(row_width = 6)
     
@@ -103,9 +103,9 @@ async def city(message: Message, user_id: str):
         markup.add(InlineKeyboardButton(text="🌾 Ферма", callback_data="farm"))
     elif place=="Генерала Шелби":
         markup.add(InlineKeyboardButton(text="📱 Магазин техники имени Шелби", callback_data="phone_shop"))
-    cur.execute("SELECT * FROM clandata WHERE islocation=1 AND hqplace=? AND type=?", (place, "public",))
+    '''cur.execute("SELECT * FROM clandata WHERE islocation=1 AND hqplace=? AND type=?", (place, "public",))
     for row in cur:
-        markup.add(InlineKeyboardButton(text="🏢 {0}".format(row[1]), url=row[8]))
+        markup.add(InlineKeyboardButton(text="🏢 {0}".format(row[1]), url=row[8]))'''
     markup.add(InlineKeyboardButton(text="📡 GPS", callback_data="gps"))
     markup.add(InlineKeyboardButton(text="🏢 Кланы рядом", callback_data="local_clans"), InlineKeyboardButton(text="👤 Кто здесь?", callback_data="local_people"))
     await message.answer("<i>В Живополисе есть много чего интересного!\n&#127963; <b>{0}</b></i>".format(place), parse_mode = "html", reply_markup = markup)
@@ -128,6 +128,22 @@ async def buycall(call: CallbackQuery):
         await buy(call, item, user_id, cost=ITEMS[item][3]+tip)
     else:
         raise ValueError("no such item")
+
+async def car_menu(call: CallbackQuery):
+    message = call.message
+    user_id = call.from_user.id
+    car = cur.execute(f"SELECT red_car+blue_car FROM userdata WHERE user_id={user_id}").fetchone()[0] #todo more cars
+
+    if car<1:
+        return await call.answer('❌ У вас нет машины', show_alert = True)
+        
+    markup = InlineKeyboardMarkup(row_width=2)
+    places = []
+    
+    for place in CITY:
+        places.append(InlineKeyboardButton(text=f'{place}', callback_data=f'goto_on_car_{place}'))
+    markup.add(*places)
+    await message.answer('<i>👨‍✈️ Выберите место для поездки.</i>', parse_mode='html', reply_markup=markup)
 
 async def goto_on_car(call: CallbackQuery):
     user_id = call.from_user.id

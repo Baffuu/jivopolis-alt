@@ -9,7 +9,7 @@ from .callbacks.other import chats, my_refferals
 from .callbacks.for_admins import adminpanel, itemsinfo_table, itemsinfo_item, adminhelp, sqlapprove, sqldecline, restart, adminchats
 from .callbacks.inventory import itemdesc, inventory, open_lootbox
 from .callbacks.user_profile import set_user_bio, put_mask_off, put_mask_on
-from .callbacks.traveling import buycall
+from .callbacks.traveling import buycall, city
 
 async def callback_handler(call: CallbackQuery):
     try:
@@ -73,6 +73,8 @@ async def callback_handler(call: CallbackQuery):
                 await buycall(call)
             case 'adminchats':
                 await adminchats(call)
+            case 'city':
+                await city(call.message, call.from_user.id) #todo refactoring
             case _:
                 return await call.answer('♿️ 404: команда не найдена.', show_alert=True)
     except TypeError as e:
