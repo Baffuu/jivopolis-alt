@@ -1,4 +1,4 @@
-from ...database.functions import cur, conn, Message, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, buy, bot
+from ...database.functions import cur, conn, Message, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, buy, bot, get_link, get_mask
 from ...config import METRO, WALK, CITY, trains, villages, walks, ITEMS, lvlcar
 import asyncio
 
@@ -163,3 +163,23 @@ async def goto_on_car(call: CallbackQuery):
     await asyncio.sleep(15)
     cur.execute(f"UPDATE userdata SET current_place=\"{station}\" WHERE user_id={user_id}"); conn.commit()
     await city(call.message, call.from_user.id)
+
+async def local_people(call: CallbackQuery):
+    place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id = {call.from_user.id}").fetchone()[0]
+    usercount = cur.execute(f"SELECT count(*) FROM userdata WHERE current_place = '{place}'").fetchone()[0]
+    
+    if usercount < 1:
+        return await call.message.answer('<i>👤 Вы стоите один, оглядываясь по сторонам…</i>\n\
+            \n😓 В вашей местности не найдено людей. Помимо вас, само собой.', parse_mode = 'html')
+        
+    index = 0
+    users = ''
+
+    cur.execute(f"SELECT * FROM userdata WHERE current_place = '{place}'")
+
+    for row in cur.fetchall():
+        index += 1
+        users += f'\n{index}. <a href="{get_link(row[1])}">{get_mask(row[1])} {row[2]}</a>'
+
+    await call.message.answer(f'<i>&#128100; Пользователи в местности <b>{place}</b>: <b>{users}</b></i>', parse_mode = 'html')
+    
