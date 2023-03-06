@@ -24,7 +24,7 @@ async def city(message: Message, user_id: str):
     else:
         metro = InlineKeyboardButton(text="🚇", callback_data="metro")
 
-    caritem = InlineKeyboardButton(text="🚗", callback_data="cardrive")
+    caritem = InlineKeyboardButton(text="🚗", callback_data="car_menu")
     trbusitem = InlineKeyboardButton(text="🚎", callback_data="trolleybus")
     trainitem = InlineKeyboardButton(text="🚆", callback_data="railway_station")
     trlounge = InlineKeyboardButton(text="🚆", callback_data="lounge")
@@ -147,12 +147,12 @@ async def car_menu(call: CallbackQuery):
 
 async def goto_on_car(call: CallbackQuery):
     user_id = call.from_user.id
-    car = cur.execute(f"SELECT car+bluecar FROM userdata WHERE user_id = {user_id}").fetchone()[0]
+    car = cur.execute(f"SELECT red_car+blue_car FROM userdata WHERE user_id = {user_id}").fetchone()[0]
 
     if car < 1:
         return await call.message.answer('<i>&#128663; У вас нет машины</i>', parse_mode='html')
         
-    station = call.data[6:]
+    station = call.data[12:]
     await call.message.answer('<i>Скоро приедем!</i>', parse_mode='html')
 
     try:
@@ -161,5 +161,5 @@ async def goto_on_car(call: CallbackQuery):
         pass
 
     await asyncio.sleep(15)
-    cur.execute(f"UPDATE userdata SET place={station} WHERE user_id={user_id}"); conn.commit()
+    cur.execute(f"UPDATE userdata SET current_place=\"{station}\" WHERE user_id={user_id}"); conn.commit()
     await city(call.message, call.from_user.id)
