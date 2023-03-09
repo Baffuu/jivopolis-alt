@@ -84,7 +84,7 @@ SUPPORT_LINK = 't.me/'
 CREATOR = 1006534370  #создатель
 MODER = [1006534370]  #модераторы
 
-BOT_USER = 'altJivopolisBot'
+BOT_USER = 't.me/altJivopolisBot'
 banned = []  #пользователи в бане
 
 WALK = \

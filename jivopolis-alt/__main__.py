@@ -1,10 +1,8 @@
-from loguru import logger
-
 from aiogram.utils import executor
 from aiogram.utils.exceptions import ChatNotFound
 
 from .config import log_chat
-from .bot import bot, dp, Dispatcher
+from .bot import bot, dp, Dispatcher, logger
 
 from .database.sqlitedb import connect_database
 
@@ -24,12 +22,13 @@ async def on_startup(dp : Dispatcher):
             logger.warning('log chat not found :(\nprobably you forgot to add bot to the chat')
         logger.info('bot connected')
 
-        from .modules import start, admin_commands, callback, on_photo_sent, stickers_handler
+        from .modules import start, admin_commands, callback, on_photo_sent, stickers_handler, inline_bot
         start.register(dp)
         admin_commands.register(dp)
         callback.register(dp)
         on_photo_sent.register(dp)
         stickers_handler.register(dp)
+        inline_bot.register(dp)
         
     except Exception as e:
         return logger.exception(e)
@@ -37,7 +36,8 @@ async def on_startup(dp : Dispatcher):
 async def on_shutdown(dp: Dispatcher):
     from .database.sqlitedb import cur, conn
     cur.close(); conn.close()
-    await bot.send_message(log_chat, '<i>❗️Выключаюсь… #shutdown</i>')
+    await bot.send_message(log_chat, '<i>❗️ Выключаюсь… #shutdown</i>')
+    return logger.warning('Goodbye...')
 
 if __name__ == '__main__':
     executor.start_polling(dispatcher=dp, on_startup=on_startup, on_shutdown=on_shutdown, skip_updates=True)

@@ -1,14 +1,12 @@
 import random
 import sqlite3
 
-from loguru import logger
-
 from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.deep_linking import decode_payload
 
 from ..config import levelrange, hellos, randomtext, log_chat, SUPPORT_LINK
 
-from ..bot import bot, Dispatcher
+from ..bot import bot, Dispatcher, logger
 
 from ..database.sqlitedb import cur, conn
 from ..database.functions import check, create_acc, profile
@@ -27,17 +25,19 @@ async def start_cmd(message: Message):
                 health = cur.execute(f"SELECT health FROM userdata WHERE user_id = {user_id}").fetchone()[0]
                 is_banned = bool(cur.execute(f"SELECT is_banned FROM userdata WHERE user_id = {message.from_user.id}").fetchone()[0])
                 
+                await check(user_id, chat_id)
+
                 if is_banned:
                     return await bot.send_message(message.from_user.id, f'🧛🏻‍♂️ Вы были забаненны в боте. Если вы считаете, что это - ошибка, обратитесь в <a href="{SUPPORT_LINK}">поддержку</a>.')
-
-                await check(user_id, chat_id)
 
                 if health < 0:
                     return await message.reply("<i>&#9760; Вы умерли. Попросите кого-нибудь вас воскресить</i>", parse_mode = "html")         
             except TypeError:
                 markup.add(InlineKeyboardButton(text="Создать аккаунт", callback_data="sign_up"))
                 markup.add(InlineKeyboardButton(text="Войти", callback_data="log_in"))
+                
                 reflink = message.get_args()
+                
                 if reflink == '':
                     return await bot.send_message(user_id, f"<i>&#128075; <b>{message.from_user.full_name}, привет!</b>\
                     \nТы попал в <code>Живополис</code>.\
@@ -52,12 +52,10 @@ async def start_cmd(message: Message):
                     
                     if inviter == 1:
                         await create_acc(message.from_user, message.from_user.id)
-                        cur.execute(f"UPDATE userdata SET inviter_id={decode_payload(reflink)} WHERE user_id={user_id}")
-                        conn.commit()
-                        cur.execute(f"UPDATE userdata SET balance=balance+100 WHERE login_id='{reflink}'")
-                        conn.commit()
-                        cur.execute(f"UPDATE userdata SET balance=balance+100 WHERE user_id='{user_id}'")
-                        return conn.commit()
+                        
+                        cur.execute(f"UPDATE userdata SET inviter_id={decode_payload(reflink)} WHERE user_id={user_id}"); conn.commit()
+                        cur.execute(f"UPDATE userdata SET balance = balance + 100 WHERE login_id='{reflink}'"); conn.commit()
+                        cur.execute(f"UPDATE userdata SET balance = balance + 100 WHERE user_id='{user_id}'"); conn.commit()
                         
                     elif inviter == 0:
                         return await bot.send_message(user_id, f"<i>&#128075; <b>{message.from_user.full_name}, привет!</b>\
@@ -66,6 +64,7 @@ async def start_cmd(message: Message):
                         \n\
                         \nУдачной игры!</i>", reply_markup=markup)
                 return
+            
             leaders = "&#127942; Лидеры Живополиса на данный момент:"
 
             args = message.get_args()
@@ -88,11 +87,7 @@ async def start_cmd(message: Message):
             DESC LIMIT 10""")
 
             for row in cur:
-                if row[8]:
-                    mask = row[8]
-                else: 
-                    mask = row[7]
-                leaders += f"\n<b><a href=\"{get_link(row[1])}\">{mask}{row[2]}</a> - ${row[4]}</b>"
+                leaders += f"\n<b><a href=\"{get_link(row[1])}\">{get_mask(row[1])}{row[2]}</a> - ${row[4]}</b>"
             
             mask = get_mask(user_id)
             rank = cur.execute(f"SELECT rank FROM userdata WHERE user_id = {user_id}").fetchone()[0]

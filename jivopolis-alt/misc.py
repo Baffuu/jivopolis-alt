@@ -1,10 +1,9 @@
-from loguru import logger
-
 from datetime import datetime
 from .config import intervals, BOT_USER
 
 from typing import Union
 
+from .bot import logger
 from .database.sqlitedb import cur
 from aiogram.utils.deep_linking import decode_payload
 
@@ -23,7 +22,8 @@ def get_mask(user_id: int) -> Union[str, None]:
         if not mask:
             mask = cur.execute(f"SELECT rase FROM userdata WHERE user_id = {user_id}").fetchone()[0]
         return mask
-    except TypeError:
+    except TypeError as e:
+        logger.exception(e)
         mask = cur.execute(f"SELECT rase FROM userdata WHERE user_id = {user_id}").fetchone()[0]
         return mask
     except Exception as e:
