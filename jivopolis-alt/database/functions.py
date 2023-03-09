@@ -1,13 +1,12 @@
 import random
 
-from loguru import logger
 from datetime import datetime
 from math import floor
 from typing import Union
 
 from ..config import limeteds, CREATOR, leveldesc, levelrange, ITEMS, ach, log_chat, SUPPORT_LINK, ADMINS, clanitems
 
-from ..bot import bot
+from ..bot import bot, logger
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardRemove, CallbackQuery, User, Message
 
 from ..database.sqlitedb import cur, conn, insert_user
@@ -498,9 +497,7 @@ async def profile(user_id: int, message: Message, called: bool = False):
     
     
     markup = InlineKeyboardMarkup()
-    
-    print(user_id)
-    print(message.from_user.id)
+
     if (message.chat.type == "private" and message.from_user.id == user_id) or called:
 
         markup.add(InlineKeyboardButton(text="💡 Достижения", callback_data="achievements"))

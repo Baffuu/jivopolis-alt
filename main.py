@@ -5233,23 +5233,9 @@ try:
                 description = '${сумма} - выписать чек или счёт\n%{стоимость} - продать товар\nНажмите для подробностей',
                 input_message_content=InputTextMessageContent('<i><b>Команды</b>\n<code>${сумма}</code> - выписать чек (или счёт, если сумма отрицательная) на указанную сумму.\n<code>%{цена}</code> - продать выбранный товар по указанной цене</i>', parse_mode='html'),
             ))
-        await main.answer_inline_query(inline_query.id, results=item, cache_time=1)
+
     @bot.chosen_inline_handler()
-    async def chosen_handler(i: types.ChosenInlineResult):
-        try:
-            a = i.from_user.id
-            cursor.execute("SELECT nick FROM userdata WHERE user_id=?", (a,))
-            nick = cursor.fetchone()[0]
-            cursor.execute("SELECT rasa FROM userdata WHERE user_id=?", (a,))
-            rasa = cursor.fetchone()[0]
-            query = i.query
-            if query.startswith('$'):
-                money = int(query[1:])
-                if money>0:
-                    await main.send_message(fid, '<i>&#128178; <b><a href="tg://user?id={3}">{0}{1}</a></b> выписал чек на <b>${2}</b>\n#user_bill</i>'.format(rasa, nick, money, a), parse_mode='html')
-                if money<0:
-                    await main.send_message(fid, '<i>&#128178; <b><a href="tg://user?id={3}">{0}{1}</a></b> выставил счёт на <b>${2}</b>\n#user_check</i>'.format(rasa, nick, -money, a), parse_mode='html')
-            if query.startswith('%'):
+if query.startswith('%'):
                 cost = int(query[1:])
                 if cost>0:
                     itid = int(i.result_id.split(' ')[1])
