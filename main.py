@@ -3749,30 +3749,6 @@ try:
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
                 await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
-        if call.data.startswith('check_'):
-            try:
-                a = call.from_user.id
-                money = int(call.data[6:])
-                cursor.execute('SELECT balance FROM userdata WHERE user_id=?', (a,))
-                balance = cursor.fetchone()[0]
-                cursor.execute('SELECT rasa FROM userdata WHERE user_id=?', (a,))
-                rasa = cursor.fetchone()[0]
-                cursor.execute('SELECT nick FROM userdata WHERE user_id=?', (a,))
-                nick = cursor.fetchone()[0]
-                cursor.execute('UPDATE userdata SET balance = ? WHERE user_id=?', (balance+money, a,))
-                conn.commit()
-                if call.message!=None:
-                    await main.edit_message_text(chat_id = call.message.chat.id, message_id = call.message.message_id, text = '<i><b><a href="tg://user?id={3}">{0}{1}</a></b> забрал <b>${2}</b></i>'.format(rasa, nick, money, a), parse_mode = 'html')
-                else:
-                    await main.edit_message_text(inline_message_id = call.inline_message_id, text = '<i><b><a href="tg://user?id={3}">{0}{1}</a></b> забрал <b>${2}</b></i>'.format(rasa, nick, money, a), parse_mode = 'html')
-                if money>0:
-                    await main.send_message(fid, text = '<i><b><a href="tg://user?id={3}">{0}{1}</a></b> забрал <b>${2}</b>\n#user_getbill</i>'.format(rasa, nick, money, a), parse_mode = 'html')
-            except Exception as e:
-                try:
-                    await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                    await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
-                except:
-                    await main.edit_message_text(inline_message_id = call.inline_message_id, text = '<i><b>Ошибка: </b>{0}</i>'.format(e), parse_mode='html')
         if call.data.startswith('paybill '):
             try:
                 a = call.from_user.id

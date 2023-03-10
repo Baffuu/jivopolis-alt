@@ -1,4 +1,4 @@
-from ...database.functions import cur, get_mask
+from ...database.functions import cur, conn, get_mask, bot, log_chat, get_link
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, Message, CallbackQuery
 
 async def chats(user_id: int, message: Message):
@@ -56,5 +56,20 @@ async def my_refferals(message: Message, user_id: int):
     for row in cur:
         ref_num += 1
         mask = get_mask(row[1])
-        users+=f'\n{ref_num}. <a href = "tg://user?id={row[1]}">{mask}{row[7]}</a>'
+        users+=f'\n{ref_num}. <a href = "{get_link(row[1])}">{mask}{row[7]}</a>'
     await message.answer(f'<i>&#128100; Пользователи, привлечённые <b><a href="tg://user?id={user_id}">{user_mask}{nick}</a></b>: <b>{users}</b></i>', parse_mode = 'html', reply_markup=markup)
+
+async def get_cheque(call: CallbackQuery, user_id: int):
+    money = int(call.data[6:])
+    mask = get_mask(user_id)
+    nick = cur.execute(f"SELECT nickname FROM userdata WHERE user_id={user_id}").fetchone()[0]
+    
+    cur.execute(f"UPDATE userdata SET balance = balance + {money} WHERE user_id={user_id}"); conn.commit()
+    
+    if call.message != None:
+        await bot.edit_message_text(chat_id = call.message.chat.id, message_id = call.message.message_id, text = f'<i><b><a href="{get_link(user_id)}">{mask}{nick}</a></b> забрал <b>${money}</b></i>')
+    else:
+        await bot.edit_message_text(inline_message_id = call.inline_message_id, text = f'<i><b><a href="{get_link(user_id)}">{mask}{nick}</a></b> забрал <b>${money}</b></i>')
+    if money > 0:
+        await bot.send_message(log_chat, f'<i><b><a href="{get_link}">{mask}{nick}</a></b> забрал <b>${money}</b>\n#user_getcheck</i>')
+            

@@ -4,7 +4,7 @@ from ..config import ITEMS, SUPPORT_LINK
 from ..bot import bot, Dispatcher, logger
 from ..database.functions import create_acc, check, cur, profile, eat
 
-from .callbacks.other import chats, my_refferals
+from .callbacks.other import chats, my_refferals, get_cheque
 from .callbacks.for_admins import adminpanel, itemsinfo_table, itemsinfo_item, adminhelp, sqlapprove, sqldecline, restart, adminchats
 from .callbacks.inventory import itemdesc, inventory, open_lootbox
 from .callbacks.user_profile import set_user_bio, put_mask_off, put_mask_on
@@ -12,8 +12,10 @@ from .callbacks.traveling import buycall, city, car_menu, goto_on_car, local_peo
 
 async def callback_handler(call: CallbackQuery):
     try:
-        await check(call.from_user.id, call.message.chat.id)
-
+        try:
+            await check(call.from_user.id, call.message.chat.id)
+        except AttributeError:
+            pass #todo create something better
         health = cur.execute(f"SELECT health FROM userdata WHERE user_id={call.from_user.id}").fetchone()[0]
         is_banned = bool(cur.execute(f"SELECT is_banned FROM userdata WHERE user_id={call.from_user.id}").fetchone()[0])
         
@@ -80,6 +82,8 @@ async def callback_handler(call: CallbackQuery):
                 await goto_on_car(call)
             case 'local_people':
                 await local_people(call)
+            case cheque if cheque.startswith('check_'):
+                await get_cheque(call, call.from_user.id)
             case _:
                 return await call.answer('♿️ 404: команда не найдена.', show_alert=True)
     except TypeError as e:

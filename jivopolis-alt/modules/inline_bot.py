@@ -31,7 +31,6 @@ async def inline_mode(query: InlineQuery):
             )])
 
         data = query.query 
-        whole = True
 
         try:
             nick = cur.execute(f"SELECT nickname FROM userdata WHERE user_id={user_id}").fetchone()[0]
@@ -97,11 +96,11 @@ async def on_pressed_inline_query(inline: ChosenInlineResult):
         
         if data.startswith('$'):
             money = int(data[1:])
-            if money>0:
+            if money > 0:
                 cur.execute(f"UPDATE userdata SET balance = balance - {money} WHERE user_id={user_id}"); conn.commit()
-                await bot.send_message(log_chat, f'<i>&#128178; <b><a href="{get_link(user_id)}">{mask}{nick}</a></b> выписал чек на <b>${money}</b>\n#user_check</i>', parse_mode='html')
-            if money<0:
-                await bot.send_message(log_chat, f'<i>&#128178; <b><a href="{get_link(user_id)}">{mask}{nick}</a></b> выставил счёт на <b>${money}</b>\n#user_bill</i>', parse_mode='html')
+                await bot.send_message(log_chat, f'<i>&#128178; <b><a href="{get_link(user_id)}">{mask}{nick}</a></b> выписал чек на <b>${money}</b>\n#user_check</i>')
+            if money < 0:
+                await bot.send_message(log_chat, f'<i>&#128178; <b><a href="{get_link(user_id)}">{mask}{nick}</a></b> выставил счёт на <b>${money}</b>\n#user_bill</i>')
     except:
         return
 def register(dp: Dispatcher):
