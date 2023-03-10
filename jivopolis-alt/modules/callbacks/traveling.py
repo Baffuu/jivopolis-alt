@@ -187,7 +187,24 @@ async def phone_shop(call: CallbackQuery):
     place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={call.from_user.id}").fetchone()[0]
     
     if place != 'Генерала Шелби':
-        return 
+        return #todo callback answer
 
     await call.message.answer('<i>📱 Добро пожаловать в магазин техники имени Шелби</i>', reply_markup = InlineKeyboardMarkup().\
         add(buybutton('phone')), parse_mode = 'html') 
+
+async def candy_shop(call: CallbackQuery):
+    place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={call.from_user.id}").fetchone()[0]
+    if place != 'Георгиевская':
+        return #todo callback answer
+    markup = InlineKeyboardMarkup(row_width=1)
+    buttons = [buybutton('donut'), buybutton('cake'), buybutton('cookie'),
+               #buybutton('yogurt'),
+               buybutton('chocolate'), buybutton('ice_cream'),
+               buybutton('shaved_ice')]
+
+    for button in buttons:
+        if not button:
+            buttons.remove(button)
+    markup.add(*buttons)
+
+    await call.message.answer('<i>&#127856; Добро пожаловать в нашу кондитерскую!</i>', reply_markup = markup, parse_mode = 'html')

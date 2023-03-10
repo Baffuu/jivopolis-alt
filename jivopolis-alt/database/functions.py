@@ -82,10 +82,10 @@ async def itemdata(user_id: int, item: str) -> Union[str, None, InlineKeyboardBu
     except Exception as e:         
         return logger.exception(e)
 
-def buybutton(item: str, status: str = None, tip: int = 0) -> Union[str, InlineKeyboardButton]:
+def buybutton(item: str, status: str = None, tip: int = 0) -> Union[str, InlineKeyboardButton, None]:
     if item in ITEMS:
-        name = ITEMS[2][ITEMS[1].index(item)]
-        icon = ITEMS[0][ITEMS[1].index(item)]
+        name = ITEMS[item][2]
+        icon = ITEMS[item][0]
         cost = ITEMS[item][3] + tip
 
         if not status:
@@ -94,16 +94,16 @@ def buybutton(item: str, status: str = None, tip: int = 0) -> Union[str, InlineK
             if item in limeteds:
                 return InlineKeyboardButton(f'{icon} {name} - ${cost}', callback_data=f'buy24_{item}')
             else:
-                return 'emptyslot'
+                return None
         elif status == 'clan':
             if item in clanitems[0]:
                 return InlineKeyboardButton(text=f'{icon} {name} - ${clanitems[1][clanitems[0].index(item)+tip]}', callback_data=f'buyclan_{item}')
             else:
-                return 'emptyslot'
+                return None
         else:
-            return 'emptyslot'
+            return None
     else:
-        return 'emptyslot'
+        return None
 
 async def eat(call: CallbackQuery, food: str) -> None:
     user_id = call.from_user.id
