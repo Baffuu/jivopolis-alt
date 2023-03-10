@@ -1,4 +1,4 @@
-from ...database.functions import cur, conn, Message, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, buy, bot, get_link, get_mask
+from ...database.functions import cur, conn, Message, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, buy, bot, get_link, get_mask, buybutton
 from ...config import METRO, WALK, CITY, trains, villages, walks, ITEMS, lvlcar
 import asyncio
 
@@ -182,4 +182,12 @@ async def local_people(call: CallbackQuery):
         users += f'\n{index}. <a href="{get_link(row[1])}">{get_mask(row[1])} {row[2]}</a>'
 
     await call.message.answer(f'<i>&#128100; Пользователи в местности <b>{place}</b>: <b>{users}</b></i>', parse_mode = 'html')
+
+async def phone_shop(call: CallbackQuery):
+    place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={call.from_user.id}").fetchone()[0]
     
+    if place != 'Генерала Шелби':
+        return 
+
+    await call.message.answer('<i>📱 Добро пожаловать в магазин техники имени Шелби</i>', reply_markup = InlineKeyboardMarkup().\
+        add(buybutton('phone')), parse_mode = 'html') 

@@ -8,7 +8,7 @@ from .callbacks.other import chats, my_refferals, get_cheque
 from .callbacks.for_admins import adminpanel, itemsinfo_table, itemsinfo_item, adminhelp, sqlapprove, sqldecline, restart, adminchats
 from .callbacks.inventory import itemdesc, inventory, open_lootbox
 from .callbacks.user_profile import set_user_bio, put_mask_off, put_mask_on
-from .callbacks.traveling import buycall, city, car_menu, goto_on_car, local_people
+from .callbacks.traveling import buycall, city, car_menu, goto_on_car, local_people, phone_shop
 
 async def callback_handler(call: CallbackQuery):
     try:
@@ -84,6 +84,8 @@ async def callback_handler(call: CallbackQuery):
                 await local_people(call)
             case cheque if cheque.startswith('check_'):
                 await get_cheque(call, call.from_user.id)
+            case 'phone_shop':
+                await phone_shop(call)
             case _:
                 return await call.answer('♿️ 404: команда не найдена.', show_alert=True)
     except TypeError as e:
