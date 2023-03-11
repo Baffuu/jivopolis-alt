@@ -202,9 +202,8 @@ async def candy_shop(call: CallbackQuery):
                buybutton('chocolate'), buybutton('ice_cream'),
                buybutton('shaved_ice')]
 
-    for button in buttons:
-        if not button:
-            buttons.remove(button)
+    sellitems = list(filter(lambda item: item is not None, sellitems))
+
     markup.add(*buttons)
 
     return await call.message.answer('<i>&#127856; Добро пожаловать в нашу кондитерскую!</i>', reply_markup = markup, parse_mode = 'html')
@@ -218,10 +217,8 @@ async def japan_shop(call: CallbackQuery):
     markup = InlineKeyboardMarkup(row_width=1)
     buttons = [buybutton('bento'), buybutton('pasta'), buybutton('rice')]
 
-    for button in buttons:
-        if not button:
-            buttons.remove(button)
-    
+    sellitems = list(filter(lambda item: item is not None, sellitems))
+
     markup.add(*buttons)
 
     return await call.message.answer('<i>&#127857; Добро пожаловать в ресторан восточной кухни "Япон Енот"!</i>', reply_markup = markup, parse_mode = 'html')
@@ -263,8 +260,29 @@ async def xmas_shop(call: CallbackQuery):
     buybutton('mrs_claus'), buybutton('firework'),
     buybutton('fireworks'), buybutton('confetti')]
 
-    
-
     markup.add(*list(filter(lambda item: item is not None, buttons)))
 
     return await call.message.answer('<i>Что хотите купить?</i>', reply_markup = markup, parse_mode = 'html')
+
+async def delivery_menu(call: CallbackQuery):
+    a = call.from_user.id
+    phone = cur.execute(f"SELECT phone FROM userdata WHERE user_id={call.from_user.id}").fetchone()[0]
+
+    if phone<1:
+        return await call.answer('Вам нужен телефон. Его можно купить в магазине на ул. Генерала Шелби и одноимённой станции метро', show_alert = True)
+
+    markup = InlineKeyboardMarkup(row_width = 1)
+    sellitems = ['snegovik', 'snow', 'tree', 'fairy', 'santa_claus', 'mrs_claus', 'firework', 'fireworks', 'confetti', 'clown', 'ghost', 'alien', 'robot', 'shit', 'moyai', 'pasta', 'rice', 'sushi']
+
+    for item in sellitems:
+        sellitems.append(buybutton(item, tip = 15))
+        sellitems.remove(item)
+    
+    sellitems = list(filter(lambda item: item is not None, sellitems))
+    sellitems = list(filter(lambda item: type(item) is InlineKeyboardButton, sellitems))
+
+    markup.add(*sellitems)
+    markup.add(InlineKeyboardMarkup(text='◀ Назад', callback_data='cancel_action'))
+
+    await call.message.answer('<i>🚚 Здесь вы можете заказать себе любой товар из ТЦ МиГ из любого места, даже из самой глухой деревни. Это обойдётся дороже, чем в ТЦ, зато удобнее :)</i>', parse_mode='html', reply_markup = markup)
+            

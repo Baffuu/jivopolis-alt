@@ -83,7 +83,7 @@ async def cellphone_menu(call: CallbackQuery):
     markup = InlineKeyboardMarkup(row_width = 1)
 
     markup.add(InlineKeyboardButton(text='📡 GPS', callback_data='gps'),
-    InlineKeyboardButton(text='🚚 МиГ.Доставка', callback_data='delivery'),
+    InlineKeyboardButton(text='🚚 МиГ.Доставка', callback_data='delivery_app'),
     InlineKeyboardButton(text='🚂 ЖивГорТранс: Билеты', callback_data='tickets'),
     InlineKeyboardMarkup(text='◀ Назад', callback_data='cancel_action'))
 

@@ -8,7 +8,7 @@ from .callbacks.other import chats, my_refferals, get_cheque, cellphone_menu
 from .callbacks.for_admins import adminpanel, itemsinfo_table, itemsinfo_item, adminhelp, sqlapprove, sqldecline, restart, adminchats
 from .callbacks.inventory import itemdesc, inventory, open_lootbox
 from .callbacks.user_profile import set_user_bio, put_mask_off, put_mask_on, my_reflink
-from .callbacks.traveling import buycall, city, car_menu, goto_on_car, local_people, phone_shop, candy_shop, mall, japan_shop, moda_shop, xmas_shop
+from .callbacks.traveling import buycall, city, car_menu, goto_on_car, local_people, phone_shop, candy_shop, mall, japan_shop, moda_shop, xmas_shop, delivery_menu
 
 async def callback_handler(call: CallbackQuery):
     try:
@@ -100,6 +100,8 @@ async def callback_handler(call: CallbackQuery):
                 await my_reflink(call)
             case 'cellphone_menu':
                 await cellphone_menu(call)
+            case 'delivery_app':
+                await delivery_menu(call)
             case _:
                 return await call.answer('♿️ 404: команда не найдена.', show_alert=True)
     except TypeError as e:
