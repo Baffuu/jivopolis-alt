@@ -286,3 +286,17 @@ async def delivery_menu(call: CallbackQuery):
 
     await call.message.answer('<i>🚚 Здесь вы можете заказать себе любой товар из ТЦ МиГ из любого места, даже из самой глухой деревни. Это обойдётся дороже, чем в ТЦ, зато удобнее :)</i>', parse_mode='html', reply_markup = markup)
             
+async def fruit_shop(call: CallbackQuery):
+    place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={call.from_user.id}").fetchone()[0]
+    
+    if place != 'Макеевка':
+        return
+
+    markup = InlineKeyboardMarkup(row_width=1)
+    
+    buttons = [buybutton('apple'), buybutton('cucumber'),
+    buybutton('tomato'), buybutton('kiwi'), buybutton('cocoa')]
+
+    markup.add(*list(filter(lambda item: item is not None, buttons)))
+
+    await call.message.answer('<i>&#127823; Добро пожаловать в мини-магазин "Натурал"!</i>', reply_markup = markup, parse_mode = 'html')
