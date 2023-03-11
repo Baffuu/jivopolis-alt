@@ -72,4 +72,19 @@ async def get_cheque(call: CallbackQuery, user_id: int):
         await bot.edit_message_text(inline_message_id = call.inline_message_id, text = f'<i><b><a href="{get_link(user_id)}">{mask}{nick}</a></b> забрал <b>${money}</b></i>')
     if money > 0:
         await bot.send_message(log_chat, f'<i><b><a href="{get_link}">{mask}{nick}</a></b> забрал <b>${money}</b>\n#user_getcheck</i>')
-            
+
+async def cellphone_menu(call: CallbackQuery):
+    a = call.from_user.id
+    phone = cur.execute(f"SELECT phone FROM userdata WHERE user_id={call.from_user.id}").fetchone()[0]
+    
+    if phone<1:
+        return await call.answer('Вам нужен телефон. Его можно купить в магазине на ул. Генерала Шелби и одноимённой станции метро', show_alert = True)
+        
+    markup = InlineKeyboardMarkup(row_width = 1)
+
+    markup.add(InlineKeyboardButton(text='📡 GPS', callback_data='gps'),
+    InlineKeyboardButton(text='🚚 МиГ.Доставка', callback_data='delivery'),
+    InlineKeyboardButton(text='🚂 ЖивГорТранс: Билеты', callback_data='tickets'),
+    InlineKeyboardMarkup(text='◀ Назад', callback_data='cancel_action'))
+
+    await call.message.answer('<i>📱 Телефон - это удобная и современная вещь</i>', parse_mode='html', reply_markup = markup)

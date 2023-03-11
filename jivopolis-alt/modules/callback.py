@@ -4,7 +4,7 @@ from ..config import ITEMS, SUPPORT_LINK
 from ..bot import bot, Dispatcher, logger
 from ..database.functions import create_acc, check, cur, profile, eat
 
-from .callbacks.other import chats, my_refferals, get_cheque
+from .callbacks.other import chats, my_refferals, get_cheque, cellphone_menu
 from .callbacks.for_admins import adminpanel, itemsinfo_table, itemsinfo_item, adminhelp, sqlapprove, sqldecline, restart, adminchats
 from .callbacks.inventory import itemdesc, inventory, open_lootbox
 from .callbacks.user_profile import set_user_bio, put_mask_off, put_mask_on, my_reflink
@@ -98,6 +98,8 @@ async def callback_handler(call: CallbackQuery):
                 await xmas_shop(call)
             case 'my_reflink':
                 await my_reflink(call)
+            case 'cellphone_menu':
+                await cellphone_menu(call)
             case _:
                 return await call.answer('♿️ 404: команда не найдена.', show_alert=True)
     except TypeError as e:

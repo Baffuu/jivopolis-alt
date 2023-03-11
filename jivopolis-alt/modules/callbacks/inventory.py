@@ -39,7 +39,7 @@ async def itemdesc(call: CallbackQuery, user_id: int):
     elif status == 'key':
         markup.add(InlineKeyboardButton(text='🔐 Чёрный рынок', callback_data='darkweb'))
     elif status == 'phone':
-        markup.add(InlineKeyboardButton(text='📱 Использовать', callback_data='smartphone'))
+        markup.add(InlineKeyboardButton(text='📱 Использовать', callback_data='cellphone_menu'))
     rem = ''
     if call.data in limeteds:
         cur.execute(f"SELECT {item} FROM globaldata")

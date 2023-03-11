@@ -93,7 +93,7 @@ async def start_cmd(message: Message):
             rank = cur.execute(f"SELECT rank FROM userdata WHERE user_id = {user_id}").fetchone()[0]
             phone = cur.execute(f"SELECT phone FROM userdata WHERE user_id = {user_id}").fetchone()[0]
             
-            markup.add(InlineKeyboardButton(text="💼 Инвентарь", callback_data="inventory"), 
+            buttons = [InlineKeyboardButton(text="💼 Инвентарь", callback_data="inventory"), 
                        InlineKeyboardButton(text="🏛 Город", callback_data="city"),
                        InlineKeyboardButton(text="📬 Почтовый ящик", callback_data="mailbox"), 
                        InlineKeyboardButton(text="💬 Чаты", callback_data="chats"),
@@ -101,14 +101,15 @@ async def start_cmd(message: Message):
                        InlineKeyboardButton(text="🃏 Профиль", callback_data="profile"),
                        InlineKeyboardButton(text="⚙ Настройки", callback_data="user_settings"),
                        InlineKeyboardButton(text="📊 Экономика", callback_data="economics"),
-                       InlineKeyboardButton(text="❓ Помощь", callback_data="help"))
+                       InlineKeyboardButton(text="❓ Помощь", callback_data="help")]
 
             if phone > 0:
-                markup.add(InlineKeyboardButton(text="📱 Телефон", callback_data="smartphone"))
+                buttons.append(InlineKeyboardButton(text="📱 Телефон", callback_data="cellphone_menu"))
 
             if rank >= 2:
                 markup.add(InlineKeyboardButton(text="👑 Админская панель", callback_data="adminpanel"))
 
+            markup.add(*buttons)
             balance = cur.execute(f"SELECT balance FROM userdata WHERE user_id = {user_id}").fetchone()[0]
             xp = cur.execute(f"SELECT xp FROM userdata WHERE user_id = {user_id}").fetchone()[0]
             health = cur.execute(f"SELECT health FROM userdata WHERE user_id = {user_id}").fetchone()[0]
