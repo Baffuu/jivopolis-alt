@@ -82,7 +82,7 @@ async def itemdata(user_id: int, item: str) -> Union[str, None, InlineKeyboardBu
     except Exception as e:         
         return logger.exception(e)
 
-def buybutton(item: str, status: str = None, tip: int = 0) -> Union[str, InlineKeyboardButton, None]:
+def buybutton(item: str, status: str = None, tip: int = 0) -> Union[InlineKeyboardButton, None]:
     if item in ITEMS:
         name = ITEMS[item][2]
         icon = ITEMS[item][0]
