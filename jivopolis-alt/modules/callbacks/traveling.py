@@ -1,5 +1,5 @@
 from ...database.functions import cur, conn, Message, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, buy, bot, get_link, get_mask, buybutton
-from ...config import METRO, WALK, CITY, trains, villages, walks, ITEMS, lvlcar
+from ...config import METRO, WALK, CITY, trains, villages, walks, ITEMS, lvlcar, limeteds
 import asyncio
 
 async def city(message: Message, user_id: str):
@@ -221,8 +221,10 @@ async def japan_shop(call: CallbackQuery):
     for button in buttons:
         if not button:
             buttons.remove(button)
-            
-    await call.message.answer('<i>&#127857; Добро пожаловать в ресторан восточной кухни "Япон Енот"!</i>', reply_markup = markup, parse_mode = 'html')
+    
+    markup.add(*buttons)
+
+    return await call.message.answer('<i>&#127857; Добро пожаловать в ресторан восточной кухни "Япон Енот"!</i>', reply_markup = markup, parse_mode = 'html')
 
 async def mall(call: CallbackQuery):
     place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={call.from_user.id}").fetchone()[0]
@@ -235,4 +237,17 @@ async def mall(call: CallbackQuery):
                InlineKeyboardButton(text='🍔 Енот Кебаб', callback_data='enot_kebab'),
                InlineKeyboardButton(text='🍚 Ресторан Япон Енот', callback_data='japan_shop'))
 
-    await call.message.answer('<i>&#127978; Добро пожаловать в торговый центр!</i>', reply_markup = markup, parse_mode = 'html')
+    return await call.message.answer('<i>&#127978; Добро пожаловать в торговый центр!</i>', reply_markup = markup, parse_mode = 'html')
+
+async def moda_shop(call: CallbackQuery):
+    place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={call.from_user.id}").fetchone()[0]
+
+    if place != 'ТЦ МиГ':
+        return #todo answer
+
+    markup = InlineKeyboardMarkup()
+    markup.add(InlineKeyboardButton(text='❄️ Новогодний отдел', callback_data='christmas_clothes'))
+    markup.add(InlineKeyboardButton(text='👺 Маскарадный отдел', callback_data='mask_clothes'))
+
+    return await call.message.answer('<i>&#128090; Добро пожаловать в <b>ModaShop</b>! Здесь вы можете купить любую одежду!</i>', reply_markup = markup, parse_mode = 'html')
+    
