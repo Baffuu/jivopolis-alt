@@ -216,6 +216,23 @@ async def japan_shop(call: CallbackQuery):
         return #todo callback answer
 
     markup = InlineKeyboardMarkup(row_width=1)
-    markup.add(buybutton('bento'), buybutton('pasta'), buybutton('rice'))
+    buttons = [buybutton('bento'), buybutton('pasta'), buybutton('rice')]
 
+    for button in buttons:
+        if not button:
+            buttons.remove(button)
+            
     await call.message.answer('<i>&#127857; Добро пожаловать в ресторан восточной кухни "Япон Енот"!</i>', reply_markup = markup, parse_mode = 'html')
+
+async def mall(call: CallbackQuery):
+    place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={call.from_user.id}").fetchone()[0]
+    
+    if place != 'ТЦ МиГ':
+        return #todo callback answer
+
+    markup = InlineKeyboardMarkup(row_width=1)
+    markup.add(InlineKeyboardButton(text='👚 ModaShop', callback_data='moda_shop'), 
+               InlineKeyboardButton(text='🍔 Енот Кебаб', callback_data='enot_kebab'),
+               InlineKeyboardButton(text='🍚 Ресторан Япон Енот', callback_data='japan_shop'))
+
+    await call.message.answer('<i>&#127978; Добро пожаловать в торговый центр!</i>', reply_markup = markup, parse_mode = 'html')
