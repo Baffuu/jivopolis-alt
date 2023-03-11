@@ -208,3 +208,14 @@ async def candy_shop(call: CallbackQuery):
     markup.add(*buttons)
 
     await call.message.answer('<i>&#127856; Добро пожаловать в нашу кондитерскую!</i>', reply_markup = markup, parse_mode = 'html')
+
+async def japan_shop(call: CallbackQuery):
+    place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={call.from_user.id}").fetchone()[0]
+
+    if place != 'ТЦ МиГ':
+        return #todo callback answer
+
+    markup = InlineKeyboardMarkup(row_width=1)
+    markup.add(buybutton('bento'), buybutton('pasta'), buybutton('rice'))
+
+    await call.message.answer('<i>&#127857; Добро пожаловать в ресторан восточной кухни "Япон Енот"!</i>', reply_markup = markup, parse_mode = 'html')
