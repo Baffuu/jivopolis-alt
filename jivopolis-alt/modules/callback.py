@@ -9,7 +9,7 @@ from .callbacks.for_admins import adminpanel, itemsinfo_table, itemsinfo_item, a
 from .callbacks.inventory import itemdesc, inventory, open_lootbox
 from .callbacks.user_profile import set_user_bio, put_mask_off, put_mask_on, my_reflink
 from .callbacks.traveling import buycall, city, car_menu, goto_on_car, local_people, phone_shop, candy_shop, mall, japan_shop, moda_shop, xmas_shop, delivery_menu, \
-    fruit_shop
+    fruit_shop, central_market_menu, central_market_food
 
 async def callback_handler(call: CallbackQuery):
     try:
@@ -105,6 +105,10 @@ async def callback_handler(call: CallbackQuery):
                 await delivery_menu(call)
             case 'fruit_shop':
                 await fruit_shop(call)
+            case 'central_market_menu':
+                await central_market_menu(call)
+            case 'central_market_food':
+                await central_market_food(call)
             case _:
                 return await call.answer('♿️ 404: команда не найдена.', show_alert=True)
     except TypeError as e:
@@ -113,6 +117,8 @@ async def callback_handler(call: CallbackQuery):
             await create_acc(call.from_user, call.message.chat.id)
             return await call.answer('☁️ Записываем ваши данные…')
         return await call.answer("🧑‍🎨 Сэр, у вас нет аккаунта в живополисе. Прежде чем использовать любые комманды вам нужно зарегистрироваться.", show_alert=True)
+    except Exception as e:
+        logger.exception(e)
     return await call.answer('...')
         
 

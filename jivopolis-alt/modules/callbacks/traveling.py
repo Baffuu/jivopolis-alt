@@ -1,7 +1,7 @@
-from ...database.functions import cur, conn, Message, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, buy, bot, get_link, get_mask, buybutton
+from ...database.functions import cur, conn, Message, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, buy, bot, get_link, get_mask, buybutton, itemdata
 from ...config import METRO, WALK, CITY, trains, villages, walks, ITEMS, lvlcar, limeteds
 import asyncio
-
+import time
 async def city(message: Message, user_id: str):
     place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={user_id}").fetchone()[0]
     line = cur.execute(f"SELECT line FROM userdata WHERE user_id={user_id}").fetchone()[0]
@@ -64,8 +64,9 @@ async def city(message: Message, user_id: str):
         if iswalk == -1 or walkindex == iswalk or wnk[WALK[iswalk].index(place)] == "":
             continue
         index = WALK[iswalk].index(place)
-        markup.add(InlineKeyboardButton(text="🚶 {0} - {1} секунд ходьбы".format(wnk[index], walks[index]), callback_data="walk_{0}".format(wnk[index])))
-    if place=="Ботаническая":
+        markup.add(InlineKeyboardButton(text=f"🚶 {wnk[index]} - {walks[index]} секунд ходьбы".format(wnk[index], walks[index]), callback_data="walk_{0}".format(wnk[index])))
+    print(time.time())
+    if place=="Ботаническая": #todo match (place):
         markup.add(InlineKeyboardButton(text="🌲 Живополисский ботанический сад", callback_data="botan_garden"))
     elif place=="Живбанк":
         markup.add(InlineKeyboardButton(text="🏦 Живополисский банк", callback_data="bank"))
@@ -94,7 +95,7 @@ async def city(message: Message, user_id: str):
     elif place=="Макеевка":
         markup.add(InlineKeyboardButton(text="🍏 \"Натурал\". Фрукты и овощи", callback_data="fruit_shop"))
     elif place=="Рынок":
-        markup.add(InlineKeyboardButton(text="🏣 Центральный рынок", callback_data="central_market"))
+        markup.add(InlineKeyboardButton(text="🏣 Центральный рынок", callback_data="central_market_menu"))
     elif place=="Котайский электрозавод":
         markup.add(InlineKeyboardButton(text="🏭 Котайский завод электрических деталей", callback_data="factory"))
     elif place=="Стадион":
@@ -103,6 +104,7 @@ async def city(message: Message, user_id: str):
         markup.add(InlineKeyboardButton(text="🌾 Ферма", callback_data="farm"))
     elif place=="Генерала Шелби":
         markup.add(InlineKeyboardButton(text="📱 Магазин техники имени Шелби", callback_data="phone_shop"))
+    print(time.time())
     '''cur.execute("SELECT * FROM clandata WHERE islocation=1 AND hqplace=? AND type=?", (place, "public",))
     for row in cur:
         markup.add(InlineKeyboardButton(text="🏢 {0}".format(row[1]), url=row[8]))'''
@@ -300,3 +302,41 @@ async def fruit_shop(call: CallbackQuery):
     markup.add(*list(filter(lambda item: item is not None, buttons)))
 
     await call.message.answer('<i>&#127823; Добро пожаловать в мини-магазин "Натурал"!</i>', reply_markup = markup, parse_mode = 'html')
+
+async def central_market_menu(call: CallbackQuery):
+    place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={call.from_user.id}").fetchone()[0]
+    
+    if place!='Рынок':
+        return #todo answer
+    
+    markup = InlineKeyboardMarkup(row_width=2).\
+        add(InlineKeyboardMarkup(text='🍦 Продажа еды', callback_data='central_market_food'), 
+        InlineKeyboardMarkup(text='👕 Продажа масок', callback_data='central_market_mask'),
+        InlineKeyboardMarkup(text='🚪 Выйти', callback_data='cancel_action'))
+
+    await call.message.answer('<i><b>🏣 Центральный рынок</b> - место, в котором можно продать купленные товары. Дешевле, чем в магазине, но удобно\n\
+        \n❗ Здесь вы <b>продаёте</b> товары государству, а не покупаете. Деньги вы получаете автоматически, ваш товар никому не достаётся</i>', reply_markup = markup, parse_mode = 'html')
+
+async def central_market_food(call: CallbackQuery):
+    user_id = call.from_user.id
+    place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={user_id}").fetchone()[0]
+    
+    if place!='Рынок':
+        return #todo answer
+
+    markup = InlineKeyboardMarkup(row_width = 3)
+    itemlist = []
+    coef = 1.5 #todo cur.execute(f"SELECT coef FROM globaldata").fetchone()[0]
+
+    for item in ITEMS:
+        if (itemdata(user_id, item) != 'emptyslot' and itemdata(user_id, item) != None) and ITEMS[item][4][0] == 'food' and ITEMS[item][3] > 0:
+            cost = ITEMS[item][3]//coef
+            itemlist.append(InlineKeyboardButton(text=f'{ITEMS[item][0]} - ${cost}', callback_data=f'sellitem_{item}'))
+    
+    if itemlist == []:
+        desc = '🚫 У вас нет еды для продажи'
+    else:
+        markup.add(*itemlist)
+        desc = '<b>🏣 Центральный рынок</b> - место, в котором можно продать купленные товары. Дешевле, чем в магазине, но удобно\n\n❗ Здесь вы <b>продаёте</b> товары государству, а не покупаете. Деньги вы получаете автоматически, ваш товар никому не достаётся'
+    markup.add(InlineKeyboardMarkup(text='◀ Назад', callback_data='cancel_action'))
+    await call.message.answer(f'<i>{desc}</i>', reply_markup = markup, parse_mode = 'html')

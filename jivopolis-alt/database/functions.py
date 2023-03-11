@@ -13,6 +13,9 @@ from ..database.sqlitedb import cur, conn, insert_user
 from ..misc import current_time, get_link, get_mask
 
 async def check(user_id: int, chat_id: str) -> None:
+    '''
+    checks everything 
+    '''
     try:
         lastfill = current_time() - cur.execute("SELECT lastfill FROM globaldata").fetchone()[0]
 
@@ -71,6 +74,11 @@ async def check(user_id: int, chat_id: str) -> None:
             return logger.exception(e)
 
 async def itemdata(user_id: int, item: str) -> Union[str, None, InlineKeyboardButton]:
+    """
+    :param user_id - telegram user ID
+    :param item - item slot name
+    :returns aiogram.types.InlineKeyboardButton - button with item icon && itemcount
+    """
     try: 
         items = cur.execute(f"SELECT {item} FROM userdata WHERE user_id={user_id}").fetchone()[0]
 
@@ -83,6 +91,7 @@ async def itemdata(user_id: int, item: str) -> Union[str, None, InlineKeyboardBu
         return logger.exception(e)
 
 def buybutton(item: str, status: str = None, tip: int = 0) -> Union[InlineKeyboardButton, None]:
+    
     if item in ITEMS:
         name = ITEMS[item][2]
         icon = ITEMS[item][0]
@@ -103,7 +112,7 @@ def buybutton(item: str, status: str = None, tip: int = 0) -> Union[InlineKeyboa
         else:
             return None
     else:
-        return None
+        raise ValueError("no such item")
 
 async def eat(call: CallbackQuery, food: str) -> None:
     user_id = call.from_user.id
