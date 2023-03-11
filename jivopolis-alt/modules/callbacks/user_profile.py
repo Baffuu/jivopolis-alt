@@ -1,4 +1,5 @@
 from ...database.functions import cur, conn, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, bot, ITEMS
+from aiogram.utils.deep_linking import get_start_link
 
 async def set_user_bio(call: CallbackQuery):    
     cur.execute(f"UPDATE userdata SET process=\"setbio\" WHERE user_id={call.from_user.id}")
@@ -42,3 +43,14 @@ async def put_mask_on(call: CallbackQuery, item: str):
         # await achieve(a, message.chat.id, "msqrd")
     else:
         await call.answer("🚫 У вас нет этого предмета", show_alert = True)
+
+async def my_reflink(call: CallbackQuery):
+    user_id = call.from_user.id
+
+    color = '0-0-0'
+    bgcolor = '255-255-255'
+    reflink = await get_start_link(user_id, True)
+
+    return await bot.send_photo(call.message.chat.id, 
+    f"https://api.qrserver.com/v1/create-qr-code/?data={reflink}&size=512x512&charset-source=UTF-8&charset-target=UTF-8&ecc=L&color={color}&bgcolor={bgcolor}&margin=1&qzone=1&format=png", 
+    f'<i>Ваша реферальная ссылка: <b>{reflink}</b>\n\nЗа каждого приглашённого пользователя вы получаете 1 <b>📦 Лутбокс</b></i>', parse_mode = 'html')

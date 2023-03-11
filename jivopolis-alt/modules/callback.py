@@ -7,7 +7,7 @@ from ..database.functions import create_acc, check, cur, profile, eat
 from .callbacks.other import chats, my_refferals, get_cheque
 from .callbacks.for_admins import adminpanel, itemsinfo_table, itemsinfo_item, adminhelp, sqlapprove, sqldecline, restart, adminchats
 from .callbacks.inventory import itemdesc, inventory, open_lootbox
-from .callbacks.user_profile import set_user_bio, put_mask_off, put_mask_on
+from .callbacks.user_profile import set_user_bio, put_mask_off, put_mask_on, my_reflink
 from .callbacks.traveling import buycall, city, car_menu, goto_on_car, local_people, phone_shop, candy_shop, mall, japan_shop, moda_shop, xmas_shop
 
 async def callback_handler(call: CallbackQuery):
@@ -96,6 +96,8 @@ async def callback_handler(call: CallbackQuery):
                 await moda_shop(call)
             case 'xmas_shop':
                 await xmas_shop(call)
+            case 'my_reflink':
+                await my_reflink(call)
             case _:
                 return await call.answer('♿️ 404: команда не найдена.', show_alert=True)
     except TypeError as e:

@@ -502,7 +502,7 @@ async def profile(user_id: int, message: Message, called: bool = False):
 
         markup.add(InlineKeyboardButton(text="💡 Достижения", callback_data="achievements"))
         markup.add(InlineKeyboardButton(text="⚙ Настройки", callback_data="user_settings"))
-        markup.add(InlineKeyboardButton(text="🖇 Реферальная ссылка", callback_data="reflink"))
+        markup.add(InlineKeyboardButton(text="🖇 Реферальная ссылка", callback_data="my_reflink"))
         markup.add(InlineKeyboardButton(text="👥 Привлечённые пользователи", callback_data="refusers"))
     try:
         clan_link = '"' + clan_link + '"'
