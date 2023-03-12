@@ -349,5 +349,20 @@ async def bank(call: CallbackQuery):
     markup = InlineKeyboardMarkup(row_width=1).\
         add(InlineKeyboardButton(text='🏦 Государственная казна', callback_data='state_balance'),
         InlineKeyboardButton(text='🤏 Ограбить', callback_data='rob_bank'))
-        
+
     await call.message.answer('<i>🏦 Добро пожаловать в Банк</i>', reply_markup = markup, parse_mode = 'html')
+
+async def state_balance(call: CallbackQuery):
+    place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={call.from_user.id}").fetchone()[0]
+    treasury = cur.execute(f"SELECT treasury FROM globaldata").fetchone()[0]
+    
+    if place != 'Живбанк':
+        return #todo answer
+    
+    markup = InlineKeyboardMarkup(row_width=1).\
+        add(InlineKeyboardButton(text='💰 Пожертвовать $100', callback_data='give_state 100'),
+        InlineKeyboardButton(text='💰 Пожертвовать $500', callback_data='give_state 500'), 
+        InlineKeyboardButton(text='💰 Пожертвовать $1000', callback_data='give_state 1000'), 
+        InlineKeyboardButton(text='💰 Пожертвовать $10,000', callback_data='give_state 10000'))
+
+    await call.message.answer(f'<i>🏦 Добро пожаловать в Казну. Сейчас тут ${treasury}</i>', reply_markup = markup, parse_mode = 'html')
