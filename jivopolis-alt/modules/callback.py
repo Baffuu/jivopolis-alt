@@ -9,7 +9,7 @@ from .callbacks.for_admins import adminpanel, itemsinfo_table, itemsinfo_item, a
 from .callbacks.inventory import itemdesc, inventory, open_lootbox, sellitem
 from .callbacks.user_profile import set_user_bio, put_mask_off, put_mask_on, my_reflink
 from .callbacks.traveling import buycall, city, car_menu, goto_on_car, local_people, phone_shop, candy_shop, mall, japan_shop, moda_shop, xmas_shop, delivery_menu, \
-    fruit_shop, central_market_menu, central_market_food
+    fruit_shop, central_market_menu, central_market_food, bank
 
 async def callback_handler(call: CallbackQuery):
     try:
@@ -111,6 +111,8 @@ async def callback_handler(call: CallbackQuery):
                 await central_market_food(call)
             case sell if sell.startswith('sellitem_'):
                 await sellitem(call, call.data[9:])
+            case 'bank':
+                await bank(call)
             case _:
                 return await call.answer('♿️ 404: команда не найдена.', show_alert=True)
     except TypeError as e:

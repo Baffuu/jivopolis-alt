@@ -340,3 +340,14 @@ async def central_market_food(call: CallbackQuery):
         desc = '<b>🏣 Центральный рынок</b> - место, в котором можно продать купленные товары. Дешевле, чем в магазине, но удобно\n\n❗ Здесь вы <b>продаёте</b> товары государству, а не покупаете. Деньги вы получаете автоматически, ваш товар никому не достаётся'
     markup.add(InlineKeyboardMarkup(text='◀ Назад', callback_data='cancel_action'))
     await call.message.answer(f'<i>{desc}</i>', reply_markup = markup, parse_mode = 'html')
+
+async def bank(call: CallbackQuery):
+    place = cur.execute(f"SELECT current_place from userdata WHERE user_id={call.from_user.id}").fetchone()[0]
+    
+    if place != 'Живбанк':
+        return #todo answer
+    markup = InlineKeyboardMarkup(row_width=1).\
+        add(InlineKeyboardButton(text='🏦 Государственная казна', callback_data='state_balance'),
+        InlineKeyboardButton(text='🤏 Ограбить', callback_data='rob_bank'))
+        
+    await call.message.answer('<i>🏦 Добро пожаловать в Банк</i>', reply_markup = markup, parse_mode = 'html')
