@@ -105,3 +105,32 @@ async def open_lootbox(user_id: int, message: Message): #todo: NEW BOXES
         return await message.answer(f'<i><b>Поздравляем!</b>\nВы заработали <b>${rand}</b></i>', parse_mode = 'html')
     else:
         return await message.answer('<i>В ящике вы нашли только старую газету, которая теперь не стоит ни гроша</i>', parse_mode = 'html')
+
+async def sellitem(call: CallbackQuery, item: str):
+    user_id = call.from_user.id
+
+    if item not in ITEMS:
+        raise ValueError("no such item")
+
+    markup = InlineKeyboardMarkup(row_width = 3)
+
+    coef = 1.5 #todo cur.execute('SELECT coef FROM globaldata').fetchone()[0]
+    item_count = cur.execute(f"SELECT {item} FROM userdata WHERE user_id={user_id}").fetchone()[0]
+    
+    if item_count < 1:
+        return await call.answer('❌ У вас недостаточно единиц этого предмета', show_alert = True)
+        
+    cost = ITEMS[item][3]//coef
+    
+    cur.execute(f"UPDATE userdata SET {item}={item}-1 WHERE user_id={user_id}"); conn.commit()
+    cur.execute(f"UPDATE userdata SET balance=balance+{cost} WHERE user_id={user_id}"); conn.commit()
+    
+    balance = cur.execute(f"SELECT balance FROM userdata WHERE user_id={user_id}").fetchone()[0]
+    await call.answer(f'Продажа прошла успешно. Ваш баланс: ${balance}', show_alert = True)
+    
+    '''cur.execute('UPDATE userdata SET sold=sold+1 WHERE user_id=?', (a,))
+    conn.commit()
+    cursor.execute("SELECT sold FROM userdata WHERE user_id=?", (a,))
+    sold = cursor.fetchone()[0]
+    if sold>=10:
+        await achieve(a, call.message.chat.id, 'soldach')'''

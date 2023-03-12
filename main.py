@@ -2011,18 +2011,6 @@ from math import ceil
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
                 await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
-        if call.data == 'central_market':
-            try:
-
-            except Exception as e:
-                await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
-        if call.data == 'market_food':
-            try:
-
-            except Exception as e:
-                await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
         if call.data == 'market_mask':
             try:
                 a = call.from_user.id
@@ -2051,33 +2039,7 @@ from math import ceil
                 await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
         if call.data.startswith('sellitem_'):
             try:
-                a = call.from_user.id
-                item = call.data.replace('sellitem_', '')
-                if not item in ITEMS[1]:
-                    return
-                ind = ITEMS[1].index(item)
-                markup = types.InlineKeyboardMarkup(row_width = 3)
-                cursor.execute('SELECT coef FROM globaldata')
-                coef = cursor.fetchone()[0]
-                cursor.execute('SELECT {0} FROM userdata WHERE user_id=?'.format(item), (a,))
-                count = cursor.fetchone()[0]
-                if count < 1:
-                    await call.answer('❌ У вас недостаточно единиц этого предмета', show_alert = True)
-                    return
-                cost = int(ITEMS[3][ind]/coef)
-                cursor.execute('UPDATE userdata SET {0}={0}-1 WHERE user_id=?'.format(item), (a,))
-                conn.commit()
-                cursor.execute('UPDATE userdata SET balance=balance+? WHERE user_id=?', (cost, a,))
-                conn.commit()
-                cursor.execute('SELECT balance FROM userdata WHERE user_id=?', (a,))
-                balance = cursor.fetchone()[0]
-                await call.answer('Продажа прошла успешно. Ваш баланс: ${0}'.format(balance), show_alert = True)
-                cursor.execute('UPDATE userdata SET sold=sold+1 WHERE user_id=?', (a,))
-                conn.commit()
-                cursor.execute("SELECT sold FROM userdata WHERE user_id=?", (a,))
-                sold = cursor.fetchone()[0]
-                if sold>=10:
-                    await achieve(a, call.message.chat.id, 'soldach')
+
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
                 await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
