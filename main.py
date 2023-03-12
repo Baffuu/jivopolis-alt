@@ -2037,12 +2037,7 @@ from math import ceil
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
                 await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
-        if call.data.startswith('sellitem_'):
-            try:
 
-            except Exception as e:
-                await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
         if call.data == 'darkweb':
             try:
                 a = call.from_user.id
@@ -2365,20 +2360,6 @@ from math import ceil
                 await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
         if call.data=='go_out':
             await main.delete_message(call.message.chat.id, call.message.message_id)
-        if call.data == 'bank':
-            try:
-                a = call.from_user.id
-                cursor.execute('SELECT place from userdata WHERE user_id=?', (a,))
-                station = cursor.fetchone()[0]
-                if station!='Живбанк':
-                    return
-                markup = types.InlineKeyboardMarkup()
-                markup.add(types.InlineKeyboardButton(text='🏦 Государственная казна', callback_data='state_balance'))
-                markup.add(types.InlineKeyboardButton(text='🤏 Ограбить', callback_data='rob_bank'))
-                await call.message.answer('<i>🏦 Добро пожаловать в Банк</i>', reply_markup = markup, parse_mode = 'html')
-            except Exception as e:
-                await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
         if call.data == 'university':
             try:
                 a = call.from_user.id
@@ -2820,48 +2801,13 @@ from math import ceil
                 await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
         if call.data == 'state_balance':
             try:
-                a = call.from_user.id
-                cursor.execute('SELECT place from userdata WHERE user_id=?', (a,))
-                station = cursor.fetchone()[0]
-                cursor.execute('SELECT kazna from globaldata WHERE id=?', (0,))
-                kazna = cursor.fetchone()[0]
-                if station!='Живбанк':
-                    return
-                markup = types.InlineKeyboardMarkup()
-                markup.add(types.InlineKeyboardButton(text='💰 Пожертвовать $100', callback_data='give_state 100'))
-                markup.add(types.InlineKeyboardButton(text='💰 Пожертвовать $1000', callback_data='give_state 1000'))
-                markup.add(types.InlineKeyboardButton(text='💰 Пожертвовать $10k', callback_data='give_state 10000'))
-                await call.message.answer('<i>🏦 Добро пожаловать в Казну. Сейчас тут ${0}</i>'.format(kazna), reply_markup = markup, parse_mode = 'html')
+
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
                 await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
         if call.data.startswith('give_state '):
             try:
-                amount = int(call.data[11:])
-                a = call.from_user.id
-                cursor.execute('SELECT place from userdata WHERE user_id=?', (a,))
-                station = cursor.fetchone()[0]
-                cursor.execute('SELECT balance from userdata WHERE user_id=?', (a,))
-                balance = cursor.fetchone()[0]
-                cursor.execute('SELECT kazna from globaldata WHERE id=?', (0,))
-                kazna = cursor.fetchone()[0]
-                if station!='Живбанк':
-                    return
-                if balance>=amount:
-                    cursor.execute('UPDATE globaldata SET kazna=? WHERE id=?', (kazna+amount, 0,))
-                    conn.commit()
-                    cursor.execute('UPDATE userdata SET balance=? WHERE user_id=?', (balance-amount, a,))
-                    conn.commit()
-                else:
-                    await call.message.answer('&#10060; У вас недостаточно средств</i>', parse_mode='html')
-                cursor.execute('SELECT kazna from globaldata WHERE id=?', (0,))
-                kazna = cursor.fetchone()[0]
-                markup = types.InlineKeyboardMarkup()
-                markup.add(types.InlineKeyboardButton(text='💰 Пожертвовать $100', callback_data='give_state 100'))
-                markup.add(types.InlineKeyboardButton(text='💰 Пожертвовать $1000', callback_data='give_state 1000'))
-                markup.add(types.InlineKeyboardButton(text='💰 Пожертвовать $10k', callback_data='give_state 10000'))
-                await call.message.answer('<i>🏦 Добро пожаловать в Казну. Сейчас тут ${0}</i>'.format(kazna), reply_markup = markup, parse_mode = 'html')
-                await main.delete_message(call.message.chat.id, call.message.message_id)
+               
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
                 await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')

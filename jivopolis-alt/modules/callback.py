@@ -4,7 +4,7 @@ from ..config import ITEMS, SUPPORT_LINK
 from ..bot import bot, Dispatcher, logger
 from ..database.functions import create_acc, check, cur, profile, eat
 
-from .callbacks.other import chats, my_refferals, get_cheque, cellphone_menu
+from .callbacks.other import chats, my_refferals, get_cheque, cellphone_menu, give_state
 from .callbacks.for_admins import adminpanel, itemsinfo_table, itemsinfo_item, adminhelp, sqlapprove, sqldecline, restart, adminchats
 from .callbacks.inventory import itemdesc, inventory, open_lootbox, sellitem
 from .callbacks.user_profile import set_user_bio, put_mask_off, put_mask_on, my_reflink
@@ -115,6 +115,8 @@ async def callback_handler(call: CallbackQuery):
                 await bank(call)
             case 'state_balance':
                 await state_balance(call)
+            case state if state.startswith('give_state'):
+                await give_state(call, call.data[9:])
             case _:
                 return await call.answer('♿️ 404: команда не найдена.', show_alert=True)
     except TypeError as e:
