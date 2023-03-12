@@ -329,7 +329,7 @@ async def central_market_food(call: CallbackQuery):
     coef = 1.5 #todo cur.execute(f"SELECT coef FROM globaldata").fetchone()[0]
 
     for item in ITEMS:
-        if (itemdata(user_id, item) != 'emptyslot' and itemdata(user_id, item) != None) and ITEMS[item][4][0] == 'food' and ITEMS[item][3] > 0:
+        if await itemdata(user_id, item) != 'emptyslot' and ITEMS[item][4][0] == 'food' and ITEMS[item][3] > 0:
             cost = ITEMS[item][3]//coef
             itemlist.append(InlineKeyboardButton(text=f'{ITEMS[item][0]} - ${cost}', callback_data=f'sellitem_{item}'))
     
