@@ -1,7 +1,8 @@
 from ...database.functions import cur, conn, Message, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, buy, bot, get_link, get_mask, buybutton, itemdata
-from ...config import METRO, WALK, CITY, trains, villages, walks, ITEMS, lvlcar, limeteds
+from ...config import METRO, WALK, CITY, trains, villages, walks, ITEMS, lvlcar, limeteds, lvlcab
 import asyncio
 import time
+
 async def city(message: Message, user_id: str):
     place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={user_id}").fetchone()[0]
     line = cur.execute(f"SELECT line FROM userdata WHERE user_id={user_id}").fetchone()[0]
@@ -28,7 +29,7 @@ async def city(message: Message, user_id: str):
     trbusitem = InlineKeyboardButton(text="🚎", callback_data="trolleybus")
     trainitem = InlineKeyboardButton(text="🚆", callback_data="railway_station")
     trlounge = InlineKeyboardButton(text="🚆", callback_data="lounge")
-    taxi = InlineKeyboardButton(text="🚕", callback_data="cab")
+    taxi = InlineKeyboardButton(text="🚕", callback_data="taxi_menu")
     busitem = InlineKeyboardButton(text="🚌", callback_data="bus")
     lounge = InlineKeyboardButton(text="🚌", callback_data="bus_lounge")
     trans = []
@@ -366,3 +367,21 @@ async def state_balance(call: CallbackQuery):
         InlineKeyboardButton(text='💰 Пожертвовать $10,000', callback_data='give_state 10000'))
 
     await call.message.answer(f'<i>🏦 Добро пожаловать в Казну. Сейчас тут ${treasury}</i>', reply_markup = markup, parse_mode = 'html')
+
+async def taxi_menu(message: Message, user_id: int):
+    level = cur.execute(f"SELECT level FROM userdata WHERE user_id={user_id}").fetchone()[0]
+
+    if level < lvlcab:
+        return await message.answer(f'🚫 Данная функция доступна только с уровня {lvlcab}')
+        
+    markup = InlineKeyboardMarkup(row_width=2)
+    places = []
+    
+    for place in CITY:
+        places.append(InlineKeyboardButton(place, callback_data=f'taxicost_{place}'))
+    
+    markup.add(*places)
+
+    await message.answer('<i>&#128661; Куда поедем?</i>', parse_mode='html', reply_markup=markup)
+    return await message.answer('<i>Стоимость поездки зависит от отдалённости места, в которое вы едете.\
+    Чтобы посмотреть цену поездки до определённого места, нажмите на него в списке локаций в предыдущем сообщении</i>', parse_mode='html')

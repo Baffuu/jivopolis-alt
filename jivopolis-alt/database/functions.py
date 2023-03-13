@@ -60,7 +60,7 @@ async def check(user_id: int, chat_id: str) -> None:
                     return await bot.send_message(chat_id, f"<i>&#128305; Теперь ваш уровень в Живополисе: <b>{levelrange.index(i)}</b>\nПоздравляем!\n{leveldesc[levelrange.index(i)]}</i>")
                     
             if xp>=i and xp<levelrange[levelrange.index(i)+1] and lvl!=levelrange.index(i):
-                cur.execute("UPDATE userdata SET lvl=? WHERE user_id=?", (levelrange.index(i), user_id,))
+                cur.execute("UPDATE userdata SET level=? WHERE user_id=?", (levelrange.index(i), user_id,))
                 conn.commit()
                 try:
                     return await bot.send_message(user_id, f"<i>&#128305; Теперь ваш уровень в Живополисе: <b>{levelrange.index(i)}</b>\nПоздравляем!\n{leveldesc[levelrange.index(i)]}</i>")

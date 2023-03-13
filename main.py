@@ -4,14 +4,14 @@ from aiogram import types
 from time import time
 from datetime import datetime
 from math import ceil
-    less = 15
-    more = 30
-    lessair = 90
-    moreair = 120
-    lesstrain = 30
-    moretrain = 60
-    lessbus = 5
-    morebus = 20
+less = 15
+more = 30
+lessair = 90
+moreair = 120
+lesstrain = 30
+moretrain = 60
+lessbus = 5
+morebus = 20
     async def battle(message, a, oth):
         try:
             if a == oth:
@@ -2037,7 +2037,6 @@ from math import ceil
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
                 await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
-
         if call.data == 'darkweb':
             try:
                 a = call.from_user.id
@@ -2799,18 +2798,7 @@ from math import ceil
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
                 await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
-        if call.data == 'state_balance':
-            try:
 
-            except Exception as e:
-                await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
-        if call.data.startswith('give_state '):
-            try:
-               
-            except Exception as e:
-                await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
         if call.data.startswith('buy_metrotoken_'):
             a = int(call.data[15:])
             await buy(call, user=call.from_user, item='token', cost=metrocost, amount=a)
@@ -2925,20 +2913,7 @@ from math import ceil
                 await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
         if call.data == 'cab':
             try:
-                message = call.message
-                a = call.from_user.id
-                cursor.execute('SELECT lvl FROM userdata WHERE user_id=?', (a,))
-                lvl = cursor.fetchone()[0]
-                if lvl<lvlcab:
-                    await call.answer('❌ Данная функция доступна только с уровня {0}'.format(lvlcab), show_alert = True)
-                    return
-                markup = types.InlineKeyboardMarkup(row_width=2)
-                temps = []
-                for temp in CITY:
-                    temps.append(types.InlineKeyboardButton(text='{0}'.format(temp), callback_data='cabcost_{0}'.format(temp)))
-                markup.add(*temps)
-                await message.answer('<i>&#128661; Куда поедем?</i>', parse_mode='html', reply_markup=markup)
-                await message.answer('<i>Стоимость поездки зависит от отдалённости места, в которое вы едете. Чтобы посмотреть цену поездки до определённого места, нажмите на него в списке локаций в предыдущем сообщении</i>'.format(cabcost), parse_mode='html')
+               
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
                 await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
