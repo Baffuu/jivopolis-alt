@@ -1,5 +1,5 @@
 from ...database.functions import cur, conn, Message, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, buy, bot, get_link, get_mask, buybutton, itemdata
-from ...config import METRO, WALK, CITY, trains, villages, walks, ITEMS, lvlcar, limeteds, lvlcab
+from ...config import METRO, WALK, CITY, trains, villages, walks, ITEMS, lvlcar, limeteds, lvlcab, cabcost
 import asyncio
 import time
 
@@ -385,3 +385,15 @@ async def taxi_menu(message: Message, user_id: int):
     await message.answer('<i>&#128661; Куда поедем?</i>', parse_mode='html', reply_markup=markup)
     return await message.answer('<i>Стоимость поездки зависит от отдалённости места, в которое вы едете.\
     Чтобы посмотреть цену поездки до определённого места, нажмите на него в списке локаций в предыдущем сообщении</i>', parse_mode='html')
+
+async def taxicost(call: CallbackQuery, place: str):
+    current_place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={call.from_user.id}").fetchone()[0]
+
+    if not place in CITY:
+        raise ValueError('no such place')
+
+    cost = (cabcost*abs(CITY.index(place)-CITY.index(current_place)))//1
+    markup = InlineKeyboardMarkup().\
+    add(InlineKeyboardButton('🚕 Ехать', callback_data=f'go_bycab_{current_place}'),
+    InlineKeyboardButton('🚫 Отмена', callback_data='cancel_action'))
+    return await call.message.answer(f'<i>Стоимость поездки до локации <b>{current_place}</b> - <b>${cost}</b></i>', parse_mode='html', reply_markup = markup)
