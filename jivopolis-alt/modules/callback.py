@@ -9,7 +9,7 @@ from .callbacks.for_admins import adminpanel, itemsinfo_table, itemsinfo_item, a
 from .callbacks.inventory import itemdesc, inventory, open_lootbox, sellitem
 from .callbacks.user_profile import set_user_bio, put_mask_off, put_mask_on, my_reflink
 from .callbacks.traveling import buycall, city, car_menu, goto_on_car, local_people, phone_shop, candy_shop, mall, japan_shop, moda_shop, xmas_shop, delivery_menu, \
-    fruit_shop, central_market_menu, central_market_food, bank, state_balance, taxi_menu, taxicost
+    fruit_shop, central_market_menu, central_market_food, bank, state_balance, taxi_menu, taxicost, taxi_goto_
 
 async def callback_handler(call: CallbackQuery):
     try:
@@ -121,6 +121,8 @@ async def callback_handler(call: CallbackQuery):
                 await taxi_menu(call.message, call.from_user.id)
             case taxi if taxi.startswith('taxicost_'):
                 await taxicost(call, call.data[9:])
+            case taxi if taxi.startswith('taxi_goto_'):
+                await taxi_goto_(call, call.data[10:])
             case _:
                 return await call.answer('♿️ 404: команда не найдена.', show_alert=True)
     except TypeError as e:

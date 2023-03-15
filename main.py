@@ -2867,34 +2867,7 @@ morebus = 20
                 pass
         if call.data.startswith('go_bycab_'):
             try:
-                a = call.from_user.id
-                station = call.data[9:]
-                cursor.execute('SELECT balance FROM userdata WHERE user_id=?', (a,))
-                balance = cursor.fetchone()[0]
-                cursor.execute('SELECT place FROM userdata WHERE user_id=?', (a,))
-                place = cursor.fetchone()[0]
-                if not place in CITY:
-                    return
-                cost = (cabcost*abs(CITY.index(place)-CITY.index(station)))//1
-                if balance<cost:
-                    await call.answer('❌ У вас недостаточно средств для поездки', show_alert = True)
-                    return
-                await call.message.answer('<i>Скоро приедем!</i>', parse_mode='html')
-                try:
-                    await main.delete_message(call.message.chat.id, call.message.message_id)
-                except:
-                    pass
-                await asyncio.sleep(15)
-                cursor.execute('UPDATE userdata SET place=? WHERE user_id=?', (station, a,))
-                conn.commit()
-                cursor.execute('UPDATE userdata SET balance=balance-? WHERE user_id=?', (cost, a,))
-                conn.commit()
-                await city(call.message, call.from_user.id)
-            except Exception as e:
-                await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
-        if call.data.startswith('cabcost_'):
-            try:
+                
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
                 await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')

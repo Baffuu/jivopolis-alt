@@ -393,7 +393,35 @@ async def taxicost(call: CallbackQuery, place: str):
         raise ValueError('no such place')
 
     cost = (cabcost*abs(CITY.index(place)-CITY.index(current_place)))//1
-    markup = InlineKeyboardMarkup().\
-    add(InlineKeyboardButton('🚕 Ехать', callback_data=f'go_bycab_{current_place}'),
+    markup = InlineKeyboardMarkup(row_width=2).\
+    add(InlineKeyboardButton('🚕 Ехать', callback_data=f'taxi_goto_{place}'),
     InlineKeyboardButton('🚫 Отмена', callback_data='cancel_action'))
-    return await call.message.answer(f'<i>Стоимость поездки до локации <b>{current_place}</b> - <b>${cost}</b></i>', parse_mode='html', reply_markup = markup)
+    return await call.message.answer(f'<i>Стоимость поездки до локации <b>{place}</b> - <b>${cost}</b></i>', parse_mode='html', reply_markup = markup)
+
+async def taxi_goto_(call: CallbackQuery, place: str):
+    user_id = call.from_user.id
+
+    balance = cur.execute(f"SELECT balance FROM userdata WHERE user_id={user_id}").fetchone()[0]
+    current_place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={user_id}").fetchone()[0]
+
+    if not place in CITY:
+        raise ValueError('no such place')
+
+    cost = (cabcost*abs(CITY.index(place)-CITY.index(current_place)))//1
+
+    if balance < cost:
+        return await call.answer('🚫 У вас недостаточно средств для поездки', show_alert = True)
+        
+    await call.message.answer('<i>Скоро приедем!</i>', parse_mode='html')
+
+    try:
+        await bot.delete_message(call.message.chat.id, call.message.message_id)
+    except:
+        pass
+
+    await asyncio.sleep(15)
+
+    cur.execute(f"UPDATE userdata SET current_place=\"{place}\" WHERE user_id={user_id}"); conn.commit()
+    cur.execute(f"UPDATE userdata SET balance=balance-{cost} WHERE user_id={user_id}"); conn.commit()
+    
+    return await city(call.message, call.from_user.id)
