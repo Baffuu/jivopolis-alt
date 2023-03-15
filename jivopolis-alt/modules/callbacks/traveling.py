@@ -1,7 +1,8 @@
 from ...database.functions import cur, conn, Message, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, buy, bot, get_link, get_mask, buybutton, itemdata
-from ...config import METRO, WALK, CITY, trains, villages, walks, ITEMS, lvlcar, limeteds, lvlcab, cabcost
+from ...config import METRO, WALK, CITY, trains, villages, walks, ITEMS, lvlcar, limeteds, lvlcab, cabcost, locations
 import asyncio
 import time
+from ...bot import logger
 
 async def city(message: Message, user_id: str):
     place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={user_id}").fetchone()[0]
@@ -278,8 +279,10 @@ async def delivery_menu(call: CallbackQuery):
     sellitems = ['snegovik', 'snow', 'tree', 'fairy', 'santa_claus', 'mrs_claus', 'firework', 'fireworks', 'confetti', 'clown', 'ghost', 'alien', 'robot', 'shit', 'moyai', 'pasta', 'rice', 'sushi']
 
     for item in sellitems:
-        sellitems.append(buybutton(item, tip = 15))
-        sellitems.remove(item)
+        try:
+            sellitems.append(buybutton(item, tip = 15))
+        except ValueError:
+            logger.error(f'no such item: {item}')
     
     sellitems = list(filter(lambda item: item is not None, sellitems))
     sellitems = list(filter(lambda item: type(item) is InlineKeyboardButton, sellitems))
@@ -425,3 +428,25 @@ async def taxi_goto_(call: CallbackQuery, place: str):
     cur.execute(f"UPDATE userdata SET balance=balance-{cost} WHERE user_id={user_id}"); conn.commit()
     
     return await city(call.message, call.from_user.id)
+
+async def gps_menu(call: CallbackQuery):
+    user_id = call.from_user.id
+    phone = cur.execute(f"SELECT phone FROM userdata WHERE user_id={user_id}").fetchone()[0]
+    
+    if phone < 1:
+        return await call.answer('Чтобы пользоваться GPS, вам нужен телефон. Его можно купить в магазине на ул. Генерала Шелби и одноимённой станции метро', show_alert = True)
+        
+    categorylist = []
+    markup = InlineKeyboardMarkup()
+
+    for category in locations[3]:
+        if not category in categorylist:
+            categorylist.append(category)
+            count = 0
+            for location in locations[0]:
+                if locations[3][locations[0].index(location)] == category:
+                    count += 1
+            markup.add(InlineKeyboardButton(text='{0} ({1})'.format(category, count), callback_data='gpsloc_{0}'.format(category)))
+            
+    markup.add(InlineKeyboardMarkup(text='◀ Назад', callback_data='cancel_action'))
+    await call.message.answer('<i>Выберите категорию</i>', reply_markup = markup, parse_mode = 'html')
