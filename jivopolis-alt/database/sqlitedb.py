@@ -141,7 +141,7 @@ def create_globaldata() -> None:
 (
     treasury        INTEGER         DEFAULT 0               NOT NULL,
     lastfill        DATETIME        DEFAULT 0               NOT NULL,
-    bread           INTEGER,
+    baguette        INTEGER,
     pelmeni         INTEGER,
     soup            INTEGER,
     meat_on_bone    INTEGER,

@@ -104,7 +104,7 @@ WALK = \
 
 
 walks = [45, 60, 90, 45, 75, 60]  #продолжительность ходьбы #todo insert into walk
-limeteds = ['bread', 'tea', 'pita', 'pelmeni', 'meat_on_bone']  #дефицитные товары #todo rename
+limeteds = ['baguette', 'tea', 'pita', 'pelmeni', 'meat_on_bone']  #дефицитные товары #todo rename
 
 '''
 ## ITEMS = \

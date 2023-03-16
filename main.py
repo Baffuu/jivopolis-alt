@@ -2138,12 +2138,6 @@ morebus = 20
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
                 await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
-        if call.data == 'mask_clothes':
-            try:
-
-            except Exception as e:
-                await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
         if call.data == 'enot_kebab':
             try:
                 a = call.from_user.id
@@ -2190,12 +2184,7 @@ morebus = 20
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
                 await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
-        if call.data == 'zoo':
-            try:
-                
-            except Exception as e:
-                await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+
         if call.data == 'botan_garden':
             try:
                 a = call.from_user.id
@@ -2969,35 +2958,13 @@ morebus = 20
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
                 await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
             await main.delete_message(call.message.chat.id, call.message.message_id)
-        if call.data == 'chats':
-            await chats(call.from_user.id, call.message)
+
         if call.data == 'economics':
             try:
-                cursor.execute("SELECT kazna FROM globaldata")
-                kazna = cursor.fetchone()[0]
-                cursor.execute("SELECT balance FROM clandata WHERE group_id=-1001395868701")
-                balance = cursor.fetchone()[0]
-                cursor.execute("SELECT lastfill FROM globaldata")
-                lastfill = cursor.fetchone()[0]
-                cursor.execute("SELECT coef FROM globaldata")
-                coef = cursor.fetchone()[0]
-                diff = current_time()-lastfill
-                h = floor(diff/3600)
-                m = floor(diff%3600/60)
-                s = floor(diff%3600%60)
-                limits = ''
-                for inst in limiteds:
-                    limits+='\n{0} {1} - '.format(ITEMS[0][ITEMS[1].index(inst)], ITEMS[2][ITEMS[1].index(inst)])
-                    cursor.execute("SELECT {0} FROM globaldata".format(inst))
-                    temp = cursor.fetchone()[0]
-                    if temp<=0:
-                        limits+='дефицит'
-                    else:
-                        limits+=str(temp)
-                await call.message.answer('<i><b>&#128202; ЭКОНОМИКА ЖИВОПОЛИСА</b>\n\n&#128184; <b>Финансы</b>\n&#128176; Государственная казна - <b>${0}</b>\n&#127918; Баланс Игрового клуба - <b>${1}</b>\n\n&#127978; <b>Количество товара в Круглосуточном</b>{2}\n\n&#128666; Завоз товара в Круглосуточный осуществляется каждый день. Последний завоз был {3} часов {4} минут {5} секунд назад\n\n&#128176; <b>Центральный рынок</b>\nРыночная ставка: {6}</i>'.format(kazna, balance, limits, h, m, s, round(1/coef, 2)), parse_mode='html')
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
                 await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+        
         if call.data == 'help':
             await call.message.answer('<i><b>&#10067; Справка по игре в Живополис</b>\nКоманды бота: https://telegra.ph/Komandy-ZHivopolisa-11-21\nКак играть: https://telegra.ph/Kak-igrat-v-ZHivopolis-11-21</i>', parse_mode = 'html')
         if call.data == 'transfer':

@@ -1,6 +1,8 @@
-from ...database.functions import cur, conn, get_mask, bot, log_chat, get_link
+from ...database.functions import cur, conn, get_mask, bot, log_chat, get_link, limeteds, ITEMS, logger
 from ..callbacks.traveling import state_balance
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, Message, CallbackQuery
+import time
+from math import floor
 
 async def chats(user_id: int, message: Message):
     rase = cur.execute(f"SELECT rase FROM userdata WHERE user_id = {user_id}").fetchone()[0]
@@ -109,3 +111,39 @@ async def give_state(call: CallbackQuery, amount):
 
     await state_balance(call)
     await bot.delete_message(call.message.chat.id, call.message.message_id)
+
+async def economics(call: CallbackQuery):
+    treasury = cur.execute("SELECT treasury FROM globaldata").fetchone()[0]
+    try:
+        balance = cur.execute(f"SELECT clan_balance FROM clandata WHERE clan_id=-1001395868701").fetchone()[0] #todo group id
+    except TypeError:
+        logger.warning('game club does not exists or bot not added to the chat')
+        balance = 0
+    lastfill = cur.execute("SELECT lastfill FROM globaldata").fetchone()[0]
+    coef = 1.5 #todo cur.execute("SELECT coef FROM globaldata").fetchone()[0]
+
+    diff = time.time() - lastfill
+    h = floor(diff/3600)
+    m = floor(diff%3600/60)
+    s = floor(diff%3600%60)
+
+    limits = ''
+    
+    for item in limeteds:
+        limits += f'\n{ITEMS[item][0]} {ITEMS[item][2]} - '
+        item_left = cur.execute(f"SELECT {item} FROM globaldata").fetchone()[0]
+        
+        if item_left <= 0:
+            limits += 'дефицит'
+        else:
+            limits += str(item_left)
+
+    return await call.message.answer(f'<i><b>&#128202; ЭКОНОМИКА ЖИВОПОЛИСА</b>\n\
+    \n&#128184; <b>Финансы</b>\
+    \n&#128176; Государственная казна - <b>${treasury}</b>\
+    \n&#127918; Баланс Игрового клуба - <b>${balance}</b>\n\
+    \n&#127978; <b>Количество товара в Круглосуточном</b>{limits}\n\
+    \n&#128666; Завоз товара в Круглосуточный осуществляется каждый день. Последний завоз был {h} часов {m} минут {s} секунд назад\n\n\
+    &#128176; <b>Центральный рынок</b>\
+    \nРыночная ставка: {round(1//coef, 2)}</i>', parse_mode='html')
+            
