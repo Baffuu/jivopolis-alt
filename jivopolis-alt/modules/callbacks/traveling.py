@@ -345,6 +345,32 @@ async def central_market_food(call: CallbackQuery):
     markup.add(InlineKeyboardMarkup(text='◀ Назад', callback_data='cancel_action'))
     await call.message.answer(f'<i>{desc}</i>', reply_markup = markup, parse_mode = 'html')
 
+async def central_market_food(call: CallbackQuery):
+    user_id = call.from_user.id
+    place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={user_id}").fetchone()[0]
+    
+    if place != 'Рынок':
+        return #todo answer
+
+    markup = InlineKeyboardMarkup(row_width = 3)
+
+    itemlist = []
+    coef = 1.5 #todo cur.execute(f"SELECT coef FROM globaldata").fetchone()[0]
+
+    for item in ITEMS:
+        if await itemdata(user_id, item) != 'emptyslot' and ITEMS[item][4][0] == 'mask' and ITEMS[item][3] > 0:
+            cost = ITEMS[item][3]//coef
+            itemlist.append(InlineKeyboardButton(text=f'{ITEMS[item][0]} - ${cost}', callback_data=f'sellitem_{item}'))
+    
+    if itemlist == []:
+        text = '🚫 У вас нет масок для продажи'
+
+    else:
+        markup.add(*itemlist)
+        text = '<b>🏣 Центральный рынок</b> - место, в котором можно продать купленные товары. Дешевле, чем в магазине, но удобно\n\n❗ Здесь вы <b>продаёте</b> товары государству, а не покупаете. Деньги вы получаете автоматически, ваш товар никому не достаётся'
+    markup.add(InlineKeyboardMarkup(text='◀ Назад', callback_data='cancel_action'))
+    await call.message.answer(f'<i>{text}</i>', reply_markup = markup, parse_mode = 'html')
+    
 async def bank(call: CallbackQuery):
     place = cur.execute(f"SELECT current_place from userdata WHERE user_id={call.from_user.id}").fetchone()[0]
     
