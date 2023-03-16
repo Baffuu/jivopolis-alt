@@ -447,6 +447,18 @@ async def gps_menu(call: CallbackQuery):
                 if locations[3][locations[0].index(location)] == category:
                     count += 1
             markup.add(InlineKeyboardButton(text='{0} ({1})'.format(category, count), callback_data='gpsloc_{0}'.format(category)))
-            
+
     markup.add(InlineKeyboardMarkup(text='◀ Назад', callback_data='cancel_action'))
     await call.message.answer('<i>Выберите категорию</i>', reply_markup = markup, parse_mode = 'html')
+
+async def buy24_(call: CallbackQuery, item: str):    
+    if item in ITEMS[1] and item in limeteds:
+        items_left = cur.execute(f"SELECT {item} FROM globaldata")
+        
+        
+        if items_left < 1:
+            return await call.answer(text='К сожалению, этого товара сейчас нет в магазине ввиду дефицита :(\nПриходите завтра или посетите любой продуктовый магазин в Городе', show_alert = True)
+            
+        cur.execute(f"UPDATE globaldata SET {item}={item}-1"); conn.commit()
+        
+        await buy(call, item, call.from_user.id, ITEMS[item][3])
