@@ -155,7 +155,7 @@ def create_clandata() -> None:
     id              INTEGER         PRIMARY KEY,
     clan_id         INTEGER         NOT NULL, 
     clan_name       TEXT,
-    profile_type    TEXT            DEFAULT \"public\"      NOT NULL,
+    clan_type    TEXT            DEFAULT \"public\"      NOT NULL,
     clan_balance    INTEGER         DEFAULT 0               NOT NULL,
     owner_id        INTEGER,
     HQ_place        TEXT        DEFAULT \"не установлено\"  NOT NULL,

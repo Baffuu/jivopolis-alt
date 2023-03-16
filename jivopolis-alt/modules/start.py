@@ -141,7 +141,7 @@ async def start_cmd(message: Message):
                 return await bot.send_message(chat_id, f"<i>Создать клан <b>{message.chat.title}</b></i>", reply_markup = markup)
             else:
 
-                description = cur.execute(f"SELECT description FROM clandata WHERE group_id={chat_id}").fetchone()[0]
+                description = cur.execute(f"SELECT description FROM clandata WHERE clan_id={chat_id}").fetchone()[0]
 
                 markup.add(InlineKeyboardButton(text="➕ Вступить/Выйти", callback_data="join_clan"),
                     InlineKeyboardButton(text="👥 Участники клана", callback_data="clan_members"),
@@ -149,15 +149,15 @@ async def start_cmd(message: Message):
                     InlineKeyboardButton(text="📣 Созвать клан", callback_data="call_clan"),
                     InlineKeyboardButton(text="🏗 Комнаты (постройки)", callback_data="clan_buildings"))
                 
-                clan_name = cur.execute(f"SELECT clan_name FROM clandata WHERE group_id = {chat_id}").fetchone()[0]
-                clan_balance = cur.execute(f"SELECT balance FROM clandata WHERE group_id = {chat_id}").fetchone()[0]
-                HQplace = cur.execute(f"SELECT hqplace FROM clandata WHERE group_id = {chat_id}").fetchone()[0]
-                address = cur.execute(f"SELECT address FROM clandata WHERE group_id = {chat_id}").fetchone()[0]
-                clanphoto = cur.execute(f"SELECT photo_id FROM clandata WHERE group_id = {chat_id}").fetchone()[0]
+                clan_name = cur.execute(f"SELECT clan_name FROM clandata WHERE clan_id = {chat_id}").fetchone()[0]
+                clan_balance = None #cur.execute(f"SELECT balance FROM clandata WHERE clan_id = {chat_id}").fetchone()[0]
+                HQplace = None #cur.execute(f"SELECT hqplace FROM clandata WHERE clan_id = {chat_id}").fetchone()[0]
+                address = None #cur.execute(f"SELECT address FROM clandata WHERE clan_id = {chat_id}").fetchone()[0]
+                clanphoto = cur.execute(f"SELECT photo_id FROM clandata WHERE clan_id = {chat_id}").fetchone()[0]
 
                 leaders = "&#127942; Топ кланов на данный момент:"
                 
-                count = cur.execute("SELECT COUNT(*) FROM clandata WHERE (type=? AND balance < 1000000) OR clan_id=-1001395868701", ("public",)).fetchone()[0]
+                '''count = cur.execute("SELECT COUNT(*) FROM clandata WHERE (type=? AND balance < 1000000) OR clan_id=-1001395868701", ("public",)).fetchone()[0]
                 
                 cur.execute("""SELECT * FROM clandata
                 WHERE (type=? AND balance < 1000000) OR clan_id=-1001395868701
@@ -165,10 +165,10 @@ async def start_cmd(message: Message):
                 LIMIT 10""", ("public",))
 
                 for row in cur:
-                    leaders += f"\n<b><a href=\"{row[8]}\">{row[1]}</a> - ${row[4]}</b>"
+                    leaders += f"\n<b><a href=\"{row[8]}\">{row[1]}</a> - ${row[4]}</b>"'''
 
                 description = ("\n" + description + '\n\n') if description else ""
-                hqplace = (f"{HQplace}, {address}") if hqplace else "отсутствует"
+                hqplace = (f"{HQplace}, {address}") if HQplace else "отсутствует"
 
                 text = f"<i>Клан <b>{clan_name}</b>\
                     \n{description}&#128176; Баланс: <b>${clan_balance}</b>\
@@ -176,12 +176,12 @@ async def start_cmd(message: Message):
                     \n{leaders if count != 0 else ''}</i>"
                 
                 if not clanphoto:
-                    await bot.send_message(chat_id, text, reply_markup = markup)
+                    return await bot.send_message(chat_id, text, reply_markup = markup)
                 else:
                     try:
-                        await bot.send_photo(chat_id, clanphoto, caption=text, reply_markup = markup)
+                        return await bot.send_photo(chat_id, clanphoto, caption=text, reply_markup = markup)
                     except:
-                        await bot.send_message(chat_id, text, reply_markup = markup)
+                        return await bot.send_message(chat_id, text, reply_markup = markup)
         
         return await bot.send_message(message.chat.id, text)
     except Exception as e:

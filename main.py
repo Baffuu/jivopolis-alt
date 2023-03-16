@@ -2013,10 +2013,7 @@ morebus = 20
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
                 await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
-            await main.delete_message(call.message.chat.id, call.message.message_id)
-        
-        if call.data == 'shop_24':
-            
+            await main.delete_message(call.message.chat.id, call.message.message_id)  
         if call.data == 'farm':
             try:
                 a = call.from_user.id
@@ -2249,7 +2246,7 @@ morebus = 20
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
                 await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
-        if call.data=='go_out':
+        if call.data == 'go_out':
             await main.delete_message(call.message.chat.id, call.message.message_id)
         if call.data == 'university':
             try:
@@ -3321,56 +3318,11 @@ morebus = 20
                     await main.edit_message_text(inline_message_id = call.inline_message_id, text = '<i><b>Ошибка: </b>{0}</i>'.format(e), parse_mode = 'html')
         if call.data == 'create_clan':
             try:
-                a = call.from_user.id
-                chid = call.message.chat.id
-                if not isinstance(await main.get_chat_member(chid, a), types.ChatMemberAdministrator) and not isinstance(await main.get_chat_member(chid, a), types.ChatMemberOwner):
-                    await main.send_message(chid, '&#10060; <i>Создать клан может только администратор чата</i>', parse_mode = 'html')
-                    return
-                cursor.execute('SELECT count(*) FROM clandata WHERE group_id = ?', (chid,))
-                count = cursor.fetchone()[0]
-                chn = call.message.chat.title
-                if count == 0:
-                    cursor.execute('INSERT INTO clandata (name, group_id, owner_id, username, hqplace) VALUES (?, ?, ?, ?, ?)', (chn, chid, a, '', ''))
-                    conn.commit()
-                    await startdef(call.message)
-                    cursor.execute('SELECT rasa FROM userdata WHERE user_id=?', (a,))
-                    rasa = cursor.fetchone()[0]
-                    cursor.execute('SELECT nick FROM userdata WHERE user_id=?', (a,))
-                    nick = cursor.fetchone()[0]
-                    await main.send_message(fid, '<i><b><a href="tg://user?id={0}">{1}{2}</a></b> создал клан <b>{3} ({4})</b>\n#clan_create</i>'.format(a, rasa, nick, chn, chid), parse_mode='html')
-                else:
-                    await main.send_message(chid, '<i>&#10060; Клан уже существует</i>', parse_mode = 'html')
+                
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
                 await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
-        if call.data == 'join_clan':
-            try:
-                a = call.from_user.id
-                chid = call.message.chat.id
-                cursor.execute('SELECT count(*) FROM clandata WHERE group_id = ?', (chid,))
-                count = cursor.fetchone()[0]
-                cursor.execute('SELECT rasa FROM userdata WHERE user_id = ?', (a,))
-                rasa = cursor.fetchone()[0]
-                cursor.execute('SELECT nick FROM userdata WHERE user_id = ?', (a,))
-                nick = cursor.fetchone()[0]
-                chn = call.message.chat.title
-                if count == 0:
-                    return
-                cursor.execute('SELECT type FROM clandata WHERE group_id=?', (chid,))
-                cursor.execute('SELECT clan FROM userdata WHERE user_id=?', (a,))
-                if cursor.fetchone()[0]!=chid:
-                    cursor.execute('UPDATE userdata SET clan=? WHERE user_id=?', (chid, a,))
-                    cursor.execute('UPDATE userdata SET clanname=? WHERE user_id=?', (chn, a,))
-                    conn.commit()
-                    await main.send_message(chid, '<i><b><a href="tg://user?id={2}">{0}{1}</a></b> присоединился к клану</i>'.format(rasa, nick, a), parse_mode = 'html')
-                else:
-                    cursor.execute('UPDATE userdata SET clan=? WHERE user_id=?', (0, a,))
-                    cursor.execute('UPDATE userdata SET clanname=? WHERE user_id=?', ('', a,))
-                    conn.commit()
-                    await main.send_message(chid, '<i><b><a href="tg://user?id={2}">{0}{1}</a></b> вышел из клана</i>'.format(rasa, nick, a), parse_mode = 'html')
-            except Exception as e:
-                await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+
         if call.data == 'call_clan':
             try:
                 a = call.from_user.id
