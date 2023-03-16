@@ -12,7 +12,7 @@ from .callbacks.traveling import buycall, city, car_menu, goto_on_car, local_peo
     mall, japan_shop, moda_shop, xmas_shop, delivery_menu, \
     fruit_shop, central_market_menu, central_market_food, bank, state_balance, taxi_menu, taxicost, \
     taxi_goto_, gps_menu
-from .callbacks.traveling import central_market_mask, buy24_, zoo_shop
+from .callbacks.traveling import central_market_mask, buy24_, zoo_shop, shop_24
 
 async def callback_handler(call: CallbackQuery):
     try:
@@ -136,6 +136,8 @@ async def callback_handler(call: CallbackQuery):
                 await zoo_shop(call)
             case 'economics':
                 await economics(call)
+            case 'shop_24':
+                await shop_24(call)
             case _:
                 return await call.answer('♿️ 404: команда не найдена.', show_alert=True)
     except TypeError as e:

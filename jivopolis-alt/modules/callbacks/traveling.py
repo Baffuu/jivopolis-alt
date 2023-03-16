@@ -478,8 +478,8 @@ async def gps_menu(call: CallbackQuery):
     await call.message.answer('<i>Выберите категорию</i>', reply_markup = markup, parse_mode = 'html')
 
 async def buy24_(call: CallbackQuery, item: str):    
-    if item in ITEMS[1] and item in limeteds:
-        items_left = cur.execute(f"SELECT {item} FROM globaldata")
+    if item in ITEMS and item in limeteds:
+        items_left = cur.execute(f"SELECT {item} FROM globaldata").fetchone()[0]
         
         if items_left < 1:
             return await call.answer(text='К сожалению, этого товара сейчас нет в магазине ввиду дефицита :(\nПриходите завтра или посетите любой продуктовый магазин в Городе', show_alert = True)
@@ -487,6 +487,8 @@ async def buy24_(call: CallbackQuery, item: str):
         cur.execute(f"UPDATE globaldata SET {item}={item}-1"); conn.commit()
         
         await buy(call, item, call.from_user.id, ITEMS[item][3])
+    else:
+        raise ValueError("no such item")
 
 async def zoo_shop(call: CallbackQuery):
     place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={call.from_user.id}").fetchone()[0]
@@ -502,3 +504,14 @@ async def zoo_shop(call: CallbackQuery):
         add(*list(filter(lambda item: item is not None, buttons)))
     print(buttons)
     await call.message.answer('<i>Что хотите купить?</i>', reply_markup=markup, parse_mode = 'html')
+
+async def shop_24(call: CallbackQuery):
+    markup = InlineKeyboardMarkup()
+
+    buttons = [buybutton('bread', 'limited'), buybutton('pelmeni', 'limited'),
+    buybutton('soup', 'limited'), buybutton('meat', 'limited'),
+    buybutton('meatcake', 'limited'), buybutton('tea', 'limited')]
+
+    markup.add(*list(filter(lambda item: item is not None, buttons)))
+
+    await call.message.answer('<i>Что хотите купить?</i>', reply_markup = markup, parse_mode = 'html')

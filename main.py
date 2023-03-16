@@ -1810,23 +1810,6 @@ morebus = 20
                 time+=' {0} секунд'.format(seconds)
             await call.answer('❌ Вы были арестованы и теперь сидите в тюрьме. Вам осталось сидеть {0}'.format(time),show_alert = True)
             return
-        if call.data.startswith('backup'):
-            try:
-                if call.from_user.id!=CREATOR:
-                    await call.answer("❌ Эта команда доступна только создателю Живополиса :>", show_alert = True)
-                    return
-                markup = types.InlineKeyboardMarkup(row_width = 2)
-                markup.add(types.InlineKeyboardButton(text = '💻 Код бота', callback_data='sendfile main.py'),
-                           types.InlineKeyboardButton(text = '✏ Изменить код', callback_data='editfile_main.py'), 
-                           types.InlineKeyboardButton(text = '🔧 Конфигурация', callback_data='sendfile config.py'),
-                           types.InlineKeyboardButton(text = '✏ Изменить конфиг', callback_data='editfile_config.py'),
-                          types.InlineKeyboardButton(text = '👤 База данных', callback_data='sendfile database.db'),
-                          types.InlineKeyboardButton(text = '✏ Изменить БД', callback_data='editfile_database.db'),
-                          types.InlineKeyboardButton(text = '♻ Перезагрузить бота', callback_data='restart_bot'),)
-                await call.message.answer("<i>Вы можете сейчас получить или изменить нужный файл Живополиса. Но только если вы Микита Всемогущий</i>", parse_mode='html', reply_markup=markup)
-            except Exception as e:
-                await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
         if call.data.startswith('buyclan_'):
             try:
                 buyitem = call.data[8:]
@@ -2031,15 +2014,9 @@ morebus = 20
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
                 await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
             await main.delete_message(call.message.chat.id, call.message.message_id)
+        
         if call.data == 'shop_24':
-            markup = types.InlineKeyboardMarkup()
-            markup.add(buybutton('bread', 'limited'))
-            markup.add(buybutton('pelmeni', 'limited'))
-            markup.add(buybutton('soup', 'limited'))
-            markup.add(buybutton('meat', 'limited'))
-            markup.add(buybutton('meatcake', 'limited'))
-            markup.add(buybutton('tea', 'limited'))
-            await call.message.answer('<i>Что хотите купить?</i>', reply_markup = markup, parse_mode = 'html')
+            
         if call.data == 'farm':
             try:
                 a = call.from_user.id
@@ -2959,12 +2936,6 @@ morebus = 20
                 await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
             await main.delete_message(call.message.chat.id, call.message.message_id)
 
-        if call.data == 'economics':
-            try:
-            except Exception as e:
-                await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
-        
         if call.data == 'help':
             await call.message.answer('<i><b>&#10067; Справка по игре в Живополис</b>\nКоманды бота: https://telegra.ph/Komandy-ZHivopolisa-11-21\nКак играть: https://telegra.ph/Kak-igrat-v-ZHivopolis-11-21</i>', parse_mode = 'html')
         if call.data == 'transfer':
