@@ -12,7 +12,7 @@ from .callbacks.traveling import buycall, city, car_menu, goto_on_car, local_peo
     mall, japan_shop, moda_shop, xmas_shop, delivery_menu, \
     fruit_shop, central_market_menu, central_market_food, bank, state_balance, taxi_menu, taxicost, \
     taxi_goto_, gps_menu
-from .callbacks.traveling import central_market_food, buy24_
+from .callbacks.traveling import central_market_mask, buy24_
 
 async def callback_handler(call: CallbackQuery):
     try:
@@ -113,7 +113,7 @@ async def callback_handler(call: CallbackQuery):
             case 'central_market_food':
                 await central_market_food(call)
             case 'central_market_mask':
-                await 
+                await central_market_mask(call)
             case sell if sell.startswith('sellitem_'):
                 await sellitem(call, call.data[9:])
             case 'bank':
