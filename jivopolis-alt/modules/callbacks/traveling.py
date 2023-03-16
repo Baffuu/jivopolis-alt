@@ -87,7 +87,7 @@ async def city(message: Message, user_id: str):
     elif place=="Старокотайский ФАП":
         markup.add(InlineKeyboardButton(text="🏥 Старокотайский фельдшерский пункт", callback_data="hospital"))
     elif place=="Зоопарк":
-        markup.add(InlineKeyboardButton(text="🦊 Живополисский зоопарк", callback_data="zoo"))
+        markup.add(InlineKeyboardButton(text="🦊 Живополисский зоопаcрк", callback_data="zoo_shop"))
     elif place=="Аэропорт Котай":
         markup.add(InlineKeyboardButton(text="✈ Аэропорт Котай", callback_data="airport"))
     elif place=="Национальный аэропорт":
@@ -481,10 +481,24 @@ async def buy24_(call: CallbackQuery, item: str):
     if item in ITEMS[1] and item in limeteds:
         items_left = cur.execute(f"SELECT {item} FROM globaldata")
         
-        
         if items_left < 1:
             return await call.answer(text='К сожалению, этого товара сейчас нет в магазине ввиду дефицита :(\nПриходите завтра или посетите любой продуктовый магазин в Городе', show_alert = True)
             
         cur.execute(f"UPDATE globaldata SET {item}={item}-1"); conn.commit()
         
         await buy(call, item, call.from_user.id, ITEMS[item][3])
+
+async def zoo_shop(call: CallbackQuery):
+    place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={call.from_user.id}").fetchone()[0]
+    
+    if place != 'Зоопарк':
+        return
+    
+    buttons = [buybutton('morj'), buybutton('cow'),
+    buybutton('yozh'), buybutton('wolf'), buybutton('fox'),
+    buybutton('hamster')]
+
+    markup = InlineKeyboardMarkup(row_width=1).\
+        add(*list(filter(lambda item: item is not None, buttons)))
+    print(buttons)
+    await call.message.answer('<i>Что хотите купить?</i>', reply_markup=markup, parse_mode = 'html')

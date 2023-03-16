@@ -91,7 +91,6 @@ async def itemdata(user_id: int, item: str) -> Union[str, None, InlineKeyboardBu
         return logger.exception(e)
 
 def buybutton(item: str, status: str = None, tip: int = 0) -> Union[InlineKeyboardButton, None]:
-    
     if item in ITEMS:
         name = ITEMS[item][2]
         icon = ITEMS[item][0]
@@ -112,7 +111,8 @@ def buybutton(item: str, status: str = None, tip: int = 0) -> Union[InlineKeyboa
         else:
             return None
     else:
-        raise ValueError("no such item")
+        return None
+        #raise ValueError("no such item")
 
 async def eat(call: CallbackQuery, food: str) -> None:
     user_id = call.from_user.id
