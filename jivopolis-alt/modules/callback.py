@@ -13,7 +13,7 @@ from .callbacks.traveling import buycall, city, car_menu, goto_on_car, local_peo
     fruit_shop, central_market_menu, central_market_food, bank, state_balance, taxi_menu, taxicost, \
     taxi_goto_, gps_menu
 from .callbacks.traveling import central_market_mask, buy24_, zoo_shop, shop_24
-from .callbacks.clans import joinclan
+from .callbacks.clans import create_clan, joinclan
 async def callback_handler(call: CallbackQuery):
     try:
         try:
@@ -140,6 +140,8 @@ async def callback_handler(call: CallbackQuery):
                 await shop_24(call)
             case 'join_clan':
                 await joinclan(call, call.from_user.id)
+            case "create_clan":
+                await create_clan(call)
             case _:
                 return await call.answer('♿️ 404: команда не найдена.', show_alert=True)
     except TypeError as e:

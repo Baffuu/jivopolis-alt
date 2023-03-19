@@ -1,8 +1,8 @@
 import sqlite3
 
-from aiogram.types import User
+from aiogram.types import User, Chat, ChatInviteLink
 from aiogram.utils.deep_linking import encode_payload
-from loguru import logger
+from ..bot import logger, bot 
 
 def connect_database() -> None:
     global conn, cur
@@ -155,7 +155,7 @@ def create_clandata() -> None:
     id              INTEGER         PRIMARY KEY,
     clan_id         INTEGER         NOT NULL, 
     clan_name       TEXT,
-    clan_type    TEXT            DEFAULT \"public\"      NOT NULL,
+    clan_type       TEXT            DEFAULT \"public\"      NOT NULL,
     clan_balance    INTEGER         DEFAULT 0               NOT NULL,
     owner_id        INTEGER,
     HQ_place        TEXT        DEFAULT \"не установлено\"  NOT NULL,
@@ -167,13 +167,26 @@ def create_clandata() -> None:
 )
     """)
 
-def insert_clan():
-    return
+async def insert_clan(chat: Chat, user: User = {'id': None}) -> str:
+    '''
+    inserts chat into clandata 
+
+    :param chat - chat that will be inserted 
+    :param user - (Optional) clan creator
+    
+    :returns - new chat invite link
+    '''
+
+    link = await bot.create_chat_invite_link(chat.id, name='Jivopolis Default Invite Link')
+    cur.execute(f"INSERT INTO clandata(clan_id, clan_name, owner_id, link) VALUES \
+    ({chat.id}, '{chat.title}', '{user['id']}', '{link.invite_link}')")
+    conn.commit()
+    return link.invite_link
+    
 def insert_user(user: User) -> None:
     logger.info("user inserted")
     name = user.full_name
     login_id = encode_payload(user.id)
-    print(login_id)
     cur.execute(f"INSERT INTO userdata(user_id, nickname, login_id) VALUES ({user.id}, \"{name}\", \"{login_id}\")")
     conn.commit()
 

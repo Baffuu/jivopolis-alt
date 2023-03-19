@@ -1,8 +1,30 @@
-from aiogram.types import CallbackQuery
-from ...database.sqlitedb import cur, conn
+from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
+from ...database.sqlitedb import cur, conn, insert_clan
 from ...bot import bot
 from ...misc import get_mask, get_link
+from ...config import log_chat
 
+async def create_clan(call: CallbackQuery):
+    user_id = call.from_user.id
+    chat_id = call.message.chat.id
+    member = await bot.get_chat_member(chat_id, user_id)
+
+    if not member.is_chat_admin() and not member.is_chat_creator():
+        return await bot.send_message(chat_id, '👀 <i>Создать клан может только администратор чата</i>', parse_mode = 'html')
+        
+    count = cur.execute(f"SELECT count(*) FROM clandata WHERE clan_id = {chat_id}").fetchone()[0]
+
+    if count < 1:
+        link = await insert_clan(call.message.chat, call.from_user)
+        #await startdef(call.message)
+        mask = get_mask(user_id)
+        nick = cur.execute(f"SELECT nickname FROM userdata WHERE user_id={user_id}").fetchone()[0]
+        await bot.send_message(log_chat, f"🏘 #new_clan | <a href='{get_link(user_id)}'>{mask}{nick}</a> создал новый клан: <a href='{link}'>{call.message.chat.title}</a>. <code>[{chat_id}]</code>")
+        return await bot.send_message(chat_id, f'<i>🏘 <a href="{get_link(user_id)}">{mask}{nick}</a> создал новый клан. Скорее присоединяйтесь!</i>\n\
+        \n<code>🪝 Для дальнейшей настройки клана напишите</code> /start', reply_markup=InlineKeyboardMarkup().\
+        add(InlineKeyboardButton('➕ Присоединиться', callback_data='join_clan')))
+    else:
+        return await bot.send_message(chat_id, '<i>🚥 Такой клан уже существует. Для создания нового сначала удалите старый.</i>')
 
 async def joinclan(call: CallbackQuery, user_id: int):
     chat_id = call.message.chat.id
