@@ -17,6 +17,7 @@ from .traveling import (
     bank, state_balance, 
     taxi_menu, taxicost, 
     taxi_goto_, gps_menu,
-    central_market_mask, buy24_, zoo_shop, shop_24)
+    central_market_mask, buy24_, 
+    zoo_shop, shop_24, buyclan_)
 
 from .clans import create_clan, joinclan

@@ -1,9 +1,9 @@
 from ...database.functions import cur, conn, Message, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, buy, bot, get_link, get_mask, buybutton, itemdata
-from ...config import METRO, WALK, CITY, trains, villages, walks, ITEMS, lvlcar, limeteds, lvlcab, cabcost, locations
+from ...config import METRO, WALK, CITY, trains, villages, walks, ITEMS, lvlcar, limeteds, lvlcab, cabcost, locations, clanitems
 import asyncio
 import time
 from ...bot import logger
-
+import random
 async def city(message: Message, user_id: str):
     place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={user_id}").fetchone()[0]
     line = cur.execute(f"SELECT line FROM userdata WHERE user_id={user_id}").fetchone()[0]
@@ -106,10 +106,11 @@ async def city(message: Message, user_id: str):
         markup.add(InlineKeyboardButton(text="🌾 Ферма", callback_data="farm"))
     elif place=="Генерала Шелби":
         markup.add(InlineKeyboardButton(text="📱 Магазин техники имени Шелби", callback_data="phone_shop"))
-    print(time.time())
+
     '''cur.execute("SELECT * FROM clandata WHERE islocation=1 AND hqplace=? AND type=?", (place, "public",))
     for row in cur:
         markup.add(InlineKeyboardButton(text="🏢 {0}".format(row[1]), url=row[8]))'''
+
     markup.add(InlineKeyboardButton(text="📡 GPS", callback_data="gps"))
     markup.add(InlineKeyboardButton(text="🏢 Кланы рядом", callback_data="local_clans"), InlineKeyboardButton(text="👤 Кто здесь?", callback_data="local_people"))
     await message.answer("<i>В Живополисе есть много чего интересного!\n&#127963; <b>{0}</b></i>".format(place), parse_mode = "html", reply_markup = markup)
@@ -515,3 +516,29 @@ async def shop_24(call: CallbackQuery):
     markup.add(*list(filter(lambda item: item is not None, buttons)))
 
     await call.message.answer('<i>Что хотите купить?</i>', reply_markup = markup, parse_mode = 'html')
+
+async def buyclan_(call: CallbackQuery, item: str):
+    
+    if not item in clanitems:
+        raise ValueError("no such item in clanitems")
+
+    cost = clanitems[1][clanitems[0].index(item)]
+    user_id = call.from_user.id
+    chat_id = call.message.chat.id
+    count = cur.execute(f"SELECT count(*) FROM clandata WHERE clan_id = {chat_id}").fetchone()[0]
+
+    if count < 1:
+        raise ValueError("clan not found")
+
+    balance = cur.execute(f"SELECT balance FROM userdata WHERE user_id={user_id}").fetchone()[0]
+    
+    if balance<cost:
+        return await call.answer('❌ У вас недостаточно средств', show_alert = True)
+        
+    cur.execute(f"UPDATE userdata SET balance=balance-{cost} WHERE user_id={user_id}"); conn.commit()
+    cur.execute(f"UPDATE userdata SET {item}={item}+1 WHERE user_id={user_id}"); conn.commit()
+
+    clan_bonus_devider = random.randint(1, 5)
+    
+    cur.execute(f"UPDATE clandata SET balance=balance+{cost//clan_bonus_devider} WHERE clan_id={chat_id}"); conn.commit()
+    await call.answer(f'Покупка совершена успешно. Ваш баланс: ${balance-cost}. Баланс клана пополнен на ${cost//clan_bonus_devider}', show_alert = True)

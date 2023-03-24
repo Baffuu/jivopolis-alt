@@ -133,6 +133,8 @@ async def callback_handler(call: CallbackQuery):
                 await joinclan(call, call.from_user.id)
             case "create_clan":
                 await create_clan(call)
+            case buyclan if buyclan.startswith('buyclan_'):
+                await buyclan_(call, call.data.replace('buyclan_', ''))
             case _:
                 return await call.answer('♿️ 404: команда не найдена.', show_alert=True)
     except TypeError as e:
