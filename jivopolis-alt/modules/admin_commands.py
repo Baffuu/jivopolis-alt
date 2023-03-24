@@ -1,7 +1,7 @@
 from aiogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.dispatcher.filters import Text
 
-from ..bot import bot, Dispatcher, logger
+from .. import bot, Dispatcher, logger
 
 from ..database.sqlitedb import cur, conn, encode_payload
 from ..database.functions import get_link, check

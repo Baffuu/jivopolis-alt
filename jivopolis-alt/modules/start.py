@@ -6,7 +6,7 @@ from aiogram.utils.deep_linking import decode_payload
 
 from ..config import levelrange, hellos, randomtext, log_chat, SUPPORT_LINK
 
-from ..bot import bot, Dispatcher, logger
+from .. import bot, Dispatcher, logger
 
 from ..database.sqlitedb import cur, conn
 from ..database.functions import check, create_acc, profile

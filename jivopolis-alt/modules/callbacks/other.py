@@ -1,9 +1,9 @@
-from ...database.functions import cur, conn, get_mask, bot, log_chat, get_link, limeteds, ITEMS, logger
+from ...database.functions import cur, conn, get_mask, log_chat, get_link, limeteds, ITEMS
 from ..callbacks.traveling import state_balance
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, Message, CallbackQuery
 import time
 from math import floor
-
+from ... import bot, logger
 async def chats(user_id: int, message: Message):
     rase = cur.execute(f"SELECT rase FROM userdata WHERE user_id = {user_id}").fetchone()[0]
     markup = InlineKeyboardMarkup()

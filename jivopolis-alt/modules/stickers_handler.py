@@ -1,5 +1,5 @@
 from ..database.functions import cur, conn, Message
-from ..bot import bot, Dispatcher, logger
+from .. import bot, Dispatcher, logger
 from .callbacks.inventory import open_lootbox
 
 async def sticker_handler(message: Message):

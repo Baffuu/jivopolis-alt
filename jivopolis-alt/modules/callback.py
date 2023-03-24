@@ -1,7 +1,7 @@
 from aiogram.types import CallbackQuery
 
 from ..config import ITEMS, SUPPORT_LINK
-from ..bot import bot, Dispatcher, logger
+from .. import bot, Dispatcher, logger
 from ..database.functions import create_acc, check, cur, profile, eat
 from .callbacks import *
 

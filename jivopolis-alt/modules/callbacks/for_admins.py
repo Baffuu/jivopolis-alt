@@ -1,6 +1,7 @@
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
-from ...database.functions import cur, conn, bot
+from ...database.functions import cur, conn
 from ...config import ITEMS, TESTCHAT, JIVADMCHAT, LOGCHATLINK, BAFFUADM, MEGACHATLINK
+from ... import bot
 import os, sys
 
 async def adminpanel(call: CallbackQuery, user_id: int):

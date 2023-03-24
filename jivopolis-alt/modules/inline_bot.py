@@ -1,7 +1,7 @@
-from ..database.functions import cur, conn, check, bot, SUPPORT_LINK, get_mask, get_link, log_chat
+from ..database.functions import cur, conn, check, SUPPORT_LINK, get_mask, get_link, log_chat
 from aiogram.types import InlineQuery, InlineQueryResultArticle, InputTextMessageContent, InlineKeyboardButton, InlineKeyboardMarkup, ChosenInlineResult
 from aiogram import Dispatcher
-from ..bot import logger
+from .. import logger, bot
 
 async def inline_mode(query: InlineQuery):
     try:

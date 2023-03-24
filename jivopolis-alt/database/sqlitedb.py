@@ -2,7 +2,7 @@ import sqlite3
 
 from aiogram.types import User, Chat, ChatInviteLink
 from aiogram.utils.deep_linking import encode_payload
-from ..bot import logger, bot 
+from .. import logger, bot 
 
 def connect_database() -> None:
     global conn, cur

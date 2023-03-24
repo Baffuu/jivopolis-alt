@@ -1812,30 +1812,6 @@ morebus = 20
             return
         if call.data.startswith('buyclan_'):
             try:
-                buyitem = call.data[8:]
-                if not buyitem in clanitems:
-                    return
-                cost = clanitems[1][clanitems[0].index(buyitem)]
-                a = call.from_user.id
-                chid = call.message.chat.id
-                cursor.execute('SELECT count(*) FROM clandata WHERE group_id = ?', (chid,))
-                count = cursor.fetchone()[0]
-                if count == 0:
-                    return
-                cursor.execute('SELECT balance FROM userdata WHERE user_id=?', (a,))
-                balance = cursor.fetchone()[0]
-                if balance<cost:
-                    await call.answer(text='❌ У вас недостаточно средств', show_alert = True)
-                    return
-                cursor.execute('UPDATE userdata SET balance=balance-? WHERE user_id=?', (cost, a,))
-                conn.commit()
-                cursor.execute('UPDATE userdata SET {0}={0}+1 WHERE user_id=?'.format(buyitem), (a,))
-                conn.commit()
-                cursor.execute('UPDATE clandata SET balance=balance+? WHERE group_id=?', (cost//2, chid,))
-                conn.commit()
-                cursor.execute('SELECT balance FROM userdata WHERE user_id=?', (a,))
-                balance = cursor.fetchone()[0]
-                await call.answer(text='Покупка совершена успешно. Ваш баланс: ${0}. Баланс клана пополнен на ${1}'.format(balance, cost//2), show_alert = True)
             except Exception as e:
                 await call.message.answer('<i><b>&#10060; Ошибка: </b>{0}</i>'.format(e), parse_mode = 'html');
         if call.data == 'drink_medicine':
@@ -3316,12 +3292,6 @@ morebus = 20
                     await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
                 else:
                     await main.edit_message_text(inline_message_id = call.inline_message_id, text = '<i><b>Ошибка: </b>{0}</i>'.format(e), parse_mode = 'html')
-        if call.data == 'create_clan':
-            try:
-                
-            except Exception as e:
-                await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
 
         if call.data == 'call_clan':
             try:

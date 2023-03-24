@@ -1,6 +1,6 @@
-from ...database.functions import cur, conn, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, bot, ITEMS
+from ...database.functions import cur, conn, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, ITEMS
 from aiogram.utils.deep_linking import get_start_link
-
+from ... import bot
 async def set_user_bio(call: CallbackQuery):    
     cur.execute(f"UPDATE userdata SET process=\"setbio\" WHERE user_id={call.from_user.id}")
     conn.commit()

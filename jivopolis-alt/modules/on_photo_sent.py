@@ -1,4 +1,5 @@
-from ..database.functions import check, cur, InlineKeyboardMarkup, InlineKeyboardButton, Message, bot, conn, SUPPORT_LINK
+from ..database.functions import check, cur, InlineKeyboardMarkup, InlineKeyboardButton, Message, conn, SUPPORT_LINK
+from .. import bot
 from aiogram.types import ChatMemberAdministrator, ChatMemberOwner
 from aiogram import Dispatcher
 

@@ -2,7 +2,7 @@ from ...database.functions import cur, conn, Message, InlineKeyboardButton, Inli
 from ...config import METRO, WALK, CITY, trains, villages, walks, ITEMS, lvlcar, limeteds, lvlcab, cabcost, locations, clanitems
 import asyncio
 import time
-from ...bot import logger
+from ... import logger
 import random
 async def city(message: Message, user_id: str):
     place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={user_id}").fetchone()[0]

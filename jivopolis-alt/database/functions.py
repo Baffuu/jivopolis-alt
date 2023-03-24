@@ -6,7 +6,7 @@ from typing import Union
 
 from ..config import limeteds, CREATOR, leveldesc, levelrange, ITEMS, ach, log_chat, SUPPORT_LINK, ADMINS, clanitems
 
-from ..bot import bot, logger
+from .. import bot, logger
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardRemove, CallbackQuery, User, Message
 
 from ..database.sqlitedb import cur, conn, insert_user
