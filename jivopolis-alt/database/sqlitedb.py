@@ -153,7 +153,7 @@ def create_clandata() -> None:
     cur.execute("""CREATE TABLE IF NOT EXISTS clandata
 (
     id              INTEGER         PRIMARY KEY,
-    clan_id         INTEGER         NOT NULL, 
+    clan_id         INTEGER, 
     clan_name       TEXT,
     clan_type       TEXT            DEFAULT \"public\"      NOT NULL,
     clan_balance    INTEGER         DEFAULT 0               NOT NULL,
