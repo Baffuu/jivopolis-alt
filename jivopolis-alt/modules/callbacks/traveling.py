@@ -537,3 +537,11 @@ async def railway_station(call: CallbackQuery):
     InlineKeyboardButton(text='🍔 Кафетерий "Енот Кебаб"', callback_data='enot_kebab_shop'))
 
     await call.message.answer('<i>Пора уже валить отсюда...</i>', parse_mode='html', reply_markup=markup)
+
+async def bus(call: CallbackQuery):
+    markup = InlineKeyboardMarkup().\
+        add(InlineKeyboardButton(text='🚌 К платформам', callback_data='bus_lounge'),
+            InlineKeyboardButton(text='🎫 Билетные кассы', callback_data='tickets'),
+            InlineKeyboardButton(text='🍔 Кафетерий "Енот Кебаб"', callback_data='enot_kebab'))
+            
+    await call.message.answer('<i>Пора уже валить отсюда...</i>', parse_mode='html', reply_markup=markup)

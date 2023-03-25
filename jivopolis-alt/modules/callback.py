@@ -91,6 +91,8 @@ async def callback_handler(call: CallbackQuery):
                 await moda_shop(call)
             case 'xmas_shop':
                 await xmas_shop(call)
+            case 'enot_kebab_shop':
+                await enot_kebab_shop(call)
             case 'my_reflink':
                 await my_reflink(call)
             case 'cellphone_menu':
