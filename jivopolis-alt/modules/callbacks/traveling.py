@@ -2,8 +2,10 @@ from ...database.functions import cur, conn, Message, InlineKeyboardButton, Inli
 from ...config import METRO, WALK, CITY, trains, villages, walks, ITEMS, lvlcar, limeteds, lvlcab, cabcost, locations, clanitems
 import asyncio
 import time
+from ...misc import get_building
 from ... import logger
 import random
+
 async def city(message: Message, user_id: str):
     place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={user_id}").fetchone()[0]
     line = cur.execute(f"SELECT line FROM userdata WHERE user_id={user_id}").fetchone()[0]
@@ -55,64 +57,34 @@ async def city(message: Message, user_id: str):
         if car>=1:
             trans.append(caritem)
     markup.add(*trans)
+
+    location_button = get_building(place)
+    if location_button is not None: markup.add(location_button)
+
     iswalk = -1
     index = -1
     for wlk in WALK:
         if place in wlk:
             iswalk = WALK.index(wlk)
             break
+    
     for wnk in WALK:
         walkindex = WALK.index(wnk)
         if iswalk == -1 or walkindex == iswalk or wnk[WALK[iswalk].index(place)] == "":
             continue
         index = WALK[iswalk].index(place)
+
         markup.add(InlineKeyboardButton(text=f"🚶 {wnk[index]} - {walks[index]} секунд ходьбы".format(wnk[index], walks[index]), callback_data="walk_{0}".format(wnk[index])))
-    print(time.time())
-    if place=="Ботаническая": #todo match (place):
-        markup.add(InlineKeyboardButton(text="🌲 Живополисский ботанический сад", callback_data="botan_garden"))
-    elif place=="Живбанк":
-        markup.add(InlineKeyboardButton(text="🏦 Живополисский банк", callback_data="bank"))
-    elif place=="Университет":
-        markup.add(InlineKeyboardButton(text="🏫 Живополисский университет", callback_data="university"))
-    elif place=="Котайский Мединститут":
-        markup.add(InlineKeyboardButton(text="🏫 Котайский институт медицинских наук", callback_data="university"))
-    elif place=="Автопарк им. Кота":
-        markup.add(InlineKeyboardButton(text="🚗 Автопарк имени Cat Painted", callback_data="car_park"))
-    elif place=="ТЦ МиГ":
-        markup.add(InlineKeyboardButton(text="🏬 Торговый центр МиГ", callback_data="mall"))
-    elif place=="Георгиевская":
-        markup.add(InlineKeyboardButton(text="🍰 Кондитерская \"СладкоЁжка\"", callback_data="candy_shop"))
-    elif place=="Райбольница":
-        markup.add(InlineKeyboardButton(text="🏥 Живополисская районная больница", callback_data="hospital"))
-    elif place=="Старокотайский ФАП":
-        markup.add(InlineKeyboardButton(text="🏥 Старокотайский фельдшерский пункт", callback_data="hospital"))
-    elif place=="Зоопарк":
-        markup.add(InlineKeyboardButton(text="🦊 Живополисский зоопаcрк", callback_data="zoo_shop"))
-    elif place=="Аэропорт Котай":
-        markup.add(InlineKeyboardButton(text="✈ Аэропорт Котай", callback_data="airport"))
-    elif place=="Национальный аэропорт":
-        markup.add(InlineKeyboardButton(text="✈ Национальный аэропорт Живополис", callback_data="airport"))
-    elif place=="Живополисский музей":
-        markup.add(InlineKeyboardButton(text="🏛 Исторический музей Живополиса", callback_data="museum"))
-    elif place=="Макеевка":
-        markup.add(InlineKeyboardButton(text="🍏 \"Натурал\". Фрукты и овощи", callback_data="fruit_shop"))
-    elif place=="Рынок":
-        markup.add(InlineKeyboardButton(text="🏣 Центральный рынок", callback_data="central_market_menu"))
-    elif place=="Котайский электрозавод":
-        markup.add(InlineKeyboardButton(text="🏭 Котайский завод электрических деталей", callback_data="factory"))
-    elif place=="Стадион":
-        markup.add(InlineKeyboardButton(text="🏟 Живополис-Арена", url="t.me/jivopolistour"))
-    elif place=="Роща":
-        markup.add(InlineKeyboardButton(text="🌾 Ферма", callback_data="farm"))
-    elif place=="Генерала Шелби":
-        markup.add(InlineKeyboardButton(text="📱 Магазин техники имени Шелби", callback_data="phone_shop"))
+    
+    
 
     '''cur.execute("SELECT * FROM clandata WHERE islocation=1 AND hqplace=? AND type=?", (place, "public",))
     for row in cur:
         markup.add(InlineKeyboardButton(text="🏢 {0}".format(row[1]), url=row[8]))'''
 
     markup.add(InlineKeyboardButton(text="📡 GPS", callback_data="gps"))
-    markup.add(InlineKeyboardButton(text="🏢 Кланы рядом", callback_data="local_clans"), InlineKeyboardButton(text="👤 Кто здесь?", callback_data="local_people"))
+    markup.add(InlineKeyboardButton(text="🏢 Кланы рядом", callback_data="local_clans"), 
+    InlineKeyboardButton(text="👤 Кто здесь?", callback_data="local_people"))
     await message.answer("<i>В Живополисе есть много чего интересного!\n&#127963; <b>{0}</b></i>".format(place), parse_mode = "html", reply_markup = markup)
     chid = message.chat.id
 
@@ -503,7 +475,6 @@ async def zoo_shop(call: CallbackQuery):
 
     markup = InlineKeyboardMarkup(row_width=1).\
         add(*list(filter(lambda item: item is not None, buttons)))
-    print(buttons)
     await call.message.answer('<i>Что хотите купить?</i>', reply_markup=markup, parse_mode = 'html')
 
 async def shop_24(call: CallbackQuery):
@@ -542,3 +513,18 @@ async def buyclan_(call: CallbackQuery, item: str):
     
     cur.execute(f"UPDATE clandata SET balance=balance+{cost//clan_bonus_devider} WHERE clan_id={chat_id}"); conn.commit()
     await call.answer(f'Покупка совершена успешно. Ваш баланс: ${balance-cost}. Баланс клана пополнен на ${cost//clan_bonus_devider}', show_alert = True)
+
+async def enot_kebab_shop(call: CallbackQuery):
+    place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={call.from_user.id}")
+    
+    if not place in villages and not place in trains[0]:
+        return#todo call answer
+
+    buttons = [buybutton('burger'), buybutton('shaurma'),
+    buybutton('fries'), buybutton('cheburek'),
+    buybutton('beer')]
+
+    markup = InlineKeyboardMarkup(row_width=1).\
+        add(*list(filter(lambda item: item is not None, buttons)))
+
+    await call.message.answer('<i>Что хотите купить?</i>', reply_markup = markup, parse_mode = 'html')
