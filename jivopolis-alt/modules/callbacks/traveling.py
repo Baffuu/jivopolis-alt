@@ -571,5 +571,18 @@ async def car_shop(call: CallbackQuery):
 
     markup = InlineKeyboardMarkup(row_width=1).\
         add(*list(filter(lambda item: item is not None, buttons)))
-        
+
     await call.message.answer('<i>Какую машину хотите купить?</i>', reply_markup = markup, parse_mode = 'html')
+
+async def hospital_shop(call: CallbackQuery):
+    place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={call.from_user.id}").fetchone()[0]
+    
+    if place != 'Райбольница' and place != 'Старокотайский ФАП':
+        return #todo callback answer
+
+    markup = InlineKeyboardMarkup(row_width=1).\
+        add(InlineKeyboardButton(text='💊 Таблетка Котробене - $500', callback_data='buy_pill_1'),
+            InlineKeyboardButton(text='💊 Маленькая пачка (5 шт.) - $2500', callback_data='buy_pill_5'),
+            InlineKeyboardButton(text='💊 Баночка (10 шт.) - $5000', callback_data='buy_pill_10'))
+            
+    await call.message.answer('<i>Что хотите приобрести?</i>', reply_markup = markup, parse_mode = 'html')
