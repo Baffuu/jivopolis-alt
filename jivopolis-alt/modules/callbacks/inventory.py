@@ -4,48 +4,61 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, CallbackQu
 from ...database.sqlitedb import cur, conn
 from ...config import ITEMS, limeteds
 from ...database.functions import itemdata, current_time
+from ...misc import Item
 
 async def itemdesc(call: CallbackQuery, user_id: int):
-    item = call.data
+    item: Item = ITEMS[call.data]()
 
     count = cur.execute(f"SELECT {item} FROM userdata WHERE user_id={user_id}").fetchone()[0]
 
     if count < 1:
-        return await call.message.answer('<i>&#10060; У вас нет этого предмета</i>', reply_markup = markup, parse_mode = 'html')
+        return await call.message.answer('<i>🚫 У вас нет этого предмета</i>', reply_markup = markup, parse_mode = 'html')
+    
     try:
         mask = cur.execute(f"SELECT mask FROM userdata WHERE user_id={user_id}").fetchone()[0]
     except TypeError:
         mask = None
 
-    status = ITEMS[item][4][0]
-
     markup = InlineKeyboardMarkup()
 
-    if status == 'food': #todo match case
-        markup.add(InlineKeyboardButton(text='🍖 Съесть', callback_data=f'eat_{item}'))
-    elif status == 'medicine':
-        markup.add(InlineKeyboardButton(text='💊 Выпить', callback_data='drink_medicine'))
-    elif status == 'car':
-        markup.add(InlineKeyboardButton(text='🚗 В путь!', callback_data='cardrive'))
-    elif status == 'lootbox':
-        markup.add(InlineKeyboardButton(text='📦 Открыть', callback_data='open_lootbox'))
-    elif status == 'rob':
-        markup.add(InlineKeyboardButton(text='🏦 Ограбить банк', callback_data='rob_bank'))
-    elif status == 'mask':
-        if ITEMS[item][0] == mask:
-            markup.add(InlineKeyboardButton(text='❎ Снять', callback_data='put_mask_off'))
-        else:
-            markup.add(InlineKeyboardButton(text='👺 Надеть', callback_data=f'put_mask_on_{item}'))
-    elif status == 'key':
-        markup.add(InlineKeyboardButton(text='🔐 Чёрный рынок', callback_data='darkweb'))
-    elif status == 'phone':
-        markup.add(InlineKeyboardButton(text='📱 Использовать', callback_data='cellphone_menu'))
-    rem = ''
+    match (item.type):
+        case 'food': 
+            markup.add(InlineKeyboardButton(text='🍖 Съесть', callback_data=f'eat_{item}'))
+        case 'medicine':
+            markup.add(InlineKeyboardButton(text='💊 Выпить', callback_data='drink_medicine'))
+        case 'car':
+            markup.add(InlineKeyboardButton(text='🚗 В путь!', callback_data='cardrive'))
+        case 'lootbox':
+            markup.add(InlineKeyboardButton(text='📦 Открыть', callback_data='open_lootbox'))
+        case 'rob':
+            markup.add(InlineKeyboardButton(text='🏦 Ограбить банк', callback_data='rob_bank'))
+        case 'mask':
+            if item.emoji == mask:
+                markup.add(InlineKeyboardButton(text='❎ Снять', callback_data='put_mask_off'))
+            else:
+                markup.add(InlineKeyboardButton(text='👺 Надеть', callback_data=f'put_mask_on_{item}'))
+        case 'key':
+            markup.add(InlineKeyboardButton(text='🔐 Чёрный рынок', callback_data='darkweb'))
+        case 'phone':
+            markup.add(InlineKeyboardButton(text='📱 Использовать', callback_data='cellphone_menu'))
+
+    description = item.description
+    
+    if not description: 
+        description = '〰 описание предмета отсутствует. Обратитесь в приёмную, если считаете, что это ошибка.'
+    
     if call.data in limeteds:
-        cur.execute(f"SELECT {item} FROM globaldata")
-        itemrem = cur.fetchone()[0]
-        rem = "\n\n&#127978; В круглосуточном осталось <b>{0}</b> единиц этого товара".format(itemrem)
-    return await call.message.answer('<i><b>{0} {1}</b> - {2}{3}\n\nУ вас <b>{4}</b> единиц этого предмета</i>'.format(ITEMS[item][0], ITEMS[item][2], ITEMS[item][5], rem, count), reply_markup = markup, parse_mode = 'html')
+        itemsleft = cur.execute(f"SELECT {item} FROM globaldata").fetchone()[0]
+        
+        if itemsleft > 0:
+            itemsleft = f"\n\n🏪 В круглосуточном осталось <b>{itemsleft}</b> единиц этого товара"
+        else:
+            itemsleft = "\n\n🚫🏪 В круглосуточном не осталось этого товара"
+
+    else:
+        itemsleft = ''
+    
+    return await call.message.answer(f'<i><b>{item.emoji} {item.name}</b> - {description}{itemsleft}\n\nУ вас <b>{count}</b> единиц этого предмета</i>', reply_markup = markup, parse_mode = 'html')
 
 async def inventory(call: CallbackQuery):
     user_id = call.from_user.id

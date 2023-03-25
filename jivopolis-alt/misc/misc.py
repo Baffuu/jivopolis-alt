@@ -1,10 +1,10 @@
 from datetime import datetime
-from .config import intervals, BOT_USER
+from ..config import intervals, BOT_USER
 
 from typing import Union
 
-from .bot import logger
-from .database.sqlitedb import cur
+from .. import logger
+from ..database.sqlitedb import cur
 from aiogram.utils.deep_linking import decode_payload
 
 def get_link(user_id: int = None, encoded_id: str = None) -> str:
