@@ -93,6 +93,12 @@ async def callback_handler(call: CallbackQuery):
                 await xmas_shop(call)
             case 'enot_kebab_shop':
                 await enot_kebab_shop(call)
+            case 'botan_garden_shop':
+                await botan_garden_shop(call)
+            case 'car_shop':
+                await car_shop(call)
+            case 'hospital_shop':
+                await hospital_shop(call)
             case 'my_reflink':
                 await my_reflink(call)
             case 'cellphone_menu':

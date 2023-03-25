@@ -57,7 +57,7 @@ def get_building(place) -> InlineKeyboardButton | None:
     '''Get InlineKeyboardButton with special building for every location'''
     match (place):
         case "Ботаническая":
-            button = InlineKeyboardButton(text="🌲 Живополисский ботанический сад", callback_data="botan_garden")
+            button = InlineKeyboardButton(text="🌲 Живополисский ботанический сад", callback_data="botan_garden_shop")
         case "Живбанк":
             button = InlineKeyboardButton(text="🏦 Живополисский банк", callback_data="bank")
         case "Университет":
@@ -65,15 +65,15 @@ def get_building(place) -> InlineKeyboardButton | None:
         case "Котайский Мединститут":
             button = InlineKeyboardButton(text="🏫 Котайский институт медицинских наук", callback_data="university")
         case "Автопарк им. Кота":
-            button = InlineKeyboardButton(text="🚗 Автопарк имени Cat Painted", callback_data="car_park")
+            button = InlineKeyboardButton(text="🚗 Автопарк имени Cat Painted", callback_data="car_shop")
         case "ТЦ МиГ":
             button = InlineKeyboardButton(text="🏬 Торговый центр МиГ", callback_data="mall")
         case "Георгиевская":
             button = InlineKeyboardButton(text="🍰 Кондитерская \"СладкоЁжка\"", callback_data="candy_shop")
         case "Райбольница":
-            button = InlineKeyboardButton(text="🏥 Живополисская районная больница", callback_data="hospital")
+            button = InlineKeyboardButton(text="🏥 Живополисская районная больница", callback_data="hospital_shop")
         case "Старокотайский ФАП":
-            button = InlineKeyboardButton(text="🏥 Старокотайский фельдшерский пункт", callback_data="hospital")
+            button = InlineKeyboardButton(text="🏥 Старокотайский фельдшерский пункт", callback_data="hospital_shop")
         case "Зоопарк":
             button = InlineKeyboardButton(text="🦊 Живополисский зоопаcрк", callback_data="zoo_shop")
         case "Аэропорт Котай":

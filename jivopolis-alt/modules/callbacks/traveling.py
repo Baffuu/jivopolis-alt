@@ -160,87 +160,6 @@ async def local_people(call: CallbackQuery):
 
     await call.message.answer(f'<i>&#128100; Пользователи в местности <b>{place}</b>: <b>{users}</b></i>', parse_mode = 'html')
 
-async def phone_shop(call: CallbackQuery):
-    place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={call.from_user.id}").fetchone()[0]
-    
-    if place != 'Генерала Шелби':
-        return #todo callback answer
-
-    await call.message.answer('<i>📱 Добро пожаловать в магазин техники имени Шелби</i>', reply_markup = InlineKeyboardMarkup().\
-        add(buybutton('phone')), parse_mode = 'html') 
-
-async def candy_shop(call: CallbackQuery):
-    place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={call.from_user.id}").fetchone()[0]
-    if place != 'Георгиевская':
-        return #todo callback answer
-    markup = InlineKeyboardMarkup(row_width=1)
-    buttons = [buybutton('donut'), buybutton('cake'), buybutton('cookie'),
-               #buybutton('yogurt'),
-               buybutton('chocolate'), buybutton('ice_cream'),
-               buybutton('shaved_ice')]
-
-    sellitems = list(filter(lambda item: item is not None, sellitems))
-
-    markup.add(*buttons)
-
-    return await call.message.answer('<i>&#127856; Добро пожаловать в нашу кондитерскую!</i>', reply_markup = markup, parse_mode = 'html')
-
-async def japan_shop(call: CallbackQuery):
-    place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={call.from_user.id}").fetchone()[0]
-
-    if place != 'ТЦ МиГ':
-        return #todo callback answer
-
-    markup = InlineKeyboardMarkup(row_width=1)
-    buttons = [buybutton('bento'), buybutton('pasta'), buybutton('rice')]
-
-    sellitems = list(filter(lambda item: item is not None, sellitems))
-
-    markup.add(*buttons)
-
-    return await call.message.answer('<i>&#127857; Добро пожаловать в ресторан восточной кухни "Япон Енот"!</i>', reply_markup = markup, parse_mode = 'html')
-
-async def mall(call: CallbackQuery):
-    place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={call.from_user.id}").fetchone()[0]
-    
-    if place != 'ТЦ МиГ':
-        return #todo callback answer
-
-    markup = InlineKeyboardMarkup(row_width=1)
-    markup.add(InlineKeyboardButton(text='👚 ModaShop', callback_data='moda_shop'), 
-               InlineKeyboardButton(text='🍔 Енот Кебаб', callback_data='enot_kebab'),
-               InlineKeyboardButton(text='🍚 Ресторан Япон Енот', callback_data='japan_shop'))
-
-    return await call.message.answer('<i>&#127978; Добро пожаловать в торговый центр!</i>', reply_markup = markup, parse_mode = 'html')
-
-async def moda_shop(call: CallbackQuery):
-    place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={call.from_user.id}").fetchone()[0]
-
-    if place != 'ТЦ МиГ':
-        return #todo answer
-
-    markup = InlineKeyboardMarkup(row_width=1)
-    markup.add(InlineKeyboardButton(text='❄️ Новогодний отдел', callback_data='xmas_shop'),
-                InlineKeyboardButton(text='👺 Маскарадный отдел', callback_data='mask_clothes'))
-
-    return await call.message.answer('<i>&#128090; Добро пожаловать в <b>ModaShop</b>! Здесь вы можете купить любую одежду!</i>', reply_markup = markup, parse_mode = 'html')
-    
-async def xmas_shop(call: CallbackQuery):
-    place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={call.from_user.id}").fetchone()[0]
-
-    if place != 'ТЦ МиГ':
-        return #todo
-
-    markup = InlineKeyboardMarkup(row_width=1)
-    
-    buttons = [buybutton('snowman'), buybutton('snowflake'), buybutton('xmastree'), buybutton('fairy'), buybutton('santa_claus'),
-    buybutton('mrs_claus'), buybutton('firework'),
-    buybutton('fireworks'), buybutton('confetti')]
-
-    markup.add(*list(filter(lambda item: item is not None, buttons)))
-
-    return await call.message.answer('<i>Что хотите купить?</i>', reply_markup = markup, parse_mode = 'html')
-
 async def delivery_menu(call: CallbackQuery):
     a = call.from_user.id
     phone = cur.execute(f"SELECT phone FROM userdata WHERE user_id={call.from_user.id}").fetchone()[0]
@@ -265,21 +184,6 @@ async def delivery_menu(call: CallbackQuery):
 
     await call.message.answer('<i>🚚 Здесь вы можете заказать себе любой товар из ТЦ МиГ из любого места, даже из самой глухой деревни. Это обойдётся дороже, чем в ТЦ, зато удобнее :)</i>', parse_mode='html', reply_markup = markup)
             
-async def fruit_shop(call: CallbackQuery):
-    place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={call.from_user.id}").fetchone()[0]
-    
-    if place != 'Макеевка':
-        return
-
-    markup = InlineKeyboardMarkup(row_width=1)
-    
-    buttons = [buybutton('apple'), buybutton('cucumber'),
-    buybutton('tomato'), buybutton('kiwi'), buybutton('cocoa')]
-
-    markup.add(*list(filter(lambda item: item is not None, buttons)))
-
-    await call.message.answer('<i>&#127823; Добро пожаловать в мини-магазин "Натурал"!</i>', reply_markup = markup, parse_mode = 'html')
-
 async def central_market_menu(call: CallbackQuery):
     place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={call.from_user.id}").fetchone()[0]
     
@@ -463,31 +367,6 @@ async def buy24_(call: CallbackQuery, item: str):
     else:
         raise ValueError("no such item")
 
-async def zoo_shop(call: CallbackQuery):
-    place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={call.from_user.id}").fetchone()[0]
-    
-    if place != 'Зоопарк':
-        return
-    
-    buttons = [buybutton('morj'), buybutton('cow'),
-    buybutton('yozh'), buybutton('wolf'), buybutton('fox'),
-    buybutton('hamster')]
-
-    markup = InlineKeyboardMarkup(row_width=1).\
-        add(*list(filter(lambda item: item is not None, buttons)))
-    await call.message.answer('<i>Что хотите купить?</i>', reply_markup=markup, parse_mode = 'html')
-
-async def shop_24(call: CallbackQuery):
-    markup = InlineKeyboardMarkup()
-
-    buttons = [buybutton('bread', 'limited'), buybutton('pelmeni', 'limited'),
-    buybutton('soup', 'limited'), buybutton('meat', 'limited'),
-    buybutton('meatcake', 'limited'), buybutton('tea', 'limited')]
-
-    markup.add(*list(filter(lambda item: item is not None, buttons)))
-
-    await call.message.answer('<i>Что хотите купить?</i>', reply_markup = markup, parse_mode = 'html')
-
 async def buyclan_(call: CallbackQuery, item: str):
     
     if not item in clanitems:
@@ -514,21 +393,6 @@ async def buyclan_(call: CallbackQuery, item: str):
     cur.execute(f"UPDATE clandata SET balance=balance+{cost//clan_bonus_devider} WHERE clan_id={chat_id}"); conn.commit()
     await call.answer(f'Покупка совершена успешно. Ваш баланс: ${balance-cost}. Баланс клана пополнен на ${cost//clan_bonus_devider}', show_alert = True)
 
-async def enot_kebab_shop(call: CallbackQuery):
-    place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={call.from_user.id}")
-    
-    if not place in villages and not place in trains[0]:
-        return#todo call answer
-
-    buttons = [buybutton('burger'), buybutton('shaurma'),
-    buybutton('fries'), buybutton('cheburek'),
-    buybutton('beer')]
-
-    markup = InlineKeyboardMarkup(row_width=1).\
-        add(*list(filter(lambda item: item is not None, buttons)))
-
-    await call.message.answer('<i>Что хотите купить?</i>', reply_markup = markup, parse_mode = 'html')
-
 async def railway_station(call: CallbackQuery):
     markup = InlineKeyboardMarkup(row_width=1).\
         add(InlineKeyboardButton(text='💺 Зал ожидания', callback_data='lounge'),
@@ -544,45 +408,4 @@ async def bus(call: CallbackQuery):
             InlineKeyboardButton(text='🍔 Кафетерий "Енот Кебаб"', callback_data='enot_kebab'))
 
     await call.message.answer('<i>Пора уже валить отсюда...</i>', parse_mode='html', reply_markup=markup)
-
-async def botan_garden_shop(call: CallbackQuery):
-    place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={call.from_user.id}").fetchone()[0]
     
-    if place != 'Ботаническая':
-        return
-
-    buttons = [buybutton('clover'), buybutton('palm'),
-              buybutton('rose'), buybutton('tulip'),
-              buybutton('houseplant'), buybutton('cactus')]
-
-    markup = InlineKeyboardMarkup(row_width=1).\
-        add(*list(filter(lambda item: item is not None, buttons)))
-
-    await call.message.answer('<i>Что хотите купить?</i>', reply_markup=markup, parse_mode = 'html')
-
-async def car_shop(call: CallbackQuery):
-    place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={call.from_user.id}").fetchone()[0]
-    
-    if place != 'Автопарк им. Кота':
-        return #todo callback answer
-
-    buttons = [buybutton('red_car'),
-    buybutton('blue_car')]
-
-    markup = InlineKeyboardMarkup(row_width=1).\
-        add(*list(filter(lambda item: item is not None, buttons)))
-
-    await call.message.answer('<i>Какую машину хотите купить?</i>', reply_markup = markup, parse_mode = 'html')
-
-async def hospital_shop(call: CallbackQuery):
-    place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={call.from_user.id}").fetchone()[0]
-    
-    if place != 'Райбольница' and place != 'Старокотайский ФАП':
-        return #todo callback answer
-
-    markup = InlineKeyboardMarkup(row_width=1).\
-        add(InlineKeyboardButton(text='💊 Таблетка Котробене - $500', callback_data='buy_pill_1'),
-            InlineKeyboardButton(text='💊 Маленькая пачка (5 шт.) - $2500', callback_data='buy_pill_5'),
-            InlineKeyboardButton(text='💊 Баночка (10 шт.) - $5000', callback_data='buy_pill_10'))
-            
-    await call.message.answer('<i>Что хотите приобрести?</i>', reply_markup = markup, parse_mode = 'html')

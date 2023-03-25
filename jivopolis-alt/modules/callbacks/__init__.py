@@ -22,21 +22,27 @@ from .user_profile import (
 
 from .traveling import (
     buycall, city, car_menu, 
-    goto_on_car, local_people, 
-    phone_shop, candy_shop,
-    mall, japan_shop, 
-    moda_shop, xmas_shop, 
-    delivery_menu, fruit_shop, 
+    goto_on_car, local_people,  
+    delivery_menu, 
     central_market_menu,
     central_market_food, 
     bank, state_balance, 
     taxi_menu, taxicost, 
     taxi_goto_, gps_menu,
     central_market_mask, buy24_, 
-    zoo_shop, shop_24, buyclan_,
-    enot_kebab_shop, bus,
-    railway_station, botan_garden_shop, bus)
+    buyclan_,
+    bus, railway_station)
 
 from .clans import (
     create_clan, joinclan
+)
+
+from .shops import (
+    phone_shop, candy_shop,
+    mall, japan_shop,
+    moda_shop, xmas_shop,
+    fruit_shop, zoo_shop, 
+    shop_24, enot_kebab_shop,
+    botan_garden_shop,
+    car_shop, hospital_shop
 )
