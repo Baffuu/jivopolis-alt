@@ -4,6 +4,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, Message, C
 import time
 from math import floor
 from ... import bot, logger
+
 async def chats(user_id: int, message: Message):
     rase = cur.execute(f"SELECT rase FROM userdata WHERE user_id = {user_id}").fetchone()[0]
     markup = InlineKeyboardMarkup()

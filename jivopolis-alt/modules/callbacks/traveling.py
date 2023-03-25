@@ -528,3 +528,12 @@ async def enot_kebab_shop(call: CallbackQuery):
         add(*list(filter(lambda item: item is not None, buttons)))
 
     await call.message.answer('<i>Что хотите купить?</i>', reply_markup = markup, parse_mode = 'html')
+
+async def railway_station(call: CallbackQuery):
+    markup = InlineKeyboardMarkup()
+
+    markup.add(InlineKeyboardButton(text='💺 Зал ожидания', callback_data='lounge'),
+    InlineKeyboardButton(text='🎫 Билетные кассы', callback_data='tickets'),
+    InlineKeyboardButton(text='🍔 Кафетерий "Енот Кебаб"', callback_data='enot_kebab_shop'))
+
+    await call.message.answer('<i>Пора уже валить отсюда...</i>', parse_mode='html', reply_markup=markup)

@@ -1810,10 +1810,7 @@ morebus = 20
                 time+=' {0} секунд'.format(seconds)
             await call.answer('❌ Вы были арестованы и теперь сидите в тюрьме. Вам осталось сидеть {0}'.format(time),show_alert = True)
             return
-        if call.data.startswith('buyclan_'):
-            try:
-            except Exception as e:
-                await call.message.answer('<i><b>&#10060; Ошибка: </b>{0}</i>'.format(e), parse_mode = 'html');
+
         if call.data == 'drink_medicine':
             await cure(call.from_user.id, call.from_user.id, call.from_user.id)
         if call.data=='log_out':
@@ -2090,18 +2087,7 @@ morebus = 20
                 await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
         if call.data == 'enot_kebab':
             try:
-                a = call.from_user.id
-                cursor.execute('SELECT place FROM userdata WHERE user_id=?', (a,))
-                station = cursor.fetchone()[0]
-                if not station in villages and not station in trains[0]:
-                    return
-                markup = types.InlineKeyboardMarkup()
-                markup.add(buybutton('burger'))
-                markup.add(buybutton('shaurma'))
-                markup.add(buybutton('fries'))
-                markup.add(buybutton('cheburek'))
-                markup.add(buybutton('beer'))
-                await call.message.answer('<i>Что хотите купить?</i>', reply_markup = markup, parse_mode = 'html')
+                
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
                 await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
