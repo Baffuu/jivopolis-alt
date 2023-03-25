@@ -2,11 +2,9 @@ from aiogram.utils import executor
 from aiogram.utils.exceptions import ChatNotFound
 
 from .config import log_chat
-from .bot import bot, dp, Dispatcher, logger
+from . import bot, dp, Dispatcher, logger
 
 from .database.sqlitedb import connect_database
-
-#loop = asyncio.get_event_loop()
 
 async def on_startup(dp : Dispatcher):
     try:
@@ -22,14 +20,9 @@ async def on_startup(dp : Dispatcher):
             logger.warning('log chat not found :(\nprobably you forgot to add bot to the chat')
         logger.info('bot connected')
 
-        from .modules import start, admin_commands, callback, on_photo_sent, stickers_handler, inline_bot
-        start.register(dp)
-        admin_commands.register(dp)
-        callback.register(dp)
-        on_photo_sent.register(dp)
-        stickers_handler.register(dp)
-        inline_bot.register(dp)
-        
+        from . import modules
+        await modules.register_all(dp)
+        #await asyncio.gather(asyncio.create_task(update_loop()))
     except Exception as e:
         return logger.exception(e)
 
