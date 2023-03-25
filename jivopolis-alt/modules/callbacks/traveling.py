@@ -530,18 +530,32 @@ async def enot_kebab_shop(call: CallbackQuery):
     await call.message.answer('<i>Что хотите купить?</i>', reply_markup = markup, parse_mode = 'html')
 
 async def railway_station(call: CallbackQuery):
-    markup = InlineKeyboardMarkup()
-
-    markup.add(InlineKeyboardButton(text='💺 Зал ожидания', callback_data='lounge'),
-    InlineKeyboardButton(text='🎫 Билетные кассы', callback_data='tickets'),
-    InlineKeyboardButton(text='🍔 Кафетерий "Енот Кебаб"', callback_data='enot_kebab_shop'))
+    markup = InlineKeyboardMarkup(row_width=1).\
+        add(InlineKeyboardButton(text='💺 Зал ожидания', callback_data='lounge'),
+            InlineKeyboardButton(text='🎫 Билетные кассы', callback_data='tickets'),
+            InlineKeyboardButton(text='🍔 Кафетерий "Енот Кебаб"', callback_data='enot_kebab_shop'))
 
     await call.message.answer('<i>Пора уже валить отсюда...</i>', parse_mode='html', reply_markup=markup)
 
 async def bus(call: CallbackQuery):
-    markup = InlineKeyboardMarkup().\
+    markup = InlineKeyboardMarkup(row_width=1).\
         add(InlineKeyboardButton(text='🚌 К платформам', callback_data='bus_lounge'),
             InlineKeyboardButton(text='🎫 Билетные кассы', callback_data='tickets'),
             InlineKeyboardButton(text='🍔 Кафетерий "Енот Кебаб"', callback_data='enot_kebab'))
-            
+
     await call.message.answer('<i>Пора уже валить отсюда...</i>', parse_mode='html', reply_markup=markup)
+
+async def botan_garden_shop(call: CallbackQuery):
+    place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={call.from_user.id}").fetchone()[0]
+    
+    if place != 'Ботаническая':
+        return
+
+    buttons = [buybutton('clover'), buybutton('palm'),
+              buybutton('rose'), buybutton('tulip'),
+              buybutton('houseplant'), buybutton('cactus')]
+
+    markup = InlineKeyboardMarkup(row_width=1).\
+        add(*list(filter(lambda item: item is not None, buttons)))
+
+    await call.message.answer('<i>Что хотите купить?</i>', reply_markup=markup, parse_mode = 'html')
