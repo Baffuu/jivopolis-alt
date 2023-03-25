@@ -559,3 +559,17 @@ async def botan_garden_shop(call: CallbackQuery):
         add(*list(filter(lambda item: item is not None, buttons)))
 
     await call.message.answer('<i>Что хотите купить?</i>', reply_markup=markup, parse_mode = 'html')
+
+async def car_shop(call: CallbackQuery):
+    place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={call.from_user.id}").fetchone()[0]
+    
+    if place != 'Автопарк им. Кота':
+        return #todo callback answer
+
+    buttons = [buybutton('red_car'),
+    buybutton('blue_car')]
+
+    markup = InlineKeyboardMarkup(row_width=1).\
+        add(*list(filter(lambda item: item is not None, buttons)))
+        
+    await call.message.answer('<i>Какую машину хотите купить?</i>', reply_markup = markup, parse_mode = 'html')

@@ -35,7 +35,7 @@ from .traveling import (
     central_market_mask, buy24_, 
     zoo_shop, shop_24, buyclan_,
     enot_kebab_shop, bus,
-    railway_station)
+    railway_station, botan_garden_shop, bus)
 
 from .clans import (
     create_clan, joinclan
