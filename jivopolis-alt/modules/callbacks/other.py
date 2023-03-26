@@ -44,21 +44,19 @@ async def my_refferals(message: Message, user_id: int):
     count = cur.execute(f"SELECT count(*) FROM userdata WHERE inviter_id = {user_id}").fetchone()[0]
     markup = InlineKeyboardMarkup()
     markup.add(InlineKeyboardButton(text="🖇 Реферальная ссылка", callback_data="reflink"))
-    
+
     if count < 1:
         return await message.answer(f"<i><b><a href=\"tg://user?id={user_id}\">{user_mask}{nick}</a></b>, вы пока никого не пригласили в Живополис :(</i>", parse_mode = "html", reply_markup=markup)
-        
+
     cur.execute(f"""
     SELECT * FROM userdata 
     WHERE refid = {user_id}
     ORDER BY -lastseen 
     LIMIT 100""")
 
-    ref_num = 0
     users: str 
 
-    for row in cur:
-        ref_num += 1
+    for ref_num, row in enumerate(cur, start=1):
         mask = get_mask(row[1])
         users+=f"\n{ref_num}. <a href = \"{get_link(row[1])}\">{mask}{row[7]}</a>"
     await message.answer(f"<i>&#128100; Пользователи, привлечённые <b><a href=\"tg://user?id={user_id}\">{user_mask}{nick}</a></b>: <b>{users}</b></i>", parse_mode = "html", reply_markup=markup)
@@ -67,13 +65,14 @@ async def get_cheque(call: CallbackQuery, user_id: int):
     money = int(call.data[6:])
     mask = get_mask(user_id)
     nick = cur.execute(f"SELECT nickname FROM userdata WHERE user_id={user_id}").fetchone()[0]
-    
-    cur.execute(f"UPDATE userdata SET balance = balance + {money} WHERE user_id={user_id}"); conn.commit()
-    
-    if call.message != None:
-        await bot.edit_message_text(chat_id = call.message.chat.id, message_id = call.message.message_id, text = f"<i><b><a href=\"{get_link(user_id)}\">{mask}{nick}</a></b> забрал <b>${money}</b></i>")
-    else:
+
+    cur.execute(f"UPDATE userdata SET balance = balance + {money} WHERE user_id={user_id}")
+    conn.commit()
+
+    if call.message is None:
         await bot.edit_message_text(inline_message_id = call.inline_message_id, text = f"<i><b><a href=\"{get_link(user_id)}\">{mask}{nick}</a></b> забрал <b>${money}</b></i>")
+    else:
+        await bot.edit_message_text(chat_id = call.message.chat.id, message_id = call.message.message_id, text = f"<i><b><a href=\"{get_link(user_id)}\">{mask}{nick}</a></b> забрал <b>${money}</b></i>")
     if money > 0:
         await bot.send_message(log_chat, f"<i><b><a href=\"{get_link}\">{mask}{nick}</a></b> забрал <b>${money}</b>\n#user_getcheck</i>")
 
@@ -98,8 +97,8 @@ async def give_state(call: CallbackQuery, amount):
     user_id = call.from_user.id
     place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={user_id}").fetchone()[0]
     balance = cur.execute(f"SELECT balance FROM userdata WHERE user_id={user_id}").fetchone()[0]
-    treasury = cur.execute(f"SELECT treasury FROM globaldata").fetchone()[0]
-    
+    treasury = cur.execute("SELECT treasury FROM globaldata").fetchone()[0]
+
     if place != "Живбанк":
         return
 
@@ -116,7 +115,9 @@ async def give_state(call: CallbackQuery, amount):
 async def economics(call: CallbackQuery):
     treasury = cur.execute("SELECT treasury FROM globaldata").fetchone()[0]
     try:
-        balance = cur.execute(f"SELECT clan_balance FROM clandata WHERE clan_id=-1001395868701").fetchone()[0] #todo group id
+        balance = cur.execute(
+            "SELECT clan_balance FROM clandata WHERE clan_id=-1001395868701"
+        ).fetchone()[0]
     except TypeError:
         logger.warning('game club does not exists or bot not added to the chat')
         balance = 0
@@ -129,16 +130,12 @@ async def economics(call: CallbackQuery):
     s = floor(diff%3600%60)
 
     limits = ''
-    
+
     for item in limeteds:
         limits += f'\n{ITEMS[item][0]} {ITEMS[item][2]} - '
         item_left = cur.execute(f"SELECT {item} FROM globaldata").fetchone()[0]
-        
-        if item_left <= 0:
-            limits += 'дефицит'
-        else:
-            limits += str(item_left)
 
+        limits += 'дефицит' if item_left <= 0 else str(item_left)
     return await call.message.answer(f'<i><b>&#128202; ЭКОНОМИКА ЖИВОПОЛИСА</b>\n\
     \n&#128184; <b>Финансы</b>\
     \n&#128176; Государственная казна - <b>${treasury}</b>\

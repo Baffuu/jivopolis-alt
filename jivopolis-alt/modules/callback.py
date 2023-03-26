@@ -1,3 +1,4 @@
+import contextlib
 from aiogram.types import CallbackQuery
 
 from ..config import ITEMS, SUPPORT_LINK
@@ -7,15 +8,16 @@ from .callbacks import *
 
 async def callback_handler(call: CallbackQuery):
     try:
-        try:
+        with contextlib.suppress(AttributeError):
             await check(call.from_user.id, call.message.chat.id)
-        except AttributeError:
-            pass #todo create something better
         health = cur.execute(f"SELECT health FROM userdata WHERE user_id={call.from_user.id}").fetchone()[0]
         is_banned = bool(cur.execute(f"SELECT is_banned FROM userdata WHERE user_id={call.from_user.id}").fetchone()[0])
-        
+
         if is_banned:
-            await call.answer(f'🧛🏻‍♂️ Вы были забаненны в боте. Если вы считаете, что это - ошибка, обратитесь в поддержку.', show_alert=True)
+            await call.answer(
+                '🧛🏻‍♂️ Вы были забаненны в боте. Если вы считаете, что это - ошибка, обратитесь в поддержку.',
+                show_alert=True,
+            )
             return bot.send_message(call.from_user.id, f'🧛🏻‍♂️ Вы были забаненны в боте. Если вы считаете, что это - ошибка, обратитесь в <a href="{SUPPORT_LINK}">поддержку</a>.')
 
         if health < 0:

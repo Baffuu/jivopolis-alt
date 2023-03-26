@@ -20,14 +20,19 @@ def get_link(user_id: int = None, encoded_id: str = None) -> str:
 def get_mask(user_id: int) -> Union[str, None]:
     '''get mask or rase of user'''
     try:
-        mask = cur.execute(f"SELECT mask FROM userdata WHERE user_id = {user_id}").fetchone()[0]
-        if not mask:
-            mask = cur.execute(f"SELECT rase FROM userdata WHERE user_id = {user_id}").fetchone()[0]
-        return mask
+        return (
+            cur.execute(
+                f"SELECT mask FROM userdata WHERE user_id = {user_id}"
+            ).fetchone()[0]
+            or cur.execute(
+                f"SELECT rase FROM userdata WHERE user_id = {user_id}"
+            ).fetchone()[0]
+        )
     except TypeError as e:
         logger.exception(e)
-        mask = cur.execute(f"SELECT rase FROM userdata WHERE user_id = {user_id}").fetchone()[0]
-        return mask
+        return cur.execute(
+            f"SELECT rase FROM userdata WHERE user_id = {user_id}"
+        ).fetchone()[0]
     except Exception as e:
         return logger.exception(e)
 
@@ -39,18 +44,14 @@ def isinterval(type) -> bool:
     #todo description
     now = current_time()
     interval = intervals[type]
-    if now // 1 % interval[0] <= interval[1]:
-        return True
-    else:
-        return False
+    return now // 1 % interval[0] <= interval[1]
 
 def remaining(type) -> str:
     '''remaining time due {something} happends, in minutes and seconds.'''
     now = current_time()
     interval = intervals[type][0]
     seconds = int(interval - now//1%interval)
-    min = seconds//60
-    sec = seconds%60
+    min, sec = divmod(seconds, 60)
     return f'{(min) if min != 0 else ""}{1}'.format('{0} секунд'.format(sec) if sec != 0 else '')
 
 def get_building(place) -> InlineKeyboardButton | None:

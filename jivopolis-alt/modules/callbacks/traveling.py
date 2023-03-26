@@ -10,20 +10,20 @@ async def city(message: Message, user_id: str):
     place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={user_id}").fetchone()[0]
     line = cur.execute(f"SELECT line FROM userdata WHERE user_id={user_id}").fetchone()[0]
     car = cur.execute(f"SELECT blue_car+red_car FROM userdata WHERE user_id={user_id}").fetchone()[0] #todo MORE CARS
-    
+
     markup = InlineKeyboardMarkup(row_width = 6)
-    
-    if not place in METRO[line]:
+
+    if place not in METRO[line]:
         for thisline in METRO:
             if place in thisline:
                 cur.execute(f"UPDATE userdata SET line={METRO.index(thisline)} WHERE user_id={user_id}")
                 conn.commit()
-                
+
                 line = METRO.index(thisline)
 
                 break
 
-    if line==2 or line==0:
+    if line in [2, 0]:
         metro = InlineKeyboardButton(text="🚉", callback_data="metro")
     else:
         metro = InlineKeyboardButton(text="🚇", callback_data="metro")
@@ -61,13 +61,8 @@ async def city(message: Message, user_id: str):
     location_button = get_building(place)
     if location_button is not None: markup.add(location_button)
 
-    iswalk = -1
     index = -1
-    for wlk in WALK:
-        if place in wlk:
-            iswalk = WALK.index(wlk)
-            break
-    
+    iswalk = next((WALK.index(wlk) for wlk in WALK if place in wlk), -1)
     for wnk in WALK:
         walkindex = WALK.index(wnk)
         if iswalk == -1 or walkindex == iswalk or wnk[WALK[iswalk].index(place)] == "":
@@ -75,8 +70,8 @@ async def city(message: Message, user_id: str):
         index = WALK[iswalk].index(place)
 
         markup.add(InlineKeyboardButton(text=f"🚶 {wnk[index]} - {walks[index]} секунд ходьбы".format(wnk[index], walks[index]), callback_data="walk_{0}".format(wnk[index])))
-    
-    
+
+
 
     '''cur.execute("SELECT * FROM clandata WHERE islocation=1 AND hqplace=? AND type=?", (place, "public",))
     for row in cur:
@@ -95,6 +90,10 @@ async def buycall(call: CallbackQuery):
         tip = int(call.data.split(':')[1])
     except:
         tip = 0
+    try: 
+        amount = call.data.split(':')[4]
+    except IndexError:
+        amount = 1
     if item in ITEMS:
         if ITEMS[item][4][0] == 'car':
             level = cur.execute(f"SELECT level FROM userdata WHERE user_id={user_id}").fetchone()[0]
@@ -102,7 +101,7 @@ async def buycall(call: CallbackQuery):
                 return await call.answer(text='❌ Данная функция доступна только с уровня {0}'.format(lvlcar), show_alert = True)
                 
             #await achieve(a.id, call.message.chat.id, 'myauto')
-        await buy(call, item, user_id, cost=ITEMS[item][3]+tip)
+        await buy(call, item, user_id, cost=ITEMS[item][3]+tip, amount=amount)
     else:
         raise ValueError("no such item")
 
@@ -113,12 +112,14 @@ async def car_menu(call: CallbackQuery):
 
     if car<1:
         return await call.answer('❌ У вас нет машины', show_alert = True)
-        
+
     markup = InlineKeyboardMarkup(row_width=2)
-    places = []
-    
-    for place in CITY:
-        places.append(InlineKeyboardButton(text=f'{place}', callback_data=f'goto_on_car_{place}'))
+    places = [
+        InlineKeyboardButton(
+            text=f'{place}', callback_data=f'goto_on_car_{place}'
+        )
+        for place in CITY
+    ]
     markup.add(*places)
     await message.answer('<i>👨‍✈️ Выберите место для поездки.</i>', parse_mode='html', reply_markup=markup)
 
@@ -144,20 +145,17 @@ async def goto_on_car(call: CallbackQuery):
 async def local_people(call: CallbackQuery):
     place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id = {call.from_user.id}").fetchone()[0]
     usercount = cur.execute(f"SELECT count(*) FROM userdata WHERE current_place = '{place}'").fetchone()[0]
-    
+
     if usercount < 1:
         return await call.message.answer('<i>👤 Вы стоите один, оглядываясь по сторонам…</i>\n\
             \n😓 В вашей местности не найдено людей. Помимо вас, само собой.', parse_mode = 'html')
-        
-    index = 0
-    users = ''
 
     cur.execute(f"SELECT * FROM userdata WHERE current_place = '{place}'")
 
-    for row in cur.fetchall():
-        index += 1
-        users += f'\n{index}. <a href="{get_link(row[1])}">{get_mask(row[1])} {row[2]}</a>'
-
+    users = ''.join(
+        f'\n{index}. <a href="{get_link(row[1])}">{get_mask(row[1])} {row[2]}</a>'
+        for index, row in enumerate(cur.fetchall(), start=1)
+    )
     await call.message.answer(f'<i>&#128100; Пользователи в местности <b>{place}</b>: <b>{users}</b></i>', parse_mode = 'html')
 
 async def delivery_menu(call: CallbackQuery):
@@ -199,9 +197,10 @@ async def central_market_menu(call: CallbackQuery):
         \n❗ Здесь вы <b>продаёте</b> товары государству, а не покупаете. Деньги вы получаете автоматически, ваш товар никому не достаётся</i>', reply_markup = markup, parse_mode = 'html')
 
 async def central_market_food(call: CallbackQuery):
+async def central_market_food(call: CallbackQuery):
     user_id = call.from_user.id
     place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={user_id}").fetchone()[0]
-    
+
     if place!='Рынок':
         return #todo answer
 
@@ -213,15 +212,14 @@ async def central_market_food(call: CallbackQuery):
         if await itemdata(user_id, item) != 'emptyslot' and ITEMS[item][4][0] == 'food' and ITEMS[item][3] > 0:
             cost = ITEMS[item][3]//coef
             itemlist.append(InlineKeyboardButton(text=f'{ITEMS[item][0]} - ${cost}', callback_data=f'sellitem_{item}'))
-    
-    if itemlist == []:
+
+    if not itemlist:
         desc = '🚫 У вас нет еды для продажи'
     else:
         markup.add(*itemlist)
         desc = '<b>🏣 Центральный рынок</b> - место, в котором можно продать купленные товары. Дешевле, чем в магазине, но удобно\n\n❗ Здесь вы <b>продаёте</b> товары государству, а не покупаете. Деньги вы получаете автоматически, ваш товар никому не достаётся'
     markup.add(InlineKeyboardMarkup(text='◀ Назад', callback_data='cancel_action'))
     await call.message.answer(f'<i>{desc}</i>', reply_markup = markup, parse_mode = 'html')
-
 async def central_market_mask(call: CallbackQuery):
     user_id = call.from_user.id
     place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={user_id}").fetchone()[0]
@@ -408,4 +406,3 @@ async def bus(call: CallbackQuery):
             InlineKeyboardButton(text='🍔 Кафетерий "Енот Кебаб"', callback_data='enot_kebab'))
 
     await call.message.answer('<i>Пора уже валить отсюда...</i>', parse_mode='html', reply_markup=markup)
-    

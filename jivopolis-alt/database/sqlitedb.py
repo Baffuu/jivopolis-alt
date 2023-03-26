@@ -167,7 +167,7 @@ def create_clandata() -> None:
 )
     """)
 
-async def insert_clan(chat: Chat, user: User = {'id': None}) -> str:
+async def insert_clan(chat: Chat, user: User = None) -> str:
     '''
     inserts chat into clandata 
 
@@ -177,6 +177,8 @@ async def insert_clan(chat: Chat, user: User = {'id': None}) -> str:
     :returns - new chat invite link
     '''
 
+    if user is None:
+        user = {'id': None}
     link = await bot.create_chat_invite_link(chat.id, name='Jivopolis Default Invite Link')
     cur.execute(f"INSERT INTO clandata(clan_id, clan_name, owner_id, link) VALUES \
     ({chat.id}, '{chat.title}', '{user['id']}', '{link.invite_link}')")

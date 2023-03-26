@@ -1,4 +1,5 @@
-from ...database import cur, conn, buybutton
+from ...database.sqlitedb import cur, conn
+from ...database.functions import buybutton
 
 from aiogram.types import CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
 
@@ -115,8 +116,8 @@ async def zoo_shop(call: CallbackQuery):
 
 async def enot_kebab_shop(call: CallbackQuery):
     place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={call.from_user.id}")
-    
-    if not place in villages and not place in trains[0]:
+
+    if place not in villages and place not in trains[0]:
         return
 
     buttons = [buybutton('burger'), buybutton('shaurma'),
@@ -172,13 +173,13 @@ async def car_shop(call: CallbackQuery):
 
 async def hospital_shop(call: CallbackQuery):
     place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={call.from_user.id}").fetchone()[0]
-    
-    if place != 'Райбольница' and place != 'Старокотайский ФАП':
+
+    if place not in ['Райбольница', 'Старокотайский ФАП']:
         return
 
     markup = InlineKeyboardMarkup(row_width=1).\
-        add(InlineKeyboardButton(text='💊 Таблетка Котробене - $500', callback_data='buy_pill_1'),
-            InlineKeyboardButton(text='💊 Маленькая пачка (5 шт.) - $2500', callback_data='buy_pill_5'),
-            InlineKeyboardButton(text='💊 Баночка (10 шт.) - $5000', callback_data='buy_pill_10'))
+        add(InlineKeyboardButton(text='💊 Таблетка Котробене - $500', callback_data='buy:pill:1:1'),
+            InlineKeyboardButton(text='💊 Маленькая пачка (5 шт.) - $2500', callback_data='buy:pill:5:5'),
+            InlineKeyboardButton(text='💊 Баночка (10 шт.) - $5000', callback_data='buy:pill:10:10'))
 
     await call.message.answer('<i>Что хотите приобрести?</i>', reply_markup = markup, parse_mode = 'html')

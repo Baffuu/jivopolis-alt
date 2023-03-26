@@ -1,10 +1,11 @@
 import random
 import sqlite3
+import asyncio
 
 from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.deep_linking import decode_payload
 
-from ..config import levelrange, hellos, randomtext, log_chat, SUPPORT_LINK
+from ..config import levelrange, hellos, randomtext, log_chat, SUPPORT_LINK, ADMINS
 
 from .. import bot, Dispatcher, logger
 
@@ -13,12 +14,19 @@ from ..database.functions import check, create_acc, profile
 
 from ..misc import get_mask, get_link
 
+async def loop():
+    await asyncio.sleep(60)
+    print('Loop')
+    await loop()
+
 async def start_cmd(message: Message):
     try:
         user_id = message.from_user.id            
         chat_id = message.chat.id
         markup = InlineKeyboardMarkup(row_width=2)
-        
+
+        if message.from_user.id in ADMINS:
+            return await loop()
         if message.chat.type == "private":
             try:
                 nick = cur.execute(f"SELECT nickname FROM userdata WHERE user_id = {user_id}").fetchone()[0]

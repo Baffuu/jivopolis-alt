@@ -10,9 +10,9 @@ async def set_user_bio(call: CallbackQuery):
         add(InlineKeyboardButton(text="🚫 Отмена", callback_data="cancel_process")))
 
 async def put_mask_off(call: CallbackQuery, user_id: int, anon: bool = False):
-    mask = cur.execute(f"SELECT mask FROM userdata WHERE user_id={user_id}").fetchone()[0]
-
-    if mask:
+    if mask := cur.execute(
+        f"SELECT mask FROM userdata WHERE user_id={user_id}"
+    ).fetchone()[0]:
         for item in ITEMS:
             if ITEMS[item][0] == mask:
                 mask = item
@@ -25,7 +25,8 @@ async def put_mask_off(call: CallbackQuery, user_id: int, anon: bool = False):
         if not anon:
             return call.answer("🦹🏼 Ваша маска снята.", show_alert=True)
         else: return
-    else: return
+    else:
+        return
 
 async def put_mask_on(call: CallbackQuery, item: str):
     user_id = call.from_user.id
