@@ -22,11 +22,9 @@ async def put_mask_off(call: CallbackQuery, user_id: int, anon: bool = False):
 
         cur.execute(f"UPDATE userdata SET {mask} = {mask} + 1 WHERE user_id = {user_id}")
         conn.commit()
+
         if not anon:
             return call.answer("🦹🏼 Ваша маска снята.", show_alert=True)
-        else: return
-    else:
-        return
 
 async def put_mask_on(call: CallbackQuery, item: str):
     user_id = call.from_user.id

@@ -95,6 +95,8 @@ def get_building(place) -> InlineKeyboardButton | None:
             button = InlineKeyboardButton(text="🌾 Ферма", callback_data="farm")
         case "Генерала Шелби":
             button = InlineKeyboardButton(text="📱 Магазин техники имени Шелби", callback_data="phone_shop")
+        case 'Максименка':
+            button = InlineKeyboardButton(text='🧱 Строительный магазин', callback_data='building_shop')
         case _:
             return None
     return button

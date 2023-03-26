@@ -44,5 +44,5 @@ from .shops import (
     fruit_shop, zoo_shop, 
     shop_24, enot_kebab_shop,
     botan_garden_shop,
-    car_shop, hospital_shop
+    car_shop, hospital_shop, shop
 )

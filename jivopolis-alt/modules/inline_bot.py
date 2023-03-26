@@ -93,7 +93,7 @@ async def on_pressed_inline_query(inline: ChosenInlineResult):
         nick = cur.execute(f"SELECT nickname FROM userdata WHERE user_id={user_id}").fetchone()[0]
         mask = get_mask(user_id)
         data = inline.query
-        
+
         if data.startswith('$'):
             money = int(data[1:])
             if money > 0:
@@ -101,7 +101,7 @@ async def on_pressed_inline_query(inline: ChosenInlineResult):
                 await bot.send_message(log_chat, f'<i>&#128178; <b><a href="{get_link(user_id)}">{mask}{nick}</a></b> выписал чек на <b>${money}</b>\n#user_check</i>')
             if money < 0:
                 await bot.send_message(log_chat, f'<i>&#128178; <b><a href="{get_link(user_id)}">{mask}{nick}</a></b> выставил счёт на <b>${money}</b>\n#user_bill</i>')
-    except:
+    except Exception:
         return
 def register(dp: Dispatcher):
     dp.register_inline_handler(inline_mode)

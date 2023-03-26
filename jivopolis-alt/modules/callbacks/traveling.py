@@ -197,7 +197,6 @@ async def central_market_menu(call: CallbackQuery):
         \n❗ Здесь вы <b>продаёте</b> товары государству, а не покупаете. Деньги вы получаете автоматически, ваш товар никому не достаётся</i>', reply_markup = markup, parse_mode = 'html')
 
 async def central_market_food(call: CallbackQuery):
-async def central_market_food(call: CallbackQuery):
     user_id = call.from_user.id
     place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={user_id}").fetchone()[0]
 
@@ -220,6 +219,7 @@ async def central_market_food(call: CallbackQuery):
         desc = '<b>🏣 Центральный рынок</b> - место, в котором можно продать купленные товары. Дешевле, чем в магазине, но удобно\n\n❗ Здесь вы <b>продаёте</b> товары государству, а не покупаете. Деньги вы получаете автоматически, ваш товар никому не достаётся'
     markup.add(InlineKeyboardMarkup(text='◀ Назад', callback_data='cancel_action'))
     await call.message.answer(f'<i>{desc}</i>', reply_markup = markup, parse_mode = 'html')
+
 async def central_market_mask(call: CallbackQuery):
     user_id = call.from_user.id
     place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={user_id}").fetchone()[0]

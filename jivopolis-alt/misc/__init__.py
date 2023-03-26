@@ -3,4 +3,4 @@ from .misc import (
     current_time, get_building
 )
 
-from .items import Item
+from .items import Item, allitems

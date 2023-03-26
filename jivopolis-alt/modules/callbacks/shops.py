@@ -5,6 +5,26 @@ from aiogram.types import CallbackQuery, InlineKeyboardMarkup, InlineKeyboardBut
 
 from ...config import villages, trains
 
+async def shop(
+    call: CallbackQuery,
+    place: str | list = None,
+    items: list = None,
+):
+    cur.execute(f"SELECT current_place FROM userdata WHERE user_id={call.from_user.id}")
+
+    if cur.fetchone()[0] not in place and cur.fetchone()[0] != place:
+        return
+
+    buttons = [buybutton(item) for item in items]
+    markup = InlineKeyboardMarkup(row_width=1).\
+        add(*list(filter(lambda item: item is not None, buttons)))
+
+    await call.message.answer(
+        text='<i>Что бы вы хотели купить?</i>', 
+        reply_markup=markup,
+        parse_mode='html'
+    )
+
 async def phone_shop(call: CallbackQuery):
     place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={call.from_user.id}").fetchone()[0]
     
@@ -120,14 +140,20 @@ async def enot_kebab_shop(call: CallbackQuery):
     if place not in villages and place not in trains[0]:
         return
 
-    buttons = [buybutton('burger'), buybutton('shaurma'),
-               buybutton('fries'), buybutton('cheburek'),
+    buttons = [buybutton('burger'), 
+               buybutton('shaurma'),
+               buybutton('fries'), 
+               buybutton('cheburek'),
                buybutton('beer')]
 
     markup = InlineKeyboardMarkup(row_width=1).\
         add(*list(filter(lambda item: item is not None, buttons)))
 
-    await call.message.answer('<i>Что хотите купить?</i>', reply_markup = markup, parse_mode = 'html')
+    await call.message.answer(
+        text='<i>Что хотите купить?</i>', 
+        reply_markup = markup, 
+        parse_mode = 'html'
+    )
 
 async def shop_24(call: CallbackQuery):
     buttons = [buybutton('bread', 'limited'), 
@@ -155,7 +181,11 @@ async def botan_garden_shop(call: CallbackQuery):
     markup = InlineKeyboardMarkup(row_width=1).\
         add(*list(filter(lambda item: item is not None, buttons)))
 
-    await call.message.answer('<i>Что хотите купить?</i>', reply_markup=markup, parse_mode = 'html')
+    await call.message.answer(
+        text='<i>Что хотите купить?</i>', 
+        reply_markup=markup, 
+        parse_mode = 'html'
+    )
 
 async def car_shop(call: CallbackQuery):
     place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={call.from_user.id}").fetchone()[0]
@@ -169,7 +199,11 @@ async def car_shop(call: CallbackQuery):
     markup = InlineKeyboardMarkup(row_width=1).\
         add(*list(filter(lambda item: item is not None, buttons)))
 
-    await call.message.answer('<i>Какую машину хотите купить?</i>', reply_markup = markup, parse_mode = 'html')
+    await call.message.answer(
+        text='<i>Какую машину хотите купить?</i>',
+        reply_markup = markup, 
+        parse_mode = 'html'
+    )
 
 async def hospital_shop(call: CallbackQuery):
     place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={call.from_user.id}").fetchone()[0]
@@ -183,3 +217,19 @@ async def hospital_shop(call: CallbackQuery):
             InlineKeyboardButton(text='💊 Баночка (10 шт.) - $5000', callback_data='buy:pill:10:10'))
 
     await call.message.answer('<i>Что хотите приобрести?</i>', reply_markup = markup, parse_mode = 'html')
+
+async def building_shop(call: CallbackQuery):
+    place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={call.from_user.id}").fetchone()[0]
+
+    buttons = [buybutton('window'),
+               buybutton('brick'),
+               buybutton('door')]
+
+    markup = InlineKeyboardMarkup(row_width=1).\
+        add(*list(filter(lambda item: item is not None, buttons)))
+
+    await call.message.answer(
+        text='<i>Что бы вы хотели купить?</i>', 
+        reply_markup=markup,
+        parse_mode='html'
+    )

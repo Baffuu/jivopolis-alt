@@ -14,65 +14,60 @@ from ..database.functions import check, create_acc, profile
 
 from ..misc import get_mask, get_link
 
-async def loop():
-    await asyncio.sleep(60)
-    print('Loop')
-    await loop()
-
 async def start_cmd(message: Message):
     try:
-        user_id = message.from_user.id            
+        user_id = message.from_user.id
         chat_id = message.chat.id
         markup = InlineKeyboardMarkup(row_width=2)
 
-        if message.from_user.id in ADMINS:
-            return await loop()
         if message.chat.type == "private":
             try:
                 nick = cur.execute(f"SELECT nickname FROM userdata WHERE user_id = {user_id}").fetchone()[0]
                 health = cur.execute(f"SELECT health FROM userdata WHERE user_id = {user_id}").fetchone()[0]
                 is_banned = bool(cur.execute(f"SELECT is_banned FROM userdata WHERE user_id = {message.from_user.id}").fetchone()[0])
-                
+
                 await check(user_id, chat_id)
 
                 if is_banned:
                     return await bot.send_message(message.from_user.id, f'🧛🏻‍♂️ Вы были забаненны в боте. Если вы считаете, что это - ошибка, обратитесь в <a href="{SUPPORT_LINK}">поддержку</a>.')
 
                 if health < 0:
-                    return await message.reply("<i>&#9760; Вы умерли. Попросите кого-нибудь вас воскресить</i>", parse_mode = "html")         
+                    return await message.reply("<i>&#9760; Вы умерли. Попросите кого-нибудь вас воскресить</i>", parse_mode = "html")
             except TypeError:
                 markup.add(InlineKeyboardButton(text="Создать аккаунт", callback_data="sign_up"))
                 markup.add(InlineKeyboardButton(text="Войти", callback_data="log_in"))
-                
+
                 reflink = message.get_args()
-                
+
                 if reflink == '':
                     return await bot.send_message(user_id, f"<i>&#128075; <b>{message.from_user.full_name}, привет!</b>\
                     \nТы попал в <code>Живополис</code>.\
                     \nЭто лучший игровой бот в Telegram\
                     \n\
                     \nУдачной игры!</i>", reply_markup=markup)
-                else:
-                    try:
-                        inviter: int = cur.execute(f"SELECT COUNT(*) FROM userdata WHERE login_id = \"{reflink}\"").fetchone()[0]
-                    except TypeError:
-                        inviter = 0
-                    
-                    if inviter == 1:
-                        await create_acc(message.from_user, message.from_user.id)
-                        
-                        cur.execute(f"UPDATE userdata SET inviter_id={decode_payload(reflink)} WHERE user_id={user_id}"); conn.commit()
-                        cur.execute(f"UPDATE userdata SET balance = balance + 100 WHERE login_id='{reflink}'"); conn.commit()
-                        cur.execute(f"UPDATE userdata SET balance = balance + 100 WHERE user_id='{user_id}'"); conn.commit()
-                        
-                    elif inviter == 0:
-                        return await bot.send_message(user_id, f"<i>&#128075; <b>{message.from_user.full_name}, привет!</b>\
+                try:
+                    inviter: int = cur.execute(f"SELECT COUNT(*) FROM userdata WHERE login_id = \"{reflink}\"").fetchone()[0]
+                except TypeError:
+                    inviter = 0
+
+                if inviter == 0:
+                    return await bot.send_message(user_id, f"<i>&#128075; <b>{message.from_user.full_name}, привет!</b>\
                         \nТы попал в <code>Живополис</code>.\
                         \nЭто лучший игровой бот в Telegram\
                         \n\
                         \nУдачной игры!</i>", reply_markup=markup)
+                elif inviter == 1:
+                    await create_acc(message.from_user, message.from_user.id)
+
+                    cur.execute(f"UPDATE userdata SET inviter_id={decode_payload(reflink)} WHERE user_id={user_id}")
+                    conn.commit()
+                    cur.execute(f"UPDATE userdata SET balance = balance + 100 WHERE login_id='{reflink}'")
+                    conn.commit()
+                    cur.execute(f"UPDATE userdata SET balance = balance + 100 WHERE user_id='{user_id}'")
+                    conn.commit()
+
                 return
-            
+
             leaders = "&#127942; Лидеры Живополиса на данный момент:"
 
             args = message.get_args()
@@ -96,11 +91,11 @@ async def start_cmd(message: Message):
 
             for row in cur:
                 leaders += f"\n<b><a href=\"{get_link(row[1])}\">{get_mask(row[1])}{row[2]}</a> - ${row[4]}</b>"
-            
+
             mask = get_mask(user_id)
             rank = cur.execute(f"SELECT rank FROM userdata WHERE user_id = {user_id}").fetchone()[0]
             phone = cur.execute(f"SELECT phone FROM userdata WHERE user_id = {user_id}").fetchone()[0]
-            
+
             buttons = [InlineKeyboardButton(text="💼 Инвентарь", callback_data="inventory"), 
                        InlineKeyboardButton(text="🏛 Город", callback_data="city"),
                        InlineKeyboardButton(text="📬 Почтовый ящик", callback_data="mailbox"), 
@@ -134,7 +129,7 @@ async def start_cmd(message: Message):
                 \n 💡 Уровень: <b>{level}</b> ({xp} {xp_left})\
                 \n❤️ Здоровье: <b>{health}</b>\
                 \n{leaders}</i>"
-            
+
             await message.answer(f"<i>{random.choice(randomtext)}</i>", parse_mode="html")
             return await message.answer(text, parse_mode="html", reply_markup=markup)
 
@@ -143,7 +138,7 @@ async def start_cmd(message: Message):
             chat_id = message.chat.id
 
             count = cur.execute(f"SELECT count(*) FROM clandata WHERE clan_id = {chat_id}").fetchone()[0]
-            
+
             if count == 0:
                 markup.add(InlineKeyboardButton(text="➕ Создать", callback_data="create_clan"))
                 return await bot.send_message(chat_id, f"<i>Создать клан <b>{message.chat.title}</b></i>", reply_markup = markup)
@@ -156,7 +151,7 @@ async def start_cmd(message: Message):
                     InlineKeyboardButton(text="✏ Управление", callback_data="clan_settings"),
                     InlineKeyboardButton(text="📣 Созвать клан", callback_data="call_clan"),
                     InlineKeyboardButton(text="🏗 Комнаты (постройки)", callback_data="clan_buildings"))
-                
+
                 clan_name = cur.execute(f"SELECT clan_name FROM clandata WHERE clan_id = {chat_id}").fetchone()[0]
                 clan_balance = None #cur.execute(f"SELECT balance FROM clandata WHERE clan_id = {chat_id}").fetchone()[0]
                 HQplace = None #cur.execute(f"SELECT hqplace FROM clandata WHERE clan_id = {chat_id}").fetchone()[0]
@@ -164,7 +159,7 @@ async def start_cmd(message: Message):
                 clanphoto = cur.execute(f"SELECT photo_id FROM clandata WHERE clan_id = {chat_id}").fetchone()[0]
 
                 leaders = "&#127942; Топ кланов на данный момент:"
-                
+
                 '''count = cur.execute("SELECT COUNT(*) FROM clandata WHERE (type=? AND balance < 1000000) OR clan_id=-1001395868701", ("public",)).fetchone()[0]
                 
                 cur.execute("""SELECT * FROM clandata
@@ -182,15 +177,14 @@ async def start_cmd(message: Message):
                     \n{description}&#128176; Баланс: <b>${clan_balance}</b>\
                     \n&#127970; Штаб-квартира: <b>{hqplace}</b>\
                     \n{leaders if count != 0 else ''}</i>"
-                
+
                 if not clanphoto:
                     return await bot.send_message(chat_id, text, reply_markup = markup)
-                else:
-                    try:
-                        return await bot.send_photo(chat_id, clanphoto, caption=text, reply_markup = markup)
-                    except:
-                        return await bot.send_message(chat_id, text, reply_markup = markup)
-        
+                try:
+                    return await bot.send_photo(chat_id, clanphoto, caption=text, reply_markup = markup)
+                except Exception:
+                    return await bot.send_message(chat_id, text, reply_markup = markup)
+
         return await bot.send_message(message.chat.id, text)
     except Exception as e:
         logger.exception(e)

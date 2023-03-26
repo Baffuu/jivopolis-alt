@@ -2,7 +2,6 @@ from dataclasses import dataclass
 from typing import Literal, Union, Optional
 ITEMS = {
         ## name: [icon, database slot name, name, cost, category, description, html-code of item's icon]
-        'fireworks': ['🎆', 'fireworks', 'Фейерверки', 75, ['mask']],
         'party_popper': ['🎉', 'party_popper', 'Хлопушка', 50, ['mask']],
         'mrs_claus': ['🤶', 'mrs_claus', 'Миссис Клаус', 75, ['mask']],
         'santa_claus': ['🎅', 'santa_claus', 'Санта Клaус', 100, ['mask']],
@@ -15,7 +14,6 @@ ITEMS = {
         'silver_medal': ['🥈', 'silver_medal', 'Серебренная медаль', -1, ['mask']],
         'bronze_medal': ['🥉', 'bronze_medal', 'Бронзовая медаль', -1, ['mask']],
         'poison': ['🧪', 'poison', 'Яд', 4000, ['robber']],
-        'pill': ['💊', 'pill', 'Таблетка', 500, ['medicine']],
         'baguette': ['🥖', 'baguette', 'Багет', 25, ['food']],
         'milk': ['🥛', 'milk', 'Молоко', 25, ['food']],
         'ramen': ['🍜', 'ramen', 'Рамен', 25, ['food']],
@@ -89,10 +87,7 @@ class Item():
         You can get cost (or price) of the item 
         '''
 
-        if self.cost < 0 or not self.cost:
-            return 'no cost'
-        else:
-            return self.cost
+        return 'no cost' if self.cost < 0 or not self.cost else self.cost
 
 allitems = {
     'walrus': Item(
@@ -195,7 +190,47 @@ allitems = {
     'pill': Item(
         name='pill',
         ru_name='Таблетка',
+        emoji='💊',
         cost=500,
         type='medicine',
+    ),
+
+    'fireworks': Item(
+        name='fireworks',
+        ru_name="Фейерверки",
+        emoji='🎆',
+        cost=100,
+        type='mask'
+    ),
+
+    'party_pooper': Item(
+        name='party_pooper',
+        ru_name='Хлопушка',
+        emoji='🎉',
+        cost=50,
+        type='mask'
+    ),
+
+    'window': Item(
+        name='window',
+        ru_name='Окно',
+        emoji='🪟',
+        cost=400,
+        type='building_material',
+    ),
+
+    'brick': Item(
+        name='brick',
+        ru_name='Кирпич',
+        emoji='🧱',
+        cost=100
+    ),
+
+    'door': Item(
+        name='door',
+        ru_name='Дверь',
+        emoji='🚪',
+        cost=500,
     )
+
 }
