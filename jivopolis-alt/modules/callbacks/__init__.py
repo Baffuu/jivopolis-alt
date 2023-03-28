@@ -13,7 +13,7 @@ from .for_admins import (
 
 from .inventory import (
     itemdesc, inventory, 
-    open_lootbox, sellitem
+    lootbox_button, sellitem
 )
 
 from .user_profile import (

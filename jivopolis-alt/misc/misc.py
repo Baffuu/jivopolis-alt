@@ -2,6 +2,7 @@ from datetime import datetime
 from ..config import intervals, BOT_USER
 
 from typing import Union
+from math import ceil
 
 from .. import logger
 from ..database.sqlitedb import cur
@@ -54,6 +55,17 @@ def remaining(type) -> str:
     min, sec = divmod(seconds, 60)
     return f'{(min) if min != 0 else ""}{1}'.format('{0} секунд'.format(sec) if sec != 0 else '')
 
+def get_time_units(time: float):
+    '''
+    :param time: - enter time in seconds
+    
+    :returns (hours, minutes, seconds)'''
+    hours = int(24-ceil(time/3600))
+    minutes = int(60-ceil(time%3600/60))
+    seconds = int(60-ceil(time%3600%60))
+
+    return hours, minutes, seconds
+    
 def get_building(place) -> InlineKeyboardButton | None:
     '''Get InlineKeyboardButton with special building for every location'''
     match (place):

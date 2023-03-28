@@ -1,3 +1,4 @@
+import contextlib
 from ...database.functions import cur, conn, Message, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, buy, bot, get_link, get_mask, buybutton, itemdata
 from ...config import METRO, WALK, CITY, trains, villages, walks, ITEMS, lvlcar, limeteds, lvlcab, cabcost, locations, clanitems
 import asyncio
@@ -88,7 +89,7 @@ async def buycall(call: CallbackQuery):
     item = call.data.split(':')[0][4:]
     try:
         tip = int(call.data.split(':')[1])
-    except:
+    except Exception:
         tip = 0
     try: 
         amount = call.data.split(':')[4]
@@ -99,7 +100,7 @@ async def buycall(call: CallbackQuery):
             level = cur.execute(f"SELECT level FROM userdata WHERE user_id={user_id}").fetchone()[0]
             if level<lvlcar:
                 return await call.answer(text='❌ Данная функция доступна только с уровня {0}'.format(lvlcar), show_alert = True)
-                
+
             #await achieve(a.id, call.message.chat.id, 'myauto')
         await buy(call, item, user_id, cost=ITEMS[item][3]+tip, amount=amount)
     else:
@@ -129,17 +130,15 @@ async def goto_on_car(call: CallbackQuery):
 
     if car < 1:
         return await call.message.answer('<i>&#128663; У вас нет машины</i>', parse_mode='html')
-        
+
     station = call.data[12:]
     await call.message.answer('<i>Скоро приедем!</i>', parse_mode='html')
 
-    try:
+    with contextlib.suppress(Exception):
         await bot.delete_message(call.message.chat.id, call.message.message_id)
-    except:
-        pass
-
     await asyncio.sleep(15)
-    cur.execute(f"UPDATE userdata SET current_place=\"{station}\" WHERE user_id={user_id}"); conn.commit()
+    cur.execute(f"UPDATE userdata SET current_place=\"{station}\" WHERE user_id={user_id}")
+    conn.commit()
     await city(call.message, call.from_user.id)
 
 async def local_people(call: CallbackQuery):
@@ -223,7 +222,7 @@ async def central_market_food(call: CallbackQuery):
 async def central_market_mask(call: CallbackQuery):
     user_id = call.from_user.id
     place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={user_id}").fetchone()[0]
-    
+
     if place != 'Рынок':
         return #todo answer
 
@@ -236,8 +235,8 @@ async def central_market_mask(call: CallbackQuery):
         if await itemdata(user_id, item) != 'emptyslot' and ITEMS[item][4][0] == 'mask' and ITEMS[item][3] > 0:
             cost = ITEMS[item][3]//coef
             itemlist.append(InlineKeyboardButton(text=f'{ITEMS[item][0]} - ${cost}', callback_data=f'sellitem_{item}'))
-    
-    if itemlist == []:
+
+    if not itemlist:
         text = '🚫 У вас нет масок для продажи'
 
     else:
@@ -259,11 +258,11 @@ async def bank(call: CallbackQuery):
 
 async def state_balance(call: CallbackQuery):
     place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={call.from_user.id}").fetchone()[0]
-    treasury = cur.execute(f"SELECT treasury FROM globaldata").fetchone()[0]
-    
+    treasury = cur.execute("SELECT treasury FROM globaldata").fetchone()[0]
+
     if place != 'Живбанк':
         return #todo answer
-    
+
     markup = InlineKeyboardMarkup(row_width=1).\
         add(InlineKeyboardButton(text='💰 Пожертвовать $100', callback_data='give_state 100'),
         InlineKeyboardButton(text='💰 Пожертвовать $500', callback_data='give_state 500'), 
@@ -277,13 +276,12 @@ async def taxi_menu(message: Message, user_id: int):
 
     if level < lvlcab:
         return await message.answer(f'🚫 Данная функция доступна только с уровня {lvlcab}')
-        
+
     markup = InlineKeyboardMarkup(row_width=2)
-    places = []
-    
-    for place in CITY:
-        places.append(InlineKeyboardButton(place, callback_data=f'taxicost_{place}'))
-    
+    places = [
+        InlineKeyboardButton(place, callback_data=f'taxicost_{place}')
+        for place in CITY
+    ]
     markup.add(*places)
 
     await message.answer('<i>&#128661; Куда поедем?</i>', parse_mode='html', reply_markup=markup)
@@ -293,7 +291,7 @@ async def taxi_menu(message: Message, user_id: int):
 async def taxicost(call: CallbackQuery, place: str):
     current_place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={call.from_user.id}").fetchone()[0]
 
-    if not place in CITY:
+    if place not in CITY:
         raise ValueError('no such place')
 
     cost = (cabcost*abs(CITY.index(place)-CITY.index(current_place)))//1
@@ -308,66 +306,65 @@ async def taxi_goto_(call: CallbackQuery, place: str):
     balance = cur.execute(f"SELECT balance FROM userdata WHERE user_id={user_id}").fetchone()[0]
     current_place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={user_id}").fetchone()[0]
 
-    if not place in CITY:
+    if place not in CITY:
         raise ValueError('no such place')
 
     cost = (cabcost*abs(CITY.index(place)-CITY.index(current_place)))//1
 
     if balance < cost:
         return await call.answer('🚫 У вас недостаточно средств для поездки', show_alert = True)
-        
+
     await call.message.answer('<i>Скоро приедем!</i>', parse_mode='html')
 
-    try:
+    with contextlib.suppress(Exception):
         await bot.delete_message(call.message.chat.id, call.message.message_id)
-    except:
-        pass
-
     await asyncio.sleep(15)
 
-    cur.execute(f"UPDATE userdata SET current_place=\"{place}\" WHERE user_id={user_id}"); conn.commit()
-    cur.execute(f"UPDATE userdata SET balance=balance-{cost} WHERE user_id={user_id}"); conn.commit()
-    
+    cur.execute(f"UPDATE userdata SET current_place=\"{place}\" WHERE user_id={user_id}")
+    conn.commit()
+    cur.execute(f"UPDATE userdata SET balance=balance-{cost} WHERE user_id={user_id}")
+    conn.commit()
+
     return await city(call.message, call.from_user.id)
 
 async def gps_menu(call: CallbackQuery):
     user_id = call.from_user.id
     phone = cur.execute(f"SELECT phone FROM userdata WHERE user_id={user_id}").fetchone()[0]
-    
+
     if phone < 1:
         return await call.answer('Чтобы пользоваться GPS, вам нужен телефон. Его можно купить в магазине на ул. Генерала Шелби и одноимённой станции метро', show_alert = True)
-        
+
     categorylist = []
     markup = InlineKeyboardMarkup()
 
     for category in locations[3]:
-        if not category in categorylist:
+        if category not in categorylist:
             categorylist.append(category)
-            count = 0
-            for location in locations[0]:
-                if locations[3][locations[0].index(location)] == category:
-                    count += 1
+            count = sum(
+                locations[3][locations[0].index(location)] == category
+                for location in locations[0]
+            )
             markup.add(InlineKeyboardButton(text='{0} ({1})'.format(category, count), callback_data='gpsloc_{0}'.format(category)))
 
     markup.add(InlineKeyboardMarkup(text='◀ Назад', callback_data='cancel_action'))
     await call.message.answer('<i>Выберите категорию</i>', reply_markup = markup, parse_mode = 'html')
 
 async def buy24_(call: CallbackQuery, item: str):    
-    if item in ITEMS and item in limeteds:
-        items_left = cur.execute(f"SELECT {item} FROM globaldata").fetchone()[0]
-        
-        if items_left < 1:
-            return await call.answer(text='К сожалению, этого товара сейчас нет в магазине ввиду дефицита :(\nПриходите завтра или посетите любой продуктовый магазин в Городе', show_alert = True)
-            
-        cur.execute(f"UPDATE globaldata SET {item}={item}-1"); conn.commit()
-        
-        await buy(call, item, call.from_user.id, ITEMS[item][3])
-    else:
+    if item not in ITEMS or item not in limeteds:
         raise ValueError("no such item")
+    items_left = cur.execute(f"SELECT {item} FROM globaldata").fetchone()[0]
+
+    if items_left < 1:
+        return await call.answer(text='К сожалению, этого товара сейчас нет в магазине ввиду дефицита :(\nПриходите завтра или посетите любой продуктовый магазин в Городе', show_alert = True)
+
+    cur.execute(f"UPDATE globaldata SET {item}={item}-1")
+    conn.commit()
+
+    await buy(call, item, call.from_user.id, ITEMS[item][3])
 
 async def buyclan_(call: CallbackQuery, item: str):
     
-    if not item in clanitems:
+    if item not in clanitems:
         raise ValueError("no such item in clanitems")
 
     cost = clanitems[1][clanitems[0].index(item)]
@@ -379,16 +376,19 @@ async def buyclan_(call: CallbackQuery, item: str):
         raise ValueError("clan not found")
 
     balance = cur.execute(f"SELECT balance FROM userdata WHERE user_id={user_id}").fetchone()[0]
-    
+
     if balance<cost:
         return await call.answer('❌ У вас недостаточно средств', show_alert = True)
-        
-    cur.execute(f"UPDATE userdata SET balance=balance-{cost} WHERE user_id={user_id}"); conn.commit()
-    cur.execute(f"UPDATE userdata SET {item}={item}+1 WHERE user_id={user_id}"); conn.commit()
+
+    cur.execute(f"UPDATE userdata SET balance=balance-{cost} WHERE user_id={user_id}")
+    conn.commit()
+    cur.execute(f"UPDATE userdata SET {item}={item}+1 WHERE user_id={user_id}")
+    conn.commit()
 
     clan_bonus_devider = random.randint(1, 5)
-    
-    cur.execute(f"UPDATE clandata SET balance=balance+{cost//clan_bonus_devider} WHERE clan_id={chat_id}"); conn.commit()
+
+    cur.execute(f"UPDATE clandata SET balance=balance+{cost//clan_bonus_devider} WHERE clan_id={chat_id}")
+    conn.commit()
     await call.answer(f'Покупка совершена успешно. Ваш баланс: ${balance-cost}. Баланс клана пополнен на ${cost//clan_bonus_devider}', show_alert = True)
 
 async def railway_station(call: CallbackQuery):

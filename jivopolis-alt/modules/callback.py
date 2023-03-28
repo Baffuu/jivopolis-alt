@@ -53,7 +53,7 @@ async def callback_handler(call: CallbackQuery):
             case 'profile':
                 await profile(call.from_user.id, call.message, True)
             case 'mailbox' | 'open_lootbox':
-                await open_lootbox(call.from_user.id, call.message)
+                await lootbox_button(call.from_user.id, call.message)
             case 'adminhelp':
                 await adminhelp(call, call.from_user.id)
             case sql_request if sql_request.startswith('sqlrun:'):

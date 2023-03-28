@@ -70,7 +70,9 @@ async def get_cheque(call: CallbackQuery, user_id: int):
     conn.commit()
 
     if call.message is None:
-        await bot.edit_message_text(inline_message_id = call.inline_message_id, text = f"<i><b><a href=\"{get_link(user_id)}\">{mask}{nick}</a></b> забрал <b>${money}</b></i>")
+        await bot.edit_message_text(
+            inline_message_id = call.inline_message_id, 
+            text = f"<i><b><a href=\"{get_link(user_id)}\">{mask}{nick}</a></b> забрал <b>${money}</b></i>")
     else:
         await bot.edit_message_text(chat_id = call.message.chat.id, message_id = call.message.message_id, text = f"<i><b><a href=\"{get_link(user_id)}\">{mask}{nick}</a></b> забрал <b>${money}</b></i>")
     if money > 0:

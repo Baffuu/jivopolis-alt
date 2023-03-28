@@ -4,7 +4,7 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, CallbackQu
 from ...database.sqlitedb import cur, conn
 from ...config import limeteds, ITEMS
 from ...database.functions import itemdata, current_time
-from ...misc import Item, allitems
+from ...misc import Item, allitems, lootbox_open, LOOTBOX, get_time_units
 
 async def itemdesc(call: CallbackQuery, user_id: int):
     try:
@@ -93,10 +93,11 @@ async def inventory(call: CallbackQuery):
     
     await call.message.answer('<i>Ваш инвентарь</i>', reply_markup = markup, parse_mode = 'html')
 
-async def open_lootbox(user_id: int, message: Message): #todo: NEW BOXES
+async def lootbox_button(user_id: int, message: Message):
     mailbox = cur.execute(f"SELECT last_box FROM userdata WHERE user_id = {user_id}").fetchone()[0]
     difference: float = current_time() - mailbox
     lootbox: int = cur.execute(f"SELECT lootbox FROM userdata WHERE user_id={user_id}").fetchone()[0]
+    
     if difference >= 86400:
         cur.execute(f"UPDATE userdata SET last_box = {current_time()} WHERE user_id = {user_id}")
         conn.commit()
@@ -104,21 +105,28 @@ async def open_lootbox(user_id: int, message: Message): #todo: NEW BOXES
         cur.execute(f"UPDATE userdata SET lootbox = lootbox - 1 WHERE user_id = {user_id}")
         conn.commit()
     else:
-        h = int(24-ceil(difference/3600))
-        m = int(60-ceil(difference%3600/60))
-        s = int(60-ceil(difference%3600%60))
-        markup = InlineKeyboardMarkup().add(InlineKeyboardButton(text='🖇 Пригласить пользователей', callback_data='reflink'))
-        return await message.answer(f'<i>&#10060; Проверять почтовый ящик можно только 1 раз в 24 часа. До следующей проверки осталось {h} часов {m} минут {s} секунд.\n\nЧтобы получать внеочередные ящики, приглашайте пользователей в Живополис. За каждого приглашённого пользователя вы получаете лутбокс, с помощью которого можно открыть ящик в любое время</i>', parse_mode='html', reply_markup=markup)
+        hours, minutes, seconds = get_time_units(difference)
+        
+        markup = InlineKeyboardMarkup().\
+            add(InlineKeyboardButton(text='🖇 Пригласить пользователей', callback_data='reflink'))
+        
+        return await message.answer(
+            f'<i>&#10060; Проверять почтовый ящик можно только 1 раз в 24 часа. До следующей проверки осталось {hours} часов {minutes} минут {seconds} секунд.\
+            \n\nЧтобы получать внеочередные ящики, приглашайте пользователей в Живополис. За каждого приглашённого пользователя вы получаете лутбокс,\
+            с помощью которого можно открыть ящик в любое время</i>', 
+            parse_mode='html', 
+            reply_markup=markup
+        )
 
-    situation = random.uniform(0, 1)
+    price, price_type = await lootbox_open()
 
-    if situation < 0.2:
-        return await message.answer('<i>В ящике вы нашли только старую газету, которая теперь не стоит ни гроша</i>', parse_mode = 'html')
-    rand = random.randint(1,26)
+    if isinstance(price, str):
+        item = allitems[price]
+        cur.execute(f"UPDATE userdata SET {item.name}={item.name}+1 WHERE user_id={user_id}")
+        conn.commit()
 
-    cur.execute(f"UPDATE userdata SET balance = balance + {rand} WHERE user_id = {user_id}")
-    conn.commit()
-    return await message.answer(f'<i><b>Поздравляем!</b>\nВы заработали <b>${rand}</b></i>', parse_mode = 'html')
+        return await message.reply(LOOTBOX[price_type].format(f"{item.emoji} {item.ru_name}"))
+    return await message.reply(LOOTBOX[price_type].format(price))
 
 async def sellitem(call: CallbackQuery, item: str):
     user_id = call.from_user.id

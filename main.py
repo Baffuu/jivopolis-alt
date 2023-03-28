@@ -403,11 +403,6 @@ morebus = 20
     @bot.message_handler(content_types=['text'])
     async def get_text_messages(message: types.Message):
         try:
-            a = message.from_user.id
-            chid = message.chat.id
-            user = message.from_user
-            cursor.execute('SELECT count(*) FROM clandata WHERE group_id = ?', (message.chat.id,))
-            count = cursor.fetchone()[0]
             if count != 0:
                 cursor.execute("SELECT mat FROM clandata WHERE group_id=?", (message.chat.id,))
                 mat = cursor.fetchone()[0]
@@ -416,9 +411,6 @@ morebus = 20
                         if WORD.replace(',', '').replace(' ', '') in badwords:
                             await main.delete_message(message.chat.id, message.message_id)
                             return
-            await check(message.from_user.id, message.chat.id)
-            if message.from_user.is_bot:
-                return
             try:
                 cursor.execute('SELECT process FROM userdata WHERE user_id=?', (a,))
                 process = cursor.fetchone()[0]
@@ -1795,7 +1787,6 @@ morebus = 20
             await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
     @bot.callback_query_handler()
     async def query_handler(call: types.CallbackQuery):
-        await check(call.from_user.id, call.message.chat.id)
         a = call.from_user.id
         cursor.execute('SELECT prison FROM userdata WHERE user_id=?', (a,))
         prison = cursor.fetchone()[0]
@@ -1938,9 +1929,7 @@ morebus = 20
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
                 await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
-        if call.data.startswith('buy_medicine_'):
-            amr = int(call.data[13:])
-            await buy(call, user=call.from_user, item='medicine', cost=500, amount=amr)
+
         if call.data.startswith('trolleybus_'):
             try:
                 if not isinterval('trolleybus'):
