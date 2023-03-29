@@ -7,7 +7,15 @@ from typing import Union
 from ..config import limeteds, CREATOR, leveldesc, levelrange, ITEMS, ach, log_chat, SUPPORT_LINK, ADMINS, clanitems
 
 from .. import bot, logger
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardRemove, CallbackQuery, User, Message
+
+from aiogram.types import (
+    InlineKeyboardButton,
+    InlineKeyboardMarkup, 
+    ReplyKeyboardRemove, 
+    CallbackQuery, 
+    User, 
+    Message
+)
 
 from ..database.sqlitedb import cur, conn, insert_user
 from ..misc import current_time, get_link, get_mask, allitems
@@ -22,7 +30,7 @@ async def check(user_id: int, chat_id: str) -> None:
         if lastfill >= 86400:
             for item in limeteds:
                 cur.execute(f"UPDATE globaldata SET {item}={random.randint(5, 15)}")
-            cur.execute(f"UPDATE globaldata SET lastfill={current_time()}")
+        cur.execute(f"UPDATE globaldata SET lastfill={current_time()}")
 
         cur.execute(f"UPDATE userdata SET lastseen={current_time()} WHERE user_id={user_id}")
         conn.commit()
@@ -71,7 +79,8 @@ async def check(user_id: int, chat_id: str) -> None:
         if "NoneType" in str(e):
             logger.exception(e)
         else:
-            return logger.exception(e)
+            return logger.exception(e)    
+
 
 async def itemdata(user_id: int, item: str) -> Union[str, None, InlineKeyboardButton]:
     """
@@ -89,6 +98,7 @@ async def itemdata(user_id: int, item: str) -> Union[str, None, InlineKeyboardBu
             return "emptyslot"           
     except Exception as e:         
         return logger.exception(e)
+
 
 def buybutton(item: str, status: str = None, tip: int = 0) -> Union[InlineKeyboardButton, None]:
     if item not in allitems:
@@ -164,6 +174,7 @@ async def eat(call: CallbackQuery, food: str) -> None:
         if health < 1:
             return await bot.send_message(chat_id, "<i>&#9760; Вы умерли</i>")
 
+
 async def create_acc(user: User, chat_id: str) -> None: 
     try:
         
@@ -189,6 +200,7 @@ async def create_acc(user: User, chat_id: str) -> None:
         return
     
     return await bot.send_message(chat_id, "<i>👾 Вы успешно зарегистрировались в живополисе! Добро пожаловать :3</i>", reply_markup = ReplyKeyboardRemove())
+
 
 async def poison(user: User, target_id: str, chat_id: str) -> None:
     try:
@@ -226,6 +238,7 @@ async def poison(user: User, target_id: str, chat_id: str) -> None:
         await bot.send_message(chat_id, "&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>")
         await bot.send_message(chat_id, f"<i><b>Текст ошибки: </b>{e}</i>")
         return logger.exception(e)
+
 
 async def shoot(user_id: str, target_id: str, chat_id: str) -> None: 
     try:
@@ -270,6 +283,7 @@ async def shoot(user_id: str, target_id: str, chat_id: str) -> None:
         await bot.send_message(chat_id, "&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>")
         await bot.send_message(chat_id, f"<i><b>Текст ошибки: </b>{e}</i>")
 
+
 async def achieve(user_id: str, chat_id : str, achievement: str) -> None: #todo new ACHIEVEMENTS
     try:
         achieve = cur.execute(f"SELECT {achievement} FROM userdata WHERE user_id={user_id}").fetchone()
@@ -304,6 +318,7 @@ async def achieve(user_id: str, chat_id : str, achievement: str) -> None: #todo 
     except Exception as e:
         await bot.send_message(chat_id, "&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>")
         await bot.send_message(chat_id, f"<i><b>Текст ошибки: </b>{e}</i>")
+
 
 async def cure(user_id: str, target_id: str, chat_id: str) -> None:
     try:
@@ -374,6 +389,7 @@ async def cure(user_id: str, target_id: str, chat_id: str) -> None:
     except Exception as e:
         await bot.send_message(chat_id, "&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>")
         await bot.send_message(chat_id, f"<i><b>Текст ошибки: </b>{e}</i>")
+
 
 async def profile(user_id: int, message: Message, called: bool = False):
     nick = cur.execute(f"SELECT nickname FROM userdata WHERE user_id = {user_id}").fetchone()[0]
@@ -539,12 +555,14 @@ async def profile(user_id: int, message: Message, called: bool = False):
         except:
             await message.answer(prof, parse_mode = "html", reply_markup = markup)'''
 
+
 async def earn(message: Message, money: int, user_id: int = None):
     if not user_id:
         user_id = message.from_user.id
 
     cur.execute(f"UPDATE userdata SET balance = balance+{money} WHERE user_id = {user_id}")
     conn.commit()
+
 
 async def buy(call: CallbackQuery, item, user_id: int, cost: int = None, amount: int = 1):
     if item not in ITEMS:
@@ -569,3 +587,4 @@ async def buy(call: CallbackQuery, item, user_id: int, cost: int = None, amount:
     else:
         await call.answer('🚫 У вас недостаточно денег', show_alert = True)
 # todo battle
+

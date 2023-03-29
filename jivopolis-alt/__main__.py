@@ -28,6 +28,7 @@ async def on_startup(dp : Dispatcher):
     except Exception as e:
         return logger.exception(e)
 
+
 async def on_shutdown(dp: Dispatcher):
     from .database.sqlitedb import cur, conn
     cur.close(); conn.close()

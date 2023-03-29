@@ -1,11 +1,26 @@
 import contextlib
-from ...database.functions import cur, conn, Message, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, buy, bot, get_link, get_mask, buybutton, itemdata
-from ...config import METRO, WALK, CITY, trains, villages, walks, ITEMS, lvlcar, limeteds, lvlcab, cabcost, locations, clanitems
-import asyncio
-import time
-from ...misc import get_building
-from ... import logger
 import random
+import asyncio
+
+from ... import logger, bot
+from ...misc import get_building, get_link, get_mask
+from ...database.sqlitedb import cur, conn
+from ...database.functions import buy, buybutton, itemdata
+
+from ...config import (
+    METRO, WALK, CITY, 
+    trains, villages, walks,
+    ITEMS, lvlcar, limeteds,
+    lvlcab, cabcost, locations, 
+    clanitems
+)
+
+from aiogram.types import (
+    Message,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    CallbackQuery
+)
 
 async def city(message: Message, user_id: str):
     place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={user_id}").fetchone()[0]

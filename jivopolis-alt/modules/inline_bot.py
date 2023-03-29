@@ -1,7 +1,9 @@
+import contextlib
 from ..database.functions import cur, conn, check, SUPPORT_LINK, get_mask, get_link, log_chat
 from aiogram.types import InlineQuery, InlineQueryResultArticle, InputTextMessageContent, InlineKeyboardButton, InlineKeyboardMarkup, ChosenInlineResult
 from aiogram import Dispatcher
 from .. import logger, bot
+
 
 async def inline_mode(query: InlineQuery):
     try:
@@ -87,8 +89,9 @@ async def inline_mode(query: InlineQuery):
     except Exception as e:
         logger.exception(e)
 
+
 async def on_pressed_inline_query(inline: ChosenInlineResult):
-    try:
+    with contextlib.suppress(Exception):
         user_id = inline.from_user.id
         nick = cur.execute(f"SELECT nickname FROM userdata WHERE user_id={user_id}").fetchone()[0]
         mask = get_mask(user_id)
@@ -101,8 +104,8 @@ async def on_pressed_inline_query(inline: ChosenInlineResult):
                 await bot.send_message(log_chat, f'<i>&#128178; <b><a href="{get_link(user_id)}">{mask}{nick}</a></b> выписал чек на <b>${money}</b>\n#user_check</i>')
             if money < 0:
                 await bot.send_message(log_chat, f'<i>&#128178; <b><a href="{get_link(user_id)}">{mask}{nick}</a></b> выставил счёт на <b>${money}</b>\n#user_bill</i>')
-    except Exception:
-        return
+    
+
 def register(dp: Dispatcher):
     dp.register_inline_handler(inline_mode)
     dp.register_chosen_inline_handler(on_pressed_inline_query)

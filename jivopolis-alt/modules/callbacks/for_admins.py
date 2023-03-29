@@ -1,8 +1,14 @@
-from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
-from ...database.functions import cur, conn
-from ...config import ITEMS, TESTCHAT, JIVADMCHAT, LOGCHATLINK, BAFFUADM, MEGACHATLINK
+import sys, os
+
 from ... import bot
-import os, sys
+from ...config import (
+    ITEMS, TESTCHAT,
+    JIVADMCHAT, LOGCHATLINK,
+    BAFFUADM, MEGACHATLINK
+)
+from ...database.sqlitedb import cur, conn
+
+from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
 
 async def adminpanel(call: CallbackQuery, user_id: int):
     rank = cur.execute(f"SELECT rank FROM userdata WHERE user_id={user_id}").fetchone()[0]

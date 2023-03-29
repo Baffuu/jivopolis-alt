@@ -1,8 +1,9 @@
 import sqlite3
 
-from aiogram.types import User, Chat, ChatInviteLink
-from aiogram.utils.deep_linking import encode_payload
 from .. import logger, bot 
+
+from aiogram.types import User, Chat
+from aiogram.utils.deep_linking import encode_payload
 
 def connect_database() -> None:
     global conn, cur
@@ -14,6 +15,7 @@ def connect_database() -> None:
         create_clandata()
         return logger.success('database connected')
     return logger.critical('database is not connected')
+
 
 def create_userdata() -> None:
     cur.execute(""" CREATE TABLE IF NOT EXISTS userdata
@@ -136,6 +138,7 @@ def create_userdata() -> None:
 )       
 """)                       
 
+
 def create_globaldata() -> None:
     cur.execute("""CREATE TABLE IF NOT EXISTS globaldata
 (
@@ -148,6 +151,7 @@ def create_globaldata() -> None:
     pita            INTEGER,
     tea             INTEGER
 )""")
+
 
 def create_clandata() -> None:
     cur.execute("""CREATE TABLE IF NOT EXISTS clandata
@@ -167,6 +171,7 @@ def create_clandata() -> None:
 )
     """)
 
+
 async def insert_clan(chat: Chat, user: User = None) -> str:
     '''
     inserts chat into clandata 
@@ -184,6 +189,7 @@ async def insert_clan(chat: Chat, user: User = None) -> str:
     ({chat.id}, '{chat.title}', '{user['id']}', '{link.invite_link}')")
     conn.commit()
     return link.invite_link
+    
     
 def insert_user(user: User) -> None:
     logger.info("user inserted")

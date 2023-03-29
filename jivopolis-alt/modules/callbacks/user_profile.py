@@ -1,6 +1,10 @@
-from ...database.functions import cur, conn, InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, ITEMS
-from aiogram.utils.deep_linking import get_start_link
 from ... import bot
+from ...config import ITEMS
+
+from ...database.sqlitedb import cur, conn
+
+from aiogram.utils.deep_linking import get_start_link
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery
 
 async def set_user_bio(call: CallbackQuery):    
     cur.execute(f"UPDATE userdata SET process=\"setbio\" WHERE user_id={call.from_user.id}")
@@ -8,6 +12,7 @@ async def set_user_bio(call: CallbackQuery):
 
     return await bot.send_message(call.message.chat.id, "<i>📝 Введите новое описание профиля:</i>", reply_markup = InlineKeyboardMarkup().\
         add(InlineKeyboardButton(text="🚫 Отмена", callback_data="cancel_process")))
+
 
 async def put_mask_off(call: CallbackQuery, user_id: int, anon: bool = False):
     if mask := cur.execute(
@@ -25,6 +30,7 @@ async def put_mask_off(call: CallbackQuery, user_id: int, anon: bool = False):
 
         if not anon:
             return call.answer("🦹🏼 Ваша маска снята.", show_alert=True)
+
 
 async def put_mask_on(call: CallbackQuery, item: str):
     user_id = call.from_user.id
@@ -44,6 +50,7 @@ async def put_mask_on(call: CallbackQuery, item: str):
     else:
         await call.answer("🚫 У вас нет этого предмета", show_alert = True)
 
+
 async def my_reflink(call: CallbackQuery):
     user_id = call.from_user.id
 
@@ -51,6 +58,14 @@ async def my_reflink(call: CallbackQuery):
     bgcolor = '255-255-255'
     reflink = await get_start_link(user_id, True)
 
-    return await bot.send_photo(call.message.chat.id, 
-    f"https://api.qrserver.com/v1/create-qr-code/?data={reflink}&size=512x512&charset-source=UTF-8&charset-target=UTF-8&ecc=L&color={color}&bgcolor={bgcolor}&margin=1&qzone=1&format=png", 
-    f'<i>Ваша реферальная ссылка: <b>{reflink}</b>\n\nЗа каждого приглашённого пользователя вы получаете 1 <b>📦 Лутбокс</b></i>', parse_mode = 'html')
+    return await bot.send_photo(
+        call.message.chat.id,
+        photo=f"https://api.qrserver.com/v1/create-qr-code/?data={reflink}&size=512x512&charset-source=UTF-8&charset-target=UTF-8&ecc=L&color={color}&bgcolor={bgcolor}&margin=1&qzone=1&format=png", 
+        capture=(
+            f"<i>Ваша реферальная ссылка: <b>{reflink}</b>\n\n"
+            "За каждого приглашённого пользователя вы получаете 1 <b>📦 Лутбокс</b></i>"
+        ), 
+        parse_mode = 'html'
+    )
+
+    

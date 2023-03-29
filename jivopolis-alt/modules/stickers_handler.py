@@ -1,11 +1,13 @@
-from ..database.functions import cur, conn, Message
+from ..database.functions import cur, conn
 from .. import bot, Dispatcher, logger
-from .callbacks.inventory import open_lootbox
+from .callbacks import lootbox_button
+
+from aiogram.types import Message
 
 async def sticker_handler(message: Message):
     match (message.sticker.emoji):
         case '📦':
-            return await open_lootbox(message.from_user.id, message)
+            return await lootbox_button(message.from_user.id, message)
     
 
 def register(dp: Dispatcher):

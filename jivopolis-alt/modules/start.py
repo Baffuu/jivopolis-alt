@@ -1,11 +1,10 @@
 import random
 import sqlite3
-import asyncio
 
 from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.deep_linking import decode_payload
 
-from ..config import levelrange, hellos, randomtext, log_chat, SUPPORT_LINK, ADMINS
+from ..config import levelrange, hellos, randomtext, SUPPORT_LINK
 
 from .. import bot, Dispatcher, logger
 
@@ -189,6 +188,7 @@ async def start_cmd(message: Message):
     except Exception as e:
         logger.exception(e)
         return await bot.send_message(chat_id, f"<i><b>&#10060; Ошибка: </b>{e}</i>")
+
 
 def register(dp: Dispatcher):
     dp.register_message_handler(start_cmd, commands=['start'])

@@ -1,10 +1,11 @@
 import contextlib
-from aiogram.types import CallbackQuery
 
-from ..config import ITEMS, SUPPORT_LINK, villages, trains
-from .. import bot, Dispatcher, logger
-from ..database.functions import create_acc, check, cur, profile, eat
 from .callbacks import *
+from .. import bot, logger, Dispatcher
+from ..config import ITEMS, SUPPORT_LINK, villages, trains
+from ..database.functions import create_acc, check, cur, profile, eat
+
+from aiogram.types import CallbackQuery
 
 async def callback_handler(call: CallbackQuery):
     try:
@@ -199,7 +200,7 @@ async def callback_handler(call: CallbackQuery):
                     items=['window', 'brick', 'door'],
                     text='🧱 Добро пожаловать в строительный магазин - дом любого мужчины!'
                 )
-                
+
             case 'moda_menu':
                 await moda_menu(call)
             case 'mall':
@@ -257,6 +258,7 @@ async def callback_handler(call: CallbackQuery):
     except Exception as e:
         logger.exception(e)
     return await call.answer('...')
+ 
         
 def register(dp: Dispatcher):
     dp.register_callback_query_handler(callback_handler)

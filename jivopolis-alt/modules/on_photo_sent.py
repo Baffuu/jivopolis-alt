@@ -1,7 +1,13 @@
-from ..database.functions import check, cur, InlineKeyboardMarkup, InlineKeyboardButton, Message, conn, SUPPORT_LINK
-from .. import bot
-from aiogram.types import ChatMemberAdministrator, ChatMemberOwner
-from aiogram import Dispatcher
+from .. import bot, Dispatcher
+
+from ..database.sqlitedb import cur, conn
+from ..database.functions import check, SUPPORT_LINK
+
+from aiogram.types import (
+    ChatMemberAdministrator, ChatMemberOwner, 
+    InlineKeyboardMarkup, InlineKeyboardButton, 
+    Message
+)
 
 async def get_photo_messages(message: Message):
     user_id = message.from_user.id
@@ -14,7 +20,10 @@ async def get_photo_messages(message: Message):
         is_banned = bool(cur.execute(f"SELECT is_banned FROM userdata WHERE user_id = {message.from_user.id}").fetchone()[0])
 
     except TypeError:
-        if message.chat.type == "private" and message.text.lower() != 'создать персонажа':
+        if (
+            message.chat.type == "private" 
+            and message.text.lower() != 'создать персонажа'
+        ):
             cur.execute(f"UPDATE userdata SET process=\"login\" WHERE user_id = {user_id}")
         else:
             process = ""
@@ -49,6 +58,7 @@ async def get_photo_messages(message: Message):
 
         cur.execute(f"UPDATE userdata SET process='' WHERE user_id={user_id}")
         conn.commit()
+
 
 def register(dp: Dispatcher):
     dp.register_message_handler(get_photo_messages, content_types=['photo'])

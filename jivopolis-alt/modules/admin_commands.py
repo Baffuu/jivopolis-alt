@@ -1,11 +1,12 @@
-from aiogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup
-from aiogram.dispatcher.filters import Text
-
 from .. import bot, Dispatcher, logger
 
-from ..database.sqlitedb import cur, conn, encode_payload
+from ..database.sqlitedb import cur, conn
 from ..database.functions import get_link, check
 from ..config import log_chat, MEGACHAT, SUPPORT_LINK, ITEMS
+
+from aiogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.dispatcher.filters import Text
+from aiogram.utils.deep_linking import encode_payload
 
 async def sqlrun_cmd(message: Message):
     try:
@@ -70,6 +71,7 @@ async def sqlrun_cmd(message: Message):
     except Exception as e:
         await message.answer(f"<i><b>something went wrong: </b>{e}</i>", parse_mode = "html")
 
+
 async def globan_cmd(message: Message):    
     try:
         rank = cur.execute(f"SELECT rank FROM userdata WHERE user_id = {message.from_user.id}").fetchone()[0]
@@ -103,6 +105,7 @@ async def globan_cmd(message: Message):
     await bot.send_message(message.chat.id, f'🥷 <a href="{get_link(args)}">{user_nick}</a> [<code>id: {args}</code>] был успешно забанен. | <a href = "{get_link(message.from_user.id)}">{admin_nick}</a>')
     await bot.send_message(log_chat, f'🥷 <a href="{get_link(args)}">{user_nick}</a> [<code>id: {args}</code>] был успешно забанен. | <a href = "{get_link(message.from_user.id)}">{admin_nick}</a>')
 
+
 async def getall_cmd(message: Message):
     try:
         rank = cur.execute(f"SELECT rank FROM userdata WHERE user_id = {message.from_user.id}").fetchone()[0]
@@ -121,6 +124,7 @@ async def getall_cmd(message: Message):
     for item in ITEMS:
         cur.execute(f"UPDATE userdata SET {item}={item}+1 WHERE user_id={message.from_user.id}"); conn.commit()
     await message.reply('🪄 Я дал вам все предметы в Живополисе')
+
 
 def register(dp: Dispatcher):
     dp.register_message_handler(sqlrun_cmd, Text(startswith=".sqlrun"))

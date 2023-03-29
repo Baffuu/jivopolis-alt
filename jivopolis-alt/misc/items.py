@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from typing import Literal, Union, Optional
+
 ITEMS = {
         ## name: [icon, database slot name, name, cost, category, description, html-code of item's icon]
         'party_popper': ['🎉', 'party_popper', 'Хлопушка', 50, ['mask']],
