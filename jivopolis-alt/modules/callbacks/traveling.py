@@ -92,7 +92,7 @@ async def buycall(call: CallbackQuery):
     except Exception:
         tip = 0
     try: 
-        amount = call.data.split(':')[4]
+        amount = call.data.split(':')[2]
     except IndexError:
         amount = 1
     if item in ITEMS:

@@ -1,7 +1,7 @@
 import contextlib
 from aiogram.types import CallbackQuery
 
-from ..config import ITEMS, SUPPORT_LINK
+from ..config import ITEMS, SUPPORT_LINK, villages, trains
 from .. import bot, Dispatcher, logger
 from ..database.functions import create_acc, check, cur, profile, eat
 from .callbacks import *
@@ -18,7 +18,11 @@ async def callback_handler(call: CallbackQuery):
                 '🧛🏻‍♂️ Вы были забаненны в боте. Если вы считаете, что это - ошибка, обратитесь в поддержку.',
                 show_alert=True,
             )
-            return bot.send_message(call.from_user.id, f'🧛🏻‍♂️ Вы были забаненны в боте. Если вы считаете, что это - ошибка, обратитесь в <a href="{SUPPORT_LINK}">поддержку</a>.')
+            return await bot.send_message(
+                call.from_user.id, 
+                ("🧛🏻‍♂️ Вы были забаненны в боте. Если вы считаете, что это - ошибка, "
+                f"обратитесь в <a href='{SUPPORT_LINK}'>поддержку</a>."),
+            )
 
         if health < 0:
             await call.answer(text='☠️ Вы умерли')
@@ -81,34 +85,132 @@ async def callback_handler(call: CallbackQuery):
                 await local_people(call)
             case cheque if cheque.startswith('check_'):
                 await get_cheque(call, call.from_user.id)
+            
             case 'phone_shop':
-                await phone_shop(call)
+                await shop(
+                    call,
+                    place='Генерала Шелби',
+                    items=['phone'],
+                    text='📱 Добро пожаловать в магазин техники имени Шелби'
+                )
             case 'candy_shop':
-                await candy_shop(call)
+                await shop(
+                    call,
+                    place='Георгиевская',
+                    items=[
+                        'donut', 'cookie', 'chocolate', 'cake',
+                        'yogurt', 'ice_cream', 'shaved_ice',
+                    ],
+                    text='🍰 Добро пожаловать в нашу кондитерскую!'
+                )
             case 'japan_shop':
-                await japan_shop(call)
+                await shop(
+                    call,
+                    place='ТЦ МиГ',
+                    items=[
+                        'bento', 'rice', 'pasta'
+                    ],
+                    text='🍱 Добро пожаловать в ресторан восточной кухни "Япон Енот"!'
+                )
+            case 'xmas_shop':
+                await shop(
+                    call,
+                    place='',
+                    items=[
+                        'snowman',  'snowflake', 'xmastree',  'fairy', 
+                        'santa_claus',  'mrs_claus', 'firework',
+                        'fireworks', 'confetti'
+                    ],
+                    text='🎄 Добро пожаловать в новогодний раздел магазина ModaShop!',
+                )
+            case 'fruit_shop':
+                await shop(
+                    call, 
+                    place='',
+                    items=[
+                        'apple', 'cucumber', 'tomato', 'kiwi', 'coconut'
+                    ],
+                    text='🍏 Добро пожаловать в мини-магазин "Натурал"!'
+                )
+            case 'zoo_shop':
+                await shop(
+                    call,
+                    place='Зоопарк',
+                    items=[
+                        'seal', 'cow', 'hedgehog', 
+                        'wolf', 'fox', 'hamster'
+                    ],
+                    text=(
+                        "🐘 Добро пожаловать в зоопарк! Здесь вы также можете"
+                        " купить пару животных, у зоопарков нынче совсем денег нет…"
+                        "\n\n*вы настораживаетесь* 🤔 - А это вообще легально?"
+                    ),
+                )
+            case 'enot_kebab_shop':
+                await shop(
+                    call,
+                    place=villages + trains[0],
+                    items=[
+                        'burger', 'fries', 'shaurma', 'cheburek', 'beer'
+                    ],
+                    text=(
+                        "🍔 Добро пожаловать в закусочную Енот-Кебаб! Здесь вы найдёте лучшую еду "
+                        "по лучшим ценам и абсолютно точно не отравитесь! (надеемся)"
+                        "\n\n*вы замечаете надпись* ‼️ Енотов мы больше не продаём, "
+                        "нам запретили разработчики!"
+                    ),
+                )
+            case 'botan_garden_shop':
+                await shop(
+                    call, 
+                    place='Ботаническая',
+                    items=[
+                        'clover', 'palm', 'rose', 'tulip',
+                        'houseplant', 'cactus'
+                    ],
+                    text=(
+                        "🌲Добро пожаловать в Ботанический Сад! Сегодня у нас распродажа парочки "
+                        "интересных цветов, не хотите взглянуть?"
+                    )
+                )
+            case 'car_shop':
+                await shop(
+                    call, 
+                    place='Автопарк им. Кота',
+                    items=[
+                        'red_car', 'blue_car'
+                    ],
+                    text=(
+                        "🏎 *вы слышите рёв мотора* Добро пожаловать в самый крутой автопарк в Живополисе!"
+                        "\n\n🤔 *говорят, основатель этого автопарка - самый успешный кот в живополисе*"
+                    ),
+                )
+            case 'hospital_shop':
+                await shop(
+                    call,
+                    place=['Райбольница', 'Старокотайский ФАП'],
+                    items= ['pill x1', 'pill x2', 'pill x3'],
+                    text="🏥 Добро не пожаловать в нашу замечательную больницу! Располагаетесь на койке и не умрите до прихода доктора."
+                )
+            case 'building_shop':
+                await shop(
+                    call, 
+                    place='Максименка',
+                    items=['window', 'brick', 'door'],
+                    text='🧱 Добро пожаловать в строительный магазин - дом любого мужчины!'
+                )
+                
+            case 'moda_menu':
+                await moda_menu(call)
             case 'mall':
                 await mall(call)
-            case 'moda_shop':
-                await moda_shop(call)
-            case 'xmas_shop':
-                await xmas_shop(call)
-            case 'enot_kebab_shop':
-                await enot_kebab_shop(call)
-            case 'botan_garden_shop':
-                await botan_garden_shop(call)
-            case 'car_shop':
-                await car_shop(call)
-            case 'hospital_shop':
-                await hospital_shop(call)
+
             case 'my_reflink':
                 await my_reflink(call)
             case 'cellphone_menu':
                 await cellphone_menu(call)
             case 'delivery_app':
                 await delivery_menu(call)
-            case 'fruit_shop':
-                await fruit_shop(call)
             case 'central_market_menu':
                 await central_market_menu(call)
             case 'central_market_food':
@@ -133,8 +235,6 @@ async def callback_handler(call: CallbackQuery):
                 await gps_menu(call)
             case buy24 if buy24.startswith('buy24_'):
                 await buy24_(call, call.data[6:])
-            case 'zoo_shop':
-                await zoo_shop(call)
             case 'economics':
                 await economics(call)
             case 'shop_24':
@@ -145,13 +245,7 @@ async def callback_handler(call: CallbackQuery):
                 await create_clan(call)
             case buyclan if buyclan.startswith('buyclan_'):
                 await buyclan_(call, call.data.replace('buyclan_', ''))
-            case 'building_shop':
-                await shop(
-                    call, 
-                    place='Максименка', 
-                    items=['window', 'door', 'brick']
-                )
-
+                
             case _:
                 return await call.answer('♿️ 404: команда не найдена.', show_alert=True)
     except TypeError as e:

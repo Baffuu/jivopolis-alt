@@ -99,20 +99,20 @@ def buybutton(item: str, status: str = None, tip: int = 0) -> Union[InlineKeyboa
 
     if (
         status
-        and status != 'limited'
         and status == 'clan'
         and item in clanitems[0]
     ):
         return InlineKeyboardButton(text=f'{itemob.emoji} {itemob.ru_name} - ${clanitems[1][clanitems[0].index(item)+tip]}', callback_data=f'buyclan_{item}')
     elif (
-        status
-        and status != 'limited'
-        and status == 'clan'
-        or status
+        status 
+        and status == 'clan' 
+        or status 
         and status != 'limited'
     ):
         return None
     elif not status:
+        if item.startswith('pill') and len(item) > 4:
+            return InlineKeyboardButton(f'{itemob.emoji} {itemob.ru_name} - ${cost}', callback_data=f"buy_{item}:0:{item[5:]}")
         return InlineKeyboardButton(f'{itemob.emoji} {itemob.ru_name} - ${cost}', callback_data=f'buy_{item}:{tip}')
     else:
         return (

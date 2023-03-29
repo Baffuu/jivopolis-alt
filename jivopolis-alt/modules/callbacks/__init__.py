@@ -38,11 +38,8 @@ from .clans import (
 )
 
 from .shops import (
-    phone_shop, candy_shop,
-    mall, japan_shop,
-    moda_shop, xmas_shop,
-    fruit_shop, zoo_shop, 
-    shop_24, enot_kebab_shop,
-    botan_garden_shop,
-    car_shop, hospital_shop, shop
+    mall, 
+    shop_24,
+    shop, 
+    moda_menu
 )
