@@ -20,6 +20,10 @@ async def shop(
     cur.execute(f"SELECT current_place FROM userdata WHERE user_id={call.from_user.id}")
 
     if cur.fetchone()[0] not in place and cur.fetchone()[0] != place:
+        await call.answer(
+            text='🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой местности', 
+            show_alert=True
+        )
         return
 
     buttons = [buybutton(item) for item in items]
