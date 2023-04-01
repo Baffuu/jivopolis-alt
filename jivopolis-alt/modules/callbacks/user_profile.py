@@ -1,12 +1,12 @@
 from ... import bot
-from ...config import ITEMS
+from ...misc.config import ITEMS
 
 from ...database.sqlitedb import cur, conn
 
 from aiogram.utils.deep_linking import get_start_link
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery
 
-async def set_user_bio(call: CallbackQuery):    
+async def set_user_bio(call: CallbackQuery) -> None:    
     cur.execute(f"UPDATE userdata SET process=\"setbio\" WHERE user_id={call.from_user.id}")
     conn.commit()
 
@@ -14,7 +14,7 @@ async def set_user_bio(call: CallbackQuery):
         add(InlineKeyboardButton(text="🚫 Отмена", callback_data="cancel_process")))
 
 
-async def put_mask_off(call: CallbackQuery, user_id: int, anon: bool = False):
+async def put_mask_off(call: CallbackQuery, user_id: int, anon: bool = False) -> None:
     if mask := cur.execute(
         f"SELECT mask FROM userdata WHERE user_id={user_id}"
     ).fetchone()[0]:
@@ -32,7 +32,7 @@ async def put_mask_off(call: CallbackQuery, user_id: int, anon: bool = False):
             return call.answer("🦹🏼 Ваша маска снята.", show_alert=True)
 
 
-async def put_mask_on(call: CallbackQuery, item: str):
+async def put_mask_on(call: CallbackQuery, item: str) -> None:
     user_id = call.from_user.id
 
     await put_mask_off(call, user_id, True)
@@ -51,7 +51,7 @@ async def put_mask_on(call: CallbackQuery, item: str):
         await call.answer("🚫 У вас нет этого предмета", show_alert = True)
 
 
-async def my_reflink(call: CallbackQuery):
+async def my_reflink(call: CallbackQuery) -> None:
     user_id = call.from_user.id
 
     color = '0-0-0'

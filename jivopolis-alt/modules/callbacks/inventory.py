@@ -6,15 +6,20 @@ from ...misc import (
     lootbox_open, LOOTBOX, 
     get_time_units, current_time
 )
-from ...config import limeteds, ITEMS
+from ...misc.config import limeteds, ITEMS
 
 from ...database.sqlitedb import cur, conn
 from ...database.functions import itemdata
 
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, Message
 
-
-async def itemdesc(call: CallbackQuery, user_id: int):
+async def itemdesc(call: CallbackQuery, user_id: int) -> None:
+    '''
+    Callback for item info 
+    
+    :param call - callback:
+    :param user_id:
+    '''
     try:
         item: Item = allitems[call.data]
     except KeyError:
@@ -70,7 +75,13 @@ async def itemdesc(call: CallbackQuery, user_id: int):
     
     return await call.message.answer(f'<i><b>{item.emoji} {item.ru_name}</b> - {description}{itemsleft}\n\nУ вас <b>{count}</b> единиц этого предмета</i>', reply_markup = markup, parse_mode = 'html')
 
-async def inventory(call: CallbackQuery):
+
+async def inventory(call: CallbackQuery) -> None:
+    '''
+    Callback for inventory
+    
+    :param call - callback:
+    '''
     user_id = call.from_user.id
     markup = InlineKeyboardMarkup(row_width = 6)
 
@@ -101,7 +112,14 @@ async def inventory(call: CallbackQuery):
     
     await call.message.answer('<i>Ваш инвентарь</i>', reply_markup = markup, parse_mode = 'html')
 
-async def lootbox_button(user_id: int, message: Message):
+
+async def lootbox_button(user_id: int, message: Message) -> None:
+    '''
+    Callback for lootbox button
+    
+    :param call - callback:
+    :param user_id:
+    '''
     mailbox = cur.execute(f"SELECT last_box FROM userdata WHERE user_id = {user_id}").fetchone()[0]
     difference: float = current_time() - mailbox
     lootbox: int = cur.execute(f"SELECT lootbox FROM userdata WHERE user_id={user_id}").fetchone()[0]
@@ -136,7 +154,14 @@ async def lootbox_button(user_id: int, message: Message):
         return await message.reply(LOOTBOX[price_type].format(f"{item.emoji} {item.ru_name}"))
     return await message.reply(LOOTBOX[price_type].format(price))
 
-async def sellitem(call: CallbackQuery, item: str):
+
+async def sellitem(call: CallbackQuery, item: str) -> None:
+    '''
+    Callback for selling item on central market
+    
+    :param call - callback:
+    :param user_id:
+    '''
     user_id = call.from_user.id
 
     if item not in ITEMS:
@@ -164,3 +189,4 @@ async def sellitem(call: CallbackQuery, item: str):
     sold = cursor.fetchone()[0]
     if sold>=10:
         await achieve(a, call.message.chat.id, 'soldach')'''
+

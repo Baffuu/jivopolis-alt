@@ -1,29 +1,30 @@
 import random as rand
-import typing
+from typing import Tuple
 
 from . import allitems
 
-def money() -> typing.Tuple[int, str]:
+def money() -> Tuple[int, str]:
     '''returns random number of money in range from 1 to 75'''
     return rand.randint(1, 75), 'money'
-def big_money() -> typing.Tuple[int, str]:
+def big_money() -> Tuple[int, str]:
     '''returns random number of money in range from 100 to 300'''
     return rand.randint(100, 300), 'big_money'
-def money_steal() -> typing.Tuple[int, str]:
+def money_steal() -> Tuple[int, str]:
     '''returns random number of money that will be stealen, from -1 to -20'''
     return rand.randint(1, 20), 'money_steal'
-def robber_item() -> typing.Tuple[str, str]:
+def robber_item() -> Tuple[str, str]:
     items = [
         item for item in allitems
         if allitems[item].type == 'robber'
     ]
     return rand.choice(items), 'robber_item'
-def common_masks() -> typing.Tuple[str, str]:
+def common_masks() -> Tuple[str, str]:
     items = [
         'fox'
     ]
     return rand.choice(items), 'common_mask'
-def rare_masks() -> typing.Tuple[str, str]:
+def rare_masks() -> Tuple[str, str]: #todo
+    
     items = [
         'rare', 'epic', 'legendary'
     ]
@@ -39,8 +40,12 @@ LOOTBOX = {
     'rare_masks': "‼️ Упс, на коробке написано не ваше имя… \
         Но никто ведь не запрещает вам ее открыть, верно? <b>Получено {}</b>"
 }
+'''stores all strings for lootboxes'''
 
-async def lootbox_open():
+async def lootbox_open() -> None:
+    '''
+    lootbox chances controller 
+    '''
     chances = rand.randint(1, 100)
     
     if chances in range(1, 50):

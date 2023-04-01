@@ -1,7 +1,7 @@
 import sys, os
 
 from ... import bot
-from ...config import (
+from ...misc.config import (
     ITEMS, TESTCHAT,
     JIVADMCHAT, LOGCHATLINK,
     BAFFUADM, MEGACHATLINK
@@ -10,7 +10,13 @@ from ...database.sqlitedb import cur, conn
 
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
 
-async def adminpanel(call: CallbackQuery, user_id: int):
+async def adminpanel(call: CallbackQuery, user_id: int) -> None:
+    '''
+    Callback for admin panel
+    
+    :param call - callback:
+    :param user_id:
+    '''
     rank = cur.execute(f"SELECT rank FROM userdata WHERE user_id={user_id}").fetchone()[0]
 
     if rank < 2:
@@ -25,8 +31,15 @@ async def adminpanel(call: CallbackQuery, user_id: int):
     if rank > 2:
         markup.add(InlineKeyboardButton(text='♻️ Перезапустить бота', callback_data='restart_bot'))
     await call.message.answer("<i>Эти функции доступны админам. Только тсс</i>", parse_mode='html', reply_markup=markup)
-        
-async def itemsinfo_table(call: CallbackQuery, user_id: int):
+
+
+async def itemsinfo_table(call: CallbackQuery, user_id: int) -> None:
+    '''
+    Callback for table with buttons, which contains info about all items
+    
+    :param call - callback:
+    :param user_id:
+    '''
     rank = cur.execute(f"SELECT rank FROM userdata WHERE user_id={user_id}").fetchone()[0]
 
     if rank < 2:
@@ -42,7 +55,14 @@ async def itemsinfo_table(call: CallbackQuery, user_id: int):
     markup.add(*items)
     await call.message.answer("<i>Здесь вы можете получить секретную информацию обо всех предметах в Живополисе</i>", parse_mode='html', reply_markup=markup)
 
-async def itemsinfo_item(call: CallbackQuery, user_id: int):
+
+async def itemsinfo_item(call: CallbackQuery, user_id: int) -> None:
+    '''
+    Callback for sending info about items 
+    
+    :param call - callback:
+    :param user_id:
+    '''
     item = call.data.split('_')[1]
 
     if item not in ITEMS:
@@ -66,7 +86,14 @@ async def itemsinfo_item(call: CallbackQuery, user_id: int):
 
     await call.answer(f'{ITEMS[item][0]}{ITEMS[item][2]}\nКод: {item}\nТип: {itemtype}\nСтоимость: ${cost}', show_alert = True)
 
-async def adminhelp(call: CallbackQuery, user_id: int):
+
+async def adminhelp(call: CallbackQuery, user_id: int) -> None:
+    '''
+    Callback for admin help message
+    
+    :param call - callback:
+    :param user_id:
+    '''
     rank = cur.execute(f"SELECT rank FROM userdata WHERE user_id={user_id}").fetchone()[0]
 
     if rank < 2:
@@ -74,7 +101,13 @@ async def adminhelp(call: CallbackQuery, user_id: int):
         
     return await call.message.answer("<i><b>Статьи для админов</b>\nАдминская документация: https://telegra.ph/Administratorskaya-dokumentaciya-ZHivopolisa-01-03\nПособие по использованию /sqlrun: https://telegra.ph/Administratorskaya-dokumentaciya-ZHivopolisa-Komanda-sqlrun-07-25</i>", parse_mode='html')
 
-async def sqlapprove(call: CallbackQuery):
+
+async def sqlapprove(call: CallbackQuery) -> None:
+    '''
+    Callback for sql query approve
+    
+    :param call - callback:
+    '''
     try:
         request_user_id = call.data.split(':')[2]
         user_id = call.from_user.id
@@ -116,7 +149,14 @@ async def sqlapprove(call: CallbackQuery):
         if request_user_id!=user_id:
             await bot.send_message(request_user_id, f'<i><b>Запрос не обработан: \n</b>{e}</i>')
 
-async def sqldecline(call: CallbackQuery):
+
+async def sqldecline(call: CallbackQuery) -> None:
+    '''
+    Callback for sql query decline 
+    
+    :param call - callback:
+    :param user_id:
+    '''
     try:
         request_user_id = call.data.split(':')[2]
         user_id = call.from_user.id
@@ -137,7 +177,8 @@ async def sqldecline(call: CallbackQuery):
     except Exception as e:
         return await call.message.answer(f'<i><b>&#10060; Ошибка: </b>{e}</i>', parse_mode = 'html')
 
-async def adminchats(call: CallbackQuery):
+
+async def adminchats(call: CallbackQuery) -> None:
     user_id = call.from_user.id
     rank = cur.execute(f"SELECT rank FROM userdata WHERE user_id={user_id}").fetchone()[0]
 
@@ -157,7 +198,8 @@ async def adminchats(call: CallbackQuery):
     await call.message.answer_sticker('CAACAgIAAxkBAAIEN2QE3dP0FVb2HNOHw1QC2TMpUEpsAAK7IAACEkDwSZtWAAEk41obpC4E')
     await call.message.answer("<i><b>🧑‍💻 Админские чаты живополиса:</b>\n💻 Разработка Живополиса: https://t.me/+k2LZEIyZtpRiMjcy</i>", parse_mode='html', reply_markup=markup)
 
-async def restart(call: CallbackQuery):
+
+async def restart(call: CallbackQuery) -> None:
     try:
         rank = cur.execute(f"SELECT rank FROM userdata WHERE user_id = {call.from_user.id}").fetchone()[0]
         
@@ -169,3 +211,4 @@ async def restart(call: CallbackQuery):
         
     except Exception as e:
         await call.message.answer(f'<i><b>♨️ Ошибка: </b>{e}</i>', parse_mode = 'html')
+

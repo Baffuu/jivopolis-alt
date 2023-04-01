@@ -2,12 +2,17 @@ import contextlib
 
 from .callbacks import *
 from .. import bot, logger, Dispatcher
-from ..config import ITEMS, SUPPORT_LINK, villages, trains
+from ..misc.config import ITEMS, SUPPORT_LINK, villages, trains
 from ..database.functions import create_acc, check, cur, profile, eat
 
 from aiogram.types import CallbackQuery
 
 async def callback_handler(call: CallbackQuery):
+    '''
+    handler for all callbacks 
+    
+    :param call - callback:
+    '''
     try:
         with contextlib.suppress(AttributeError):
             await check(call.from_user.id, call.message.chat.id)

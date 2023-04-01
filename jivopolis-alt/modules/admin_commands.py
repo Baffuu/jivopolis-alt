@@ -2,13 +2,13 @@ from .. import bot, Dispatcher, logger
 
 from ..database.sqlitedb import cur, conn
 from ..database.functions import get_link, check
-from ..config import log_chat, MEGACHAT, SUPPORT_LINK, ITEMS
+from ..misc.config import log_chat, MEGACHAT, SUPPORT_LINK, ITEMS
 
 from aiogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.dispatcher.filters import Text
 from aiogram.utils.deep_linking import encode_payload
 
-async def sqlrun_cmd(message: Message):
+async def sqlrun_cmd(message: Message) -> None:
     try:
         rank = cur.execute(f"SELECT rank FROM userdata WHERE user_id={message.from_user.id}").fetchone()[0]
         is_banned = bool(cur.execute(f"SELECT is_banned FROM userdata WHERE user_id = {message.from_user.id}").fetchone()[0])
@@ -72,7 +72,7 @@ async def sqlrun_cmd(message: Message):
         await message.answer(f"<i><b>something went wrong: </b>{e}</i>", parse_mode = "html")
 
 
-async def globan_cmd(message: Message):    
+async def globan_cmd(message: Message) -> None:    
     try:
         rank = cur.execute(f"SELECT rank FROM userdata WHERE user_id = {message.from_user.id}").fetchone()[0]
         is_banned = bool(cur.execute(f"SELECT is_banned FROM userdata WHERE user_id = {message.from_user.id}").fetchone()[0])
@@ -106,7 +106,7 @@ async def globan_cmd(message: Message):
     await bot.send_message(log_chat, f'🥷 <a href="{get_link(args)}">{user_nick}</a> [<code>id: {args}</code>] был успешно забанен. | <a href = "{get_link(message.from_user.id)}">{admin_nick}</a>')
 
 
-async def getall_cmd(message: Message):
+async def getall_cmd(message: Message) -> None:
     try:
         rank = cur.execute(f"SELECT rank FROM userdata WHERE user_id = {message.from_user.id}").fetchone()[0]
         is_banned = bool(cur.execute(f"SELECT is_banned FROM userdata WHERE user_id = {message.from_user.id}").fetchone()[0])

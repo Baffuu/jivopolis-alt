@@ -6,6 +6,8 @@ from aiogram.types import User, Chat
 from aiogram.utils.deep_linking import encode_payload
 
 def connect_database() -> None:
+    """
+    connects database, creates tables if they does not exists, etc."""
     global conn, cur
     conn = sqlite3.connect('database.db', check_same_thread=False)
     cur = conn.cursor()
@@ -18,6 +20,9 @@ def connect_database() -> None:
 
 
 def create_userdata() -> None:
+    '''
+    creates table with all users data 
+    '''
     cur.execute(""" CREATE TABLE IF NOT EXISTS userdata
 (
     id              INTEGER         PRIMARY KEY,
@@ -140,6 +145,9 @@ def create_userdata() -> None:
 
 
 def create_globaldata() -> None:
+    """
+    creates global jivopolis data 
+    """
     cur.execute("""CREATE TABLE IF NOT EXISTS globaldata
 (
     treasury        INTEGER         DEFAULT 0               NOT NULL,
@@ -192,22 +200,14 @@ async def insert_clan(chat: Chat, user: User = None) -> str:
     
     
 def insert_user(user: User) -> None:
+    """
+    insets user into userdata table 
+
+    :param user (aiogram.types.User) - user that will be inserted
+    """
     logger.info("user inserted")
     name = user.full_name
     login_id = encode_payload(user.id)
     cur.execute(f"INSERT INTO userdata(user_id, nickname, login_id) VALUES ({user.id}, \"{name}\", \"{login_id}\")")
     conn.commit()
-
-
-"""lastfarm ???
-    sql ???
-    last_played???
-    last_play??? WHY TWO
-    refid???
-    lastmath
-    lastelec
-    electimes???
-    
-    <<< flightach >>>"""
-
 

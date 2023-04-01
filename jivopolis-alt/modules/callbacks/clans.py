@@ -1,12 +1,17 @@
 from ... import bot
-from ...config import log_chat
+from ...misc.config import log_chat
 
 from ...misc import get_mask, get_link
 from ...database.sqlitedb import cur, conn, insert_clan
 
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
 
-async def create_clan(call: CallbackQuery):
+async def create_clan(call: CallbackQuery) -> None:
+    '''
+    Callback for clan creating. 
+    
+    :param call - callback:
+    '''
     user_id = call.from_user.id
     chat_id = call.message.chat.id
     member = await bot.get_chat_member(chat_id, user_id)
@@ -43,14 +48,21 @@ async def create_clan(call: CallbackQuery):
     else:
         return await bot.send_message(chat_id, '<i>🚥 Такой клан уже существует. Для создания нового сначала удалите старый.</i>')
 
-async def joinclan(call: CallbackQuery, user_id: int):
+
+async def joinclan(call: CallbackQuery, user_id: int) -> None:
+    '''
+    Callback for clan joining
+    
+    :param call - callback:
+    :param user_id:
+    '''
     chat_id = call.message.chat.id
-    
+
     count = cur.execute(f"SELECT count(*) FROM clandata WHERE clan_id = {chat_id}").fetchone()[0]
-    
+
     mask = get_mask(user_id)
     nick = cur.execute(f"SELECT nickname FROM userdata WHERE user_id = {user_id}").fetchone()[0]
-    
+
     if count < 1:
         return #todo call answer
     elif count > 1:
@@ -62,12 +74,8 @@ async def joinclan(call: CallbackQuery, user_id: int):
     if user_clan != chat_id and user_clan:
         cur.execute(f"UPDATE userdata SET clan_id={chat_id} WHERE user_id={user_id}"); conn.commit()
         return await bot.send_message(chat_id, '<i><b><a href="tg://user?id={2}">{0}{1}</a></b> присоединился к клану</i>'.format(mask, nick, user_id))
-    elif user_clan != chat_id:
-        cur.execute(f"UPDATE userdata SET clan_id={chat_id} WHERE user_id={user_id}"); conn.commit()
-        return await bot.send_message(chat_id, '<i><b><a href="tg://user?id={2}">{0}{1}</a></b> присоединился к клану</i>'.format(mask, nick, user_id)) 
     else:
-        cur.execute('UPDATE userdata SET clan=? WHERE user_id=?', (0, a,))
-        cur.execute('UPDATE userdata SET clanname=? WHERE user_id=?', ('', a,))
+        cur.execute(f"UPDATE userdata SET clan_id=NULL WHERE user_id={user_id}")
         conn.commit()
-        await bot.send_message(chat_id, '<i><b><a href="tg://user?id={2}">{0}{1}</a></b> вышел из клана</i>'.format(mask, nick, user_id), parse_mode = 'html')
+        await bot.send_message(chat_id, f"<i><b><a href=\"tg://user?id={2}\">{0}{1}</a></b> вышел из клана</i>".format(mask, nick, user_id), parse_mode = 'html')
             

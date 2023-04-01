@@ -8,7 +8,15 @@ async def shop(
     place: str | list = None,
     items: list = None,
     text: str = 'Что бы вы хотели купить?'
-):
+) -> None:
+    '''
+    Represents callback for any of existing shops 
+    
+    :param call - callback:
+    :param place:
+    :param items - items that will be selling in shop
+    :param text - text that will be sent
+    '''
     cur.execute(f"SELECT current_place FROM userdata WHERE user_id={call.from_user.id}")
 
     if cur.fetchone()[0] not in place and cur.fetchone()[0] != place:
@@ -26,7 +34,12 @@ async def shop(
     )
 
 
-async def moda_menu(call: CallbackQuery):
+async def moda_menu(call: CallbackQuery) -> None:
+    '''
+    Callback for modashop menu
+    
+    :param call - callback:
+    '''
     place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={call.from_user.id}").fetchone()[0]
 
     if place != 'ТЦ МиГ':
@@ -36,10 +49,20 @@ async def moda_menu(call: CallbackQuery):
     markup.add(InlineKeyboardButton(text='❄️ Новогодний отдел', callback_data='xmas_shop'),
                 InlineKeyboardButton(text='👺 Маскарадный отдел', callback_data='mask_clothes'))
 
-    return await call.message.answer('<i>&#128090; Добро пожаловать в <b>ModaShop</b>! Здесь вы можете купить любую одежду!</i>', reply_markup = markup, parse_mode = 'html')
+    return await call.message.answer(
+        '<i>&#128090; Добро пожаловать в <b>ModaShop</b>! Здесь вы можете купить любую одежду!</i>', 
+        reply_markup = markup, 
+        parse_mode = 'html'
+    )
 
 
-async def mall(call: CallbackQuery):
+async def mall(call: CallbackQuery) -> None:
+    '''
+    Callback for mall menu
+    
+    :param call - callback:
+    :param user_id:
+    '''
     place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={call.from_user.id}").fetchone()[0]
     
     if place != 'ТЦ МиГ':
@@ -53,7 +76,12 @@ async def mall(call: CallbackQuery):
     return await call.message.answer('<i>&#127978; Добро пожаловать в торговый центр!</i>', reply_markup = markup, parse_mode = 'html')
 
 
-async def shop_24(call: CallbackQuery):
+async def shop_24(call: CallbackQuery) -> None:
+    '''
+    Callback for 24-hour shop
+    
+    :param call - callback:
+    '''
     buttons = [buybutton('bread', 'limited'), 
                buybutton('pelmeni', 'limited'),
                buybutton('soup', 'limited'), 

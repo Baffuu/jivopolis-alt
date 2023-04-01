@@ -4,7 +4,7 @@ from datetime import datetime
 from math import floor
 from typing import Union
 
-from ..config import limeteds, CREATOR, leveldesc, levelrange, ITEMS, ach, log_chat, SUPPORT_LINK, ADMINS, clanitems
+from ..misc.config import limeteds, CREATOR, leveldesc, levelrange, ITEMS, ach, log_chat, SUPPORT_LINK, ADMINS, clanitems
 
 from .. import bot, logger
 
@@ -86,6 +86,7 @@ async def itemdata(user_id: int, item: str) -> Union[str, None, InlineKeyboardBu
     """
     :param user_id - telegram user ID
     :param item - item slot name
+
     :returns aiogram.types.InlineKeyboardButton - button with item icon && itemcount
     """
     try: 
@@ -100,7 +101,20 @@ async def itemdata(user_id: int, item: str) -> Union[str, None, InlineKeyboardBu
         return logger.exception(e)
 
 
-def buybutton(item: str, status: str = None, tip: int = 0) -> Union[InlineKeyboardButton, None]:
+def buybutton(
+    item: str, 
+    status: str = None, 
+    tip: int = 0
+) -> Union[InlineKeyboardButton, None]:
+    '''
+    You can get special button for buying something
+    
+    :param item (str) - item index that will be bought
+    :param status (str) - (Optional) special index for buying category
+    :param tip (int) - (Optional) additional money to price
+    
+    :returns: None if item does not exists or an error occured; aiogram.types.InlineKeyboardButton
+    '''
     if item not in allitems:
         return None
     itemob = allitems[item]
@@ -132,9 +146,16 @@ def buybutton(item: str, status: str = None, tip: int = 0) -> Union[InlineKeyboa
             if item in limeteds
             else None
         )
-        #raise ValueError("no such item")
+
 
 async def eat(call: CallbackQuery, food: str) -> None:
+    '''
+    :param call (aiogram.types.CallbackQuery) - aiogram callback query
+    :food (str) - food index 
+    
+    :raise ValueError if food does not exists
+    '''
+
     user_id = call.from_user.id
     chat_id = call.message.chat.id
 
@@ -175,9 +196,14 @@ async def eat(call: CallbackQuery, food: str) -> None:
             return await bot.send_message(chat_id, "<i>&#9760; Вы умерли</i>")
 
 
-async def create_acc(user: User, chat_id: str) -> None: 
-    try:
-        
+async def create_acc(user: User, chat_id: int) -> None:
+    '''
+    Shell for inserting user into database 
+
+    :param user (aiogram.types.User) - user that will be inserted
+    :param chat_id (int) - chat id in which messages will be sent 
+    ''' 
+    try: 
         count = cur.execute(f"SELECT COUNT(*) FROM userdata WHERE user_id={user.id}").fetchone()[0]
 
         if count > 0:
@@ -202,7 +228,15 @@ async def create_acc(user: User, chat_id: str) -> None:
     return await bot.send_message(chat_id, "<i>👾 Вы успешно зарегистрировались в живополисе! Добро пожаловать :3</i>", reply_markup = ReplyKeyboardRemove())
 
 
-async def poison(user: User, target_id: str, chat_id: str) -> None:
+async def poison(user: User, target_id: int, chat_id: int) -> None:
+    '''
+    to use poison on a user 
+    
+    :param user (aiogram.types.User) - user that is poisoning another user 
+    :param target_id (int) - telegram user ID of user that will be poisoned 
+    :chat_id chat_id (int) - telegram chat ID to which messages will be sent 
+    '''
+
     try:
         my_health = cur.execute(f"SELECT health FROM userdata WHERE user_id={user.id}").fetchone()[0]
 
@@ -240,7 +274,15 @@ async def poison(user: User, target_id: str, chat_id: str) -> None:
         return logger.exception(e)
 
 
-async def shoot(user_id: str, target_id: str, chat_id: str) -> None: 
+async def shoot(user_id: int, target_id: int, chat_id: int) -> None: #function is useless now...
+    '''
+    shoot a person
+    
+    :param user_id (int) - Telegram User ID of user that is shooting another user 
+    :param target_id (int) - Telegram User ID of user that will be shooted
+    
+    :param chat_id (int) - Telegram Chat ID of chat in which messages will be sent 
+    '''
     try:
         my_health = cur.execute(f"SELECT health FROM userdata WHERE user_id={user_id}")
 
@@ -284,7 +326,14 @@ async def shoot(user_id: str, target_id: str, chat_id: str) -> None:
         await bot.send_message(chat_id, f"<i><b>Текст ошибки: </b>{e}</i>")
 
 
-async def achieve(user_id: str, chat_id : str, achievement: str) -> None: #todo new ACHIEVEMENTS
+async def achieve(user_id: int, chat_id : int, achievement: str) -> None: #todo new ACHIEVEMENTS
+    """
+    achieve a user 
+    
+    :param user_id (int) - Telegram User ID of user that will be achieved 
+    :param chat_id (int) - Telegram Chat ID of chat in which messages will be sent 
+    :param achievement (str) - Index of achievement 
+    """
     try:
         achieve = cur.execute(f"SELECT {achievement} FROM userdata WHERE user_id={user_id}").fetchone()
         
@@ -295,7 +344,7 @@ async def achieve(user_id: str, chat_id : str, achievement: str) -> None: #todo 
         name = ach[1][index]
         desc = ach[2][index]
         money = ach[3][index]
-        points = ach[4][index] #todo WHY POINTS. ITS XP
+        points = ach[4][index]
 
         cur.execute(f"UPDATE userdata SET {achievement} = 1 WHERE user_id = {user_id}")
         conn.commit()
@@ -316,11 +365,22 @@ async def achieve(user_id: str, chat_id : str, achievement: str) -> None: #todo 
         else:
             await bot.send_message(chat_id, f"<i><b><a href=\"tg://user?id={user_id}\">{rasa}{nick}</a></b>, у вас новое достижение: <b>{name}</b>\n{desc}. \nВаша награда: <b>${money}</b> и &#128161; <b>{points}</b> очков</i>")
     except Exception as e:
-        await bot.send_message(chat_id, "&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>")
+        await bot.send_message(
+            chat_id, 
+            (
+                "&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. "
+                "Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт"
+                " в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появля"
+                "ется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную "
+                "(t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>"
+            ))
         await bot.send_message(chat_id, f"<i><b>Текст ошибки: </b>{e}</i>")
 
 
-async def cure(user_id: str, target_id: str, chat_id: str) -> None:
+async def cure(user_id: str, target_id: str, chat_id: str) -> None: #function is useless now...
+    '''
+    to cure someone...
+    '''
     try:
         nerr = 0
         medicine = cur.execute(f"SELECT medicine FROM userdata WHERE user_id={user_id}").fetchone()
@@ -391,7 +451,7 @@ async def cure(user_id: str, target_id: str, chat_id: str) -> None:
         await bot.send_message(chat_id, f"<i><b>Текст ошибки: </b>{e}</i>")
 
 
-async def profile(user_id: int, message: Message, called: bool = False):
+async def profile(user_id: int, message: Message, called: bool = False): #todo: refactor
     nick = cur.execute(f"SELECT nickname FROM userdata WHERE user_id = {user_id}").fetchone()[0]
     mask = get_mask(user_id)
     profile_type = cur.execute(f"SELECT profile_type FROM userdata WHERE user_id = {user_id}").fetchone()[0]
@@ -556,23 +616,37 @@ async def profile(user_id: int, message: Message, called: bool = False):
             await message.answer(prof, parse_mode = "html", reply_markup = markup)'''
 
 
-async def earn(message: Message, money: int, user_id: int = None):
-    if not user_id:
+async def earn(money: int, message: Message = None, user_id: int = None) -> None:
+    '''
+    To give money to a user 
+
+    :param money (int) - how many money will be given
+    :param user_id (int) -  Telegram User ID of user to which money will be given
+    '''
+    if not message and not user_id:
+        raise ValueError("You must provide either message or user_id")
+    elif not user_id:
         user_id = message.from_user.id
 
     cur.execute(f"UPDATE userdata SET balance = balance+{money} WHERE user_id = {user_id}")
     conn.commit()
 
 
-async def buy(call: CallbackQuery, item, user_id: int, cost: int = None, amount: int = 1):
+async def buy(call: CallbackQuery, item: str, user_id: int, cost: int = None, amount: int = 1):
+    '''
+    buy an item 
+    
+    :param call (aiogram.types.CallbackQuery) - callback 
+    :param item (str) - item that will be bought 
+    :param user_id (int) - Telegram User ID of user who is buying an item 
+    :param cost (int) - (Optional) cost of an item. Don't specify if you want to use default 
+    :param amount (int) - amount
+    '''
     if item not in ITEMS:
         raise ValueError("no such item")
 
-    message = call.message
-
     if not cost:
         cost = ITEMS[item][3]
-    itemcount = cur.execute(f"SELECT {item} FROM userdata WHERE user_id = {user_id}").fetchone()[0]
 
     balance = cur.execute(f"SELECT balance FROM userdata WHERE user_id = {user_id}").fetchone()[0]
 
@@ -586,5 +660,6 @@ async def buy(call: CallbackQuery, item, user_id: int, cost: int = None, amount:
         cur.execute(f"UPDATE globaldata SET treasury=treasury+{cost*amount//2}"); conn.commit()
     else:
         await call.answer('🚫 У вас недостаточно денег', show_alert = True)
-# todo battle
+
+
 

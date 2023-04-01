@@ -3,7 +3,7 @@ import asyncio, sched, time
 from aiogram.utils import executor
 from aiogram.utils.exceptions import ChatNotFound
 
-from .config import log_chat
+from .misc.config import log_chat
 from . import bot, dp, Dispatcher, logger
 
 from .database.sqlitedb import connect_database

@@ -4,7 +4,7 @@ import sqlite3
 from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.deep_linking import decode_payload
 
-from ..config import levelrange, hellos, randomtext, SUPPORT_LINK
+from ..misc.config import levelrange, hellos, randomtext, SUPPORT_LINK
 
 from .. import bot, Dispatcher, logger
 
@@ -13,7 +13,12 @@ from ..database.functions import check, create_acc, profile
 
 from ..misc import get_mask, get_link
 
-async def start_cmd(message: Message):
+async def start_cmd(message: Message):  # sourcery skip: low-code-quality
+    '''
+    handler for start command 
+
+    :param message:
+    '''
     try:
         user_id = message.from_user.id
         chat_id = message.chat.id

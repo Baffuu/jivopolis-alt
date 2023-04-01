@@ -5,7 +5,7 @@ from ..callbacks.traveling import state_balance
 
 from ... import bot, logger
 from ...database.sqlitedb import cur, conn
-from ...config import log_chat, limeteds, ITEMS
+from ...misc.config import log_chat, limeteds, ITEMS
 from ...misc import get_mask, get_link
 
 from aiogram.types import (
@@ -14,7 +14,13 @@ from aiogram.types import (
     Message, CallbackQuery
 )
 
-async def chats(user_id: int, message: Message):
+async def chats(user_id: int, message: Message) -> None:
+    '''
+    Callback for chats
+    
+    :param user_id:
+    :param message:
+    '''
     rase = cur.execute(f"SELECT rase FROM userdata WHERE user_id = {user_id}").fetchone()[0]
     markup = InlineKeyboardMarkup()
 
@@ -45,9 +51,14 @@ async def chats(user_id: int, message: Message):
     markup.add(InlineKeyboardButton(text="🎮 Игровой клуб", url="https://t.me/+2UuPwVyac6lkYjRi"))
     await message.answer("<i><b>Официальные чаты Живополиса</b>\n&#128221; Приёмная для идей и вопросов: https://t.me/zhivolab\n&#128172; Чат для общения: https://t.me/chatzhivopolisa\n&#128163; Чат для флуда: https://t.me/jivopolis_flood\n&#128176; Рынок Живополиса: t.me/jivopolis_bazar\n&#128572; Посольство Живополиса в Котостане: https://t.me/posolstvo_jivopolis_in_kotostan\n{0}</i>".format("Вы ещё не выбрали себе расу. Чтобы выбрать, нажмите на кнопку \"Выбрать расу\"\n" if chat=="" else ""), parse_mode = "html", reply_markup = markup)
 
-#todo async def change_rase(user_id: int, message: Message)
 
-async def my_refferals(message: Message, user_id: int):
+async def my_refferals(message: Message, user_id: int) -> None:
+    '''
+    Callback for user refferals
+    
+    :param message:
+    :param user_id:
+    '''
     user_mask = get_mask(user_id)
     nick = cur.execute(f"SELECT nickname FROM userdata WHERE user_id = {user_id}").fetchone()[0]
     count = cur.execute(f"SELECT count(*) FROM userdata WHERE inviter_id = {user_id}").fetchone()[0]
@@ -70,7 +81,8 @@ async def my_refferals(message: Message, user_id: int):
         users+=f"\n{ref_num}. <a href = \"{get_link(row[1])}\">{mask}{row[7]}</a>"
     await message.answer(f"<i>&#128100; Пользователи, привлечённые <b><a href=\"tg://user?id={user_id}\">{user_mask}{nick}</a></b>: <b>{users}</b></i>", parse_mode = "html", reply_markup=markup)
 
-async def get_cheque(call: CallbackQuery, user_id: int):
+
+async def get_cheque(call: CallbackQuery, user_id: int) -> None:
     money = int(call.data[6:])
     mask = get_mask(user_id)
     nick = cur.execute(f"SELECT nickname FROM userdata WHERE user_id={user_id}").fetchone()[0]
@@ -87,8 +99,14 @@ async def get_cheque(call: CallbackQuery, user_id: int):
     if money > 0:
         await bot.send_message(log_chat, f"<i><b><a href=\"{get_link}\">{mask}{nick}</a></b> забрал <b>${money}</b>\n#user_getcheck</i>")
 
-async def cellphone_menu(call: CallbackQuery):
-    a = call.from_user.id
+
+async def cellphone_menu(call: CallbackQuery) -> None:
+    '''
+    Callback for cell phone menu
+    
+    :param call - callback:
+    :param user_id:
+    '''
     phone = cur.execute(f"SELECT phone FROM userdata WHERE user_id={call.from_user.id}").fetchone()[0]
     
     if phone<1:
@@ -103,7 +121,14 @@ async def cellphone_menu(call: CallbackQuery):
 
     await call.message.answer("<i>📱 Телефон - это удобная и современная вещь</i>", parse_mode="html", reply_markup = markup)
 
-async def give_state(call: CallbackQuery, amount):
+
+async def give_state(call: CallbackQuery, amount) -> None:
+    '''
+    Callback for clan joining
+    
+    :param call - callback:
+    :param user_id:
+    '''
     amount = int(call.data[11:])
     user_id = call.from_user.id
     place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={user_id}").fetchone()[0]
@@ -123,7 +148,13 @@ async def give_state(call: CallbackQuery, amount):
     await state_balance(call)
     await bot.delete_message(call.message.chat.id, call.message.message_id)
 
-async def economics(call: CallbackQuery):
+
+async def economics(call: CallbackQuery) -> None:
+    '''
+    Callback for jivopolis economics menu
+    
+    :param call - callback:
+    '''
     treasury = cur.execute("SELECT treasury FROM globaldata").fetchone()[0]
     try:
         balance = cur.execute(

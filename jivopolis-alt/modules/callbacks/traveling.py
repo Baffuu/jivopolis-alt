@@ -7,7 +7,7 @@ from ...misc import get_building, get_link, get_mask
 from ...database.sqlitedb import cur, conn
 from ...database.functions import buy, buybutton, itemdata
 
-from ...config import (
+from ...misc.config import (
     METRO, WALK, CITY, 
     trains, villages, walks,
     ITEMS, lvlcar, limeteds,
@@ -23,6 +23,13 @@ from aiogram.types import (
 )
 
 async def city(message: Message, user_id: str):
+    # sourcery skip: low-code-quality
+    '''
+    Callback for city
+    
+    :param message:
+    :param user_id:
+    '''
     place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={user_id}").fetchone()[0]
     line = cur.execute(f"SELECT line FROM userdata WHERE user_id={user_id}").fetchone()[0]
     car = cur.execute(f"SELECT blue_car+red_car FROM userdata WHERE user_id={user_id}").fetchone()[0] #todo MORE CARS
@@ -99,7 +106,13 @@ async def city(message: Message, user_id: str):
     await message.answer("<i>В Живополисе есть много чего интересного!\n&#127963; <b>{0}</b></i>".format(place), parse_mode = "html", reply_markup = markup)
     chid = message.chat.id
 
+
 async def buycall(call: CallbackQuery):
+    '''
+    Callback for buying an item
+    
+    :param call - callback:
+    '''
     user_id = call.from_user.id
     item = call.data.split(':')[0][4:]
     try:
@@ -121,12 +134,18 @@ async def buycall(call: CallbackQuery):
     else:
         raise ValueError("no such item")
 
-async def car_menu(call: CallbackQuery):
+
+async def car_menu(call: CallbackQuery) -> None:
+    '''
+    Callback for car menu
+    
+    :param call - callback:
+    '''
     message = call.message
     user_id = call.from_user.id
     car = cur.execute(f"SELECT red_car+blue_car FROM userdata WHERE user_id={user_id}").fetchone()[0] #todo more cars
 
-    if car<1:
+    if car < 1:
         return await call.answer('❌ У вас нет машины', show_alert = True)
 
     markup = InlineKeyboardMarkup(row_width=2)
@@ -139,7 +158,14 @@ async def car_menu(call: CallbackQuery):
     markup.add(*places)
     await message.answer('<i>👨‍✈️ Выберите место для поездки.</i>', parse_mode='html', reply_markup=markup)
 
-async def goto_on_car(call: CallbackQuery):
+
+async def goto_on_car(call: CallbackQuery) -> None:
+    '''
+    Callback for clan joining
+    
+    :param call - callback:
+    :param user_id:
+    '''
     user_id = call.from_user.id
     car = cur.execute(f"SELECT red_car+blue_car FROM userdata WHERE user_id = {user_id}").fetchone()[0]
 
@@ -156,7 +182,13 @@ async def goto_on_car(call: CallbackQuery):
     conn.commit()
     await city(call.message, call.from_user.id)
 
-async def local_people(call: CallbackQuery):
+
+async def local_people(call: CallbackQuery) -> None:
+    '''
+    Callback for seeing people that are in the same place as you
+    
+    :param call - callback:
+    '''
     place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id = {call.from_user.id}").fetchone()[0]
     usercount = cur.execute(f"SELECT count(*) FROM userdata WHERE current_place = '{place}'").fetchone()[0]
 
@@ -172,8 +204,13 @@ async def local_people(call: CallbackQuery):
     )
     await call.message.answer(f'<i>&#128100; Пользователи в местности <b>{place}</b>: <b>{users}</b></i>', parse_mode = 'html')
 
-async def delivery_menu(call: CallbackQuery):
-    a = call.from_user.id
+
+async def delivery_menu(call: CallbackQuery) -> None:
+    '''
+    Callback for delivery phone app
+    
+    :param user_id:
+    '''
     phone = cur.execute(f"SELECT phone FROM userdata WHERE user_id={call.from_user.id}").fetchone()[0]
 
     if phone<1:
@@ -195,8 +232,14 @@ async def delivery_menu(call: CallbackQuery):
     markup.add(InlineKeyboardMarkup(text='◀ Назад', callback_data='cancel_action'))
 
     await call.message.answer('<i>🚚 Здесь вы можете заказать себе любой товар из ТЦ МиГ из любого места, даже из самой глухой деревни. Это обойдётся дороже, чем в ТЦ, зато удобнее :)</i>', parse_mode='html', reply_markup = markup)
-            
-async def central_market_menu(call: CallbackQuery):
+
+
+async def central_market_menu(call: CallbackQuery) -> None:
+    '''
+    Callback for central market menu
+    
+    :param call - callback:
+    '''
     place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={call.from_user.id}").fetchone()[0]
     
     if place!='Рынок':
@@ -210,7 +253,13 @@ async def central_market_menu(call: CallbackQuery):
     await call.message.answer('<i><b>🏣 Центральный рынок</b> - место, в котором можно продать купленные товары. Дешевле, чем в магазине, но удобно\n\
         \n❗ Здесь вы <b>продаёте</b> товары государству, а не покупаете. Деньги вы получаете автоматически, ваш товар никому не достаётся</i>', reply_markup = markup, parse_mode = 'html')
 
-async def central_market_food(call: CallbackQuery):
+
+async def central_market_food(call: CallbackQuery) -> None:
+    '''
+    Callback for central market food part
+    
+    :param call - callback:
+    '''
     user_id = call.from_user.id
     place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={user_id}").fetchone()[0]
 
@@ -234,7 +283,13 @@ async def central_market_food(call: CallbackQuery):
     markup.add(InlineKeyboardMarkup(text='◀ Назад', callback_data='cancel_action'))
     await call.message.answer(f'<i>{desc}</i>', reply_markup = markup, parse_mode = 'html')
 
-async def central_market_mask(call: CallbackQuery):
+
+async def central_market_mask(call: CallbackQuery) -> None:
+    '''
+    Callback for mask section of central market
+    
+    :param call - callback:
+    '''
     user_id = call.from_user.id
     place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={user_id}").fetchone()[0]
 
@@ -260,7 +315,13 @@ async def central_market_mask(call: CallbackQuery):
     markup.add(InlineKeyboardMarkup(text='◀ Назад', callback_data='cancel_action'))
     await call.message.answer(f'<i>{text}</i>', reply_markup = markup, parse_mode = 'html')
 
-async def bank(call: CallbackQuery):
+
+async def bank(call: CallbackQuery) -> None:
+    '''
+    Callback for bank
+    
+    :param call - callback:
+    '''
     place = cur.execute(f"SELECT current_place from userdata WHERE user_id={call.from_user.id}").fetchone()[0]
     
     if place != 'Живбанк':
@@ -271,7 +332,13 @@ async def bank(call: CallbackQuery):
 
     await call.message.answer('<i>🏦 Добро пожаловать в Банк</i>', reply_markup = markup, parse_mode = 'html')
 
-async def state_balance(call: CallbackQuery):
+
+async def state_balance(call: CallbackQuery) -> None:
+    '''
+    Callback for state balance 
+    
+    :param call - callback:
+    '''
     place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={call.from_user.id}").fetchone()[0]
     treasury = cur.execute("SELECT treasury FROM globaldata").fetchone()[0]
 
@@ -286,7 +353,14 @@ async def state_balance(call: CallbackQuery):
 
     await call.message.answer(f'<i>🏦 Добро пожаловать в Казну. Сейчас тут ${treasury}</i>', reply_markup = markup, parse_mode = 'html')
 
-async def taxi_menu(message: Message, user_id: int):
+
+async def taxi_menu(message: Message, user_id: int) -> None:
+    '''
+    Callback for taxi menu
+    
+    :param message:
+    :param user_id:
+    '''
     level = cur.execute(f"SELECT level FROM userdata WHERE user_id={user_id}").fetchone()[0]
 
     if level < lvlcab:
@@ -303,7 +377,14 @@ async def taxi_menu(message: Message, user_id: int):
     return await message.answer('<i>Стоимость поездки зависит от отдалённости места, в которое вы едете.\
     Чтобы посмотреть цену поездки до определённого места, нажмите на него в списке локаций в предыдущем сообщении</i>', parse_mode='html')
 
-async def taxicost(call: CallbackQuery, place: str):
+
+async def taxicost(call: CallbackQuery, place: str) -> None:
+    '''
+    Callback for taxi cost & approval
+    
+    :param call - callback:
+    :param place:
+    '''
     current_place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={call.from_user.id}").fetchone()[0]
 
     if place not in CITY:
@@ -315,7 +396,14 @@ async def taxicost(call: CallbackQuery, place: str):
     InlineKeyboardButton('🚫 Отмена', callback_data='cancel_action'))
     return await call.message.answer(f'<i>Стоимость поездки до локации <b>{place}</b> - <b>${cost}</b></i>', parse_mode='html', reply_markup = markup)
 
-async def taxi_goto_(call: CallbackQuery, place: str):
+
+async def taxi_goto_(call: CallbackQuery, place: str) -> None:
+    '''
+    Callback for going to {place} on taxi
+    
+    :param call - callback:
+    :param place:
+    '''
     user_id = call.from_user.id
 
     balance = cur.execute(f"SELECT balance FROM userdata WHERE user_id={user_id}").fetchone()[0]
@@ -342,7 +430,13 @@ async def taxi_goto_(call: CallbackQuery, place: str):
 
     return await city(call.message, call.from_user.id)
 
-async def gps_menu(call: CallbackQuery):
+
+async def gps_menu(call: CallbackQuery) -> None:
+    '''
+    Callback for GPS app menu
+    
+    :param call - callback:
+    '''
     user_id = call.from_user.id
     phone = cur.execute(f"SELECT phone FROM userdata WHERE user_id={user_id}").fetchone()[0]
 
@@ -364,7 +458,16 @@ async def gps_menu(call: CallbackQuery):
     markup.add(InlineKeyboardMarkup(text='◀ Назад', callback_data='cancel_action'))
     await call.message.answer('<i>Выберите категорию</i>', reply_markup = markup, parse_mode = 'html')
 
-async def buy24_(call: CallbackQuery, item: str):    
+
+async def buy24_(call: CallbackQuery, item: str) -> None:   
+    '''
+    Callback for buying {item} in 24-hour shop
+    
+    :param call - callback:
+    :param item:
+
+    :raises ValueError if item doesn't seem to exists
+    ''' 
     if item not in ITEMS or item not in limeteds:
         raise ValueError("no such item")
     items_left = cur.execute(f"SELECT {item} FROM globaldata").fetchone()[0]
@@ -377,8 +480,16 @@ async def buy24_(call: CallbackQuery, item: str):
 
     await buy(call, item, call.from_user.id, ITEMS[item][3])
 
-async def buyclan_(call: CallbackQuery, item: str):
+
+async def buyclan_(call: CallbackQuery, item: str) -> None:
+    '''
+    Callback for buying clanitem
     
+    :param call - callback:
+    :param item:
+
+    :raises ValueError if item does not exist or is not in clan-items 
+    '''
     if item not in clanitems:
         raise ValueError("no such item in clanitems")
 
@@ -406,7 +517,13 @@ async def buyclan_(call: CallbackQuery, item: str):
     conn.commit()
     await call.answer(f'Покупка совершена успешно. Ваш баланс: ${balance-cost}. Баланс клана пополнен на ${cost//clan_bonus_devider}', show_alert = True)
 
-async def railway_station(call: CallbackQuery):
+
+async def railway_station(call: CallbackQuery) -> None:
+    '''
+    Callback for railway station callback
+    
+    :param call - callback:
+    '''
     markup = InlineKeyboardMarkup(row_width=1).\
         add(InlineKeyboardButton(text='💺 Зал ожидания', callback_data='lounge'),
             InlineKeyboardButton(text='🎫 Билетные кассы', callback_data='tickets'),
@@ -414,7 +531,14 @@ async def railway_station(call: CallbackQuery):
 
     await call.message.answer('<i>Пора уже валить отсюда...</i>', parse_mode='html', reply_markup=markup)
 
-async def bus(call: CallbackQuery):
+
+async def bus(call: CallbackQuery) -> None:
+    '''
+    Callback for bus menu
+    
+    :param call - callback:
+    :param user_id:
+    '''
     markup = InlineKeyboardMarkup(row_width=1).\
         add(InlineKeyboardButton(text='🚌 К платформам', callback_data='bus_lounge'),
             InlineKeyboardButton(text='🎫 Билетные кассы', callback_data='tickets'),

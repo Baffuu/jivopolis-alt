@@ -5,3 +5,4 @@ database.db
 __pychache__/
 database (1).db
 main.py
+**.yaml

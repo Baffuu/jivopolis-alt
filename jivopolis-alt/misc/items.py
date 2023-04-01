@@ -235,3 +235,4 @@ allitems = {
     )
 
 }
+'''Store all items in Jivopolis'''

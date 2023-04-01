@@ -1,7 +1,7 @@
 from datetime import datetime
-from ..config import intervals, BOT_USER
+from .config import intervals, BOT_USER
 
-from typing import Union
+from typing import Union, Tuple
 from math import ceil
 
 from .. import logger
@@ -11,15 +11,28 @@ from aiogram.types import InlineKeyboardButton
 from aiogram.utils.deep_linking import decode_payload
 
 def get_link(user_id: int = None, encoded_id: str = None) -> str:
-    '''get link to user profile in bot'''
+    '''
+    get link to user profile in bot
+    
+    :param user_id:
+    :param encoded_id - encoded user id:
+    
+    :returns - bot link of user:
+
+    :raise ValueError if no arguments will be provided.
+    '''
     if not user_id and not encoded_id:
         raise ValueError('there is no user id and no encoded user id.')
-    if encoded_id:
+    if encoded_id and not user_id:
         user_id = decode_payload(encoded_id)
     return f"{BOT_USER}?start={user_id}"
 
 def get_mask(user_id: int) -> Union[str, None]:
-    '''get mask or rase of user'''
+    '''
+    get mask or rase of user
+    
+    :param user_id:
+    '''
     try:
         return (
             cur.execute(
@@ -41,13 +54,12 @@ def current_time() -> float:
     """returns current time in seconds"""
     return (datetime.now()-datetime.fromtimestamp(0)).total_seconds()
 
-def isinterval(type) -> bool:
-    #todo description
+def isinterval(type) -> bool: #it's useless now :(
     now = current_time()
     interval = intervals[type]
     return now // 1 % interval[0] <= interval[1]
 
-def remaining(type) -> str:
+def remaining(type) -> str: #it's useless now :(
     '''remaining time due {something} happends, in minutes and seconds.'''
     now = current_time()
     interval = intervals[type][0]
@@ -55,7 +67,7 @@ def remaining(type) -> str:
     min, sec = divmod(seconds, 60)
     return f'{(min) if min != 0 else ""}{1}'.format('{0} секунд'.format(sec) if sec != 0 else '')
 
-def get_time_units(time: float):
+def get_time_units(time: float) -> Tuple[int, int, int]:
     '''
     :param time: - enter time in seconds
     
@@ -66,8 +78,14 @@ def get_time_units(time: float):
 
     return hours, minutes, seconds
     
-def get_building(place) -> InlineKeyboardButton | None:
-    '''Get InlineKeyboardButton with special building for every location'''
+def get_building(place: str) -> InlineKeyboardButton | None:
+    '''
+    Get InlineKeyboardButton with special building for every location
+    
+    :param place:
+    
+    :return aiogram.types.InlineKeyboardButton
+    '''
     match (place):
         case "Ботаническая":
             button = InlineKeyboardButton(text="🌲 Живополисский ботанический сад", callback_data="botan_garden_shop")
