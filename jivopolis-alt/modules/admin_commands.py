@@ -41,13 +41,23 @@ async def sqlrun_cmd(message: Message) -> None:
             cur.execute(f"UPDATE userdata SET sql='{request}' WHERE user_id={message.from_user.id}")
             conn.commit()
 
-            await message.answer("<i>🪐 Запрос отправлен мега-админам на проверку. Вам придётся подождать, пока кто-нибудь примет или отклонит запрос.\n\
-                \n❗️При повторной отправке любого другого запроса текущий будет стёрт.</i>", parse_mode="html")
+            await message.answer(
+                "<i>🪐 Запрос отправлен мега-админам на проверку. Вам придётся подождать, пока кто-нибудь примет или отклонит запрос.\n"
+                "\n❗️При повторной отправке любого другого запроса текущий будет стёрт.</i>"
+            )
 
-            await bot.send_message(MEGACHAT, f"<i><a href=\"tg://user?id={message.from_user.id}\">{message.from_user.full_name}</a> хочет выполнить запрос:\n\
-                                \n<code>{request}</code></i>", reply_markup=InlineKeyboardMarkup(row_width=1).\
-                                add(InlineKeyboardButton(text="🔰 Подтвердить", callback_data=f"sqlrun:approve:{message.from_user.id}"), 
-                                InlineKeyboardButton(text="📛 Отклонить", callback_data=f"sqlrun:decline:{message.from_user.id}")))
+            await bot.send_message(
+                MEGACHAT, 
+                (
+                    f"<i><a href=\"tg://user?id={message.from_user.id}\">{message.from_user.full_name}</a> хочет выполнить запрос:\n"
+                    f"\n<code>{request}</code></i>",
+                ),
+                reply_markup=InlineKeyboardMarkup(row_width=1).\
+                    add(
+                        InlineKeyboardButton(text="🔰 Подтвердить", callback_data=f"sqlrun:approve:{message.from_user.id}"), 
+                        InlineKeyboardButton(text="📛 Отклонить", callback_data=f"sqlrun:decline:{message.from_user.id}")
+                    )
+            )
   
         elif args.lower().startswith("select"):
             cur.execute(args)
@@ -61,7 +71,7 @@ async def sqlrun_cmd(message: Message) -> None:
             if values == '':
                 values = 'None'
 
-            return await message.answer(f"<i><b>🧑‍🔧 SQLRun вернуло следующие значения: \n</b>{values}</i>", parse_mode="html")
+            return await message.answer(f"<i><b>🧑‍🔧 SQLRun вернуло следующие значения: \n</b>{values}</i>")
         elif rank > 2:
             cur.execute(args)
             conn.commit()   
@@ -69,7 +79,7 @@ async def sqlrun_cmd(message: Message) -> None:
             return logger.success(f"SQL Query: {args}")
     
     except Exception as e:
-        await message.answer(f"<i><b>something went wrong: </b>{e}</i>", parse_mode = "html")
+        await message.answer(f"<i><b>something went wrong: </b>{e}</i>")
 
 
 async def globan_cmd(message: Message) -> None:    

@@ -60,22 +60,22 @@ async def joinclan(call: CallbackQuery, user_id: int) -> None:
 
     count = cur.execute(f"SELECT count(*) FROM clandata WHERE clan_id = {chat_id}").fetchone()[0]
 
+    if count < 1:
+        return call.answer("😓 Похоже, такого клана не существует.", show_alert=True)
+    elif count > 1:
+        raise ValueError("found more than one clan with such ID")
+
     mask = get_mask(user_id)
     nick = cur.execute(f"SELECT nickname FROM userdata WHERE user_id = {user_id}").fetchone()[0]
-
-    if count < 1:
-        return #todo call answer
-    elif count > 1:
-        raise ValueError("there are more than 1 chat with such id.")
-
-    #cur.execute(f"SELECT clan_type FROM clandata WHERE clan_id={chat_id}").fetchone()[0]
     user_clan = cur.execute(f"SELECT clan_id FROM userdata WHERE user_id={user_id}").fetchone()[0]
 
     if user_clan != chat_id and user_clan:
         cur.execute(f"UPDATE userdata SET clan_id={chat_id} WHERE user_id={user_id}"); conn.commit()
-        return await bot.send_message(chat_id, '<i><b><a href="tg://user?id={2}">{0}{1}</a></b> присоединился к клану</i>'.format(mask, nick, user_id))
+        return await bot.send_message(
+            chat_id, 
+        f'<i><b><a href="{get_link(user_id)}">{mask}{nick}</a></b> присоединился к клану</i>')
     else:
         cur.execute(f"UPDATE userdata SET clan_id=NULL WHERE user_id={user_id}")
         conn.commit()
-        await bot.send_message(chat_id, f"<i><b><a href=\"tg://user?id={2}\">{0}{1}</a></b> вышел из клана</i>".format(mask, nick, user_id), parse_mode = 'html')
+        await bot.send_message(chat_id, f"<i><b><a href=\"tg://user?id={2}\">{0}{1}</a></b> вышел из клана</i>".format(mask, nick, user_id))
             

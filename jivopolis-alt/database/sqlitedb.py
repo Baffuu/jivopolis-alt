@@ -5,12 +5,14 @@ from .. import logger, bot
 from aiogram.types import User, Chat
 from aiogram.utils.deep_linking import encode_payload
 
+
 def connect_database() -> None:
     """
     connects database, creates tables if they does not exists, etc."""
     global conn, cur
     conn = sqlite3.connect('database.db', check_same_thread=False)
     cur = conn.cursor()
+    
     if conn:
         create_userdata()
         create_globaldata()
@@ -42,7 +44,7 @@ def create_userdata() -> None:
     health          INTEGER         DEFAULT 100             NOT NULL,
     level           INTEGER         DEFAULT 0               NOT NULL,
     XP              INTEGER         DEFAULT 0               NOT NULL,
-    clan_id         INTEGER         DEFAULT 0               NOT NULL,
+    clan_id         INTEGER,
     last_steal      DATETIME        DEFAULT 0               NOT NULL,
     is_ready        INTEGER         DEFAULT 0               NOT NULL,
 
@@ -171,6 +173,7 @@ def create_clandata() -> None:
     clan_balance    INTEGER         DEFAULT 0               NOT NULL,
     owner_id        INTEGER,
     HQ_place        TEXT        DEFAULT \"не установлено\"  NOT NULL,
+    address         INTEGER,
     link            TEXT,
     lootbox         INTEGER         DEFAULT 0               NOT NULL,
     last_box        DATETIME        DEFAULT 0               NOT NULL, 

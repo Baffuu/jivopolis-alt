@@ -27,7 +27,7 @@ async def itemdesc(call: CallbackQuery, user_id: int) -> None:
     count = cur.execute(f"SELECT {call.data} FROM userdata WHERE user_id={user_id}").fetchone()[0]
 
     if count < 1:
-        return await call.message.answer('<i>🚫 У вас нет этого предмета</i>', reply_markup = markup, parse_mode = 'html')
+        return await call.message.answer('<i>🚫 У вас нет этого предмета</i>', reply_markup = markup)
     
     try:
         mask = cur.execute(f"SELECT mask FROM userdata WHERE user_id={user_id}").fetchone()[0]
@@ -73,7 +73,7 @@ async def itemdesc(call: CallbackQuery, user_id: int) -> None:
     else:
         itemsleft = ''
     
-    return await call.message.answer(f'<i><b>{item.emoji} {item.ru_name}</b> - {description}{itemsleft}\n\nУ вас <b>{count}</b> единиц этого предмета</i>', reply_markup = markup, parse_mode = 'html')
+    return await call.message.answer(f'<i><b>{item.emoji} {item.ru_name}</b> - {description}{itemsleft}\n\nУ вас <b>{count}</b> единиц этого предмета</i>', reply_markup = markup)
 
 
 async def inventory(call: CallbackQuery) -> None:
@@ -110,15 +110,15 @@ async def inventory(call: CallbackQuery) -> None:
 
     markup.add(InlineKeyboardButton(text='🏪 Круглосуточный магазин', callback_data='shop_24'))
     
-    await call.message.answer('<i>Ваш инвентарь</i>', reply_markup = markup, parse_mode = 'html')
+    await call.message.answer('<i>Ваш инвентарь</i>', reply_markup = markup)
 
 
 async def lootbox_button(user_id: int, message: Message) -> None:
     '''
     Callback for lootbox button
     
-    :param call - callback:
     :param user_id:
+    :param message:
     '''
     mailbox = cur.execute(f"SELECT last_box FROM userdata WHERE user_id = {user_id}").fetchone()[0]
     difference: float = current_time() - mailbox
@@ -137,10 +137,11 @@ async def lootbox_button(user_id: int, message: Message) -> None:
             add(InlineKeyboardButton(text='🖇 Пригласить пользователей', callback_data='reflink'))
         
         return await message.answer(
-            f'<i>&#10060; Проверять почтовый ящик можно только 1 раз в 24 часа. До следующей проверки осталось {hours} часов {minutes} минут {seconds} секунд.\
-            \n\nЧтобы получать внеочередные ящики, приглашайте пользователей в Живополис. За каждого приглашённого пользователя вы получаете лутбокс,\
-            с помощью которого можно открыть ящик в любое время</i>', 
-            parse_mode='html', 
+            (
+                f"<i>&#10060; Проверять почтовый ящик можно только 1 раз в 24 часа. До следующей проверки осталось {hours} часов {minutes} минут {seconds} секунд."
+                "\n\nЧтобы получать внеочередные ящики, приглашайте пользователей в Живополис. За каждого приглашённого пользователя вы получаете лутбокс,"
+                "с помощью которого можно открыть ящик в любое время</i>"
+            ), 
             reply_markup=markup
         )
 
@@ -151,8 +152,8 @@ async def lootbox_button(user_id: int, message: Message) -> None:
         cur.execute(f"UPDATE userdata SET {item.name}={item.name}+1 WHERE user_id={user_id}")
         conn.commit()
 
-        return await message.reply(LOOTBOX[price_type].format(f"{item.emoji} {item.ru_name}"))
-    return await message.reply(LOOTBOX[price_type].format(price))
+        return await message.answer(LOOTBOX[price_type].format(f"{item.emoji} {item.ru_name}"))
+    return await message.answer(LOOTBOX[price_type].format(price))
 
 
 async def sellitem(call: CallbackQuery, item: str) -> None:

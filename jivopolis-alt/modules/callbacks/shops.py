@@ -34,7 +34,6 @@ async def shop(
     await call.message.answer(
         text=f'<i>{text}</i>', 
         reply_markup=markup,
-        parse_mode='html'
     )
 
 
@@ -56,7 +55,6 @@ async def moda_menu(call: CallbackQuery) -> None:
     return await call.message.answer(
         '<i>&#128090; Добро пожаловать в <b>ModaShop</b>! Здесь вы можете купить любую одежду!</i>', 
         reply_markup = markup, 
-        parse_mode = 'html'
     )
 
 
@@ -77,7 +75,7 @@ async def mall(call: CallbackQuery) -> None:
                InlineKeyboardButton(text='🍔 Енот Кебаб', callback_data='enot_kebab'),
                InlineKeyboardButton(text='🍚 Ресторан Япон Енот', callback_data='japan_shop'))
 
-    return await call.message.answer('<i>&#127978; Добро пожаловать в торговый центр!</i>', reply_markup = markup, parse_mode = 'html')
+    return await call.message.answer('<i>&#127978; Добро пожаловать в торговый центр!</i>', reply_markup = markup)
 
 
 async def shop_24(call: CallbackQuery) -> None:
@@ -96,4 +94,4 @@ async def shop_24(call: CallbackQuery) -> None:
     markup = InlineKeyboardMarkup(row_width=1).\
         add(*list(filter(lambda item: item is not None, buttons)))
 
-    await call.message.answer('<i>Что хотите купить?</i>', reply_markup = markup, parse_mode = 'html')
+    await call.message.answer('<i>Что хотите купить?</i>', reply_markup = markup)

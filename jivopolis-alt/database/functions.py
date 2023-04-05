@@ -196,38 +196,6 @@ async def eat(call: CallbackQuery, food: str) -> None:
             return await bot.send_message(chat_id, "<i>&#9760; Вы умерли</i>")
 
 
-async def create_acc(user: User, chat_id: int) -> None:
-    '''
-    Shell for inserting user into database 
-
-    :param user (aiogram.types.User) - user that will be inserted
-    :param chat_id (int) - chat id in which messages will be sent 
-    ''' 
-    try: 
-        count = cur.execute(f"SELECT COUNT(*) FROM userdata WHERE user_id={user.id}").fetchone()[0]
-
-        if count > 0:
-            return await bot.send_message(chat_id, "<i>😨 Вы уже создавали аккаунт</i>", reply_markup = ReplyKeyboardRemove())
-            
-        insert_user(user)
-        await bot.send_message(log_chat, f"<i><b><a href=\"{get_link(user.id)}\">{user.full_name}</a></b> присоединился(-ась) к Живополису\n#user_signup</i>")
-        
-        cur.execute(f"UPDATE userdata SET register_date = {current_time()} WHERE user_id={user.id}")
-        conn.commit()
-
-    except Exception as e:
-        if str(e).startswith("UNIQUE constraint failed: "):
-            await bot.send_message(chat_id, "<i>😨 Вы уже создавали аккаунт</i>", reply_markup = ReplyKeyboardRemove())
-        elif str(e) == "database is locked":
-            await bot.send_message(chat_id, f"<i><b>🚫 Ошибка: </b>база данных заблокирована</i>\n\
-            🔰 Попробуйте подождать или обратиться в <a href=\"{SUPPORT_LINK}\">поддержку.</a>", reply_markup = ReplyKeyboardRemove())
-        else:
-            logger.exception(e)
-        return
-    
-    return await bot.send_message(chat_id, "<i>👾 Вы успешно зарегистрировались в живополисе! Добро пожаловать :3</i>", reply_markup = ReplyKeyboardRemove())
-
-
 async def poison(user: User, target_id: int, chat_id: int) -> None:
     '''
     to use poison on a user 
@@ -457,7 +425,7 @@ async def profile(user_id: int, message: Message, called: bool = False): #todo: 
     profile_type = cur.execute(f"SELECT profile_type FROM userdata WHERE user_id = {user_id}").fetchone()[0]
 
     if profile_type == "private" and user_id != message.from_user.id and not called:
-        return await message.answer(f"🚫 <i><b><a href=\"tg://user?id={user_id}\">{mask}{nick}</a></b> скрыл свой профиль</i>", parse_mode = "html")
+        return await message.answer(f"🚫 <i><b><a href=\"tg://user?id={user_id}\">{mask}{nick}</a></b> скрыл свой профиль</i>")
 
     balance = cur.execute(f"SELECT balance FROM userdata WHERE user_id={user_id}").fetchone()[0]
     invited_by = cur.execute(f"SELECT inviter_id FROM userdata WHERE user_id={user_id}").fetchone()[0]
@@ -606,14 +574,14 @@ async def profile(user_id: int, message: Message, called: bool = False): #todo: 
 🛡 Клан: <b>{(f'<a href={clan_link}>{clan_name}</a>' if clan_type == 'public' else clan_name) if clan_id != 0 else 'отсутствует'}</b>\n\
 💊 Здоровье: {health}</i>"
 
-    await message.reply(prof, parse_mode='html', disable_web_page_preview=True, reply_markup=markup)
+    await message.reply(prof, reply_markup=markup)
     '''if photo == "":
-        await message.reply(prof, parse_mode = "html", reply_markup = markup)
+        await message.reply(prof, reply_markup = markup)
     else:
         try:
-            await bot.send_photo(message.chat.id, photo, caption=prof, parse_mode = "html", reply_markup = markup)
+            await bot.send_photo(message.chat.id, photo, caption=prof, reply_markup = markup)
         except:
-            await message.answer(prof, parse_mode = "html", reply_markup = markup)'''
+            await message.answer(prof, reply_markup = markup)'''
 
 
 async def earn(money: int, message: Message = None, user_id: int = None) -> None:

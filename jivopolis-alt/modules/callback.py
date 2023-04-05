@@ -1,5 +1,6 @@
 import contextlib
 
+from .start import _sign_up_refferal
 from .callbacks import *
 from .. import bot, logger, Dispatcher
 from ..misc.config import ITEMS, SUPPORT_LINK, villages, trains
@@ -36,8 +37,11 @@ async def callback_handler(call: CallbackQuery):
                 return await call.message.answer('<i>☠️ Вы умерли. Попросите кого-нибудь вас воскресить</i>', parse_mode = 'html')
 
         match (call.data):
-            case 'sign_up':
-                await create_acc(call.from_user, call.from_user.id)
+            case sign if sign.startswith('sign_up'):
+                if call.data == 'sign_up':
+                    await create_acc(call.from_user, call.from_user.id)
+                else:
+                    await _sign_up_refferal(call.message, call.from_user, call.data[8:])
             case 'chats':
                 await chats(call.from_user.id, call.message)
             case 'adminpanel':
@@ -256,8 +260,11 @@ async def callback_handler(call: CallbackQuery):
                 return await call.answer('♿️ 404: команда не найдена.', show_alert=True)
     except TypeError as e:
         logger.exception(e)
-        if call.data == 'sign_up':
-            await create_acc(call.from_user, call.message.chat.id)
+        if call.data.startswith('sign_up'):
+            if call.data == 'sign_up':
+                await create_acc(call.from_user, call.from_user.id)
+            else:
+                await _sign_up_refferal(call.message, call.from_user, call.data[8:])
             return await call.answer('☁️ Записываем ваши данные…')
         return await call.answer("🧑‍🎨 Сэр, у вас нет аккаунта в живополисе. Прежде чем использовать любые комманды вам нужно зарегистрироваться.", show_alert=True)
     except Exception as e:

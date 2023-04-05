@@ -92,7 +92,7 @@ async def city(message: Message, user_id: str):
             continue
         index = WALK[iswalk].index(place)
 
-        markup.add(InlineKeyboardButton(text=f"🚶 {wnk[index]} - {walks[index]} секунд ходьбы".format(wnk[index], walks[index]), callback_data="walk_{0}".format(wnk[index])))
+        markup.add(InlineKeyboardButton(text=f"🚶 {wnk[index]} - {walks[index]} секунд ходьбы", callback_data=f"walk_{wnk[index]}"))
 
 
 
@@ -103,8 +103,7 @@ async def city(message: Message, user_id: str):
     markup.add(InlineKeyboardButton(text="📡 GPS", callback_data="gps"))
     markup.add(InlineKeyboardButton(text="🏢 Кланы рядом", callback_data="local_clans"), 
     InlineKeyboardButton(text="👤 Кто здесь?", callback_data="local_people"))
-    await message.answer("<i>В Живополисе есть много чего интересного!\n&#127963; <b>{0}</b></i>".format(place), parse_mode = "html", reply_markup = markup)
-    chid = message.chat.id
+    await message.answer(f"<i>В Живополисе есть много чего интересного!\n&#127963; <b>{place}</b></i>", reply_markup = markup)
 
 
 async def buycall(call: CallbackQuery):
@@ -156,7 +155,7 @@ async def car_menu(call: CallbackQuery) -> None:
         for place in CITY
     ]
     markup.add(*places)
-    await message.answer('<i>👨‍✈️ Выберите место для поездки.</i>', parse_mode='html', reply_markup=markup)
+    await message.answer('<i>👨‍✈️ Выберите место для поездки.</i>', reply_markup=markup)
 
 
 async def goto_on_car(call: CallbackQuery) -> None:
@@ -170,10 +169,10 @@ async def goto_on_car(call: CallbackQuery) -> None:
     car = cur.execute(f"SELECT red_car+blue_car FROM userdata WHERE user_id = {user_id}").fetchone()[0]
 
     if car < 1:
-        return await call.message.answer('<i>&#128663; У вас нет машины</i>', parse_mode='html')
+        return await call.message.answer('<i>&#128663; У вас нет машины</i>')
 
     station = call.data[12:]
-    await call.message.answer('<i>Скоро приедем!</i>', parse_mode='html')
+    await call.message.answer('<i>Скоро приедем!</i>')
 
     with contextlib.suppress(Exception):
         await bot.delete_message(call.message.chat.id, call.message.message_id)
@@ -194,7 +193,7 @@ async def local_people(call: CallbackQuery) -> None:
 
     if usercount < 1:
         return await call.message.answer('<i>👤 Вы стоите один, оглядываясь по сторонам…</i>\n\
-            \n😓 В вашей местности не найдено людей. Помимо вас, само собой.', parse_mode = 'html')
+            \n😓 В вашей местности не найдено людей. Помимо вас, само собой.')
 
     cur.execute(f"SELECT * FROM userdata WHERE current_place = '{place}'")
 
@@ -202,7 +201,7 @@ async def local_people(call: CallbackQuery) -> None:
         f'\n{index}. <a href="{get_link(row[1])}">{get_mask(row[1])} {row[2]}</a>'
         for index, row in enumerate(cur.fetchall(), start=1)
     )
-    await call.message.answer(f'<i>&#128100; Пользователи в местности <b>{place}</b>: <b>{users}</b></i>', parse_mode = 'html')
+    await call.message.answer(f'<i>&#128100; Пользователи в местности <b>{place}</b>: <b>{users}</b></i>')
 
 
 async def delivery_menu(call: CallbackQuery) -> None:
@@ -231,7 +230,7 @@ async def delivery_menu(call: CallbackQuery) -> None:
     markup.add(*sellitems)
     markup.add(InlineKeyboardMarkup(text='◀ Назад', callback_data='cancel_action'))
 
-    await call.message.answer('<i>🚚 Здесь вы можете заказать себе любой товар из ТЦ МиГ из любого места, даже из самой глухой деревни. Это обойдётся дороже, чем в ТЦ, зато удобнее :)</i>', parse_mode='html', reply_markup = markup)
+    await call.message.answer('<i>🚚 Здесь вы можете заказать себе любой товар из ТЦ МиГ из любого места, даже из самой глухой деревни. Это обойдётся дороже, чем в ТЦ, зато удобнее :)</i>', reply_markup = markup)
 
 
 async def central_market_menu(call: CallbackQuery) -> None:
@@ -246,12 +245,19 @@ async def central_market_menu(call: CallbackQuery) -> None:
         return #todo answer
     
     markup = InlineKeyboardMarkup(row_width=2).\
-        add(InlineKeyboardMarkup(text='🍦 Продажа еды', callback_data='central_market_food'), 
-        InlineKeyboardMarkup(text='👕 Продажа масок', callback_data='central_market_mask'),
-        InlineKeyboardMarkup(text='🚪 Выйти', callback_data='cancel_action'))
+        add(
+            InlineKeyboardMarkup(text='🍦 Продажа еды', callback_data='central_market_food'), 
+            InlineKeyboardMarkup(text='👕 Продажа масок', callback_data='central_market_mask'),
+            InlineKeyboardMarkup(text='🚪 Выйти', callback_data='cancel_action')
+        )
 
-    await call.message.answer('<i><b>🏣 Центральный рынок</b> - место, в котором можно продать купленные товары. Дешевле, чем в магазине, но удобно\n\
-        \n❗ Здесь вы <b>продаёте</b> товары государству, а не покупаете. Деньги вы получаете автоматически, ваш товар никому не достаётся</i>', reply_markup = markup, parse_mode = 'html')
+    await call.message.answer(
+        (
+            "<i><b>🏣 Центральный рынок</b> - место, в котором можно продать купленные товары. Дешевле, чем в магазине, но удобно\n"
+            "\n❗ Здесь вы <b>продаёте</b> товары государству, а не покупаете. Деньги вы получаете автоматически, ваш товар никому не достаётся</i>"
+        ), 
+        reply_markup = markup
+    )
 
 
 async def central_market_food(call: CallbackQuery) -> None:
@@ -281,7 +287,7 @@ async def central_market_food(call: CallbackQuery) -> None:
         markup.add(*itemlist)
         desc = '<b>🏣 Центральный рынок</b> - место, в котором можно продать купленные товары. Дешевле, чем в магазине, но удобно\n\n❗ Здесь вы <b>продаёте</b> товары государству, а не покупаете. Деньги вы получаете автоматически, ваш товар никому не достаётся'
     markup.add(InlineKeyboardMarkup(text='◀ Назад', callback_data='cancel_action'))
-    await call.message.answer(f'<i>{desc}</i>', reply_markup = markup, parse_mode = 'html')
+    await call.message.answer(f'<i>{desc}</i>', reply_markup = markup)
 
 
 async def central_market_mask(call: CallbackQuery) -> None:
@@ -313,7 +319,7 @@ async def central_market_mask(call: CallbackQuery) -> None:
         markup.add(*itemlist)
         text = '<b>🏣 Центральный рынок</b> - место, в котором можно продать купленные товары. Дешевле, чем в магазине, но удобно\n\n❗ Здесь вы <b>продаёте</b> товары государству, а не покупаете. Деньги вы получаете автоматически, ваш товар никому не достаётся'
     markup.add(InlineKeyboardMarkup(text='◀ Назад', callback_data='cancel_action'))
-    await call.message.answer(f'<i>{text}</i>', reply_markup = markup, parse_mode = 'html')
+    await call.message.answer(f'<i>{text}</i>', reply_markup = markup)
 
 
 async def bank(call: CallbackQuery) -> None:
@@ -330,7 +336,7 @@ async def bank(call: CallbackQuery) -> None:
         add(InlineKeyboardButton(text='🏦 Государственная казна', callback_data='state_balance'),
         InlineKeyboardButton(text='🤏 Ограбить', callback_data='rob_bank'))
 
-    await call.message.answer('<i>🏦 Добро пожаловать в Банк</i>', reply_markup = markup, parse_mode = 'html')
+    await call.message.answer('<i>🏦 Добро пожаловать в Банк</i>', reply_markup = markup)
 
 
 async def state_balance(call: CallbackQuery) -> None:
@@ -351,7 +357,7 @@ async def state_balance(call: CallbackQuery) -> None:
         InlineKeyboardButton(text='💰 Пожертвовать $1000', callback_data='give_state 1000'), 
         InlineKeyboardButton(text='💰 Пожертвовать $10,000', callback_data='give_state 10000'))
 
-    await call.message.answer(f'<i>🏦 Добро пожаловать в Казну. Сейчас тут ${treasury}</i>', reply_markup = markup, parse_mode = 'html')
+    await call.message.answer(f'<i>🏦 Добро пожаловать в Казну. Сейчас тут ${treasury}</i>', reply_markup = markup)
 
 
 async def taxi_menu(message: Message, user_id: int) -> None:
@@ -373,9 +379,9 @@ async def taxi_menu(message: Message, user_id: int) -> None:
     ]
     markup.add(*places)
 
-    await message.answer('<i>&#128661; Куда поедем?</i>', parse_mode='html', reply_markup=markup)
+    await message.answer('<i>&#128661; Куда поедем?</i>', reply_markup=markup)
     return await message.answer('<i>Стоимость поездки зависит от отдалённости места, в которое вы едете.\
-    Чтобы посмотреть цену поездки до определённого места, нажмите на него в списке локаций в предыдущем сообщении</i>', parse_mode='html')
+    Чтобы посмотреть цену поездки до определённого места, нажмите на него в списке локаций в предыдущем сообщении</i>')
 
 
 async def taxicost(call: CallbackQuery, place: str) -> None:
@@ -391,10 +397,14 @@ async def taxicost(call: CallbackQuery, place: str) -> None:
         raise ValueError('no such place')
 
     cost = (cabcost*abs(CITY.index(place)-CITY.index(current_place)))//1
+    
     markup = InlineKeyboardMarkup(row_width=2).\
-    add(InlineKeyboardButton('🚕 Ехать', callback_data=f'taxi_goto_{place}'),
-    InlineKeyboardButton('🚫 Отмена', callback_data='cancel_action'))
-    return await call.message.answer(f'<i>Стоимость поездки до локации <b>{place}</b> - <b>${cost}</b></i>', parse_mode='html', reply_markup = markup)
+        add(
+            InlineKeyboardButton('🚕 Ехать', callback_data=f'taxi_goto_{place}'),
+            InlineKeyboardButton('🚫 Отмена', callback_data='cancel_action')
+        )
+
+    return await call.message.answer(f'<i>Стоимость поездки до локации <b>{place}</b> - <b>${cost}</b></i>', reply_markup = markup)
 
 
 async def taxi_goto_(call: CallbackQuery, place: str) -> None:
@@ -417,7 +427,7 @@ async def taxi_goto_(call: CallbackQuery, place: str) -> None:
     if balance < cost:
         return await call.answer('🚫 У вас недостаточно средств для поездки', show_alert = True)
 
-    await call.message.answer('<i>Скоро приедем!</i>', parse_mode='html')
+    await call.message.answer('<i>Скоро приедем!</i>')
 
     with contextlib.suppress(Exception):
         await bot.delete_message(call.message.chat.id, call.message.message_id)
@@ -456,7 +466,7 @@ async def gps_menu(call: CallbackQuery) -> None:
             markup.add(InlineKeyboardButton(text='{0} ({1})'.format(category, count), callback_data='gpsloc_{0}'.format(category)))
 
     markup.add(InlineKeyboardMarkup(text='◀ Назад', callback_data='cancel_action'))
-    await call.message.answer('<i>Выберите категорию</i>', reply_markup = markup, parse_mode = 'html')
+    await call.message.answer('<i>Выберите категорию</i>', reply_markup = markup)
 
 
 async def buy24_(call: CallbackQuery, item: str) -> None:   
@@ -529,7 +539,7 @@ async def railway_station(call: CallbackQuery) -> None:
             InlineKeyboardButton(text='🎫 Билетные кассы', callback_data='tickets'),
             InlineKeyboardButton(text='🍔 Кафетерий "Енот Кебаб"', callback_data='enot_kebab_shop'))
 
-    await call.message.answer('<i>Пора уже валить отсюда...</i>', parse_mode='html', reply_markup=markup)
+    await call.message.answer('<i>Пора уже валить отсюда...</i>', reply_markup=markup)
 
 
 async def bus(call: CallbackQuery) -> None:
@@ -544,4 +554,4 @@ async def bus(call: CallbackQuery) -> None:
             InlineKeyboardButton(text='🎫 Билетные кассы', callback_data='tickets'),
             InlineKeyboardButton(text='🍔 Кафетерий "Енот Кебаб"', callback_data='enot_kebab'))
 
-    await call.message.answer('<i>Пора уже валить отсюда...</i>', parse_mode='html', reply_markup=markup)
+    await call.message.answer('<i>Пора уже валить отсюда...</i>', reply_markup=markup)

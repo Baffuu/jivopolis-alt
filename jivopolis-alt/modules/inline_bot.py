@@ -17,12 +17,20 @@ async def inline_mode(query: InlineQuery):
             return 
 
         if is_banned:
-            return await bot.answer_inline_query(query.id, [InlineQueryResultArticle(
-                id = 'banned',
-                title = '🧛🏻‍♂️ Вы были забаненны в боте.',
-                description = 'Если вы считаете, что это - ошибка, обратитесь в поддержку.',
-                input_message_content = InputTextMessageContent(f'🧛🏻‍♂️ Вы были забаненны в боте. Если вы считаете, что это - ошибка, обратитесь в <a href="{SUPPORT_LINK}">поддержку</a>.')
-            )])
+            return await bot.answer_inline_query(
+                query.id, 
+                [
+                    InlineQueryResultArticle(
+                        id = 'banned',
+                        title = '🧛🏻‍♂️ Вы были забаненны в боте.',
+                        description = 'Если вы считаете, что это - ошибка, обратитесь в поддержку.',
+                        input_message_content = 
+                        InputTextMessageContent(
+                            f'🧛🏻‍♂️ Вы были забаненны в боте. Если вы считаете, что это - ошибка, обратитесь в <a href="{SUPPORT_LINK}">поддержку</a>.'
+                        )
+                    )
+                ]
+            )
 
         if health < 0:
             return await bot.answer_inline_query(query.id, [InlineQueryResultArticle(
@@ -66,7 +74,7 @@ async def inline_mode(query: InlineQuery):
                                 id = f'check_{money}',
                                 title = f'💲 Отправить чек на сумму ${money}',
                                 description = f'Баланс: ${balance}',
-                                input_message_content=InputTextMessageContent(f'<i>&#128178; <b><a href="tg://user?id={user_id}">{mask}{nick}</a></b> предлагает вам <b>${money}</b></i>', parse_mode='html'),
+                                input_message_content=InputTextMessageContent(f'<i>&#128178; <b><a href="tg://user?id={user_id}">{mask}{nick}</a></b> предлагает вам <b>${money}</b></i>'),
                                 reply_markup = markup,
                             ))
                         else:
@@ -75,7 +83,7 @@ async def inline_mode(query: InlineQuery):
                                 id = f'check_{balance}',
                                 title = f'💲 Отправить чек на сумму ${balance}',
                                 description = f'Баланс: ${balance}',
-                                input_message_content=InputTextMessageContent(f'<i>&#128178; <b><a href="{get_link(user_id)}">{mask}{nick}</a></b> предлагает вам <b>${balance}</b></i>', parse_mode='html'),
+                                input_message_content=InputTextMessageContent(f'<i>&#128178; <b><a href="{get_link(user_id)}">{mask}{nick}</a></b> предлагает вам <b>${balance}</b></i>'),
                                 reply_markup = markup,
                             ))
                 except TypeError:
