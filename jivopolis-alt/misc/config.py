@@ -1,12 +1,8 @@
 TOKEN = '6013919640:AAHd1ShmwsLvcM1x8HYiQaDNGJxZcehsOhQ'  #токен бота
 ADMINS = [1006534370, 1002930622, 1196315173, 118198979]
-MEGACHAT = -1001612535843
-log_chat = -1001847368960
-TESTCHAT = 't.me/+qL1pdUcxPNo4YTY6'
+
 MEGACHATLINK = 't.me/'
-JIVADMCHAT = 't.me/+RKDH5__QhyQyNTA6'
 BAFFUADM = 't.me/'
-LOGCHATLINK = 't.me/+YsKKpKg3BDkxNTFi'
 
 # линии метро
 METRO = [
@@ -81,10 +77,6 @@ ID = 2055111795  #айди бота
 
 SUPPORT_LINK = 't.me/'
 
-CREATOR = 1006534370  #создатель
-MODER = [1006534370]  #модераторы
-
-BOT_USER = 't.me/altJivopolisBot'
 banned = []  #пользователи в бане
 
 WALK = \

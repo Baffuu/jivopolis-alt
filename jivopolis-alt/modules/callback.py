@@ -1,10 +1,10 @@
 import contextlib
 
-from .start import _sign_up_refferal
+from .start import _sign_up_refferal, create_acc
 from .callbacks import *
 from .. import bot, logger, Dispatcher
 from ..misc.config import ITEMS, SUPPORT_LINK, villages, trains
-from ..database.functions import create_acc, check, cur, profile, eat
+from ..database.functions import check, cur, profile, eat
 
 from aiogram.types import CallbackQuery
 

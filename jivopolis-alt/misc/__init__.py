@@ -9,3 +9,5 @@ from .items import Item, allitems
 from .lootbox import (
     lootbox_open, LOOTBOX
 )
+
+from .constants import OfficialChats

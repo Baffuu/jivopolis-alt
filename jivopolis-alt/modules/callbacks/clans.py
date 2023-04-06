@@ -1,5 +1,5 @@
 from ... import bot
-from ...misc.config import log_chat
+from ...misc import OfficialChats
 
 from ...misc import get_mask, get_link
 from ...database.sqlitedb import cur, conn, insert_clan
@@ -30,7 +30,7 @@ async def create_clan(call: CallbackQuery) -> None:
         mask = get_mask(user_id)
         nick = cur.execute(f"SELECT nickname FROM userdata WHERE user_id={user_id}").fetchone()[0]
         await bot.send_message(
-            log_chat, 
+            OfficialChats.LOGCHAT, 
             text=(
                 f"🏘 #new_clan | <a href='{get_link(user_id)}'>{mask}{nick}</a>"
                 f" создал новый клан: <a href='{link}'>{call.message.chat.title}</a>. <code>[{chat_id}]</code>"

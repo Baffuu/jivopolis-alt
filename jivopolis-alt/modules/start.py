@@ -6,14 +6,14 @@ from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, R
 from aiogram.utils.exceptions import ChatNotFound, BotBlocked, CantInitiateConversation
 from aiogram.utils.deep_linking import decode_payload
 
-from ..misc.config import levelrange, hellos, randomtext, SUPPORT_LINK, log_chat
+from ..misc.config import levelrange, hellos, randomtext, SUPPORT_LINK
 
 from .. import bot, Dispatcher, logger
 
 from ..database.sqlitedb import cur, conn, insert_user
-from ..database.functions import check, create_acc, profile
+from ..database.functions import check, profile
 
-from ..misc import get_mask, get_link, current_time
+from ..misc import get_mask, get_link, current_time, OfficialChats
 
 
 async def start_cmd(message: Message):  # sourcery skip: low-code-quality
@@ -108,7 +108,8 @@ async def start_cmd(message: Message):  # sourcery skip: low-code-quality
 
             await message.answer(f"<i>{random.choice(randomtext)}</i>")
             return await message.answer(text, reply_markup=markup)
-
+        elif message.chat.id == OfficialChats.CASINOCHAT:
+            await casino_start(message)
         elif message.chat.type in [ChatType.SUPERGROUP, ChatType.GROUP]:
             await clan_start(message.chat)
 
@@ -151,17 +152,15 @@ async def create_acc(user: User, chat_id: int) -> None:
             return await bot.send_message(chat_id, "<i>😨 Вы уже создавали аккаунт</i>", reply_markup = ReplyKeyboardRemove())
             
         insert_user(user)
-        await bot.send_message(log_chat, f"<i><b><a href=\"{get_link(user.id)}\">{user.full_name}</a></b> присоединился(-ась) к Живополису\n#user_signup</i>")
+        await bot.send_message(OfficialChats.LOGCHAT, f"<i><b><a href=\"{get_link(user.id)}\">{user.full_name}</a></b> присоединился(-ась) к Живополису\n#user_signup</i>")
         
         cur.execute(f"UPDATE userdata SET register_date = {current_time()} WHERE user_id={user.id}")
         conn.commit()
 
     except Exception as e:
         if str(e).startswith("UNIQUE constraint failed: "):
+            logger.exception(e)
             await bot.send_message(chat_id, "<i>😨 Вы уже создавали аккаунт</i>", reply_markup = ReplyKeyboardRemove())
-        elif str(e) == "database is locked":
-            await bot.send_message(chat_id, f"<i><b>🚫 Ошибка: </b>база данных заблокирована</i>\n\
-            🔰 Попробуйте подождать или обратиться в <a href=\"{SUPPORT_LINK}\">поддержку.</a>", reply_markup = ReplyKeyboardRemove())
         else:
             logger.exception(e)
         return
@@ -302,7 +301,7 @@ async def clan_start(chat: Chat):
 
     clan_name = cur.execute(f"SELECT clan_name FROM clandata WHERE clan_id = {chat.id}").fetchone()[0]
     clan_balance = cur.execute(f"SELECT clan_balance FROM clandata WHERE clan_id = {chat.id}").fetchone()[0]
-    top = cur.execute(f"SELECT clan_id FROM clandata ORDER BY clan_balance").fetchall()
+    top = cur.execute("SELECT clan_id FROM clandata ORDER BY clan_balance").fetchall()
     
     top_num = 0
     for i in top:
@@ -316,10 +315,18 @@ async def clan_start(chat: Chat):
     
     members_count = cur.execute(f"SELECT count(*) FROM userdata WHERE clan_id={chat.id}").fetchone()[0]
     
-    text = (
-        f"🏯 Клан {clan_name}{f'\n\n{description}' if description else ''}"
-        f"\n\n🏬 Штаб-квартира: {HQplace} {f', {address[0]}' if address else ''}"
-        f"\n\n{members_count} 👥 {clan_balance} 💲{top_num} 🔝"
+    text = """
+        🏯 Клан {clan_name}{description}
+        \n\n🏬 Штаб-квартира: {HQplace} {address}
+        \n\n{members_count} 👥 {clan_balance} 💲{top_num} 🔝
+    """.format(
+        clan_name = clan_name, 
+        description = f'\n\n{description}' if description else '', 
+        HQplace = HQplace,
+        address = f', {address[0]}' if address else '',
+        members_count = members_count,
+        clan_balance = clan_balance,
+        top_num = top_num
     )
    
     return (
@@ -330,6 +337,30 @@ async def clan_start(chat: Chat):
         else await bot.send_message(chat.id, text, reply_markup=markup)
     )
 
+
+async def casino_start(message: Message):
+    balance = cur.execute(
+        f"SELECT clan_balance FROM clandata WHERE clan_id = {OfficialChats.CASINOCHAT}"
+    ).fetchone()[0]
+    treasury = cur.execute(
+        "SELECT treasury FROM globaldata"
+    ).fetchone()[0]
+
+    await message.answer(
+        (
+            "🎮 Добро пожаловать в игровой клуб! Здесь вы можете повеселиться и попробовать"
+            " заработать немного денег. Но будьте осторожны, иначе казино заберёт у вас последние гроши…"
+            "\n\n‼️ Мы крайне не рекомендуем играть в казино в реальной жизни, особенно на большие деньги."
+            f"\n\n💲Баланс Казино: {balance}"
+            f"\n\n🏦 Казна Живополиса: {treasury}"
+        ),
+        reply_markup=InlineKeyboardMarkup().add(
+            InlineKeyboardButton(
+                text="❓Помощь по мини-играм",
+                callback_data="casino_help"
+            )
+        )
+    )
 
 def register(dp: Dispatcher):
     dp.register_message_handler(start_cmd, commands=['start'])

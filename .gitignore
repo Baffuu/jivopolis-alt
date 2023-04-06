@@ -1,8 +1,7 @@
 renaming items.py
 run.sh
-database.db
+**.db 
 .vscode/
 __pychache__/
-database (1).db
 main.py
 **.yaml

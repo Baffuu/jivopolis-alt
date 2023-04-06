@@ -2,7 +2,9 @@ from .. import bot, Dispatcher, logger
 
 from ..database.sqlitedb import cur, conn
 from ..database.functions import get_link, check
-from ..misc.config import log_chat, MEGACHAT, SUPPORT_LINK, ITEMS
+
+from ..misc import OfficialChats
+from ..misc.config import SUPPORT_LINK, ITEMS
 
 from aiogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.dispatcher.filters import Text
@@ -16,7 +18,7 @@ async def sqlrun_cmd(message: Message) -> None:
         return await message.reply('🧑‍🎨 Сэр, у вас нет аккаунта в живополисе. Прежде чем использовать любые комманды вам нужно зарегистрироваться.')
     try:
         await check(message.from_user.id, message.chat.id)
-        
+
         args = message.text[8:]
 
         if is_banned:
@@ -30,13 +32,9 @@ async def sqlrun_cmd(message: Message) -> None:
             return await message.reply(cur.execute(args).fetchone())
 
         approve_cmds = ["select", "update", "set", "delete", "alter", "drop", "insert", "replace"] #команды, которые запрашивают одобрение мега-администрации
-        
-        for request in args.split(' '):
-            if request.lower() in approve_cmds:
-                approve_request = True
-            else:
-                approve_request = False
 
+        for request in args.split(' '):
+            approve_request = request.lower() in approve_cmds
         if approve_request and rank < 3:
             cur.execute(f"UPDATE userdata SET sql='{request}' WHERE user_id={message.from_user.id}")
             conn.commit()
@@ -47,7 +45,7 @@ async def sqlrun_cmd(message: Message) -> None:
             )
 
             await bot.send_message(
-                MEGACHAT, 
+                OfficialChats.MEGACHAT, 
                 (
                     f"<i><a href=\"tg://user?id={message.from_user.id}\">{message.from_user.full_name}</a> хочет выполнить запрос:\n"
                     f"\n<code>{request}</code></i>",
@@ -58,7 +56,7 @@ async def sqlrun_cmd(message: Message) -> None:
                         InlineKeyboardButton(text="📛 Отклонить", callback_data=f"sqlrun:decline:{message.from_user.id}")
                     )
             )
-  
+
         elif args.lower().startswith("select"):
             cur.execute(args)
 
@@ -77,7 +75,7 @@ async def sqlrun_cmd(message: Message) -> None:
             conn.commit()   
             await message.reply('🧑‍🔧 sql cmd executed')         
             return logger.success(f"SQL Query: {args}")
-    
+
     except Exception as e:
         await message.answer(f"<i><b>something went wrong: </b>{e}</i>")
 
@@ -107,13 +105,13 @@ async def globan_cmd(message: Message) -> None:
         user_nick = 'user'
         cur.execute(f"INSERT INTO userdata(user_id, nickname, login_id) VALUES ({args}, 'banned_user', \"{encode_payload(args)}\"")
         await bot.send_message(message.chat.id, f'👨‍🔬 Аккаунт <a href ="tg://user?id={args}>пользователя</a> насильно создан. | <a href="tg://user?id={message.from_user.id}>{admin_nick}</a>')
-        await bot.send_message(log_chat, f'👨‍🔬 Аккаунт <a href ="tg://user?id={args}>пользователя</a> насильно создан. | <a href="tg://user?id={message.from_user.id}>{admin_nick}</a>')
+        await bot.send_message(OfficialChats.LOGCHAT, f'👨‍🔬 Аккаунт <a href ="tg://user?id={args}>пользователя</a> насильно создан. | <a href="tg://user?id={message.from_user.id}>{admin_nick}</a>')
 
     cur.execute(f"UPDATE userdata SET is_banned=True WHERE user_id={args}")
     conn.commit()
 
     await bot.send_message(message.chat.id, f'🥷 <a href="{get_link(args)}">{user_nick}</a> [<code>id: {args}</code>] был успешно забанен. | <a href = "{get_link(message.from_user.id)}">{admin_nick}</a>')
-    await bot.send_message(log_chat, f'🥷 <a href="{get_link(args)}">{user_nick}</a> [<code>id: {args}</code>] был успешно забанен. | <a href = "{get_link(message.from_user.id)}">{admin_nick}</a>')
+    await bot.send_message(OfficialChats.LOGCHAT, f'🥷 <a href="{get_link(args)}">{user_nick}</a> [<code>id: {args}</code>] был успешно забанен. | <a href = "{get_link(message.from_user.id)}">{admin_nick}</a>')
 
 
 async def getall_cmd(message: Message) -> None:

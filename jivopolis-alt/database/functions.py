@@ -4,7 +4,8 @@ from datetime import datetime
 from math import floor
 from typing import Union
 
-from ..misc.config import limeteds, CREATOR, leveldesc, levelrange, ITEMS, ach, log_chat, SUPPORT_LINK, ADMINS, clanitems
+from ..misc import OfficialChats
+from ..misc.config import limeteds, leveldesc, levelrange, ITEMS, ach, ADMINS, clanitems
 
 from .. import bot, logger
 
@@ -230,7 +231,7 @@ async def poison(user: User, target_id: int, chat_id: int) -> None:
             cur.execute(f"UPDATE userdata SET health=health-{random_damage} WHERE user_id={target_id}")
             conn.commit()
 
-            await bot.send_message(log_chat, f"<i><b><a href=\"{get_link(user.id)}\">{mask}{nick}</a></b> отравил <b><a href=\"{get_link(target_id)}\">{target_mask}{target_nick}</a></b>.\n#user_poison</i>")
+            await bot.send_message(OfficialChats.LOGCHAT, f"<i><b><a href=\"{get_link(user.id)}\">{mask}{nick}</a></b> отравил <b><a href=\"{get_link(target_id)}\">{target_mask}{target_nick}</a></b>.\n#user_poison</i>")
             await bot.send_message(chat_id, f"<i>🧪 Вы отравили <b><a href=\"{get_link(target_id)}\">{target_mask}{target_nick}</a></b></i>")
             await bot.send_message(target_id, f"<i>🧪 Вас отравил <b><a href=\"{get_link(user.id)}\">{mask}{nick}</a></b></i>")
         else:
@@ -277,7 +278,7 @@ async def shoot(user_id: int, target_id: int, chat_id: int) -> None: #function i
             cur.execute(f"UPDATE userdata SET health=health-{rand} WHERE user_id={target_id}")
             conn.commit()
 
-            await bot.send_message(log_chat, f"<i><b><a href=\"{get_link(user_id)}\">{mask}{nick}</a></b> застрелил <b><a href=\"{get_link(user_id)}\">{target_mask}{target_nick}</a></b>\n#user_gunshoot</i>")
+            await bot.send_message(OfficialChats.LOGCHAT, f"<i><b><a href=\"{get_link(user_id)}\">{mask}{nick}</a></b> застрелил <b><a href=\"{get_link(user_id)}\">{target_mask}{target_nick}</a></b>\n#user_gunshoot</i>")
             await bot.send_message(chat_id, f"<i>&#128299; Вы застрелили <b><a href=\"{get_link(target_id)}\">{target_mask}{target_nick}</a></b></i>")
             await bot.send_message(target_id, f"<i>&#128299; Вас застрелил <b><a href=\"{get_link(user_id)}\">{mask}{nick}</a></b></i>")
 
@@ -628,6 +629,3 @@ async def buy(call: CallbackQuery, item: str, user_id: int, cost: int = None, am
         cur.execute(f"UPDATE globaldata SET treasury=treasury+{cost*amount//2}"); conn.commit()
     else:
         await call.answer('🚫 У вас недостаточно денег', show_alert = True)
-
-
-

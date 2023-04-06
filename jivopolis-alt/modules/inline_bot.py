@@ -1,9 +1,9 @@
 import contextlib
-from ..database.functions import cur, conn, check, SUPPORT_LINK, get_mask, get_link, log_chat
+from ..database.functions import cur, conn, check, get_mask, get_link
 from aiogram.types import InlineQuery, InlineQueryResultArticle, InputTextMessageContent, InlineKeyboardButton, InlineKeyboardMarkup, ChosenInlineResult
 from aiogram import Dispatcher
 from .. import logger, bot
-
+from ..misc import OfficialChats
 
 async def inline_mode(query: InlineQuery):
     try:
@@ -26,7 +26,7 @@ async def inline_mode(query: InlineQuery):
                         description = 'Если вы считаете, что это - ошибка, обратитесь в поддержку.',
                         input_message_content = 
                         InputTextMessageContent(
-                            f'🧛🏻‍♂️ Вы были забаненны в боте. Если вы считаете, что это - ошибка, обратитесь в <a href="{SUPPORT_LINK}">поддержку</a>.'
+                            f'🧛🏻‍♂️ Вы были забаненны в боте. Если вы считаете, что это - ошибка, обратитесь в <a href="{OfficialChats.SUPPORTCHATLINK}">поддержку</a>.'
                         )
                     )
                 ]
@@ -109,9 +109,15 @@ async def on_pressed_inline_query(inline: ChosenInlineResult):
             money = int(data[1:])
             if money > 0:
                 cur.execute(f"UPDATE userdata SET balance = balance - {money} WHERE user_id={user_id}"); conn.commit()
-                await bot.send_message(log_chat, f'<i>&#128178; <b><a href="{get_link(user_id)}">{mask}{nick}</a></b> выписал чек на <b>${money}</b>\n#user_check</i>')
+                await bot.send_message(
+                    OfficialChats.LOGCHAT, 
+                    f'<i>&#128178; <b><a href="{get_link(user_id)}">{mask}{nick}</a></b> выписал чек на <b>${money}</b>\n#user_check</i>'
+                )
             if money < 0:
-                await bot.send_message(log_chat, f'<i>&#128178; <b><a href="{get_link(user_id)}">{mask}{nick}</a></b> выставил счёт на <b>${money}</b>\n#user_bill</i>')
+                await bot.send_message(
+                    OfficialChats.LOGCHAT, 
+                    f'<i>&#128178; <b><a href="{get_link(user_id)}">{mask}{nick}</a></b> выставил счёт на <b>${money}</b>\n#user_bill</i>'
+                )
     
 
 def register(dp: Dispatcher):

@@ -1,7 +1,9 @@
 from .. import bot, Dispatcher
 
 from ..database.sqlitedb import cur, conn
-from ..database.functions import check, SUPPORT_LINK
+from ..database.functions import check
+
+from ..misc import OfficialChats
 
 from aiogram.types import (
     ChatMemberAdministrator, ChatMemberOwner, 
@@ -19,7 +21,7 @@ async def get_photo_messages(message: Message):
         process = cur.execute(f"SELECT process FROM userdata WHERE user_id={user_id}").fetchone()[0]
         is_banned = bool(cur.execute(f"SELECT is_banned FROM userdata WHERE user_id = {message.from_user.id}").fetchone()[0])
         if is_banned:
-            return await bot.send_message(message.from_user.id, f'🧛🏻‍♂️ Вы были забаненны в боте. Если вы считаете, что это - ошибка, обратитесь в <a href="{SUPPORT_LINK}">поддержку</a>.')
+            return await bot.send_message(message.from_user.id, f'🧛🏻‍♂️ Вы были забаненны в боте. Если вы считаете, что это - ошибка, обратитесь в <a href="{OfficialChats.SUPPORTCHATLINK}">поддержку</a>.')
 
     except TypeError:
         if (

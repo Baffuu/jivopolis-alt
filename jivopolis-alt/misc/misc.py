@@ -1,13 +1,13 @@
 from datetime import datetime
-from .config import intervals, BOT_USER
+from .config import intervals
 
 from typing import Union, Tuple
 from math import ceil
 
-from .. import logger
+from .. import logger, bot
 from ..database.sqlitedb import cur
 
-from aiogram.types import InlineKeyboardButton
+from aiogram.types import InlineKeyboardButton, User
 from aiogram.utils.deep_linking import decode_payload
 
 def get_link(user_id: int = None, encoded_id: str = None) -> str:
@@ -25,7 +25,9 @@ def get_link(user_id: int = None, encoded_id: str = None) -> str:
         raise ValueError('there is no user id and no encoded user id.')
     if encoded_id and not user_id:
         user_id = decode_payload(encoded_id)
-    return f"{BOT_USER}?start={user_id}"
+    me = bot.get_me()
+    return f"https://t.me/{me.username}?start={user_id}"
+
 
 def get_mask(user_id: int) -> Union[str, None]:
     '''
@@ -50,14 +52,17 @@ def get_mask(user_id: int) -> Union[str, None]:
     except Exception as e:
         return logger.exception(e)
 
+
 def current_time() -> float:
     """returns current time in seconds"""
     return (datetime.now()-datetime.fromtimestamp(0)).total_seconds()
+
 
 def isinterval(type) -> bool: #it's useless now :(
     now = current_time()
     interval = intervals[type]
     return now // 1 % interval[0] <= interval[1]
+
 
 def remaining(type) -> str: #it's useless now :(
     '''remaining time due {something} happends, in minutes and seconds.'''
@@ -66,6 +71,7 @@ def remaining(type) -> str: #it's useless now :(
     seconds = int(interval - now//1%interval)
     min, sec = divmod(seconds, 60)
     return f'{(min) if min != 0 else ""}{1}'.format('{0} секунд'.format(sec) if sec != 0 else '')
+
 
 def get_time_units(time: float) -> Tuple[int, int, int]:
     '''
@@ -77,6 +83,7 @@ def get_time_units(time: float) -> Tuple[int, int, int]:
     seconds = int(60-ceil(time%3600%60))
 
     return hours, minutes, seconds
+    
     
 def get_building(place: str) -> InlineKeyboardButton | None:
     '''

@@ -2,10 +2,11 @@ import sys, os
 
 from ... import bot
 from ...misc.config import (
-    ITEMS, TESTCHAT,
-    JIVADMCHAT, LOGCHATLINK,
-    BAFFUADM, MEGACHATLINK
+    ITEMS, BAFFUADM, 
+    MEGACHATLINK
 )
+from ...misc import OfficialChats
+
 from ...database.sqlitedb import cur, conn
 
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
@@ -195,9 +196,9 @@ async def adminchats(call: CallbackQuery) -> None:
     if rank < 1:
         return await call.answer("👨‍⚖️ Сударь, эта команда доступна только администраторам.", show_alert = True)
     if rank > 0:
-        markup.add(InlineKeyboardButton('👾 Тестирование Живополиса', TESTCHAT),
-        InlineKeyboardButton('📣 Администрация Живополиса', JIVADMCHAT),
-        InlineKeyboardButton('👨‍🔧 LOG CHAT', LOGCHATLINK))
+        markup.add(InlineKeyboardButton('👾 Тестирование Живополиса', OfficialChats.BETATEST_CHATLINK),
+        InlineKeyboardButton('📣 Администрация Живополиса', OfficialChats.JIVADM_CHATLINK),
+        InlineKeyboardButton('👨‍🔧 LOG CHAT', OfficialChats.LOGCHATLINK))
     if rank > 1:
         markup.add(InlineKeyboardButton('🧞 Администрация Baffu', BAFFUADM))
     if rank > 2:
