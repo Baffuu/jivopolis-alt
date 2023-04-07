@@ -231,9 +231,9 @@ async def poison(user: User, target_id: int, chat_id: int) -> None:
             cur.execute(f"UPDATE userdata SET health=health-{random_damage} WHERE user_id={target_id}")
             conn.commit()
 
-            await bot.send_message(OfficialChats.LOGCHAT, f"<i><b><a href=\"{get_link(user.id)}\">{mask}{nick}</a></b> отравил <b><a href=\"{get_link(target_id)}\">{target_mask}{target_nick}</a></b>.\n#user_poison</i>")
-            await bot.send_message(chat_id, f"<i>🧪 Вы отравили <b><a href=\"{get_link(target_id)}\">{target_mask}{target_nick}</a></b></i>")
-            await bot.send_message(target_id, f"<i>🧪 Вас отравил <b><a href=\"{get_link(user.id)}\">{mask}{nick}</a></b></i>")
+            await bot.send_message(OfficialChats.LOGCHAT, f"<i><b><a href=\"{await get_link(user.id)}\">{mask}{nick}</a></b> отравил <b><a href=\"{await get_link(target_id)}\">{target_mask}{target_nick}</a></b>.\n#user_poison</i>")
+            await bot.send_message(chat_id, f"<i>🧪 Вы отравили <b><a href=\"{await get_link(target_id)}\">{target_mask}{target_nick}</a></b></i>")
+            await bot.send_message(target_id, f"<i>🧪 Вас отравил <b><a href=\"{await get_link(user.id)}\">{mask}{nick}</a></b></i>")
         else:
             return await bot.send_message(chat_id, "<i>😵‍💫 Неудача. Возможно, это к лучшему.\nЯд потрачен зря</i>")
 
@@ -278,15 +278,15 @@ async def shoot(user_id: int, target_id: int, chat_id: int) -> None: #function i
             cur.execute(f"UPDATE userdata SET health=health-{rand} WHERE user_id={target_id}")
             conn.commit()
 
-            await bot.send_message(OfficialChats.LOGCHAT, f"<i><b><a href=\"{get_link(user_id)}\">{mask}{nick}</a></b> застрелил <b><a href=\"{get_link(user_id)}\">{target_mask}{target_nick}</a></b>\n#user_gunshoot</i>")
-            await bot.send_message(chat_id, f"<i>&#128299; Вы застрелили <b><a href=\"{get_link(target_id)}\">{target_mask}{target_nick}</a></b></i>")
-            await bot.send_message(target_id, f"<i>&#128299; Вас застрелил <b><a href=\"{get_link(user_id)}\">{mask}{nick}</a></b></i>")
+            await bot.send_message(OfficialChats.LOGCHAT, f"<i><b><a href=\"{await get_link(user_id)}\">{mask}{nick}</a></b> застрелил <b><a href=\"{await get_link(user_id)}\">{target_mask}{target_nick}</a></b>\n#user_gunshoot</i>")
+            await bot.send_message(chat_id, f"<i>&#128299; Вы застрелили <b><a href=\"{await get_link(target_id)}\">{target_mask}{target_nick}</a></b></i>")
+            await bot.send_message(target_id, f"<i>&#128299; Вас застрелил <b><a href=\"{await get_link(user_id)}\">{mask}{nick}</a></b></i>")
 
             if prison := random.choice([True, False]):
                 cur.execute(f"UPDATE userdata SET prison={current_time() + 1200} WHERE user_id={user_id}")
                 conn.commit()
 
-                await bot.send_message(chat_id, f"<i>&#128110; Господин <b><a href=\"{get_link(user_id)}\">{mask}{nick}</a></b>, вы задержаны за убийство огнестрельным оружием. Пройдёмте в отделение.\n\nВы были арестованы на <b>20 минут</b></i>")
+                await bot.send_message(chat_id, f"<i>&#128110; Господин <b><a href=\"{await get_link(user_id)}\">{mask}{nick}</a></b>, вы задержаны за убийство огнестрельным оружием. Пройдёмте в отделение.\n\nВы были арестованы на <b>20 минут</b></i>")
         else:
             await bot.send_message(chat_id, f"<i>&#10060; Вы выстрелили мимо. Возможно, это к лучшему.\nПистолет потрачен зря</i>")
 
@@ -376,13 +376,13 @@ async def cure(user_id: str, target_id: str, chat_id: str) -> None: #function is
 
             if target_id == user_id:
                 return await bot.send_message(chat_id, "<i>&#128138; Успех! Вы вылечили себя</i>")
-            await bot.send_message(chat_id, f"<i>&#128138; Успех! Вы вылечили <b><a href=\"{get_link(target_id)}\">{target_mask}{target_nick}</a></b></i>")
-            await bot.send_message(target_id, f"<i>&#128138; Вас вылечил <b><a href=\"{get_link(user_id)}\">{mask}{nick}</a></b></i>")
+            await bot.send_message(chat_id, f"<i>&#128138; Успех! Вы вылечили <b><a href=\"{await get_link(target_id)}\">{target_mask}{target_nick}</a></b></i>")
+            await bot.send_message(target_id, f"<i>&#128138; Вас вылечил <b><a href=\"{await get_link(user_id)}\">{mask}{nick}</a></b></i>")
             nerr = 1
 
         elif health >= 100:
             if target_id != user_id:
-                return await bot.send_message(chat_id, f"<i>&#128138; <b><a href=\"{get_link(target_id)}\">{target_mask}{target_nick}</a></b> полностью здоров, зачем вам тратить лекарства впустую?\nЛекарства <b>не потрачены</b></i>")   
+                return await bot.send_message(chat_id, f"<i>&#128138; <b><a href=\"{await get_link(target_id)}\">{target_mask}{target_nick}</a></b> полностью здоров, зачем вам тратить лекарства впустую?\nЛекарства <b>не потрачены</b></i>")   
             else:                                   
                 return await bot.send_message(chat_id, f"<i>&#128138; Вы полностью здоровы, зачем вам тратить лекарства впустую?\nЛекарства <b>не потрачены</b></i>")
         else:
@@ -397,9 +397,9 @@ async def cure(user_id: str, target_id: str, chat_id: str) -> None: #function is
             cur.execute(f"UPDATE userdata SET health={rand} WHERE user_id={target_id}")
             conn.commit()
 
-            await bot.send_message(chat_id, f"<i>&#128138; Успех! Вы воскресили <b><a href=\"{get_link(target_id)}\">{target_mask}{target_nick}</a></b></i>")
+            await bot.send_message(chat_id, f"<i>&#128138; Успех! Вы воскресили <b><a href=\"{await get_link(target_id)}\">{target_mask}{target_nick}</a></b></i>")
             nerr = 1
-            await bot.send_message(target_id, f"<i>&#128138; Вас воскресил <b><a href=\"{get_link(user_id)}\">{mask}{nick}</a></b></i>")
+            await bot.send_message(target_id, f"<i>&#128138; Вас воскресил <b><a href=\"{await get_link(user_id)}\">{mask}{nick}</a></b></i>")
 
             await achieve(user_id, chat_id, "helper")
 
@@ -434,7 +434,7 @@ async def profile(user_id: int, message: Message, called: bool = False): #todo: 
     if invited_by != 0:
         invited_nick = cur.execute(f"SELECT nickname FROM userdata WHERE user_id = {invited_by}").fetchone()[0]
         invited_mask = get_mask(invited_by)
-        inviter = f"\n📎 Пригласивший пользователь: <b><a href=\"{get_link(user_id)}\">{invited_mask}{invited_nick}</a></b>"
+        inviter = f"\n📎 Пригласивший пользователь: <b><a href=\"{await get_link(user_id)}\">{invited_mask}{invited_nick}</a></b>"
     else:
         inviter = '' 
 

@@ -6,7 +6,7 @@ from ..callbacks.traveling import state_balance
 from ... import bot, logger
 from ...database.sqlitedb import cur, conn
 from ...misc.config import limeteds, ITEMS
-from ...misc import get_mask, get_link, OfficialChats
+from ...misc import get_mask, get_link, OfficialChats, get_embedded_link
 
 from aiogram.types import (
     InlineKeyboardMarkup, 
@@ -87,7 +87,7 @@ async def my_refferals(message: Message, user_id: int) -> None:
 
     for ref_num, row in enumerate(cur, start=1):
         mask = get_mask(row[1])
-        users+=f"\n{ref_num}. <a href = \"{get_link(row[1])}\">{mask}{row[7]}</a>"
+        users+=f"\n{ref_num}. <a href = \"{await get_link(row[1])}\">{mask}{row[7]}</a>"
     
     await message.answer(
         text=(
@@ -109,11 +109,11 @@ async def get_cheque(call: CallbackQuery, user_id: int) -> None:
     if call.message is None:
         await bot.edit_message_text(
             inline_message_id = call.inline_message_id, 
-            text = f"<i><b><a href=\"{get_link(user_id)}\">{mask}{nick}</a></b> забрал <b>${money}</b></i>")
+            text = f"<i><b><a href=\"{await get_link(user_id)}\">{mask}{nick}</a></b> забрал <b>${money}</b></i>")
     else:
-        await bot.edit_message_text(chat_id = call.message.chat.id, message_id = call.message.message_id, text = f"<i><b><a href=\"{get_link(user_id)}\">{mask}{nick}</a></b> забрал <b>${money}</b></i>")
+        await bot.edit_message_text(chat_id = call.message.chat.id, message_id = call.message.message_id, text = f"<i><b><a href=\"{await get_link(user_id)}\">{mask}{nick}</a></b> забрал <b>${money}</b></i>")
     if money > 0:
-        await bot.send_message(OfficialChats.LOGCHAT, f"<i><b><a href=\"{get_link}\">{mask}{nick}</a></b> забрал <b>${money}</b>\n#user_getcheck</i>")
+        await bot.send_message(OfficialChats.LOGCHAT, f"<i><b>{await get_embedded_link(user_id)}</b> забрал <b>${money}</b>\n#user_getcheck</i>")
 
 
 async def cellphone_menu(call: CallbackQuery) -> None:

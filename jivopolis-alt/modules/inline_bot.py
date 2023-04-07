@@ -83,7 +83,7 @@ async def inline_mode(query: InlineQuery):
                                 id = f'check_{balance}',
                                 title = f'💲 Отправить чек на сумму ${balance}',
                                 description = f'Баланс: ${balance}',
-                                input_message_content=InputTextMessageContent(f'<i>&#128178; <b><a href="{get_link(user_id)}">{mask}{nick}</a></b> предлагает вам <b>${balance}</b></i>'),
+                                input_message_content=InputTextMessageContent(f'<i>&#128178; <b><a href="{await get_link(user_id)}">{mask}{nick}</a></b> предлагает вам <b>${balance}</b></i>'),
                                 reply_markup = markup,
                             ))
                 except TypeError:
@@ -111,12 +111,12 @@ async def on_pressed_inline_query(inline: ChosenInlineResult):
                 cur.execute(f"UPDATE userdata SET balance = balance - {money} WHERE user_id={user_id}"); conn.commit()
                 await bot.send_message(
                     OfficialChats.LOGCHAT, 
-                    f'<i>&#128178; <b><a href="{get_link(user_id)}">{mask}{nick}</a></b> выписал чек на <b>${money}</b>\n#user_check</i>'
+                    f'<i>&#128178; <b><a href="{await get_link(user_id)}">{mask}{nick}</a></b> выписал чек на <b>${money}</b>\n#user_check</i>'
                 )
             if money < 0:
                 await bot.send_message(
                     OfficialChats.LOGCHAT, 
-                    f'<i>&#128178; <b><a href="{get_link(user_id)}">{mask}{nick}</a></b> выставил счёт на <b>${money}</b>\n#user_bill</i>'
+                    f'<i>&#128178; <b><a href="{await get_link(user_id)}">{mask}{nick}</a></b> выставил счёт на <b>${money}</b>\n#user_bill</i>'
                 )
     
 

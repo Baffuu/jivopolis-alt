@@ -16,7 +16,8 @@ async def on_startup(dp : Dispatcher):
         conn.commit()
 
         try:
-            await bot.send_message(-1001847368960, '<i>🔰 Бот успешно перезагружен. #restart</i>')
+            from .misc import OfficialChats
+            await bot.send_message(OfficialChats.LOGCHAT, '<i>🔰 Бот успешно перезагружен. #restart</i>')
         except ChatNotFound:
             logger.warning('log chat not found :(\nprobably you forgot to add bot to the chat')
         logger.info('bot connected')
@@ -31,7 +32,8 @@ async def on_startup(dp : Dispatcher):
 async def on_shutdown(dp: Dispatcher):
     from .database.sqlitedb import cur, conn
     cur.close(); conn.close()
-    await bot.send_message(-1001847368960, '<i>❗️ Выключаюсь… #shutdown</i>')
+    from .misc import OfficialChats
+    await bot.send_message(OfficialChats.LOGCHAT, '<i>❗️ Выключаюсь… #shutdown</i>')
     return logger.warning('Goodbye...')
 
 if __name__ == '__main__':

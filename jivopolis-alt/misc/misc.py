@@ -10,7 +10,7 @@ from ..database.sqlitedb import cur
 from aiogram.types import InlineKeyboardButton, User
 from aiogram.utils.deep_linking import decode_payload
 
-def get_link(user_id: int = None, encoded_id: str = None) -> str:
+async def get_link(user_id: int = None, encoded_id: str = None) -> str:
     '''
     get link to user profile in bot
     
@@ -25,8 +25,15 @@ def get_link(user_id: int = None, encoded_id: str = None) -> str:
         raise ValueError('there is no user id and no encoded user id.')
     if encoded_id and not user_id:
         user_id = decode_payload(encoded_id)
-    me = bot.get_me()
+    me = await bot.get_me()
+    
     return f"https://t.me/{me.username}?start={user_id}"
+
+
+async def get_embedded_link(user_id: str, nick: str = None, include_mask: bool = True) -> str:
+    if not nick:
+        nick = cur.execute(f"SELECT nickname FROM userdata WHERE user_id={user_id}").fetchone()[0]
+    return f"<a href='{await get_link(user_id)}'>{get_mask(user_id) if include_mask else ''}{nick}</a>"
 
 
 def get_mask(user_id: int) -> Union[str, None]:
@@ -84,7 +91,7 @@ def get_time_units(time: float) -> Tuple[int, int, int]:
 
     return hours, minutes, seconds
     
-    
+
 def get_building(place: str) -> InlineKeyboardButton | None:
     '''
     Get InlineKeyboardButton with special building for every location

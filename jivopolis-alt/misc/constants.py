@@ -1,3 +1,5 @@
+"""all jivopolis constants are stored in this module."""
+
 class OfficialChats():
     LOGCHAT = -1001847368960
     LOGCHATLINK = 't.me/+YsKKpKg3BDkxNTFi'
@@ -7,3 +9,5 @@ class OfficialChats():
     JIVADM_CHATLINK = 'https://t.me/+RKDH5__QhyQyNTA6'
     SUPPORTCHATLINK =  '#TODO: insert chat link here'
 
+MINIMUM_HEALTH = 1
+ADMINPANEL_MINIMUM_RANK = 2

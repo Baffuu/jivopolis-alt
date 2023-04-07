@@ -3,7 +3,7 @@ import random
 import asyncio
 
 from ... import logger, bot
-from ...misc import get_building, get_link, get_mask
+from ...misc import get_building, get_link, get_mask, get_embedded_link
 from ...database.sqlitedb import cur, conn
 from ...database.functions import buy, buybutton, itemdata
 
@@ -192,16 +192,18 @@ async def local_people(call: CallbackQuery) -> None:
     usercount = cur.execute(f"SELECT count(*) FROM userdata WHERE current_place = '{place}'").fetchone()[0]
 
     if usercount < 1:
-        return await call.message.answer('<i>👤 Вы стоите один, оглядываясь по сторонам…</i>\n\
-            \n😓 В вашей местности не найдено людей. Помимо вас, само собой.')
+        return await call.message.answer(
+            "<i>👤 Вы стоите один, оглядываясь по сторонам…</i>\n"
+            "\n😓 В вашей местности не найдено людей. Помимо вас, само собой."
+        )
 
     cur.execute(f"SELECT * FROM userdata WHERE current_place = '{place}'")
 
     users = ''.join(
-        f'\n{index}. <a href="{get_link(row[1])}">{get_mask(row[1])} {row[2]}</a>'
+        f'\n{index}. {await get_embedded_link(row[2])}'
         for index, row in enumerate(cur.fetchall(), start=1)
     )
-    await call.message.answer(f'<i>&#128100; Пользователи в местности <b>{place}</b>: <b>{users}</b></i>')
+    await call.message.answer(f'<i>👤 Пользователи в местности <b>{place}</b>: <b>{users}</b></i>')
 
 
 async def delivery_menu(call: CallbackQuery) -> None:

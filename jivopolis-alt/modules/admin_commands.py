@@ -110,8 +110,8 @@ async def globan_cmd(message: Message) -> None:
     cur.execute(f"UPDATE userdata SET is_banned=True WHERE user_id={args}")
     conn.commit()
 
-    await bot.send_message(message.chat.id, f'🥷 <a href="{get_link(args)}">{user_nick}</a> [<code>id: {args}</code>] был успешно забанен. | <a href = "{get_link(message.from_user.id)}">{admin_nick}</a>')
-    await bot.send_message(OfficialChats.LOGCHAT, f'🥷 <a href="{get_link(args)}">{user_nick}</a> [<code>id: {args}</code>] был успешно забанен. | <a href = "{get_link(message.from_user.id)}">{admin_nick}</a>')
+    await bot.send_message(message.chat.id, f'🥷 <a href="{await get_link(args)}">{user_nick}</a> [<code>id: {args}</code>] был успешно забанен. | <a href = "{await get_link(message.from_user.id)}">{admin_nick}</a>')
+    await bot.send_message(OfficialChats.LOGCHAT, f'🥷 <a href="{await get_link(args)}">{user_nick}</a> [<code>id: {args}</code>] был успешно забанен. | <a href = "{await get_link(message.from_user.id)}">{admin_nick}</a>')
 
 
 async def getall_cmd(message: Message) -> None:
