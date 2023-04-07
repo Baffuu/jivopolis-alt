@@ -34,7 +34,7 @@ from .traveling import (
     bus, railway_station)
 
 from .clans import (
-    create_clan, joinclan
+    create_clan, joinclan, leaveclan
 )
 
 from .shops import (

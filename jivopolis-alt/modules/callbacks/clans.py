@@ -1,3 +1,4 @@
+import contextlib
 from ... import bot
 from ...misc import OfficialChats
 
@@ -70,18 +71,39 @@ async def joinclan(call: CallbackQuery, user_id: int) -> None:
         return call.answer("😓 Похоже, такого клана не существует.", show_alert=True)
     elif count > 1:
         raise ValueError("found more than one clan with such ID")
+    try:
+        user_clan = cur.execute(f"SELECT clan_id FROM userdata WHERE user_id={user_id}").fetchone()[0]
+    except TypeError:
+        user_clan = None
 
-    mask = get_mask(user_id)
-    nick = cur.execute(f"SELECT nickname FROM userdata WHERE user_id = {user_id}").fetchone()[0]
-    user_clan = cur.execute(f"SELECT clan_id FROM userdata WHERE user_id={user_id}").fetchone()[0]
-
-    if user_clan != chat_id and user_clan:
-        cur.execute(f"UPDATE userdata SET clan_id={chat_id} WHERE user_id={user_id}"); conn.commit()
-        return await bot.send_message(
+    if not user_clan or user_clan != chat_id:
+        cur.execute(f"UPDATE userdata SET clan_id={chat_id} WHERE user_id={user_id}")
+        conn.commit()
+        await bot.send_message(
             chat_id, 
-        f'<i><b><a href="{await get_embedded_link(user_id)}</a></b> присоединился к клану</i>')
+        f'<i><b>{await get_embedded_link(user_id)}</b> присоединился к клану</i>')
+        if user_clan:
+            with contextlib.suppress(Exception):
+                await bot.send_message(user_clan, f"<i><b>{await get_embedded_link(user_id)}</b> вышел из клана</i>")
     else:
         cur.execute(f"UPDATE userdata SET clan_id=NULL WHERE user_id={user_id}")
         conn.commit()
         await bot.send_message(chat_id, f"<i><b>{await get_embedded_link(user_id)}</b> вышел из клана</i>")
-            
+
+async def leaveclan(call: CallbackQuery) -> None:
+    """
+    Callback for leave clan
+    
+    :param call - callback:
+    """
+    user_id = call.from_user.id
+    try:
+        user_clan = cur.execute(f"SELECT clan_id FROM userdata WHERE user_id={user_id}").fetchone()[0]
+    except TypeError:
+        user_clan = None
+    if not user_clan or user_clan != call.message.chat.id:
+        return await call.answer("🤥 Но ты ведь не состоишь в этом клане… Нельзя выйти если ты не заходил, дорогой!", show_alert=True)
+
+    cur.execute(f"UPDATE userdata SET clan_id=NULL WHERE user_id={user_id}")
+    conn.commit()
+    await call.message.answer(f"<i><b>{await get_embedded_link(user_id)}</b> вышел из клана</i>")    

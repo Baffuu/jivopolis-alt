@@ -1,6 +1,6 @@
 import contextlib
 
-from .start import _sign_up_refferal, create_acc
+from .start import StartCommand, create_acc
 from .callbacks import *
 from .. import bot, logger, Dispatcher
 from ..misc.config import ITEMS, SUPPORT_LINK, villages, trains
@@ -41,7 +41,7 @@ async def callback_handler(call: CallbackQuery):
                 if call.data == 'sign_up':
                     await create_acc(call.from_user, call.from_user.id)
                 else:
-                    await _sign_up_refferal(call.message, call.from_user, call.data[8:])
+                    await StartCommand().sign_up_refferal(call.message, call.from_user, call.data[8:])
             case 'chats':
                 await chats(call.from_user.id, call.message)
             case 'adminpanel':
@@ -251,6 +251,8 @@ async def callback_handler(call: CallbackQuery):
                 await shop_24(call)
             case 'join_clan':
                 await joinclan(call, call.from_user.id)
+            case 'leave_clan':
+                await leaveclan(call)
             case "create_clan":
                 await create_clan(call)
             case buyclan if buyclan.startswith('buyclan_'):
@@ -264,7 +266,7 @@ async def callback_handler(call: CallbackQuery):
             if call.data == 'sign_up':
                 await create_acc(call.from_user, call.from_user.id)
             else:
-                await _sign_up_refferal(call.message, call.from_user, call.data[8:])
+                await StartCommand().sign_up_refferal(call.message, call.from_user, call.data[8:])
             return await call.answer('☁️ Записываем ваши данные…')
         return await call.answer("🧑‍🎨 Сэр, у вас нет аккаунта в живополисе. Прежде чем использовать любые комманды вам нужно зарегистрироваться.", show_alert=True)
     except Exception as e:
