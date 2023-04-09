@@ -1,77 +1,6 @@
 from dataclasses import dataclass
 from typing import Literal, Union, Optional
 
-ITEMS = {
-        ## name: [icon, database slot name, name, cost, category, description, html-code of item's icon]
-        'party_popper': ['🎉', 'party_popper', 'Хлопушка', 50, ['mask']],
-        'mrs_claus': ['🤶', 'mrs_claus', 'Миссис Клаус', 75, ['mask']],
-        'santa_claus': ['🎅', 'santa_claus', 'Санта Клaус', 100, ['mask']],
-        'fairy': ['🧚', 'fairy', 'Фея', 50, ['mask']],
-        'snowflake': ['❄️', 'snowflake', 'Снежинка', 30, ['mask']],
-        'snowman': ['☃️', 'snowman', 'Снеговик', 50, ['mask']],
-        'hedgehog': ['🦔', 'hedgehog', 'Еж', 100, ['mask']],
-        'truck': ['🚚', 'truck', 'Грузовик', 3000, ['mask']],
-        'gold_medal': ['🥇', 'gold_medal', 'Золотая медаль', -1, ['mask']],
-        'silver_medal': ['🥈', 'silver_medal', 'Серебренная медаль', -1, ['mask']],
-        'bronze_medal': ['🥉', 'bronze_medal', 'Бронзовая медаль', -1, ['mask']],
-        'poison': ['🧪', 'poison', 'Яд', 4000, ['robber']],
-        'baguette': ['🥖', 'baguette', 'Багет', 25, ['food']],
-        'milk': ['🥛', 'milk', 'Молоко', 25, ['food']],
-        'ramen': ['🍜', 'ramen', 'Рамен', 25, ['food']],
-        'pelmeni': ['🍲', 'pelmeni', 'Пельмени', 50, ['food']],
-        'apple': ['🍎', 'apple', 'Яблоко', 50, ['food']],
-        'shawarma': ['🌯', 'shawarma', 'Шаурма', 25, ['food']],
-        'burger': ['🍔', 'burger', 'Бургер', 500, ['food']],
-        'pizza': ['🍕', 'pizza', 'Пицца', 200, ['food']],
-        'coconut': ['🥥', 'coconut', 'Кокос', 25, ['food']],
-        'kiwi': ['🥝', 'kiwi', 'Kиви', 10, ['food']],
-        'tomato': ['🍅', 'tomato', 'Помидор', 10, ['food']], 
-        'fries': ['🍟', 'fries', 'Картофель Фри', 10, ['food']],
-        'cucumber': ['🥒', 'cucumber', 'Огурец', 10, ['food']],
-        'spaghetti':['🍝', 'spaghetti', 'Спагетти', 10, ['food']],
-        'doughnut': ['🍩', 'doughnut', 'Пончик', 10, ['food']],
-        'bento': ['🍱', 'bento', 'Бенто', 500, ['food']],
-        'beer': ['🍺', 'beer', 'Пиво', 200, ['food']],
-        'meat_on_bone': ['🍖', 'meat_on_bone', 'Мясо на кости', 200, ['food']],
-        'cheburek': ['🥟', 'cheburek', 'Чeбурек', 50, ['food']],
-        'tea': ['🍵', 'tea', 'Чай', 50, ['food']],
-        'coffee': ['☕', 'coffee', 'Кофе', 50, ['food']],
-        'rice': ['🍚', 'rice', 'Рис', 70, ['food']],
-        'cookie': ['🍪', 'cookie', 'Печенье', 20, ['food', 20], 'cookie'],
-        'cake': ['🍰', 'cake', 'Торт', 500, ['food']],
-        'sake': ['🍶', 'sake', 'Саке', 100, ['food']],
-        'pita': ['🥙', 'pita', 'Пита Сэндвич', 200, ['food']],
-        'red_car': ['🚗', 'red_car', 'Красная машина', 10000, ['car', 1]],
-        'blue_car': ['🚙', 'blue_car', 'Синяя машина', 15000, ['car', 2]],
-        'racing_car': ['🏎️', 'racing_car', 'Гоночный автомобиль', 40000, ['car', 5]],
-        'clown': ['🤡', 'clown', 'Клоун', 100, ['mask']],
-        'ghost': ['👻', 'ghost', 'Призрак', 100, ['mask']],
-        'alien': ['👽', 'alien', 'Пришелец', 100, ['mask']],
-        'robot': ['🤖', 'robot', 'Робот', 100, ['mask']],
-        'shit': ['💩', 'shit', 'Какашка', 100, ['mask']],
-        'fondue': ['🫕', 'fondue', 'Фондю', 100, ['food', 100]],
-        'juice': ['🥤', 'juice', 'Сок', 100, ['food']],
-        'cactus': ['🌵', 'cactus', 'Кактус', 250, ['mask']],
-        'palm': ['🌴', 'palm', 'Пальма', 345, ['mask']],
-        'potted_plant': ['🪴', 'potted_plant', 'Комнатное растение', 55, ['mask']],
-        'clover': ['🍀', 'clover', 'Клевер', 55, ['mask']],
-        'tulip': ['🌷', 'tulip', 'Тюльпан', 99, ['mask']],
-        'rose': ['🌹', 'rose', 'Роза', 123, ['mask']],
-        'xmas_tree': ['🎄', 'xmas_tree', 'Новогодняя елка', 123, ['mask']],
-        'moyai': ['🗿', 'moyai', 'Моаи', 123, ['mask']],
-        'chocolate': ['🍫', 'chocolate', 'Плитка шоколада', 321, ['food']],
-        'shaved_ice': ['🍧', 'shaved_ice', 'Фруктовый лед', 41, ['food']],
-        'ice_cream': ['🍨', 'ice_cream', 'Мороженое', 569, ['food']],
-        'stethoscope': ['🩺', 'stethoscope', 'Стетоскоп', 444, ['mask']],
-        'metro': ['🚇', 'metro', 'Metro', 10, ['token']],
-        'traintoken': ['🎫', 'traintoken', 'Train', 10, ['token']],
-        'phone': ['📱', 'phone', 'Phone', 1000000, ['phone']],
-        'troleytoken': ['🧾', 'trolleytoken', 'Trolley', 10, ['token']],
-        'hamster': ['🐹', 'hamster', 'Hamster', 100, ['mask']],
-        'fox': ['🦊', 'fox', 'Лиса', 500, ['mask'], 'она украла текст. Теперь здесь нет ничего. Ну, кроме котиков, разумеется.\n🐈🐈🐈🐈 Коты захватили мир!!!'],
-
-    }
-
 @dataclass
 class Item():
     name: str
@@ -82,7 +11,7 @@ class Item():
     type_param: Union[str, int, list] = None
     description: Optional[str] = None
 
-    @property
+    @property 
     def price(self) -> Union[int, Literal['no cost']]:
         '''
         You can get cost (or price) of the item 
@@ -90,7 +19,8 @@ class Item():
 
         return 'no cost' if self.cost < 0 or not self.cost else self.cost
 
-allitems = {
+
+ITEMS = {
     'walrus': Item(
                 name='seal', 
                 ru_name='Тюлень', 
@@ -232,7 +162,584 @@ allitems = {
         ru_name='Дверь',
         emoji='🚪',
         cost=500,
-    )
+    ),
+
+    'fox': Item(
+        name='fox',
+        ru_name='Лиса',
+        emoji='🦊',
+        cost=100,
+        type='mask',
+    ),
+
+    'party_popper': Item(
+        name='party_popper',
+        ru_name='Хлопушка',
+        emoji='🎉',
+        cost=50,
+        type='mask',
+    ),
+
+    'baguette': Item(
+        name='baguette', 
+        ru_name='Багет', 
+        emoji='🥖',
+        cost=25, 
+        type='food'
+    ),
+
+    'apple': Item(
+        name='apple', 
+        ru_name='Яблоко', 
+        cost=50, 
+        type='food',
+    ),
+
+    'doughnut': Item(
+        name='doughnut', 
+        ru_name='Пончик', 
+        emoji='🍩',
+        cost=10, 
+        type='food',
+    ),
+
+    'fries': Item(
+        name='fries', 
+        ru_name='Картофель Фри', 
+        emoji='🍟', 
+        cost=10, 
+        type='food'
+    ),
+
+    'ice_cream': Item(
+        name='ice_cream',
+        ru_name='Мороженое',
+        emoji='🍨',
+        cost=250, 
+        type='food'
+    ),
+
+    'shaved_ice': Item(
+        name='shaved_ice', 
+        ru_name='Фруктовый лед', 
+        emoji='🍧', 
+        cost=41, 
+        type='food'
+    ),
+
+    'fairy': Item(
+        name='fairy', 
+        ru_name='Фея', 
+        emoji='🧚', 
+        cost=-1, 
+        type='mask'
+    ),
+
+    'kiwi': Item(
+        name='kiwi', 
+        ru_name='Kиви', 
+        emoji='🥝', 
+        cost=10, 
+        type='food'
+    ),
+
+    'ramen': Item(
+        name='ramen', 
+        ru_name='Рамен', 
+        emoji='🍜', 
+        cost=25, 
+        type='food'
+    ),
+
+    'gold_medal': Item(
+        name='gold_medal',
+        ru_name='Золотая медаль',
+        emoji='🥇',
+        cost=-1,
+        type='mask',
+    ),
+
+    'silver_medal': Item(
+        name='silver_medal', 
+        ru_name='Серебренная медаль', 
+        emoji='🥈', 
+        cost=-1, 
+        type='mask'
+    ),
+
+    'bronze_medal': Item(
+        name='bronze_medal', 
+        ru_name='Бронзовая медаль', 
+        emoji='🥉', 
+        cost=-1, 
+        type='mask'
+    ),
+
+    'mrs_claus': Item(
+        emoji='🤶',
+        name='mrs_claus',
+        ru_name='Миссис Клаус',
+        cost=75,
+        type='mask'
+    ),
+
+    'santa_claus': Item(
+        emoji='🎅',
+        name='santa_claus',
+        ru_name='Санта Клaус',
+        cost=100,
+        type='mask'
+    ),
+
+    'snowflake': Item(
+        emoji='❄️',
+        name='snowflake',
+        ru_name='Снежинка',
+        cost=30,
+        type='mask'
+    ),
+
+
+    'snowman': Item(
+        emoji='☃️',
+        name='snowman',
+        ru_name='Снеговик',
+        cost=50,
+        type='mask'
+    ),
+
+
+    'hedgehog': Item(
+        emoji='🦔',
+        name='hedgehog',
+        ru_name='Еж',
+        cost=100,
+        type='mask'
+    ),
+
+
+    'truck': Item(
+        emoji='🚚',
+        name='truck',
+        ru_name='Грузовик',
+        cost=3000,
+        type='mask'
+    ),
+
+
+    'poison': Item(
+        emoji='🧪',
+        name='poison',
+        ru_name='Яд',
+        cost=4000,
+        type='robber'
+    ),
+
+
+    'milk': Item(
+        emoji='🥛',
+        name='milk',
+        ru_name='Молоко',
+        cost=25,
+        type='food'
+    ),
+
+
+    'pelmeni': Item(
+        emoji='🍲',
+        name='pelmeni',
+        ru_name='Пельмени',
+        cost=50,
+        type='food'
+    ),
+
+
+    'shawarma': Item(
+        emoji='🌯',
+        name='shawarma',
+        ru_name='Шаурма',
+        cost=25,
+        type='food'
+    ),
+
+
+    'burger': Item(
+        emoji='🍔',
+        name='burger',
+        ru_name='Бургер',
+        cost=500,
+        type='food'
+    ),
+
+
+    'pizza': Item(
+        emoji='🍕',
+        name='pizza',
+        ru_name='Пицца',
+        cost=200,
+        type='food'
+    ),
+
+
+    'coconut': Item(
+        emoji='🥥',
+        name='coconut',
+        ru_name='Кокос',
+        cost=25,
+        type='food'
+    ),
+
+
+    'tomato': Item(
+        emoji='🍅',
+        name='tomato',
+        ru_name='Помидор',
+        cost=10,
+        type='food'
+    ),
+
+
+    'cucumber': Item(
+        emoji='🥒',
+        name='cucumber',
+        ru_name='Огурец',
+        cost=10,
+        type='food'
+    ),
+
+
+    'spaghetti': Item(
+        emoji='🍝',
+        name='spaghetti',
+        ru_name='Спагетти',
+        cost=10,
+        type='food'
+    ),
+
+
+    'bento': Item(
+        emoji='🍱',
+        name='bento',
+        ru_name='Бенто',
+        cost=500,
+        type='food'
+    ),
+
+
+    'beer': Item(
+        emoji='🍺',
+        name='beer',
+        ru_name='Пиво',
+        cost=200,
+        type='food'
+    ),
+
+
+    'meat_on_bone': Item(
+        emoji='🍖',
+        name='meat_on_bone',
+        ru_name='Мясо на кости',
+        cost=200,
+        type='food'
+    ),
+
+
+    'cheburek': Item(
+        emoji='🥟',
+        name='cheburek',
+        ru_name='Чeбурек',
+        cost=50,
+        type='food'
+    ),
+
+
+    'tea': Item(
+        emoji='🍵',
+        name='tea',
+        ru_name='Чай',
+        cost=50,
+        type='food'
+    ),
+
+
+    'coffee': Item(
+        emoji='☕',
+        name='coffee',
+        ru_name='Кофе',
+        cost=50,
+        type='food'
+    ),
+
+
+    'rice': Item(
+        emoji='🍚',
+        name='rice',
+        ru_name='Рис',
+        cost=70,
+        type='food'
+    ),
+
+
+    'cookie': Item(
+        emoji='🍪',
+        name='cookie',
+        ru_name='Печенье',
+        cost=20,
+        type='food'
+    ),
+
+
+    'cake': Item(
+        emoji='🍰',
+        name='cake',
+        ru_name='Торт',
+        cost=500,
+        type='food'
+    ),
+
+
+    'sake': Item(
+        emoji='🍶',
+        name='sake',
+        ru_name='Саке',
+        cost=100,
+        type='food'
+    ),
+
+
+    'pita': Item(
+        emoji='🥙',
+        name='pita',
+        ru_name='Пита Сэндвич',
+        cost=200,
+        type='food'
+    ),
+
+
+    'red_car': Item(
+        emoji='🚗',
+        name='red_car',
+        ru_name='Красная машина',
+        cost=10000,
+        type='car'
+    ),
+
+
+    'blue_car': Item(
+        emoji='🚙',
+        name='blue_car',
+        ru_name='Синяя машина',
+        cost=15000,
+        type='car'
+    ),
+
+
+    'racing_car': Item(
+        emoji='🏎️',
+        name='racing_car',
+        ru_name='Гоночный автомобиль',
+        cost=40000,
+        type='car'
+    ),
+
+
+    'clown': Item(
+        emoji='🤡',
+        name='clown',
+        ru_name='Клоун',
+        cost=100,
+        type='mask'
+    ),
+
+
+    'ghost': Item(
+        emoji='👻',
+        name='ghost',
+        ru_name='Призрак',
+        cost=100,
+        type='mask'
+    ),
+
+
+    'alien': Item(
+        emoji='👽',
+        name='alien',
+        ru_name='Пришелец',
+        cost=100,
+        type='mask'
+    ),
+
+
+    'robot': Item(
+        emoji='🤖',
+        name='robot',
+        ru_name='Робот',
+        cost=100,
+        type='mask'
+    ),
+
+
+    'shit': Item(
+        emoji='💩',
+        name='shit',
+        ru_name='Какашка',
+        cost=100,
+        type='mask'
+    ),
+
+
+    'fondue': Item(
+        emoji='🫕',
+        name='fondue',
+        ru_name='Фондю',
+        cost=100,
+        type='food'
+    ),
+
+
+    'juice': Item(
+        emoji='🥤',
+        name='juice',
+        ru_name='Сок',
+        cost=100,
+        type='food'
+    ),
+
+
+    'cactus': Item(
+        emoji='🌵',
+        name='cactus',
+        ru_name='Кактус',
+        cost=250,
+        type='mask'
+    ),
+
+
+    'palm': Item(
+        emoji='🌴',
+        name='palm',
+        ru_name='Пальма',
+        cost=345,
+        type='mask'
+    ),
+
+
+    'potted_plant': Item(
+        emoji='🪴',
+        name='potted_plant',
+        ru_name='Комнатное растение',
+        cost=55,
+        type='mask'
+    ),
+
+
+    'clover': Item(
+        emoji='🍀',
+        name='clover',
+        ru_name='Клевер',
+        cost=55,
+        type='mask'
+    ),
+
+
+    'tulip': Item(
+        emoji='🌷',
+        name='tulip',
+        ru_name='Тюльпан',
+        cost=99,
+        type='mask'
+    ),
+
+
+    'rose': Item(
+        emoji='🌹',
+        name='rose',
+        ru_name='Роза',
+        cost=123,
+        type='mask'
+    ),
+
+
+    'xmas_tree': Item(
+        emoji='🎄',
+        name='xmas_tree',
+        ru_name='Новогодняя елка',
+        cost=123,
+        type='mask'
+    ),
+
+
+    'moyai': Item(
+        emoji='🗿',
+        name='moyai',
+        ru_name='Моаи',
+        cost=123,
+        type='mask'
+    ),
+
+
+    'chocolate': Item(
+        emoji='🍫',
+        name='chocolate',
+        ru_name='Плитка шоколада',
+        cost=321,
+        type='food'
+    ),
+
+
+    'stethoscope': Item(
+        emoji='🩺',
+        name='stethoscope',
+        ru_name='Стетоскоп',
+        cost=444,
+        type='mask'
+    ),
+
+
+    'metro': Item(
+        emoji='🚇',
+        name='metro',
+        ru_name='Metro',
+        cost=10,
+        type='token'
+    ),
+
+
+    'traintoken': Item(
+        emoji='🎫',
+        name='traintoken',
+        ru_name='Train',
+        cost=10,
+        type='token'
+    ),
+
+
+    'phone': Item(
+        emoji='📱',
+        name='phone',
+        ru_name='Phone',
+        cost=1000000,
+        type='phone'
+    ),
+
+
+    'trolleytoken': Item(
+        emoji='🧾',
+        name='trolleytoken',
+        ru_name='Trolley',
+        cost=10,
+        type='token'
+    ),
+
+
+    'hamster': Item(
+        emoji='🐹',
+        name='hamster',
+        ru_name='Hamster',
+        cost=100,
+        type='mask'
+    ),
+
 
 }
 '''Store all items in Jivopolis'''

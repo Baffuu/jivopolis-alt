@@ -4,7 +4,7 @@ from .misc import (
     get_time_units, get_embedded_link
 )
 
-from .items import Item, allitems
+from .items import Item, ITEMS
 
 from .lootbox import (
     lootbox_open, LOOTBOX

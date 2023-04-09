@@ -1,7 +1,7 @@
 import random as rand
 from typing import Tuple
 
-from . import allitems
+from . import ITEMS
 
 def money() -> Tuple[int, str]:
     '''returns random number of money in range from 1 to 75'''
@@ -14,8 +14,8 @@ def money_steal() -> Tuple[int, str]:
     return rand.randint(1, 20), 'money_steal'
 def robber_item() -> Tuple[str, str]:
     items = [
-        item for item in allitems
-        if allitems[item].type == 'robber'
+        item for item in ITEMS
+        if ITEMS[item].type == 'robber'
     ]
     return rand.choice(items), 'robber_item'
 def common_masks() -> Tuple[str, str]:

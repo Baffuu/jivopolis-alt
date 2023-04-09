@@ -2,10 +2,10 @@ import sys, os
 
 from ... import bot
 from ...misc.config import (
-    ITEMS, BAFFUADM, 
+    BAFFUADM, 
     MEGACHATLINK
 )
-from ...misc import OfficialChats
+from ...misc import OfficialChats, ITEMS
 
 from ...database.sqlitedb import cur, conn
 
@@ -49,7 +49,7 @@ async def itemsinfo_table(call: CallbackQuery, user_id: int) -> None:
     markup = InlineKeyboardMarkup(row_width = 10)
     items = [
         InlineKeyboardButton(
-            text=ITEMS[item][0], callback_data=f'iteminfo_{item}'
+            text=ITEMS[item].emoji, callback_data=f'iteminfo_{item}'
         )
         for item in ITEMS
     ]
@@ -74,8 +74,7 @@ async def itemsinfo_item(call: CallbackQuery, user_id: int) -> None:
     if rank < 2:
         return await call.answer("❌ Эта команда доступна только администраторам Живополиса", show_alert = True)
 
-    cost = 'не продается' if ITEMS[item][3] < 0 else ITEMS[item][3]
-    match (ITEMS[item][4][0]):
+    match (ITEMS[item].type):
         case 'food':
             itemtype = 'еда'
         case 'mask':
@@ -85,7 +84,7 @@ async def itemsinfo_item(call: CallbackQuery, user_id: int) -> None:
         case _:
             itemtype = 'undefined'
 
-    await call.answer(f'{ITEMS[item][0]}{ITEMS[item][2]}\nКод: {item}\nТип: {itemtype}\nСтоимость: ${cost}', show_alert = True)
+    await call.answer(f'{ITEMS[item].emoji}{ITEMS[item].ru_name}\nКод: {item}\nТип: {itemtype}\nСтоимость: ${ITEMS[item].price}', show_alert = True)
 
 
 async def adminhelp(call: CallbackQuery, user_id: int) -> None:

@@ -1,5 +1,5 @@
 from ... import bot
-from ...misc.config import ITEMS
+from ...misc import ITEMS
 
 from ...database.sqlitedb import cur, conn
 
@@ -19,7 +19,7 @@ async def put_mask_off(call: CallbackQuery, user_id: int, anon: bool = False) ->
         f"SELECT mask FROM userdata WHERE user_id={user_id}"
     ).fetchone()[0]:
         for item in ITEMS:
-            if ITEMS[item][0] == mask:
+            if ITEMS[item].emoji == mask:
                 mask = item
 
         cur.execute(f"UPDATE userdata SET mask = NULL WHERE user_id = {user_id}")
@@ -42,10 +42,10 @@ async def put_mask_on(call: CallbackQuery, item: str) -> None:
         cur.execute(f"UPDATE userdata SET {item}={item}-1 WHERE user_id={user_id}")
         conn.commit()
 
-        cur.execute(f"UPDATE userdata SET mask=\"{ITEMS[item][0]}\" WHERE user_id={user_id}")
+        cur.execute(f"UPDATE userdata SET mask=\"{ITEMS[item].emoji}\" WHERE user_id={user_id}")
         conn.commit()
     
-        return await call.answer(f"Отличный выбор! Ваша маска: {ITEMS[item][0]}", show_alert = True)
+        return await call.answer(f"Отличный выбор! Ваша маска: {ITEMS[item].emoji}", show_alert = True)
         # await achieve(a, message.chat.id, "msqrd")
     else:
         await call.answer("🚫 У вас нет этого предмета", show_alert = True)

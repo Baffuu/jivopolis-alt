@@ -2,11 +2,11 @@ import random
 
 from math import ceil
 from ...misc import (
-    Item, allitems, 
+    Item, ITEMS,
     lootbox_open, LOOTBOX, 
     get_time_units, current_time
 )
-from ...misc.config import limeteds, ITEMS
+from ...misc.config import limeteds
 
 from ...database.sqlitedb import cur, conn
 from ...database.functions import itemdata
@@ -21,9 +21,9 @@ async def itemdesc(call: CallbackQuery, user_id: int) -> None:
     :param user_id:
     '''
     try:
-        item: Item = allitems[call.data]
+        item: Item = ITEMS[call.data]
     except KeyError:
-        return await call.answer('Этot predmet не существует')
+        return await call.answer('Этoт item не существует')
     count = cur.execute(f"SELECT {call.data} FROM userdata WHERE user_id={user_id}").fetchone()[0]
 
     if count < 1:
@@ -148,7 +148,7 @@ async def lootbox_button(user_id: int, message: Message) -> None:
     price, price_type = await lootbox_open()
 
     if isinstance(price, str):
-        item = allitems[price]
+        item = ITEMS[price]
         cur.execute(f"UPDATE userdata SET {item.name}={item.name}+1 WHERE user_id={user_id}")
         conn.commit()
 
@@ -176,7 +176,7 @@ async def sellitem(call: CallbackQuery, item: str) -> None:
     if item_count < 1:
         return await call.answer('❌ У вас недостаточно единиц этого предмета', show_alert = True)
         
-    cost = ITEMS[item][3]//coef
+    cost = ITEMS[item].cost//coef
     
     cur.execute(f"UPDATE userdata SET {item}={item}-1 WHERE user_id={user_id}"); conn.commit()
     cur.execute(f"UPDATE userdata SET balance=balance+{cost} WHERE user_id={user_id}"); conn.commit()

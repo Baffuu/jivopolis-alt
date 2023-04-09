@@ -299,11 +299,11 @@ class StartCommand():
         members_count = cur.execute(f"SELECT count(*) FROM userdata WHERE clan_id={chat.id}").fetchone()[0]
 
         text = f"""
-            🏯 Клан {clan_name}{description if description else ''}
+            🏯 Клан {clan_name}{description or ''}
             \n\n🏬 Штаб-квартира: {HQplace} {f', {address}' if address else ''}
             \n\n{members_count} 👥 {clan_balance} 💲{top_num} 🔝
         """
-    
+
         return (
             await bot.send_photo(
                 chat.id, clanphoto, caption=text, reply_markup=markup

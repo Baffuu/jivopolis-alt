@@ -3,14 +3,15 @@ import random
 import asyncio
 
 from ... import logger, bot
-from ...misc import get_building, get_link, get_mask, get_embedded_link
+from ...misc import get_building, get_link, get_mask, get_embedded_link, ITEMS
+from ...misc.constants import MINIMUM_CAR_LEVEL
 from ...database.sqlitedb import cur, conn
 from ...database.functions import buy, buybutton, itemdata
 
 from ...misc.config import (
     METRO, WALK, CITY, 
     trains, villages, walks,
-    ITEMS, lvlcar, limeteds,
+    limeteds,
     lvlcab, cabcost, locations, 
     clanitems
 )
@@ -123,13 +124,13 @@ async def buycall(call: CallbackQuery):
     except IndexError:
         amount = 1
     if item in ITEMS:
-        if ITEMS[item][4][0] == 'car':
+        if ITEMS[item].type == 'car':
             level = cur.execute(f"SELECT level FROM userdata WHERE user_id={user_id}").fetchone()[0]
-            if level<lvlcar:
-                return await call.answer(text='❌ Данная функция доступна только с уровня {0}'.format(lvlcar), show_alert = True)
+            if level<MINIMUM_CAR_LEVEL:
+                return await call.answer(text=f'❌ Данная функция доступна только с уровня {MINIMUM_CAR_LEVEL}', show_alert = True)
 
             #await achieve(a.id, call.message.chat.id, 'myauto')
-        await buy(call, item, user_id, cost=ITEMS[item][3]+tip, amount=amount)
+        await buy(call, item, user_id, cost=ITEMS[item].price+tip, amount=amount)
     else:
         raise ValueError("no such item")
 
@@ -279,9 +280,13 @@ async def central_market_food(call: CallbackQuery) -> None:
     coef = 1.5 #todo cur.execute(f"SELECT coef FROM globaldata").fetchone()[0]
 
     for item in ITEMS:
-        if await itemdata(user_id, item) != 'emptyslot' and ITEMS[item][4][0] == 'food' and ITEMS[item][3] > 0:
-            cost = ITEMS[item][3]//coef
-            itemlist.append(InlineKeyboardButton(text=f'{ITEMS[item][0]} - ${cost}', callback_data=f'sellitem_{item}'))
+        if (
+            await itemdata(user_id, item) != 'emptyslot' 
+            and ITEMS[item].type == 'food' 
+            and isinstance(ITEMS[item].price, int)
+        ):
+            cost = ITEMS[item].price//coef
+            itemlist.append(InlineKeyboardButton(text=f'{ITEMS[item].emoji} - ${cost}', callback_data=f'sellitem_{item}'))
 
     if not itemlist:
         desc = '🚫 У вас нет еды для продажи'
@@ -310,7 +315,11 @@ async def central_market_mask(call: CallbackQuery) -> None:
     coef = 1.5 #todo cur.execute(f"SELECT coef FROM globaldata").fetchone()[0]
 
     for item in ITEMS:
-        if await itemdata(user_id, item) != 'emptyslot' and ITEMS[item][4][0] == 'mask' and ITEMS[item][3] > 0:
+        if (
+            await itemdata(user_id, item) != 'emptyslot' 
+            and ITEMS[item].type == 'mask' 
+            and isinstance(ITEMS[item].price, int)
+        ):
             cost = ITEMS[item][3]//coef
             itemlist.append(InlineKeyboardButton(text=f'{ITEMS[item][0]} - ${cost}', callback_data=f'sellitem_{item}'))
 
@@ -490,7 +499,7 @@ async def buy24_(call: CallbackQuery, item: str) -> None:
     cur.execute(f"UPDATE globaldata SET {item}={item}-1")
     conn.commit()
 
-    await buy(call, item, call.from_user.id, ITEMS[item][3])
+    await buy(call, item, call.from_user.id, ITEMS[item].price)
 
 
 async def buyclan_(call: CallbackQuery, item: str) -> None:

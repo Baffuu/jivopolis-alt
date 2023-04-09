@@ -5,8 +5,8 @@ from ..callbacks.traveling import state_balance
 
 from ... import bot, logger
 from ...database.sqlitedb import cur, conn
-from ...misc.config import limeteds, ITEMS
-from ...misc import get_mask, get_link, OfficialChats, get_embedded_link
+from ...misc.config import limeteds
+from ...misc import get_mask, get_link, OfficialChats, get_embedded_link, ITEMS
 
 from aiogram.types import (
     InlineKeyboardMarkup, 
@@ -190,7 +190,7 @@ async def economics(call: CallbackQuery) -> None:
     limits = ''
 
     for item in limeteds:
-        limits += f'\n{ITEMS[item][0]} {ITEMS[item][2]} - '
+        limits += f'\n{ITEMS[item].emoji} {ITEMS[item].ru_name} - '
         item_left = cur.execute(f"SELECT {item} FROM globaldata").fetchone()[0]
 
         limits += 'дефицит' if item_left <= 0 else str(item_left)
