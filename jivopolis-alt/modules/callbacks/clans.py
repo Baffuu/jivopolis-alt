@@ -4,6 +4,7 @@ from ...misc import OfficialChats
 
 from ...misc import get_mask, get_link, get_embedded_link
 from ...database.sqlitedb import cur, conn, insert_clan
+from ..start import StartCommand
 
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.exceptions import BadRequest
@@ -36,8 +37,6 @@ async def create_clan(call: CallbackQuery) -> None:
         else:
             raise
 
-    mask = get_mask(user_id)
-    nick = cur.execute(f"SELECT nickname FROM userdata WHERE user_id={user_id}").fetchone()[0]
     await bot.send_message(
         OfficialChats.LOGCHAT, 
         text=(
@@ -45,15 +44,16 @@ async def create_clan(call: CallbackQuery) -> None:
             f" создал новый клан: <a href='{link}'>{call.message.chat.title}</a>. <code>[{chat_id}]</code>"
         )
     )
-    return await bot.send_message(
+    await bot.send_message(
         chat_id, 
         text = (
-            f"<i>🏘 <a href='{await get_embedded_link(user_id)}</a> создал новый клан. Скорее присоединяйтесь!</i>"
-            "\n<code>🪝 Для дальнейшей настройки клана напишите</code> /start"
+            f"<i>🏘 {await get_embedded_link(user_id)} создал новый клан. Скорее присоединяйтесь!</i>"
         ), 
         reply_markup=InlineKeyboardMarkup().\
             add(InlineKeyboardButton('➕ Присоединиться', callback_data='join_clan'))
     )
+
+    await StartCommand()._clan_start(call.message.chat)
 
 
 async def joinclan(call: CallbackQuery, user_id: int) -> None:
@@ -68,7 +68,7 @@ async def joinclan(call: CallbackQuery, user_id: int) -> None:
     count = cur.execute(f"SELECT count(*) FROM clandata WHERE clan_id = {chat_id}").fetchone()[0]
 
     if count < 1:
-        return call.answer("😓 Похоже, такого клана не существует.", show_alert=True)
+        return await call.answer("😓 Похоже, такого клана не существует.", show_alert=True)
     elif count > 1:
         raise ValueError("found more than one clan with such ID")
     try:
@@ -89,6 +89,7 @@ async def joinclan(call: CallbackQuery, user_id: int) -> None:
         cur.execute(f"UPDATE userdata SET clan_id=NULL WHERE user_id={user_id}")
         conn.commit()
         await bot.send_message(chat_id, f"<i><b>{await get_embedded_link(user_id)}</b> вышел из клана</i>")
+
 
 async def leaveclan(call: CallbackQuery) -> None:
     """
