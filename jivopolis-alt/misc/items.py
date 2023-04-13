@@ -740,6 +740,36 @@ ITEMS = {
         type='mask'
     ),
 
+    "fyCoin": Item(
+        name="fyCoin",
+        ru_name="fyCoin",
+        emoji="💎",
+        cost=-1,
+        type="crypto"
+    ),
 
+    "Mithereum": Item(
+        name="Mithereum",
+        ru_name="Mithereum",
+        emoji="🧿",
+        cost=-1,
+        type="crypto"
+    ),
+
+    "Gather": Item(
+        name="Gather",
+        ru_name="Gather",
+        emoji="🧬",
+        cost=-1,
+        type="crypto"
+    ),
+
+    "Recegon": Item(
+        name="Recegon",
+        ru_name="Recegon",
+        emoji="🪙",
+        cost=-1,
+        type="crypto"
+    ),
 }
 '''Store all items in Jivopolis'''
