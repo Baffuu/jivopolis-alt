@@ -610,7 +610,7 @@ ITEMS = {
         emoji='🌵',
         name='cactus',
         ru_name='Кактус',
-        cost=250,
+        cost=-1,
         type='mask'
     ),
 
@@ -771,5 +771,13 @@ ITEMS = {
         cost=-1,
         type="crypto"
     ),
+
+    "fan": Item(
+        name="fan",
+        ru_name="Веep",
+        emoji="🪭",
+        cost=-1,
+        type="mask"
+    )
 }
 '''Store all items in Jivopolis'''

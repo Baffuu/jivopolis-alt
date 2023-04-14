@@ -25,10 +25,15 @@ def common_masks() -> Tuple[str, str]:
     return rand.choice(items), 'common_mask'
 def rare_masks() -> Tuple[str, str]: #todo
     
-    items = [
-        'rare', 'epic', 'legendary'
-    ]
-    return rand.choice(items), 'rare_masks'
+    items = rand.randint(1, 100)
+    match (rand.choice(items)):
+        case x if x in range(1, 70):
+            prise = rand.choice(RARE_MASKS)
+        case x if x in range(71, 90):
+            price = rand.choice(EPIC_MASKS)
+        case x if x in range(91, 100):
+            price = rand.choice(LEGENDARY_MASKS)
+    return price, 'rare_masks'
 
 LOOTBOX = {
     'money': "📤 Вы нашли маленькую пачку денег на дне ящика… <b>Получено ${}</b>",
@@ -41,6 +46,9 @@ LOOTBOX = {
         Но никто ведь не запрещает вам ее открыть, верно? <b>Получено {}</b>"
 }
 '''stores all strings for lootboxes'''
+RARE_MASKS = ['cactus']
+EPIC_MASKS = ['tulip', 'moyai']
+LEGENDARY_MASKS = ['fan']
 
 async def lootbox_open() -> None:
     '''
