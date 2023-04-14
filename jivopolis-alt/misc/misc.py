@@ -4,10 +4,11 @@ from .config import intervals
 from typing import Union, Tuple
 from math import ceil
 
+from .constants import OfficialChats
 from .. import logger, bot
 from ..database.sqlitedb import cur
 
-from aiogram.types import InlineKeyboardButton, User
+from aiogram.types import InlineKeyboardButton, User, Message
 from aiogram.utils.deep_linking import decode_payload
 
 async def get_link(user_id: int = None, encoded_id: str = None) -> str:
@@ -144,3 +145,13 @@ def get_building(place: str) -> InlineKeyboardButton | None:
         case _:
             return None
     return button
+
+
+async def log_to_telegram(message: str, tag: str) -> Message:
+    await bot.send_message(
+        OfficialChats.LOGCHAT,
+        f"{message} | <i>{tag}</i>"
+    )
+
+
+tglog = log_to_telegram #alias for telegram logger

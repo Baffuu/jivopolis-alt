@@ -1,5 +1,6 @@
 import sys
-from .bot import logger, bot, dp
+from loguru import logger
+from .bot import bot, dp
 from aiogram import Dispatcher, executor
 
 if sys.version_info < (3, 10, 0):

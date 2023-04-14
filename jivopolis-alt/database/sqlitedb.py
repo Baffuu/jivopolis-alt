@@ -17,6 +17,7 @@ def connect_database() -> None:
         create_userdata()
         create_globaldata()
         create_clandata()
+        create_cryptodata()
         return logger.success('database connected')
     return logger.critical('database is not connected')
 
@@ -154,6 +155,7 @@ def create_globaldata() -> None:
 (
     treasury        INTEGER         DEFAULT 0               NOT NULL,
     lastfill        DATETIME        DEFAULT 0               NOT NULL,
+    lastcrypto      DATETIME        DEFAULT 0               NOT NULL,
     baguette        INTEGER,
     pelmeni         INTEGER,
     soup            INTEGER,
@@ -180,6 +182,19 @@ def create_clandata() -> None:
     description     TEXT,
     photo_id        TEXT
 )
+    """)
+
+
+def create_cryptodata() -> None:
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS 
+    cryptodata(
+        id INTEGER PRIMARY KEY,
+        crypto TEXT NOT NULL,
+        value INTEGER DEFAULT 5 NOT NULL,
+        bought INTEGER DEFAULT 0 NOT NULL,
+        sold INTEGER DEFAULT 0 NOT NULL
+    )
     """)
 
 

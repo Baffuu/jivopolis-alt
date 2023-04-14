@@ -13,6 +13,7 @@ from aiogram.types import (
     InlineKeyboardButton, 
     Message, CallbackQuery
 )
+from ..._world_updater import get_crypto
 
 async def chats(user_id: int, message: Message) -> None:
     '''
@@ -195,6 +196,11 @@ async def economics(call: CallbackQuery) -> None:
 
         limits += 'дефицит' if item_left <= 0 else str(item_left)
     
+    crypto = await get_crypto()
+    crypto_text = ''
+    for c in crypto:
+        value = cur.execute(f"SELECT value FROM cryptodata WHERE crypto='{c}'").fetchone()[0]
+        crypto_text += f"{ITEMS[c].emoji}{ITEMS[c].name} - ${value}\n"
     return await call.message.answer(
         (
             f"<i><b>📊 ЭКОНОМИКА ЖИВОПОЛИСА</b>\n"
@@ -205,6 +211,8 @@ async def economics(call: CallbackQuery) -> None:
             f"\n\n🚚 Завоз товара в Круглосуточный осуществляется каждый день. Последний завоз был {h} часов {m} минут {s} секунд назад"
             "\n\n💰 <b>Центральный рынок</b>"
             f"\nРыночная ставка: {round(1//coef, 2)}</i>"
+            "\n\n<b>💎 Криптовалюта:</b>\n\n"
+            f"{crypto_text}"
         )
     )
             

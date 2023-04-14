@@ -4,10 +4,10 @@ from datetime import datetime
 from math import floor
 from typing import Union
 
-from ..misc import OfficialChats
-from ..misc.config import limeteds, leveldesc, levelrange, ITEMS, ach, ADMINS, clanitems
-
 from .. import bot, logger
+from ..misc import current_time, get_link, get_mask, OfficialChats, ITEMS
+from ..misc.config import limeteds, leveldesc, levelrange, ach, ADMINS, clanitems
+from ..database.sqlitedb import cur, conn, insert_user
 
 from aiogram.types import (
     InlineKeyboardButton,
@@ -18,21 +18,12 @@ from aiogram.types import (
     Message
 )
 
-from ..database.sqlitedb import cur, conn, insert_user
-from ..misc import current_time, get_link, get_mask, allitems
 
 async def check(user_id: int, chat_id: str) -> None:
     '''
     checks everything 
     '''
     try:
-        lastfill = current_time() - cur.execute("SELECT lastfill FROM globaldata").fetchone()[0]
-
-        if lastfill >= 86400:
-            for item in limeteds:
-                cur.execute(f"UPDATE globaldata SET {item}={random.randint(5, 15)}")
-        cur.execute(f"UPDATE globaldata SET lastfill={current_time()}")
-
         cur.execute(f"UPDATE userdata SET lastseen={current_time()} WHERE user_id={user_id}")
         conn.commit()
 
@@ -59,7 +50,7 @@ async def check(user_id: int, chat_id: str) -> None:
             return
         elif xp >= levelrange[lvl] and xp < levelrange[lvl+1]:
             return
-        for i in levelrange: #todo recreate
+        for i in levelrange: 
             if xp >= i and levelrange.index(i) >= len(levelrange) - 1 and lvl != levelrange.index(i):
                 cur.execute(f"UPDATE userdata SET lvl={levelrange.index(i)} WHERE user_id={user_id}")
                 conn.commit()
@@ -68,7 +59,7 @@ async def check(user_id: int, chat_id: str) -> None:
                 except Exception:
                     return await bot.send_message(chat_id, f"<i>&#128305; Теперь ваш уровень в Живополисе: <b>{levelrange.index(i)}</b>\nПоздравляем!\n{leveldesc[levelrange.index(i)]}</i>")
 
-            if xp>=i and xp<levelrange[levelrange.index(i)+1] and lvl!=levelrange.index(i):
+            if xp>=i and xp<levelrange[levelrange.index(i)] and lvl!=levelrange.index(i):
                 cur.execute("UPDATE userdata SET level=? WHERE user_id=?", (levelrange.index(i), user_id,))
                 conn.commit()
                 try:
@@ -94,7 +85,7 @@ async def itemdata(user_id: int, item: str) -> Union[str, None, InlineKeyboardBu
         items = cur.execute(f"SELECT {item} FROM userdata WHERE user_id={user_id}").fetchone()[0]
 
         if items > 0:      
-            return InlineKeyboardButton(text=f"{ITEMS[item][0]} {items}", callback_data=item)
+            return InlineKeyboardButton(text=f"{ITEMS[item].emoji} {items}", callback_data=item)
                 
         else:      
             return "emptyslot"           
@@ -116,9 +107,9 @@ def buybutton(
     
     :returns: None if item does not exists or an error occured; aiogram.types.InlineKeyboardButton
     '''
-    if item not in allitems:
+    if item not in ITEMS:
         return None
-    itemob = allitems[item]
+    itemob = ITEMS[item]
 
     cost = itemob.price if isinstance(itemob.price, int) else 0 + tip
 
@@ -161,7 +152,7 @@ async def eat(call: CallbackQuery, food: str) -> None:
     chat_id = call.message.chat.id
 
     if food in ITEMS:
-        heal = ITEMS[food][4][1]
+        heal = ITEMS[food].type_param
     else:
         raise ValueError('no such food')
 
@@ -462,17 +453,7 @@ async def profile(user_id: int, message: Message, called: bool = False): #todo: 
     if health < 0:
         health = "<b>мёртв</b>"
 
-    match (rank):
-        case 0:
-            rank = "👤 Игрок"
-        case 1:
-            rank = "⚜️ VIP"
-        case 2:
-            rank = "🛠 Админ"
-        case 3:
-            rank = "👑 Создатель"
-        case _:
-            rank = '👽 Undefined'
+    rank = _get_rank_name(rank)
 
     seconds = current_time() - lastseen
 
@@ -584,6 +565,20 @@ async def profile(user_id: int, message: Message, called: bool = False): #todo: 
         except:
             await message.answer(prof, reply_markup = markup)'''
 
+def _get_rank_name(rank):
+    match (rank):
+        case 0:
+            rank = "👤 Игрок"
+        case 1:
+            rank = "⚜️ VIP"
+        case 2:
+            rank = "🛠 Админ"
+        case 3:
+            rank = "👑 Создатель"
+        case _:
+            rank = '👽 Undefined'
+    return rank
+
 
 async def earn(money: int, message: Message = None, user_id: int = None) -> None:
     '''
@@ -615,7 +610,7 @@ async def buy(call: CallbackQuery, item: str, user_id: int, cost: int = None, am
         raise ValueError("no such item")
 
     if not cost:
-        cost = ITEMS[item][3]
+        cost = ITEMS[item].price
 
     balance = cur.execute(f"SELECT balance FROM userdata WHERE user_id = {user_id}").fetchone()[0]
 
