@@ -1,3 +1,6 @@
+import contextlib
+import sqlite3
+
 from .. import bot, Dispatcher, logger
 
 from ..database.sqlitedb import cur, conn
@@ -130,7 +133,8 @@ async def getall_cmd(message: Message) -> None:
     await message.reply('🧬 Loading...')
 
     for item in ITEMS:
-        cur.execute(f"UPDATE userdata SET {item}={item}+1 WHERE user_id={message.from_user.id}"); conn.commit()
+        with contextlib.suppress(sqlite3.OperationalError):
+            cur.execute(f"UPDATE userdata SET {item}={item}+1 WHERE user_id={message.from_user.id}"); conn.commit()
     await message.reply('🪄 Я дал вам все предметы в Живополисе')
 
 

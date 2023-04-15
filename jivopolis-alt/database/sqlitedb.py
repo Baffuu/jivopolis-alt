@@ -64,6 +64,11 @@ def create_userdata() -> None:
     last_fight      DATETIME        DEFAULT 0               NOT NULL,
     prison_started  DATETIME        DEFAULT 0               NOT NULL,
 
+    fyCoin          INTEGER         DEFAULT 0               NOT NULL,
+    Mithereum       INTEGER         DEFAULT 0               NOT NULL,
+    Gather          INTEGER         DEFAULT 0               NOT NULL,
+    Recegon         INTEGER         DEFAULT 0               NOT NULL,
+
     walrus          INTEGER         DEFAULT 0               NOT NULL,
     lootbox         INTEGER         DEFAULT 0               NOT NULL,
     cow             INTEGER         DEFAULT 0               NOT NULL,
@@ -142,7 +147,8 @@ def create_userdata() -> None:
     traintoken      INTEGER         DEFAULT 0               NOT NULL,
     phone           INTEGER         DEFAULT 0               NOT NULL,
     troleytoken     INTEGER         DEFAULT 0               NOT NULL,
-    hamster         INTEGER         DEFAULT 0               NOT NULL
+    hamster         INTEGER         DEFAULT 0               NOT NULL,
+    fan             INTEGER         DEFAULT 0               NOT NULL
 )       
 """)                       
 

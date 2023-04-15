@@ -1,5 +1,6 @@
 import random
 
+from typing import Coroutine
 from math import ceil
 from ...misc import (
     Item, ITEMS,
@@ -89,7 +90,7 @@ async def inventory(call: CallbackQuery) -> None:
     item: str
 
     for item in ITEMS:
-        if await itemdata(user_id, item) != 'emptyslot':
+        if await itemdata(user_id, item) != 'emptyslot' and await itemdata(user_id, item):
             itemlist.append(await itemdata(user_id, item))
 
     if itemlist != []:
@@ -153,6 +154,8 @@ async def lootbox_button(user_id: int, message: Message) -> None:
         conn.commit()
 
         return await message.answer(LOOTBOX[price_type].format(f"{item.emoji} {item.ru_name}"))
+    if callable(price):
+        return await price(message.chat.id)
     return await message.answer(LOOTBOX[price_type].format(price))
 
 
