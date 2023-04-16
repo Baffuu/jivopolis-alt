@@ -5,3 +5,4 @@ run.sh
 __pychache__/
 main.py
 **.yaml
+**.log

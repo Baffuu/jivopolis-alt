@@ -55,7 +55,7 @@ class StartCommand():
                 await self._clan_start(message.chat)
         except Exception as e:
             logger.exception(e)
-            return await bot.send_message(chat_id, f"<b>🪼 ERROR:</b> <i> {e} </i>")
+            return await bot.send_message(chat_id, constants.ERROR_MESSAGE.format(e))
     
     
     async def _private_start(self, user_id: str) -> None:
