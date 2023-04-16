@@ -59,18 +59,18 @@ morebus = 20
                 if oready == 1:
                     markup = types.InlineKeyboardMarkup()
                     markup.add(types.InlineKeyboardButton(text='👊 Удар', callback_data='fight'))
-                    await message.answer('<i><b><a href="tg://user?id={2}">{0}{1}</a></b>, <b><a href="tg://user?id={3}">{4}{5}</a></b>, правила таковы: кто первый нажмёт на кнопку, тот и победитель</i>'.format(orasa, onick, oth, a, rasa, nick), parse_mode = 'html', reply_markup = markup)
+                    await message.answer('<i><b><a href="tg://user?id={2}">{0}{1}</a></b>, <b><a href="tg://user?id={3}">{4}{5}</a></b>, правила таковы: кто первый нажмёт на кнопку, тот и победитель</i>'.format(orasa, onick, oth, a, rasa, nick) , reply_markup = markup)
                     cursor.execute('UPDATE userdata SET ready = ? WHERE user_id = ?', (0,a,))
                     conn.commit()
                     cursor.execute('UPDATE userdata SET ready = ? WHERE user_id = ?', (0,oth,))
                     conn.commit()
                 else:
-                    await message.answer('<i><b><a href="tg://user?id={2}">{0}{1}</a></b>, <b><a href="tg://user?id={3}">{4}{5}</a></b> хочет с вами сразиться. Измените режим готовности, чтобы бой смог состояться</i>'.format(orasa, onick, oth, a, rasa, nick), parse_mode = 'html', reply_markup = markup)
+                    await message.answer('<i><b><a href="tg://user?id={2}">{0}{1}</a></b>, <b><a href="tg://user?id={3}">{4}{5}</a></b> хочет с вами сразиться. Измените режим готовности, чтобы бой смог состояться</i>'.format(orasa, onick, oth, a, rasa, nick) , reply_markup = markup)
             else:
-                await message.reply('<i>Измените режим готовности, чтобы бой смог состояться</i>', parse_mode = 'html', reply_markup = markup)
+                await message.reply('<i>Измените режим готовности, чтобы бой смог состояться</i>' , reply_markup = markup)
         except Exception as e:
             await message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-            await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+            await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
     async def clancall(call):
         try:
             a = call.from_user.id
@@ -80,7 +80,7 @@ morebus = 20
             if count == 0:
                 return
             if not isinstance(await main.get_chat_member(chid, a), types.ChatMemberAdministrator) and not isinstance(await main.get_chat_member(chid, a), types.ChatMemberOwner):
-                await main.send_message(chid, '&#10060; <i>Управлять кланом может только администратор чата</i>', parse_mode = 'html')
+                await main.send_message(chid, '&#10060; <i>Управлять кланом может только администратор чата</i>' )
                 return
             typ = ''
             cursor.execute('SELECT type FROM clandata WHERE group_id=?', (chid,))
@@ -110,10 +110,10 @@ morebus = 20
             markup.add(types.InlineKeyboardButton(text='🖼 QR-код', callback_data='clan_qrcode'))
             markup.add(types.InlineKeyboardButton(text='🗑 Распустить клан', callback_data='delete_clan'))
             markup.add(types.InlineKeyboardButton(text='◀ Назад', callback_data='cancel_action2'))
-            await main.send_message(chid, '<i>Управление кланом</i>', parse_mode = 'html', reply_markup = markup)
+            await main.send_message(chid, '<i>Управление кланом</i>' , reply_markup = markup)
         except Exception as e:
             await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-            await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+            await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
     async def clanprof(call):
         try:
             a = call.from_user.id
@@ -123,7 +123,7 @@ morebus = 20
             if count == 0:
                 return
             if not isinstance(await main.get_chat_member(chid, a), types.ChatMemberAdministrator) and not isinstance(await main.get_chat_member(chid, a), types.ChatMemberOwner):
-                await main.send_message(chid, '&#10060; <i>Управлять кланом может только администратор чата</i>', parse_mode = 'html')
+                await main.send_message(chid, '&#10060; <i>Управлять кланом может только администратор чата</i>' )
                 return
             markup = types.InlineKeyboardMarkup()
             markup.add(types.InlineKeyboardButton(text='✏ Переименовать клан', callback_data='clan_name'))
@@ -131,10 +131,10 @@ morebus = 20
             markup.add(types.InlineKeyboardButton(text='🖼 Изменить фото клана', callback_data='clan_photo'))
             markup.add(types.InlineKeyboardButton(text='🔗 Изменить ссылку', callback_data='clan_link'))
             markup.add(types.InlineKeyboardButton(text='◀ Назад', callback_data='clan_settings2'))
-            await main.send_message(chid, '<i>Управление кланом</i>', parse_mode = 'html', reply_markup = markup)
+            await main.send_message(chid, '<i>Управление кланом</i>' , reply_markup = markup)
         except Exception as e:
             await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-            await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+            await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
     async def aircall(call):
         a = call.from_user.id
         cursor.execute('SELECT place FROM userdata WHERE user_id=?', (a,))
@@ -150,7 +150,7 @@ morebus = 20
         else:
             return
         markup.add(types.InlineKeyboardButton(text='🏛 Выйти в город', callback_data='city'))
-        await call.message.answer('✈ <i>Вы находитесь в аэропорту <b>{0}</b></i>'.format(airport), parse_mode = 'html', reply_markup = markup)
+        await call.message.answer('✈ <i>Вы находитесь в аэропорту <b>{0}</b></i>'.format(airport) , reply_markup = markup)
     async def traincall(call):
         a = call.from_user.id
         cursor.execute('SELECT place FROM userdata WHERE user_id=?', (a,))
@@ -171,7 +171,7 @@ morebus = 20
                 stations.append(types.InlineKeyboardButton(text='🚆 {0}'.format(name), callback_data='train_{0}'.format(st)))
         markup.add(*stations)
         markup.add(types.InlineKeyboardButton(text='🏛 Выйти в город', callback_data='city'))
-        await call.message.answer('🚉 <i>Вы находитесь на станции <b>{0}</b></i>'.format(trains[2][trains[0].index(station)]), parse_mode = 'html', reply_markup = markup)
+        await call.message.answer('🚉 <i>Вы находитесь на станции <b>{0}</b></i>'.format(trains[2][trains[0].index(station)]) , reply_markup = markup)
     async def regbuscall(call):
         a = call.from_user.id
         cursor.execute('SELECT place FROM userdata WHERE user_id=?', (a,))
@@ -190,7 +190,7 @@ morebus = 20
                 stops.append(types.InlineKeyboardButton(text='🚐 {0}'.format(st), callback_data='gobus_{0}'.format(st)))
         markup.add(*stops)
         markup.add(types.InlineKeyboardButton(text='🏛 Выйти в город', callback_data='city'))
-        await call.message.answer('🚏 <i>Вы находитесь на остановке <b>{0}</b>\n\n❗ Стоимость одной поездки на маршрутке 🚐 составляет <b>${1}</b>, на автобусе 🚌 - <b>${2}</b></i>'.format(station, buscost, regbuscost), parse_mode = 'html', reply_markup = markup)
+        await call.message.answer('🚏 <i>Вы находитесь на остановке <b>{0}</b>\n\n❗ Стоимость одной поездки на маршрутке 🚐 составляет <b>${1}</b>, на автобусе 🚌 - <b>${2}</b></i>'.format(station, buscost, regbuscost) , reply_markup = markup)
     async def ask(user, message):
         try:
             a = user
@@ -206,7 +206,7 @@ morebus = 20
                 balance = cursor.fetchone()[0]
                 cursor.execute('UPDATE userdata SET balance = ? WHERE user_id = ?', (balance+rand, a,))
                 conn.commit()
-                await message.answer('<i>Ваша зарплата: <b>${0}</b>\nПриносим искренние извинения за задержку</i>'.format(rand), parse_mode = 'html')
+                await message.answer('<i>Ваша зарплата: <b>${0}</b>\nПриносим искренние извинения за задержку</i>'.format(rand) )
             else:
                 if box != 0:
                     h = int(24-ceil(diff/3600))
@@ -219,7 +219,7 @@ morebus = 20
                     await message.answer('<i>&#10060; Вы в данный момент не работаете</i>', parse_mode='html', reply_markup = markup)
         except Exception as e:
             await message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-            await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+            await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
     async def work(call):
         try:
             a = call.from_user.id
@@ -253,11 +253,11 @@ morebus = 20
                 await message.answer('<i>&#10060; Заберите свою зарплату и сможете работать снова</i>', parse_mode='html', reply_markup = markup)
         except Exception as e:
             await message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-            await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+            await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
 
         except Exception as e:
             await message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-            await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+            await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
     def access(place, userplace, stage=0):
         acc = ''
         if place in CITY:
@@ -320,7 +320,7 @@ morebus = 20
                     route+=stat
                 else:
                     route+='<b>{0}</b>'.format(stat)
-            msg = await call.message.answer('<i><b>&#128654; Маршрут троллейбуса:</b> {2}\n\nОстановка <b>{0}</b>\n{1}</i>'.format(station, desc, route), parse_mode = 'html', reply_markup = markup)
+            msg = await call.message.answer('<i><b>&#128654; Маршрут троллейбуса:</b> {2}\n\nОстановка <b>{0}</b>\n{1}</i>'.format(station, desc, route) , reply_markup = markup)
             await asyncio.sleep(ticket_time)
             try:
                 await main.delete_message(call.message.chat.id, msg['message_id'])
@@ -328,7 +328,7 @@ morebus = 20
                 pass
         except Exception as e:
             await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-            await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+            await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
     async def metrocall(call):
         try:
             a = call.from_user.id
@@ -354,9 +354,9 @@ morebus = 20
             markup.add(types.InlineKeyboardButton(text='🏛 Выйти в город', callback_data='city'))
             map = 'https://telegra.ph/file/d8e0fbd1a975625a86713.jpg'
             if line!=2 and line!=0:
-                msg = await main.send_photo(call.message.chat.id, map, caption='<i>Станция <b>{0}</b>\n{1}</i>'.format(station, desc), parse_mode = 'html', reply_markup = markup)
+                msg = await main.send_photo(call.message.chat.id, map, caption='<i>Станция <b>{0}</b>\n{1}</i>'.format(station, desc) , reply_markup = markup)
             else:
-                msg = await main.send_photo(call.message.chat.id, map, caption='<i>Остановочный пункт <b>{0}</b>\n{1}</i>'.format(station, desc), parse_mode = 'html', reply_markup = markup)
+                msg = await main.send_photo(call.message.chat.id, map, caption='<i>Остановочный пункт <b>{0}</b>\n{1}</i>'.format(station, desc) , reply_markup = markup)
             await asyncio.sleep(ticket_time)
             try:
                 await main.delete_message(call.message.chat.id, msg['message_id'])
@@ -364,7 +364,7 @@ morebus = 20
                 pass
         except Exception as e:
             await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-            await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+            await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
     async def tostation(user, station, line=100):
         a = user
         if line == 100:
@@ -396,10 +396,10 @@ morebus = 20
             conn.commit()
             cursor.execute('SELECT rasa FROM userdata WHERE user_id = ?', (a,))
             ras = cursor.fetchone()[0]
-            await main.send_photo(message.chat.id, photos[photo], caption='<i>Ваша раса: <b>{0}</b></i>'.format(ras), parse_mode = 'html')
+            await main.send_photo(message.chat.id, photos[photo], caption='<i>Ваша раса: <b>{0}</b></i>'.format(ras) )
         except Exception as e:
             await message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-            await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+            await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
     @bot.message_handler(content_types=['text'])
     async def get_text_messages(message: types.Message):
         try:
@@ -465,7 +465,7 @@ morebus = 20
                 conn.commit()
                 cursor.execute('SELECT accesskey FROM userdata WHERE user_id = ?', (a,))
                 desc = cursor.fetchone()[0]
-                await message.answer('<i>Ваш ключ доступа: \n<b>{0}</b></i>'.format(desc), parse_mode = 'html')
+                await message.answer('<i>Ваш ключ доступа: \n<b>{0}</b></i>'.format(desc) )
                 cursor.execute('UPDATE userdata SET process=? WHERE user_id=?', ('nothing', a,))
                 conn.commit()
             if process=='seekhouse':
@@ -478,7 +478,7 @@ morebus = 20
                     cursor.execute('SELECT count(*) FROM clandata WHERE hqplace = ? AND type=? AND address=?', (place, 'public', house,))
                     count = cursor.fetchone()[0]
                     if count == 0:
-                        await message.answer('<i>Кланов не найдено :(</i>', parse_mode = 'html')
+                        await message.answer('<i>Кланов не найдено :(</i>' )
                         cursor.execute('UPDATE userdata SET process=? WHERE user_id=?', ('nothing', a,))
                         conn.commit()
                         return
@@ -487,7 +487,7 @@ morebus = 20
                         clans+='\n<a href = "{0}">{1}</a>'.format(row[8], row[1])
                     markup = types.InlineKeyboardMarkup()
                     markup.add(types.InlineKeyboardButton(text='Искать по номеру дома', callback_data='hq_number'))
-                    await message.answer('<i>&#127970; Найденные кланы: <b>{0}</b></i>'.format(clans), parse_mode = 'html', reply_markup=markup)
+                    await message.answer('<i>&#127970; Найденные кланы: <b>{0}</b></i>'.format(clans) , reply_markup=markup)
                     cursor.execute('UPDATE userdata SET process=? WHERE user_id=?', ('nothing', a,))
                     conn.commit()
             if process=='setbio':
@@ -496,7 +496,7 @@ morebus = 20
                 conn.commit()
                 cursor.execute('SELECT desc FROM userdata WHERE user_id = ?', (a,))
                 desc = cursor.fetchone()[0]
-                await message.answer('<i>Ваше описание: \n<b>{0}</b></i>'.format(desc), parse_mode = 'html')
+                await message.answer('<i>Ваше описание: \n<b>{0}</b></i>'.format(desc) )
                 cursor.execute('UPDATE userdata SET process=? WHERE user_id=?', ('nothing', a,))
                 conn.commit()
             if process=='setnick':
@@ -505,7 +505,7 @@ morebus = 20
                 conn.commit()
                 cursor.execute('SELECT nick FROM userdata WHERE user_id = ?', (a,))
                 nick = cursor.fetchone()[0]
-                await message.answer('<i>Ваш ник: <b>{0}</b></i>'.format(nick), parse_mode = 'html')
+                await message.answer('<i>Ваш ник: <b>{0}</b></i>'.format(nick) )
                 cursor.execute('UPDATE userdata SET process=? WHERE user_id=?', ('nothing', a,))
                 conn.commit()
             if process=='setphoto':
@@ -515,9 +515,9 @@ morebus = 20
                 cursor.execute('SELECT photo FROM userdata WHERE user_id = ?', (a,))
                 photo = cursor.fetchone()[0]
                 try:
-                    await main.send_photo(message.chat.id, photo, caption = '<i>Ваше фото</i>', parse_mode = 'html')
+                    await main.send_photo(message.chat.id, photo, caption = '<i>Ваше фото</i>' )
                 except:
-                    await message.answer('<i>Произошла ошибка при публикации фото. Фото профиля удалено</i>', parse_mode = 'html')
+                    await message.answer('<i>Произошла ошибка при публикации фото. Фото профиля удалено</i>' )
                 cursor.execute('UPDATE userdata SET process=? WHERE user_id=?', ('nothing', a,))
                 conn.commit()
             if process=='clanname':
@@ -532,7 +532,7 @@ morebus = 20
                 conn.commit()
                 cursor.execute('SELECT name FROM clandata WHERE group_id=?', (chid,))
                 name = cursor.fetchone()[0]
-                await main.send_message(chid, '<i>Новое название клана: <b>{0}</b></i>'.format(name), parse_mode = 'html')
+                await main.send_message(chid, '<i>Новое название клана: <b>{0}</b></i>'.format(name) )
                 cursor.execute('UPDATE userdata SET process=? WHERE user_id=?', ('nothing', a,))
                 conn.commit()
             if process=='clanbio':
@@ -547,7 +547,7 @@ morebus = 20
                 conn.commit()
                 cursor.execute('SELECT bio FROM clandata WHERE group_id=?', (chid,))
                 bio = cursor.fetchone()[0]
-                await main.send_message(chid, '<i>Новое описание клана: <b>{0}</b></i>'.format(bio), parse_mode = 'html')
+                await main.send_message(chid, '<i>Новое описание клана: <b>{0}</b></i>'.format(bio) )
                 cursor.execute('UPDATE userdata SET process=? WHERE user_id=?', ('nothing', a,))
                 conn.commit()
             if process=='clanphoto':
@@ -563,9 +563,9 @@ morebus = 20
                 cursor.execute('SELECT photo FROM clandata WHERE group_id=?', (chid,))
                 photo = cursor.fetchone()[0]
                 try:
-                    await main.send_photo(message.chat.id, photo, caption = '<i>Фото клана</i>', parse_mode = 'html')
+                    await main.send_photo(message.chat.id, photo, caption = '<i>Фото клана</i>' )
                 except:
-                    await message.answer('<i>Произошла ошибка при публикации фото. Фото клана удалено</i>', parse_mode = 'html')
+                    await message.answer('<i>Произошла ошибка при публикации фото. Фото клана удалено</i>' )
                 cursor.execute('UPDATE userdata SET process=? WHERE user_id=?', ('nothing', a,))
                 conn.commit()
             if process=='clanuser':
@@ -588,7 +588,7 @@ morebus = 20
                 await main.send_message(chid, '&#10060; <i><b>Ошибка:</b> Введите целое число</i>', parse_mode='html')
             else:
                 await main.send_message(chid, '&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await main.send_message(chid, '<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await main.send_message(chid, '<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if message.text.lower().startswith('живополис, '):
             text = message.text.lower()[11:]
             if text.startswith('привет'):
@@ -618,7 +618,7 @@ morebus = 20
                     await message.answer(ids)
             except Exception as e:
                 await message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if message.text.lower() == 'мой баланс':
             try:
                 a = message.from_user.id
@@ -628,10 +628,10 @@ morebus = 20
                 nick = cursor.fetchone()[0]
                 cursor.execute('SELECT rasa FROM userdata WHERE user_id=?', (a,))
                 rasa = cursor.fetchone()[0]
-                await message.answer('<i><b><a href="tg://user?id={1}">{3}{0}</a></b> размахивает перед всеми своими накоплениями в количестве <b>${2}</b></i>'.format(nick, a, money, rasa), parse_mode = 'html')
+                await message.answer('<i><b><a href="tg://user?id={1}">{3}{0}</a></b> размахивает перед всеми своими накоплениями в количестве <b>${2}</b></i>'.format(nick, a, money, rasa) )
             except Exception as e:
                 await message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if message.text.startswith('$='):
             try:
                 a = message.from_user.id
@@ -712,7 +712,7 @@ morebus = 20
                     cursor.execute('UPDATE userdata SET {0} = ? WHERE user_id = ?'.format(arr[2]), (int(arr[3]), int(arr[1]),))
                 conn.commit()
                 cursor.execute('SELECT {0} FROM userdata WHERE user_id=?'.format(arr[2]), (arr[1],))
-                await message.answer('<i>Результат: <b>{0}</b></i>'.format(cursor.fetchone()[0]), parse_mode = 'html')
+                await message.answer('<i>Результат: <b>{0}</b></i>'.format(cursor.fetchone()[0]) )
                 cursor.execute("SELECT COUNT(*) FROM userdata WHERE user_id=?", (arr[1],))
                 count = cursor.fetchone()[0]
                 if count == 1:
@@ -723,7 +723,7 @@ morebus = 20
                     ouser = "<a href='tg://user?id={0}'>{1}{2}</a>".format(arr[1], orasa, onick)
                 else:
                     ouser = "не определён"
-                await main.send_message(fid, "<i><b><a href='tg://user?id={0}'>{1}{2}</a></b> выполнил команду:\n\n<code>{3}</code>\n\nПользователь: <b>{4}</b>\nПервоначальное значение: <b>{5}</b>\n#admin_update</i>".format(a, rasa, nick, message.text.lower(), ouser, val), parse_mode = 'html')
+                await main.send_message(fid, "<i><b><a href='tg://user?id={0}'>{1}{2}</a></b> выполнил команду:\n\n<code>{3}</code>\n\nПользователь: <b>{4}</b>\nПервоначальное значение: <b>{5}</b>\n#admin_update</i>".format(a, rasa, nick, message.text.lower(), ouser, val) )
             except Exception as e:
                 await message.answer('&#10060; <i><b>Ошибка:</b> {0}</i>'.format(e), parse_mode='html')
         if message.text.lower().startswith('/broadcast '):
@@ -816,7 +816,7 @@ morebus = 20
                     pass
             except Exception as e:
                 await message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if message.text.lower().startswith('продать '):
             try:
                 a = message.from_user.id
@@ -859,7 +859,7 @@ morebus = 20
                     pass
             except Exception as e:
                 await message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if message.text.lower().startswith('передать ') or message.text.lower().startswith('пожертвовать '):
             try:
                 a = message.from_user.id
@@ -900,9 +900,9 @@ morebus = 20
                             onick = cursor.fetchone()[0]
                             cursor.execute('SELECT rasa FROM userdata WHERE user_id=?', (oth,))
                             orasa = cursor.fetchone()[0]
-                            await message.answer('<i><b><a href="tg://user?id={2}">{0}{1}</a></b> передал <b><a href="tg://user?id={3}">{4}{5}</a></b> ${6}</i>'.format(rasa, nick, a, oth, orasa, onick, amount), parse_mode = 'html')
+                            await message.answer('<i><b><a href="tg://user?id={2}">{0}{1}</a></b> передал <b><a href="tg://user?id={3}">{4}{5}</a></b> ${6}</i>'.format(rasa, nick, a, oth, orasa, onick, amount) )
                             if amount>0:
-                               await main.send_message(fid, '<i><b><a href="tg://user?id={2}">{0}{1}</a></b> передал <b><a href="tg://user?id={3}">{4}{5}</a></b> ${6}\n#user_moneyshare</i>'.format(rasa, nick, a, oth, orasa, onick, amount), parse_mode = 'html')
+                               await main.send_message(fid, '<i><b><a href="tg://user?id={2}">{0}{1}</a></b> передал <b><a href="tg://user?id={3}">{4}{5}</a></b> ${6}\n#user_moneyshare</i>'.format(rasa, nick, a, oth, orasa, onick, amount) )
                         else:
                             await message.answer('<i>Введите неотрицательное число</i>', parse_mode='html')
                     else:
@@ -938,9 +938,9 @@ morebus = 20
                             nick = cursor.fetchone()[0]
                             cursor.execute('SELECT rasa FROM userdata WHERE user_id=?', (a,))
                             rasa = cursor.fetchone()[0]
-                            await message.answer('<i><b><a href="tg://user?id={2}">{0}{1}</a></b> пожертвовал на нужды клана <b>${3}</b>. Теперь баланс клана: <b>${4}</b></i>'.format(rasa, nick, a, amount, othmoney), parse_mode = 'html')
+                            await message.answer('<i><b><a href="tg://user?id={2}">{0}{1}</a></b> пожертвовал на нужды клана <b>${3}</b>. Теперь баланс клана: <b>${4}</b></i>'.format(rasa, nick, a, amount, othmoney) )
                             if amount>0:
-                                await main.send_message(fid, '<i><b><a href="tg://user?id={2}">{0}{1}</a></b> пожертвовал на нужды клана <b>${3}</b>. Теперь баланс клана <b>{5} ({6})</b>: <b>${4}</b>\n#clan_moneyshare</i>'.format(rasa, nick, a, amount, othmoney, chn, chid), parse_mode = 'html')
+                                await main.send_message(fid, '<i><b><a href="tg://user?id={2}">{0}{1}</a></b> пожертвовал на нужды клана <b>${3}</b>. Теперь баланс клана <b>{5} ({6})</b>: <b>${4}</b>\n#clan_moneyshare</i>'.format(rasa, nick, a, amount, othmoney, chn, chid) )
                         else:
                             await message.answer('<i>Введите неотрицательное число</i>', parse_mode='html')
                     else:
@@ -1006,7 +1006,7 @@ morebus = 20
                     return
                 amount = int(message.text[8:])
                 if not isinstance(await main.get_chat_member(chid, a), types.ChatMemberAdministrator) and not isinstance(await main.get_chat_member(chid, a), types.ChatMemberOwner):
-                    await main.send_message(chid, '&#10060; <i>Выводить деньги из клана может только администратор чата</i>', parse_mode = 'html')
+                    await main.send_message(chid, '&#10060; <i>Выводить деньги из клана может только администратор чата</i>' )
                     return
                 cursor.execute('SELECT balance FROM userdata WHERE user_id=?', (a,))
                 mymoney = cursor.fetchone()[0]
@@ -1025,11 +1025,11 @@ morebus = 20
                         nick = cursor.fetchone()[0]
                         cursor.execute('SELECT rasa FROM userdata WHERE user_id=?', (a,))
                         rasa = cursor.fetchone()[0]
-                        await message.answer('<i><b><a href="tg://user?id={2}">{0}{1}</a></b> вывел из клана <b>${3}</b>. Теперь баланс клана: <b>${4}</b></i>'.format(rasa, nick, a, amount, othmoney), parse_mode = 'html')
+                        await message.answer('<i><b><a href="tg://user?id={2}">{0}{1}</a></b> вывел из клана <b>${3}</b>. Теперь баланс клана: <b>${4}</b></i>'.format(rasa, nick, a, amount, othmoney) )
                         cursor.execute('SELECT name FROM clandata WHERE group_id=?', (chid,))
                         chn = cursor.fetchone()[0]
                         if amount>0:
-                            await main.send_message(fid, '<i><b><a href="tg://user?id={2}">{0}{1}</a></b> вывел из клана <b>{5} ({6})</b> деньги суммой <b>${3}</b>. Теперь баланс клана: <b>${4}</b>\n#clan_moneytake</i>'.format(rasa, nick, a, amount, othmoney, chn, chid), parse_mode = 'html')
+                            await main.send_message(fid, '<i><b><a href="tg://user?id={2}">{0}{1}</a></b> вывел из клана <b>{5} ({6})</b> деньги суммой <b>${3}</b>. Теперь баланс клана: <b>${4}</b>\n#clan_moneytake</i>'.format(rasa, nick, a, amount, othmoney, chn, chid) )
                     else:
                         await message.answer('<i>Введите неотрицательное число</i>', parse_mode='html')
                 else:
@@ -1045,7 +1045,7 @@ morebus = 20
                 amount = random.randint(1, 10)
                 situation = random.uniform(0,1)
                 if message.from_user.id == message.reply_to_message.from_user.id:
-                    await message.answer('<i>&#10060; Нельзя воровать у самого себя</i>', parse_mode = 'html')
+                    await message.answer('<i>&#10060; Нельзя воровать у самого себя</i>' )
                     return
                 a = message.from_user.id
                 cursor.execute('SELECT balance FROM userdata WHERE user_id=?', (a,))
@@ -1056,7 +1056,7 @@ morebus = 20
                 cursor.execute('SELECT rang FROM userdata WHERE user_id=?', (a,))
                 rang = cursor.fetchone()[0]
                 if rang >= 1:
-                    await message.answer('<i>&#10060; У администраторов Живополиса и VIP-пользователей воровать нельзя!</i>', parse_mode = 'html')
+                    await message.answer('<i>&#10060; У администраторов Живополиса и VIP-пользователей воровать нельзя!</i>' )
                     return
                 myid = message.from_user.id
                 now = datetime.now()
@@ -1085,22 +1085,22 @@ morebus = 20
                             orasa = cursor.fetchone()[0]
                             cursor.execute('UPDATE userdata SET cansteal = ? WHERE user_id = ?', ((now - datetime.fromtimestamp(0)).total_seconds(), a,))
                             conn.commit()
-                            await message.answer('<i><b><a href="tg://user?id={2}">{0}{1}</a></b> украл у <b><a href="tg://user?id={3}">{4}{5}</a></b> ${6}</i>'.format(rasa, nick, a, oth, orasa, onick, amount), parse_mode = 'html')
-                            await main.send_message(fid, '<i><b><a href="tg://user?id={2}">{0}{1}</a></b> украл у <b><a href="tg://user?id={3}">{4}{5}</a></b> ${6}\n#user_stealmoney</i>'.format(rasa, nick, a, oth, orasa, onick, amount), parse_mode = 'html')
+                            await message.answer('<i><b><a href="tg://user?id={2}">{0}{1}</a></b> украл у <b><a href="tg://user?id={3}">{4}{5}</a></b> ${6}</i>'.format(rasa, nick, a, oth, orasa, onick, amount) )
+                            await main.send_message(fid, '<i><b><a href="tg://user?id={2}">{0}{1}</a></b> украл у <b><a href="tg://user?id={3}">{4}{5}</a></b> ${6}\n#user_stealmoney</i>'.format(rasa, nick, a, oth, orasa, onick, amount) )
                         else:
                             oth = message.reply_to_message.from_user.id
                             cursor.execute('SELECT nick FROM userdata WHERE user_id=?', (oth,))
                             onick = cursor.fetchone()[0]
                             cursor.execute('SELECT rasa FROM userdata WHERE user_id=?', (oth,))
                             orasa = cursor.fetchone()[0]
-                            await message.answer('<i>У <a href="tg://user?id={2}"><b>{0}{1}</b></a> нет столько денег</i>'.format(orasa, onick, oth), parse_mode = 'html')
+                            await message.answer('<i>У <a href="tg://user?id={2}"><b>{0}{1}</b></a> нет столько денег</i>'.format(orasa, onick, oth) )
                     else:
                         a = message.from_user.id
                         cursor.execute('UPDATE userdata SET cansteal = ? WHERE user_id = ?', ((now - datetime.fromtimestamp(0)).total_seconds(), a,))
                         conn.commit()
-                        await message.answer('<i>&#10060; Кража провалилась</i>', parse_mode = 'html')
+                        await message.answer('<i>&#10060; Кража провалилась</i>' )
                 else:
-                    await message.answer('<i>Воровать можно не чаще, чем раз в 3 минуты</i>', parse_mode = 'html')
+                    await message.answer('<i>Воровать можно не чаще, чем раз в 3 минуты</i>' )
             except TypeError:
                 await message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
             except AttributeError:
@@ -1110,7 +1110,7 @@ morebus = 20
             except OverflowError:
                 await message.answer('&#10060; <i><b>Ошибка:</b> Баланс чересчур большой</i>', parse_mode='html')
         if message.text.lower() == 'пинг':
-            await message.reply('Понг', parse_mode = 'html')
+            await message.reply('Понг' )
         if message.text.lower() == 'профиль':
             if hasattr(message.reply_to_message, 'text'):
                 await profile(message.reply_to_message.from_user.id, message)
@@ -1123,10 +1123,10 @@ morebus = 20
                 conn.commit()
                 cursor.execute('SELECT nick FROM userdata WHERE user_id = ?', (a,))
                 nick = cursor.fetchone()[0]
-                await message.answer('<i>Ваш ник: <b>{0}</b></i>'.format(nick), parse_mode = 'html')
+                await message.answer('<i>Ваш ник: <b>{0}</b></i>'.format(nick) )
             except Exception as e:
                 await message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if message.text.lower().startswith('/bio '):
             try:
                 a = message.from_user.id
@@ -1134,10 +1134,10 @@ morebus = 20
                 conn.commit()
                 cursor.execute('SELECT desc FROM userdata WHERE user_id = ?', (a,))
                 desc = cursor.fetchone()[0]
-                await message.answer('<i>Ваше описание: \n<b>{0}</b></i>'.format(desc), parse_mode = 'html')
+                await message.answer('<i>Ваше описание: \n<b>{0}</b></i>'.format(desc) )
             except Exception as e:
                 await message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if message.text.lower() == 'снять':
             try:
                 a = message.from_user.id
@@ -1151,7 +1151,7 @@ morebus = 20
                     await message.answer('&#10060; <i>У вас нет маски</i>', parse_mode='html')
             except Exception as e:
                 await message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if message.text.lower().startswith('рефка'):
             try:
                 a = message.from_user.id
@@ -1220,7 +1220,7 @@ morebus = 20
                     color = '255-255-0'
                     bgcolor = '255-255-255'
                 ref = 't.me/jivopolisbot?start={0}'.format(reflink)
-                await main.send_photo(message.chat.id, "https://api.qrserver.com/v1/create-qr-code/?data={0}&size=512x512&charset-source=UTF-8&charset-target=UTF-8&ecc=L&color={1}&bgcolor={2}&margin=1&qzone=1&format=png".format(ref, color, bgcolor), '<i>Ваша реферальная ссылка: <b>{0}</b></i>'.format(ref), parse_mode = 'html')
+                await main.send_photo(message.chat.id, "https://api.qrserver.com/v1/create-qr-code/?data={0}&size=512x512&charset-source=UTF-8&charset-target=UTF-8&ecc=L&color={1}&bgcolor={2}&margin=1&qzone=1&format=png".format(ref, color, bgcolor), '<i>Ваша реферальная ссылка: <b>{0}</b></i>'.format(ref) )
             except Exception as e:
                 await message.answer('&#10060; <i>Ошибка: {0}</i>'.format(e), parse_mode='html')
         if message.text.lower() == 'бой':
@@ -1326,7 +1326,7 @@ morebus = 20
                         timed = 'лет'
                 except Exception as e:
                     await message.answer('&#10060; <i><b>Ошибка:</b> Принимаются только числовые значения</i>', parse_mode='html')
-                    await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                    await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
                     return
             if not hasattr(message.reply_to_message, 'text'):
                 await message.answer('&#10060; <i>Нужно ответить на сообщение пользователя</i>', parse_mode='html')
@@ -1369,7 +1369,7 @@ morebus = 20
                 await main.send_message(chid, '<i>Готов к бою <b><a href="tg://user?id={0}">{1}{2}</a></b></i>'.format(aidy, rasa, nick), parse_mode='html', reply_markup=markup)
             except Exception as e:
                 await message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if message.text.lower().startswith('/exec '):
             try:
                 if message.from_user.id == CREATOR:
@@ -1408,7 +1408,7 @@ morebus = 20
                     await message.answer('<i>Секреееетный чат</i>', parse_mode='html', reply_markup=markup)
             except Exception as e:
                 await message.answer('❌ <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
     @bot.message_handler(content_types=['document'])
     async def get_document(message: types.Message):
         try:
@@ -1442,7 +1442,7 @@ morebus = 20
                 cursor.execute('UPDATE userdata SET process=? WHERE user_id=?', ('nothing', a,))
                 conn.commit()
         except Exception as e:
-            await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+            await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
     @bot.message_handler(content_types=['sticker'])
     async def sendst(message: types.Message):
         try:
@@ -1477,7 +1477,7 @@ morebus = 20
                     return
             if '🎲' in message.sticker.emoji:
                 if message.chat.id != -1001395868701:
-                    message.reply("&#10060; <i>Рулетка не работает за пределами <b>Игрового клуба</b></i>", parse_mode = 'html')
+                    message.reply("&#10060; <i>Рулетка не работает за пределами <b>Игрового клуба</b></i>" )
                     return
                 try:
                     a = message.from_user.id
@@ -1497,13 +1497,13 @@ morebus = 20
                         cursor.execute('UPDATE userdata SET rulette = ? WHERE user_id = ?', ((now - datetime.fromtimestamp(0)).total_seconds(), a,))
                         conn.commit()
                         if rand==0:
-                            await message.answer('<i>Вы не получили ничего :(</i>', parse_mode = 'html')
+                            await message.answer('<i>Вы не получили ничего :(</i>' )
                         elif rand=='morj':
-                            await message.answer('<i>Вы получили &#129453; моржа!</i>', parse_mode = 'html')
+                            await message.answer('<i>Вы получили &#129453; моржа!</i>' )
                             cursor.execute('UPDATE userdata SET morj = ? WHERE user_id = ?', (morj+1, a,))
                             conn.commit()
                         elif rand=='cow':
-                            await message.answer('<i>Вы получили &#128004; корову!</i>', parse_mode = 'html')
+                            await message.answer('<i>Вы получили &#128004; корову!</i>' )
                             cursor.execute('UPDATE userdata SET cow = ? WHERE user_id = ?', (morj+1, a,))
                             conn.commit()
                         elif rand>0:
@@ -1511,13 +1511,13 @@ morebus = 20
                             balance = cursor.fetchone()[0]
                             cursor.execute('UPDATE userdata SET balance = ? WHERE user_id = ?', (balance+rand, a,))
                             conn.commit()
-                            await message.answer('<i><b>Поздравляем!</b>\nВы заработали <b>${0}</b></i>'.format(rand), parse_mode = 'html')
+                            await message.answer('<i><b>Поздравляем!</b>\nВы заработали <b>${0}</b></i>'.format(rand) )
                         else:
                             cursor.execute('SELECT balance FROM userdata WHERE user_id = ?', (a,))
                             balance = cursor.fetchone()[0]
                             cursor.execute('UPDATE userdata SET balance = ? WHERE user_id = ?', (balance+rand, a,))
                             conn.commit()
-                            await message.answer('<i>Вы проиграли <b>${0}</b> :(</i>'.format(-rand), parse_mode = 'html')
+                            await message.answer('<i>Вы проиграли <b>${0}</b> :(</i>'.format(-rand) )
                     else:
                         h = int(12-ceil(diff/3600))
                         m = int(60-ceil(diff%3600/60))
@@ -1525,7 +1525,7 @@ morebus = 20
                         await message.answer('<i>&#10060; Вращать рулетку можно только раз в 12 часов. До следующей попытки осталось {0} часов {1} минут {2} секунд</i>'.format(h,m,s), parse_mode='html')
                 except Exception as e:
                     await message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                    await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                    await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
             if '⛔' in message.sticker.emoji:
                 try:
                     if not hasattr(message.reply_to_message, 'text'):
@@ -1542,7 +1542,7 @@ morebus = 20
                         await message.reply('<i>&#10060; У вас недостаточно прав</i>', parse_mode='html')
                 except Exception as e:
                     await message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                    await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                    await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
             if '⚔' in message.sticker.emoji:
                 await battle(message)
             if '🤡' in message.sticker.emoji:
@@ -1601,7 +1601,7 @@ morebus = 20
                         await message.reply('<i>&#10060; У вас недостаточно прав</i>', parse_mode='html')
                 except Exception as e:
                     await message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                    await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                    await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
             if '💊' in message.sticker.emoji:
                 try:
                     if not hasattr(message.reply_to_message, 'text'):
@@ -1613,7 +1613,7 @@ morebus = 20
                     await cure(a, oth, chat)
                 except Exception as e:
                     await message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                    await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                    await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
             if '🖥' in message.sticker.emoji:
                 try:
                     a = message.from_user.id
@@ -1627,7 +1627,7 @@ morebus = 20
                     cursor.execute("SELECT balance FROM clandata WHERE group_id=?", (chid,))
                     balance = cursor.fetchone()[0]
                     if balance >= 10000:
-                        await main.send_message(chid, '<i>&#10060; Нельзя грабить кланы, у которых на балансе больше $10000</i>', parse_mode = 'html')
+                        await main.send_message(chid, '<i>&#10060; Нельзя грабить кланы, у которых на балансе больше $10000</i>' )
                         return
                     if count == 0:
                         return
@@ -1642,7 +1642,7 @@ morebus = 20
                         cursor.execute("SELECT name FROM clandata WHERE group_id=?", (chid,))
                         chn = cursor.fetchone()[0]
                         if balance < 45:
-                            await main.send_message(chid, '<i>&#10060; В клане денег почти нет :)</i>', parse_mode = 'html')
+                            await main.send_message(chid, '<i>&#10060; В клане денег почти нет :)</i>' )
                             return
                         rando = random.randint(1, 45)
                         cursor.execute("UPDATE userdata SET balance=balance+? WHERE user_id=?", (rando, a,))
@@ -1653,138 +1653,9 @@ morebus = 20
                         await main.send_message(fid, '<i><b><a href="tg://user?id={0}">{1}{2}</a></b> взломал клан <b>{3}</b> и унёс с собой <b>${4}</b>\n#clan_hack</i>'.format(a, rasa, nick, chn, rando), parse_mode='html')
                 except Exception as e:
                     await message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                    await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                    await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         except:
             pass
-    @bot.message_handler(content_types=['dice'])
-    async def dice_value(message: types.Message):
-        try:
-            if message.from_user.id in banned:
-                return
-            cursor.execute('SELECT count(*) FROM clandata WHERE group_id = ?', (message.chat.id,))
-            count = cursor.fetchone()[0]
-            if count != 0:
-                cursor.execute("SELECT dice FROM clandata WHERE group_id=?", (message.chat.id,))
-                dice = cursor.fetchone()[0]
-                if dice == 0:
-                    await main.delete_message(message.chat.id, message.message_id)
-                    return
-            cursor.execute("SELECT count(*) FROM clandata WHERE group_id=?", (message.chat.id,))
-            count = cursor.fetchone()[0]
-            if count == 0:
-                return
-            cursor.execute("SELECT gameclub FROM clandata WHERE group_id=?", (message.chat.id,))
-            gameclub = cursor.fetchone()[0]
-            if gameclub == 1:
-                return
-            chid = message.chat.id
-            if message.forward_date == None:
-                a = message.from_user.id
-                cursor.execute('SELECT balance FROM userdata WHERE user_id = ?', (a,))
-                balance = cursor.fetchone()[0]
-                cursor.execute('SELECT nick FROM userdata WHERE user_id = ?', (a,))
-                nick = cursor.fetchone()[0]
-                cursor.execute('SELECT rasa FROM userdata WHERE user_id = ?', (a,))
-                rasa = cursor.fetchone()[0]
-                value = message.dice.value
-                if message.dice.emoji == '🎰':
-                    cursor.execute("SELECT lastplayed FROM userdata WHERE user_id=?", (a,))
-                    last = cursor.fetchone()[0]
-                    if current_time() - last < 15:
-                        await message.reply('<i>❌ Эй, играть можно не более раза в 15 секунд!</i>', parse_mode='html')
-                        return
-                    if balance>=10:
-                        cursor.execute("UPDATE userdata SET lastplayed=? WHERE user_id=?", (current_time(), a,))
-                        conn.commit()
-                        await message.answer('<i><b><a href="tg://user?id={2}">{0}{1}</a></b> бросает в автомат жетон стоимостью <b>$10</b></i>'.format(rasa, nick, a), parse_mode = 'html')
-                        await earn(message, -10)
-                        cursor.execute("UPDATE clandata SET balance=balance+5 WHERE group_id=?", (chid,))
-                        conn.commit()
-                        cursor.execute("UPDATE clandata SET balance=balance+5 WHERE group_id=-1001395868701")
-                        conn.commit()
-                        cursor.execute("SELECT balance FROM clandata WHERE group_id=?",(chid,))
-                        kazbal = cursor.fetchone()[0]
-                        cursor.execute("SELECT kazna FROM globaldata")
-                        kazna = cursor.fetchone()[0]
-                        if value==64:
-                            rand = random.randint(225,275)
-                            if kazbal>=rand:
-                                cursor.execute("UPDATE clandata SET balance=balance-? WHERE group_id=?", (rand, chid,))
-                                conn.commit()
-                            else:
-                                if kazna>=2*rand:
-                                    cursor.execute("UPDATE clandata SET balance=balance+? WHERE group_id=-1001395868701", (rand,))
-                                    cursor.execute("UPDATE globaldata SET kazna=kazna-?", (2*rand,))
-                                    conn.commit()
-                                else:
-                                    await message.answer('<i>К сожалению, у нас нет денег, чтобы выдать вознаграждение. Приходите позже или пожертвуйте деньги.\nПополнить баланс Игрового клуба можно, набрав сообщение <code>Пожертвовать [сумма]</code>. Пожертвовать деньги в казну можно через Банк</i>'.format(rand), parse_mode = 'html')
-                                    return
-                            await earn(message,rand)
-                            cursor.execute('SELECT jackpots FROM userdata WHERE user_id = ?', (a,))
-                            jack = cursor.fetchone()[0]
-                            cursor.execute('UPDATE userdata SET jackpots = ? WHERE user_id = ?', (jack+1, a,))
-                            conn.commit()
-                            cursor.execute('SELECT jackpots FROM userdata WHERE user_id = ?', (a,))
-                            jack = cursor.fetchone()[0]
-                            await message.answer('<i><b>&#128176; Джекпот!</b>\nВы выигрываете <b>${0}</b>\nВы поймали джекпот всего <b>{1} раз</b></i>'.format(rand, jack), parse_mode = 'html')
-                            cursor.execute('SELECT lucky FROM userdata WHERE user_id = ?', (a,))
-                            ach = cursor.fetchone()[0]
-                            if jack>=10:
-                                if ach==0:
-                                    await achieve(message.from_user.id, message.chat.id, 'lucky')
-                                    await message.answer('<i>Вы получаете <b>&#128477; Ключ</b> от Чёрного рынка. Осталось научиться им пользоваться, и весь мир будет в ваших лапках!</i>', parse_mode = 'html')
-                                    cursor.execute('UPDATE userdata SET key=key+1 WHERE user_id=?', (a,))
-                                    conn.commit()
-                        elif value==43:
-                            rand = random.randint(150,175)
-                            if kazbal>=rand:
-                                cursor.execute("UPDATE clandata SET balance=balance-? WHERE group_id=?", (rand, chid,))
-                                conn.commit()
-                            else:
-                                if kazna>=2*rand:
-                                    cursor.execute("UPDATE clandata SET balance=balance+? WHERE group_id=-1001395868701", (rand,))
-                                    cursor.execute("UPDATE globaldata SET kazna=kazna-?", (2*rand,))
-                                    conn.commit()
-                                else:
-                                    await message.answer('<i>К сожалению, у нас нет денег, чтобы выдать вознаграждение. Приходите позже или пожертвуйте деньги.\nПополнить баланс Игрового клуба можно, набрав сообщение <code>Пожертвовать [сумма]</code>. Пожертвовать деньги в казну можно через Банк</i>'.format(rand), parse_mode = 'html')
-                                    return
-                            await earn(message,rand)
-                            await message.answer('<i><b>&#128176; Почти джекпот</b>\nВы выигрываете <b>${0}</b></i>'.format(rand), parse_mode = 'html')
-                        elif value==22:
-                            rand = random.randint(100,125)
-                            if kazbal>=rand:
-                                cursor.execute("UPDATE clandata SET balance=balance-? WHERE group_id=?", (rand,chid,))
-                                conn.commit()
-                            else:
-                                if kazna>=2*rand:
-                                    cursor.execute("UPDATE clandata SET balance=balance+? WHERE group_id=-1001395868701", (rand,))
-                                    cursor.execute("UPDATE globaldata SET kazna=kazna-?", (2*rand,))
-                                    conn.commit()
-                                else:
-                                    await message.answer('<i>К сожалению, у нас нет денег, чтобы выдать вознаграждение. Приходите позже или пожертвуйте деньги.\nПополнить баланс Игрового клуба можно, набрав сообщение <code>Пожертвовать [сумма]</code>. Пожертвовать деньги в казну можно через Банк</i>'.format(rand), parse_mode = 'html')
-                                    return
-                            await earn(message,rand)
-                            await message.answer('<i><b>&#128176; Повезло!</b>\nВы выигрываете <b>${0}</b></i>'.format(rand), parse_mode = 'html')
-                        elif value==1:
-                            rand = random.randint(50,75)
-                            if kazbal>=rand:
-                                cursor.execute("UPDATE clandata SET balance=balance-? WHERE group_id=?", (rand,chid,))
-                                conn.commit()
-                            else:
-                                if kazna>=2*rand:
-                                    cursor.execute("UPDATE clandata SET balance=balance+? WHERE group_id=-1001395868701", (rand,))
-                                    cursor.execute("UPDATE globaldata SET kazna=kazna-?", (2*rand,))
-                                    conn.commit()
-                                else:
-                                    await message.answer('<i>К сожалению, у нас нет денег, чтобы выдать вознаграждение. Приходите позже или пожертвуйте деньги.\nПополнить баланс Игрового клуба можно, набрав сообщение <code>Пожертвовать [сумма]</code>. Пожертвовать деньги в казну можно через Банк</i>'.format(rand), parse_mode = 'html')
-                                    return
-                            await earn(message,rand)
-                            await message.answer('<i><b>&#128077; Неплохо!</b>\nВы выигрываете <b>${0}</b></i>'.format(rand), parse_mode = 'html')
-                    else:
-                            await message.answer('<i>У вас недостаточно денег. Стоимость одной попытки: <b>$10</b></i>', parse_mode = 'html')
-        except Exception as e:
-            await message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-            await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
     @bot.callback_query_handler()
     async def query_handler(call: types.CallbackQuery):
         a = call.from_user.id
@@ -1810,17 +1681,17 @@ morebus = 20
                 markup.add(types.InlineKeyboardButton(text='✅ Выйти из аккаунта', callback_data='log_out_confirm'))
                 markup.add(types.InlineKeyboardButton(text='❌ Отмена', callback_data='cancel_action'))
                 markup.add(types.InlineKeyboardButton(text='🔑 Установить ключ доступа', callback_data='set_user_key'))
-                await call.message.answer('<i>Вы уверены, что хотите выйти из аккаунта? Вернуться назад вы сможете только если введёте ключ доступа (если у вас не установлен ключ доступа, вернуться назад в аккаунт не получится)</i>', reply_markup = markup, parse_mode = 'html')
+                await call.message.answer('<i>Вы уверены, что хотите выйти из аккаунта? Вернуться назад вы сможете только если введёте ключ доступа (если у вас не установлен ключ доступа, вернуться назад в аккаунт не получится)</i>', reply_markup = markup )
             except Exception as e:
-                await call.message.answer('<i><b>&#10060; Ошибка: </b>{0}</i>'.format(e), parse_mode = 'html');
+                await call.message.answer('<i><b>&#10060; Ошибка: </b>{0}</i>'.format(e) );
         if call.data=='delete_account':
             try:
                 markup = types.InlineKeyboardMarkup()
                 markup.add(types.InlineKeyboardButton(text='✅ Удалить аккаунт', callback_data='delete_account_confirm'))
                 markup.add(types.InlineKeyboardButton(text='❌ Отмена', callback_data='cancel_action'))
-                await call.message.answer('<i>Вы уверены, что хотите удалить свой аккаунт? Это действие невозможно будет отменить</i>', reply_markup = markup, parse_mode = 'html')
+                await call.message.answer('<i>Вы уверены, что хотите удалить свой аккаунт? Это действие невозможно будет отменить</i>', reply_markup = markup )
             except Exception as e:
-                await call.message.answer('<i><b>&#10060; Ошибка: </b>{0}</i>'.format(e), parse_mode = 'html');
+                await call.message.answer('<i><b>&#10060; Ошибка: </b>{0}</i>'.format(e) );
         if call.data=='log_out_confirm':
             try:
                 a = call.from_user.id
@@ -1842,9 +1713,9 @@ morebus = 20
                 conn.commit()
                 cursor.execute('UPDATE userdata SET user_id=0 WHERE id=?', (ide,))
                 conn.commit()
-                await call.message.answer('<i>&#9989; Вы были удалены из базы данных</i>', parse_mode = 'html');
+                await call.message.answer('<i>&#9989; Вы были удалены из базы данных</i>' );
             except Exception as e:
-                await call.message.answer('<i><b>&#10060; Ошибка: </b>{0}</i>'.format(e), parse_mode = 'html');
+                await call.message.answer('<i><b>&#10060; Ошибка: </b>{0}</i>'.format(e) );
         if call.data=='delete_account_confirm':
             try:
                 a = call.from_user.id
@@ -1858,9 +1729,9 @@ morebus = 20
                 await main.send_message(fid, '<i><b><a href="tg://user?id={0}">{1}{2}</a></b> удалил(-а) свой аккаунт\n#user_deauth</i>'.format(a, rasa, nick), parse_mode='html')
                 cursor.execute('DELETE FROM userdata WHERE user_id=?', (a,))
                 conn.commit()
-                await call.message.answer('<i>&#9989; Ваш аккаунт был безвозвратно удалён из базы данных</i>', parse_mode = 'html');
+                await call.message.answer('<i>&#9989; Ваш аккаунт был безвозвратно удалён из базы данных</i>' );
             except Exception as e:
-                await call.message.answer('<i><b>&#10060; Ошибка: </b>{0}</i>'.format(e), parse_mode = 'html');
+                await call.message.answer('<i><b>&#10060; Ошибка: </b>{0}</i>'.format(e) );
         if call.data=='change_rasa':
             markup = types.InlineKeyboardMarkup()
             markup.add(
@@ -1869,7 +1740,7 @@ morebus = 20
                 types.InlineKeyboardButton(text='🦝 Енот', callback_data='raccoon'),
                 types.InlineKeyboardButton(text='🐸 Жаба', callback_data='frog'),
                 types.InlineKeyboardButton(text='🦉 Сова', callback_data='owl'))
-            await call.message.answer('<i>Выберите расу</i>', reply_markup = markup, parse_mode = 'html')
+            await call.message.answer('<i>Выберите расу</i>', reply_markup = markup )
         if call.data == 'cat':
             await call.answer(text='Отличный выбор!')
             await setrasa(call.message, call.from_user, '&#128049', 0)
@@ -1898,10 +1769,10 @@ morebus = 20
                 markup.add(types.InlineKeyboardButton(text='📃 Изменить описание', callback_data='set_user_bio'))
                 markup.add(types.InlineKeyboardButton(text='🤡 Изменить расу', callback_data='change_rasa'))
                 markup.add(types.InlineKeyboardButton(text='🖼 Изменить фото профиля', callback_data='set_user_photo'))
-                await call.message.answer('<i><b>Настройки</b>\nИзменить ник: <code>/nick [ник]</code>\nИзменить описание профиля: <code>/bio [описание]</code>\nВыбрать расу: <code>Раса</code></i>', parse_mode = 'html', reply_markup = markup)
+                await call.message.answer('<i><b>Настройки</b>\nИзменить ник: <code>/nick [ник]</code>\nИзменить описание профиля: <code>/bio [описание]</code>\nВыбрать расу: <code>Раса</code></i>' , reply_markup = markup)
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'user_settings':
             try:
                 markup = types.InlineKeyboardMarkup()
@@ -1911,10 +1782,10 @@ morebus = 20
                 markup.add(types.InlineKeyboardButton(text='⚔ Боевая готовность: {0}'.format('Готов' if ready==1 else 'Не готов'), callback_data='set_user_mode'))
                 markup.add(types.InlineKeyboardButton(text='🤡 Настройки профиля', callback_data='set_user_profile'))
                 markup.add(types.InlineKeyboardButton(text='🔐 Конфиденциальность', callback_data='set_user_privacy'))
-                await call.message.answer('<i><b>Настройки</b></i>', parse_mode = 'html', reply_markup = markup)
+                await call.message.answer('<i><b>Настройки</b></i>' , reply_markup = markup)
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'set_user_privacy':
             try:
                 markup = types.InlineKeyboardMarkup()
@@ -1925,10 +1796,10 @@ morebus = 20
                 markup.add(types.InlineKeyboardButton(text='🔑 Ключ доступа', callback_data='set_user_key'))
                 markup.add(types.InlineKeyboardButton(text='🔙 Выйти из аккаунта', callback_data='log_out'))
                 markup.add(types.InlineKeyboardButton(text='🗑 Удалить аккаунт', callback_data='delete_account'))
-                await call.message.answer('<i><b>Настройки конфиденциальности</b></i>', parse_mode = 'html', reply_markup = markup)
+                await call.message.answer('<i><b>Настройки конфиденциальности</b></i>' , reply_markup = markup)
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
 
         if call.data.startswith('trolleybus_'):
             try:
@@ -1953,14 +1824,14 @@ morebus = 20
                 await buscall(call)
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'darkweb':
             try:
                 a = call.from_user.id
                 cursor.execute('SELECT key FROM userdata WHERE user_id = ?', (a,))
                 key = cursor.fetchone()[0]
                 if key == 0:
-                    await call.message.answer('<i>&#10060; У вас нет этого предмета</i>', reply_markup = markup, parse_mode = 'html')
+                    await call.message.answer('<i>&#10060; У вас нет этого предмета</i>', reply_markup = markup )
                     return
                 await achieve(call.from_user.id, call.message.chat.id, 'black')
                 markup = types.InlineKeyboardMarkup()
@@ -1971,10 +1842,10 @@ morebus = 20
                 markup.add(buybutton('workers'))
                 markup.add(buybutton('truck'))
                 markup.add(buybutton('poison'))
-                await main.send_message(call.from_user.id, '<i>&#128272; Что хотите прикупить?</i>', reply_markup = markup, parse_mode = 'html')
+                await main.send_message(call.from_user.id, '<i>&#128272; Что хотите прикупить?</i>', reply_markup = markup )
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
             await main.delete_message(call.message.chat.id, call.message.message_id)  
         if call.data == 'farm':
             try:
@@ -1985,10 +1856,10 @@ morebus = 20
                     return
                 markup = types.InlineKeyboardMarkup()
                 markup.add(types.InlineKeyboardButton(text='🐄 Подоить корову', callback_data='milk_cow'))
-                await call.message.answer('<i>&#127806; Добро пожаловать на ферму! Здесь можно подоить корову и просто подышать свежим воздухом!</i>', reply_markup = markup, parse_mode = 'html')
+                await call.message.answer('<i>&#127806; Добро пожаловать на ферму! Здесь можно подоить корову и просто подышать свежим воздухом!</i>', reply_markup = markup )
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'milk_cow':
             try:
                 a = call.from_user.id
@@ -2001,14 +1872,14 @@ morebus = 20
                 markup = types.InlineKeyboardMarkup()
                 if cow<1:
                     markup.add(types.InlineKeyboardButton(text='🌾 Вернуться на ферму', callback_data='farm'))
-                    await call.message.answer('<i>&#128004; К сожалению, у вас нет коров :(</i>', reply_markup = markup, parse_mode = 'html')
+                    await call.message.answer('<i>&#128004; К сожалению, у вас нет коров :(</i>', reply_markup = markup )
                     return
                 else:
                     markup.add(types.InlineKeyboardButton(text='🥛 Доить', callback_data='milk_cow_confirm'))
-                    await call.message.answer('<i>&#128004; У вас <b>{0}</b> коров. При дойке у вас заберётся одна корова, а взамен вы получите стакан молока</i>'.format(cow), reply_markup = markup, parse_mode = 'html')
+                    await call.message.answer('<i>&#128004; У вас <b>{0}</b> коров. При дойке у вас заберётся одна корова, а взамен вы получите стакан молока</i>'.format(cow), reply_markup = markup )
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'milk_cow_confirm':
             try:
                 a = call.from_user.id
@@ -2021,18 +1892,18 @@ morebus = 20
                 markup = types.InlineKeyboardMarkup()
                 if cow<1:
                     markup.add(types.InlineKeyboardButton(text='🌾 Вернуться на ферму', callback_data='farm'))
-                    await call.message.answer('<i>&#128004; К сожалению, у вас нет коров :(</i>', reply_markup = markup, parse_mode = 'html')
+                    await call.message.answer('<i>&#128004; К сожалению, у вас нет коров :(</i>', reply_markup = markup )
                     return
                 else:
-                    await call.message.answer('<i>&#128004; Дойка продлится около 10 секунд</i>', parse_mode = 'html')
+                    await call.message.answer('<i>&#128004; Дойка продлится около 10 секунд</i>' )
                     await asyncio.sleep(10)
                     cursor.execute('UPDATE userdata SET cow=cow-1 WHERE user_id=?', (a,))
                     cursor.execute('UPDATE userdata SET milk=milk+1 WHERE user_id=?', (a,))
                     conn.commit()
-                    await call.message.answer('<i>&#128004; Дойка прошла успешно</i>', parse_mode = 'html')
+                    await call.message.answer('<i>&#128004; Дойка прошла успешно</i>' )
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data.startswith('gpsloc_'):
             try:
                 a = call.from_user.id
@@ -2049,10 +1920,10 @@ morebus = 20
                 markup = types.InlineKeyboardMarkup(row_width=2)
                 markup.add(*ls)
                 markup.add(types.InlineKeyboardMarkup(text='◀ Назад', callback_data='cancel_action'))
-                await call.message.answer('<i>Выберите локацию</i>', reply_markup = markup, parse_mode = 'html')
+                await call.message.answer('<i>Выберите локацию</i>', reply_markup = markup )
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data.startswith('location_'):
             try:
                 a = call.from_user.id
@@ -2069,10 +1940,10 @@ morebus = 20
                 ind = locations[0].index(location)
                 markup = types.InlineKeyboardMarkup()
                 markup.add(types.InlineKeyboardMarkup(text='◀ Назад', callback_data='cancel_action'))
-                await call.message.answer('<i><b>{0}</b>\n\n{1}\n🏛 Местность: <b>{2}</b>\n\nТранспорт рядом:\n{3}</i>'.format(locations[0][ind], locations[1][ind], locations[2][ind], access(locations[2][ind], place)), reply_markup = markup, parse_mode = 'html')
+                await call.message.answer('<i><b>{0}</b>\n\n{1}\n🏛 Местность: <b>{2}</b>\n\nТранспорт рядом:\n{3}</i>'.format(locations[0][ind], locations[1][ind], locations[2][ind], access(locations[2][ind], place)), reply_markup = markup )
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
 
         if call.data == 'rob_bank_confirm':
             try:
@@ -2112,7 +1983,7 @@ morebus = 20
                 await main.delete_message(call.message.chat.id, call.message.message_id)
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'rob_bank':
             try:
                 a = call.from_user.id
@@ -2130,7 +2001,7 @@ morebus = 20
                 cursor.execute('SELECT bron from userdata WHERE user_id=?', (a,))
                 items += 1 if cursor.fetchone()[0]>=1 else 0
                 if items<6:
-                    await call.message.answer('<i>&#10060; У вас недостаточно предметов для кражи. Вам нужны:\n<b>&#128666; Грузовик\n&#128299; Пистолет\n&#128163; Бомба\n&#129466; Бронежилет\n&#128122; Маска\n&#128104; Наёмники\n</b>Всё это можно приобрести в <b>[данные засекречены]</b></i>', parse_mode = 'html')
+                    await call.message.answer('<i>&#10060; У вас недостаточно предметов для кражи. Вам нужны:\n<b>&#128666; Грузовик\n&#128299; Пистолет\n&#128163; Бомба\n&#129466; Бронежилет\n&#128122; Маска\n&#128104; Наёмники\n</b>Всё это можно приобрести в <b>[данные засекречены]</b></i>' )
                     return
                 cursor.execute('SELECT place from userdata WHERE user_id=?', (a,))
                 station = cursor.fetchone()[0]
@@ -2139,10 +2010,10 @@ morebus = 20
                 markup = types.InlineKeyboardMarkup()
                 markup.row(types.InlineKeyboardButton(text='🤏', callback_data='rob_bank_confirm'), types.InlineKeyboardButton(text='🤏', callback_data='rob_bank_confirm'), types.InlineKeyboardButton(text='🤏', callback_data='rob_bank_confirm'))
                 markup.row(types.InlineKeyboardButton(text='🤏', callback_data='rob_bank_confirm'), types.InlineKeyboardButton(text='🤏', callback_data='rob_bank_confirm'))
-                await call.message.answer('<i>🤏 Нажмите на кнопочку. Если повезёт, банк ограбится!</i>', reply_markup = markup, parse_mode = 'html')
+                await call.message.answer('<i>🤏 Нажмите на кнопочку. Если повезёт, банк ограбится!</i>', reply_markup = markup )
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'go_out':
             await main.delete_message(call.message.chat.id, call.message.message_id)
         if call.data == 'university':
@@ -2155,10 +2026,10 @@ morebus = 20
                 markup = types.InlineKeyboardMarkup()
                 markup.add(types.InlineKeyboardButton(text='➕ Математика', callback_data='play_math'))
                 markup.add(types.InlineKeyboardButton(text='🌍 География', callback_data='play_geo'))
-                await call.message.answer('<i>🏫 <b>Добро пожаловать в Живополисский университет</b>\nЗдесь коты, собаки, еноты, совы и жабы (шучу, жаб там нет :) получают новые знания и опыт с помощью мини-игр.\n\nВыберите мини-игру. Учтите, что у вас должно быть не менее $10 на балансе, чтобы играть</i>', reply_markup = markup, parse_mode = 'html')
+                await call.message.answer('<i>🏫 <b>Добро пожаловать в Живополисский университет</b>\nЗдесь коты, собаки, еноты, совы и жабы (шучу, жаб там нет :) получают новые знания и опыт с помощью мини-игр.\n\nВыберите мини-игру. Учтите, что у вас должно быть не менее $10 на балансе, чтобы играть</i>', reply_markup = markup )
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'factory':
             try:
                 a = call.from_user.id
@@ -2170,10 +2041,10 @@ morebus = 20
                     return
                 markup = types.InlineKeyboardMarkup()
                 markup.add(types.InlineKeyboardButton(text='⚙ Шестерёнки', callback_data='play_plant'))
-                await call.message.answer('<i>🏭 <b>Добро пожаловать на Завод</b>\nЗдесь вы можете заработать немного денег, если зарплаты офисного работника не хватает.\n\nВыберите мини-игру. Учтите, что у вас должно быть не менее $10 на балансе, чтобы играть.\n\nИграть можно не более 10 раз в день. Сегодня вы уже играли <b>{0}</b> раз</i>'.format(times), reply_markup = markup, parse_mode = 'html')
+                await call.message.answer('<i>🏭 <b>Добро пожаловать на Завод</b>\nЗдесь вы можете заработать немного денег, если зарплаты офисного работника не хватает.\n\nВыберите мини-игру. Учтите, что у вас должно быть не менее $10 на балансе, чтобы играть.\n\nИграть можно не более 10 раз в день. Сегодня вы уже играли <b>{0}</b> раз</i>'.format(times), reply_markup = markup )
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'play_math':
             try:
                 a = call.from_user.id
@@ -2213,7 +2084,7 @@ morebus = 20
                 cr.append(types.InlineKeyboardButton(text='Нет', callback_data='mathres wrong {0} {1} {2} {3} 2'.format(op1, operation, op2, sum)))
                 marc.add(*cr)
                 seconds = 0
-                msg = await call.message.answer('<i><b>Верно ли утверждение?</b>\n{0} {1} {2} = {3}</i>'.format(op1, operation, op2, sum), reply_markup = markup, parse_mode = 'html')
+                msg = await call.message.answer('<i><b>Верно ли утверждение?</b>\n{0} {1} {2} = {3}</i>'.format(op1, operation, op2, sum), reply_markup = markup )
                 beginning = current_time()
                 for seconds in range(1,11):
                     cursor.execute('SELECT lastmath from userdata WHERE user_id=?', (a,))
@@ -2225,7 +2096,7 @@ morebus = 20
                         else:
                             current_mc = markup
                             nagrada = 'Награда за верный ответ: 💡 <b>4 очка</b>'
-                        await main.edit_message_text(chat_id = call.message.chat.id, message_id = msg['message_id'], text = '<i><b>Верно ли утверждение?</b>\n{0} {1} {2} = {3}\n\nОтветьте на вопрос, пока все квадратики не заполнятся:\n{4}{5}\n\n{6}</i>'.format(op1, operation, op2, sum, '🔳'*seconds, '◻'*(10-seconds), nagrada), reply_markup = current_mc, parse_mode = 'html')
+                        await main.edit_message_text(chat_id = call.message.chat.id, message_id = msg['message_id'], text = '<i><b>Верно ли утверждение?</b>\n{0} {1} {2} = {3}\n\nОтветьте на вопрос, пока все квадратики не заполнятся:\n{4}{5}\n\n{6}</i>'.format(op1, operation, op2, sum, '🔳'*seconds, '◻'*(10-seconds), nagrada), reply_markup = current_mc )
                         await asyncio.sleep(1)
                     else:
                         break
@@ -2251,10 +2122,10 @@ morebus = 20
                     await call.answer('Раунд закончен')
                     cursor.execute("UPDATE userdata SET lastplay = ? WHERE user_id = ?", (current_time(),a,))
                     conn.commit()
-                    await main.edit_message_text(chat_id = call.message.chat.id, message_id = msg['message_id'], text = '<i><b>Верно ли утверждение?</b>\n\nВерный ответ: {0}\n\n{1}</i>'.format(ans, your), reply_markup = mark, parse_mode = 'html')
+                    await main.edit_message_text(chat_id = call.message.chat.id, message_id = msg['message_id'], text = '<i><b>Верно ли утверждение?</b>\n\nВерный ответ: {0}\n\n{1}</i>'.format(ans, your), reply_markup = mark )
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'alreadyno':
             await call.answer('А уже нельзя :)')
         if call.data.startswith('mathres '):
@@ -2322,10 +2193,10 @@ morebus = 20
                     conn.commit()
                     cursor.execute("UPDATE userdata SET lastplay = ? WHERE user_id = ?", (current_time(),a,))
                     conn.commit()
-                msg = await main.edit_message_text(chat_id = call.message.chat.id, message_id = call.message.message_id, text = '<i><b>Верно ли утверждение?</b>\n\nВерный ответ: {0}\n\n{1}</i>'.format(ans, your), reply_markup = markup, parse_mode = 'html')
+                msg = await main.edit_message_text(chat_id = call.message.chat.id, message_id = call.message.message_id, text = '<i><b>Верно ли утверждение?</b>\n\nВерный ответ: {0}\n\n{1}</i>'.format(ans, your), reply_markup = markup )
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')      
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )      
         if call.data == 'play_geo':
             try:
                 a = call.from_user.id
@@ -2356,7 +2227,7 @@ morebus = 20
                 cr.append(types.InlineKeyboardButton(text='Нет', callback_data='geores wrong {0} {1}'.format(country, capital)))
                 markup.add(*cr)
                 seconds = 0
-                msg = await call.message.answer('<i><b>Верно ли утверждение?</b>\nСтолицей государства <b>{0}</b> является <b>{1}</b></i>'.format(countries[country], capitals[capital]), reply_markup = markup, parse_mode = 'html')
+                msg = await call.message.answer('<i><b>Верно ли утверждение?</b>\nСтолицей государства <b>{0}</b> является <b>{1}</b></i>'.format(countries[country], capitals[capital]), reply_markup = markup )
                 beginning = current_time()
                 for seconds in range(1,11):
                     cursor.execute('SELECT lastmath from userdata WHERE user_id=?', (a,))
@@ -2364,7 +2235,7 @@ morebus = 20
                     if lastmath!=msg['message_id']:
                         current_mc = markup
                         nagrada = 'Награда за верный ответ: 💡 <b>4 очка</b>'
-                        await main.edit_message_text(chat_id = call.message.chat.id, message_id = msg['message_id'], text = '<i><b>Верно ли утверждение?</b>\nСтолицей государства <b>{0}</b> является <b>{1}</b>\n\nОтветьте на вопрос, пока все квадратики не заполнятся:\n{2}{3}\n\n{4}</i>'.format(countries[country], capitals[capital], '🔳'*seconds, '◻'*(10-seconds), nagrada), reply_markup = current_mc, parse_mode = 'html')
+                        await main.edit_message_text(chat_id = call.message.chat.id, message_id = msg['message_id'], text = '<i><b>Верно ли утверждение?</b>\nСтолицей государства <b>{0}</b> является <b>{1}</b>\n\nОтветьте на вопрос, пока все квадратики не заполнятся:\n{2}{3}\n\n{4}</i>'.format(countries[country], capitals[capital], '🔳'*seconds, '◻'*(10-seconds), nagrada), reply_markup = current_mc )
                         await asyncio.sleep(1)
                     else:
                         break
@@ -2388,12 +2259,12 @@ morebus = 20
                     conn.commit()
                     mark.add(types.InlineKeyboardButton(text='🔄 Заново', callback_data='play_geo'))
                     await call.answer('Раунд закончен')
-                    await main.edit_message_text(chat_id = call.message.chat.id, message_id = msg['message_id'], text = '<i><b>Верно ли утверждение?</b>\n\nВерный ответ: {0}\n\n{1}</i>'.format(ans, your), reply_markup = mark, parse_mode = 'html')
+                    await main.edit_message_text(chat_id = call.message.chat.id, message_id = msg['message_id'], text = '<i><b>Верно ли утверждение?</b>\n\nВерный ответ: {0}\n\n{1}</i>'.format(ans, your), reply_markup = mark )
                     cursor.execute("UPDATE userdata SET lastplay = ? WHERE user_id = ?", (current_time(),a,))
                     conn.commit()
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data.startswith('geores '):
             try:
                 a = call.from_user.id
@@ -2449,10 +2320,10 @@ morebus = 20
                     conn.commit()
                     cursor.execute("UPDATE userdata SET lastplay = ? WHERE user_id = ?", (current_time(),a,))
                     conn.commit()
-                msg = await main.edit_message_text(chat_id = call.message.chat.id, message_id = call.message.message_id, text = '<i><b>Верно ли утверждение?</b>\n\nВерный ответ: {0}\n\n{1}</i>'.format(ans, your), reply_markup = markup, parse_mode = 'html')
+                msg = await main.edit_message_text(chat_id = call.message.chat.id, message_id = call.message.message_id, text = '<i><b>Верно ли утверждение?</b>\n\nВерный ответ: {0}\n\n{1}</i>'.format(ans, your), reply_markup = markup )
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')    
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )    
         if call.data == 'play_plant':
             try:
                 a = call.from_user.id
@@ -2482,7 +2353,7 @@ morebus = 20
                 cr.append(types.InlineKeyboardButton(text='↪', callback_data='plantres right {0} {1}'.format(dir, amount)))
                 markup.add(*cr)
                 seconds = 0
-                msg = await call.message.answer('<i><b>В какую сторону будет вращаться белый круг?</b>\n{0}{1}⚪</i>'.format(dirn, '⚙'*amount), reply_markup = markup, parse_mode = 'html')
+                msg = await call.message.answer('<i><b>В какую сторону будет вращаться белый круг?</b>\n{0}{1}⚪</i>'.format(dirn, '⚙'*amount), reply_markup = markup )
                 beginning = current_time()
                 for seconds in range(1,8):
                     cursor.execute('SELECT lastmath from userdata WHERE user_id=?', (a,))
@@ -2490,7 +2361,7 @@ morebus = 20
                     if lastmath!=msg["message_id"]:
                         current_mc = markup
                         nagrada = '💲 Награда за верный ответ: <b>$15</b>'
-                        await main.edit_message_text(chat_id = call.message.chat.id, message_id = msg['message_id'], text = '<i><b>В какую сторону будет вращаться белый круг?</b>\n{0}{1}⚪\n\nОтветьте на вопрос, пока все квадратики не заполнятся:\n{2}{3}\n\n{4}</i>'.format(dirn, '⚙'*amount, '🔳'*seconds, '◻'*(7-seconds), nagrada), reply_markup = current_mc, parse_mode = 'html')
+                        await main.edit_message_text(chat_id = call.message.chat.id, message_id = msg['message_id'], text = '<i><b>В какую сторону будет вращаться белый круг?</b>\n{0}{1}⚪\n\nОтветьте на вопрос, пока все квадратики не заполнятся:\n{2}{3}\n\n{4}</i>'.format(dirn, '⚙'*amount, '🔳'*seconds, '◻'*(7-seconds), nagrada), reply_markup = current_mc )
                         await asyncio.sleep(1)
                     else:
                         break
@@ -2514,12 +2385,12 @@ morebus = 20
                     conn.commit()
                     mark.add(types.InlineKeyboardButton(text='🔄 Заново', callback_data='play_plant'))
                     await call.answer('Раунд закончен')
-                    await main.edit_message_text(chat_id = call.message.chat.id, message_id = msg['message_id'], text = '<i><b>В какую сторону будет вращаться белый круг?</b>\n\nВерный ответ: {0}\n\n{1}</i>'.format(ans, your), reply_markup = mark, parse_mode = 'html')
+                    await main.edit_message_text(chat_id = call.message.chat.id, message_id = msg['message_id'], text = '<i><b>В какую сторону будет вращаться белый круг?</b>\n\nВерный ответ: {0}\n\n{1}</i>'.format(ans, your), reply_markup = mark )
                     cursor.execute("UPDATE userdata SET electimes=electimes+1 WHERE user_id = ?", (a,))
                     conn.commit()
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data.startswith('plantres '):
             try:
                 a = call.from_user.id
@@ -2580,10 +2451,10 @@ morebus = 20
                     conn.commit()
                 cursor.execute("UPDATE userdata SET electimes=electimes+1 WHERE user_id = ?", (a,))
                 conn.commit()
-                msg = await main.edit_message_text(chat_id = call.message.chat.id, message_id = call.message.message_id, text = '<i><b>В какую сторону будет вращаться белый круг?</b>\n\nВерный ответ: {0}\n\n{1}</i>'.format(ans, your), reply_markup = markup, parse_mode = 'html')
+                msg = await main.edit_message_text(chat_id = call.message.chat.id, message_id = call.message.message_id, text = '<i><b>В какую сторону будет вращаться белый круг?</b>\n\nВерный ответ: {0}\n\n{1}</i>'.format(ans, your), reply_markup = markup )
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data.startswith('buy_metrotoken_'):
             a = int(call.data[15:])
             await buy(call, user=call.from_user, item='token', cost=metrocost, amount=a)
@@ -2617,7 +2488,7 @@ morebus = 20
                     conn.commit()
                     cursor.execute('UPDATE userdata SET points = ? WHERE user_id=?', (points+rand2, a,))
                     conn.commit()
-                    await call.message.answer('<i><b><a href="tg://user?id={2}">{0}{1}</a></b> победил и получает <b>${3}</b> и <b>{4}</b> очков!</i>'.format(rasa, nick, a, rand, rand2), parse_mode = 'html')
+                    await call.message.answer('<i><b><a href="tg://user?id={2}">{0}{1}</a></b> победил и получает <b>${3}</b> и <b>{4}</b> очков!</i>'.format(rasa, nick, a, rand, rand2) )
                     await achieve(call.from_user.id, call.message.chat.id, 'firstwin')
                     rand = random.choice([0, 1, 2, 3, 4, 5])
                     if rand==3:
@@ -2630,7 +2501,7 @@ morebus = 20
                             cursor.execute('UPDATE userdata SET prison=? WHERE user_id=?', (current_time()+600, a,))
                             conn.commit()
                             await call.message.answer('<i>&#128110; Господин <b><a href="tg://user?id={0}">{1}{2}</a></b>, вы задержаны за убийство человека в бою. Пройдёмте в отделение.\n\nВы были арестованы на <b>10 минут</b></i>'.format(a, rasa, nick), parse_mode='html')
-                        await call.message.answer('&#128148; <i><b><a href="tg://user?id={2}">{0}{1}</a></b> получает серьёзную травму и теряет {3} очка здоровья :(</i>'.format(orasa, onick, battles, randel), parse_mode = 'html')
+                        await call.message.answer('&#128148; <i><b><a href="tg://user?id={2}">{0}{1}</a></b> получает серьёзную травму и теряет {3} очка здоровья :(</i>'.format(orasa, onick, battles, randel) )
                     cursor.execute('UPDATE userdata SET battles = ? WHERE user_id=?', (0, a,))
                     conn.commit()
                     cursor.execute('UPDATE userdata SET battles = ? WHERE user_id=?', (0, battles,))
@@ -2641,11 +2512,11 @@ morebus = 20
                     cursor.execute('UPDATE userdata SET lastfight = ? WHERE user_id=?', (now, battles,))
                     conn.commit()
                 else:
-                    await call.message.answer('<i><b><a href="tg://user?id={2}">{0}{1}</a></b>, так нечестно. Чтобы начать бой, напишите в ответ на сообщение пользователя <code>бой</code></i>'.format(rasa, nick, a), parse_mode = 'html')
+                    await call.message.answer('<i><b><a href="tg://user?id={2}">{0}{1}</a></b>, так нечестно. Чтобы начать бой, напишите в ответ на сообщение пользователя <code>бой</code></i>'.format(rasa, nick, a) )
                     return
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
             try:
                 await main.delete_message(call.message.chat.id, call.message.message_id)
             except:
@@ -2673,7 +2544,7 @@ morebus = 20
                 await call.message.answer('<i><b>&#128161; Ваши достижения</b>\nВыполненные достижения отмечены знаком &#10004;{0}</i>'.format(achieves), parse_mode='html', reply_markup=markup)
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
             if call.data == 'achievements_del':
                 await main.delete_message(call.message.chat.id, call.message.message_id)
         if call.data == 'set_user_mode':
@@ -2696,10 +2567,10 @@ morebus = 20
                 markup = types.InlineKeyboardMarkup()
                 markup.add(types.InlineKeyboardButton(text='Изменить', callback_data='set_user_mode'))
                 await main.delete_message(call.message.chat.id, call.message.message_id)
-                await call.message.answer('<i><b><a href="tg://user?id={3}">{1}{2}</a></b>, ваш режим: <b>{0}</b></i>'.format('не готов' if ready == 0 else 'готов', rasa, nick, a), parse_mode = 'html', reply_markup = markup)
+                await call.message.answer('<i><b><a href="tg://user?id={3}">{1}{2}</a></b>, ваш режим: <b>{0}</b></i>'.format('не готов' if ready == 0 else 'готов', rasa, nick, a) , reply_markup = markup)
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'set_user_type':
             try:
                 a = call.from_user.id
@@ -2720,10 +2591,10 @@ morebus = 20
                 markup = types.InlineKeyboardMarkup()
                 markup.add(types.InlineKeyboardButton(text='Изменить', callback_data='set_user_type'))
                 await main.delete_message(call.message.chat.id, call.message.message_id)
-                await call.message.answer('<i><b><a href="tg://user?id={3}">{1}{2}</a></b>, ваш профиль теперь <b>{0}</b></i>'.format('закрытый' if ready == 'private' else 'открытый', rasa, nick, a), parse_mode = 'html', reply_markup = markup)
+                await call.message.answer('<i><b><a href="tg://user?id={3}">{1}{2}</a></b>, ваш профиль теперь <b>{0}</b></i>'.format('закрытый' if ready == 'private' else 'открытый', rasa, nick, a) , reply_markup = markup)
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'metro':
             try:
                 a = call.from_user.id
@@ -2740,7 +2611,7 @@ morebus = 20
                 await call.message.answer('<i>У вас <b>{0}</b> жетонов</i>'.format(token), parse_mode='html', reply_markup=markup)
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'trolleybus':
             try:
                 a = call.from_user.id
@@ -2752,7 +2623,7 @@ morebus = 20
                 await call.message.answer('<i>У вас <b>{0}</b> проездных талонов</i>'.format(token), parse_mode='html', reply_markup=markup)
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'proceed_metro':
             try:
                 a = call.from_user.id
@@ -2768,7 +2639,7 @@ morebus = 20
                 await metrocall(call)
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'forward':
             try:
                 a = call.from_user.id
@@ -2795,7 +2666,7 @@ morebus = 20
                 await metrocall(call)
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'back':
             try:
                 a = call.from_user.id
@@ -2822,10 +2693,10 @@ morebus = 20
                 await metrocall(call)
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
             await main.delete_message(call.message.chat.id, call.message.message_id)
         if call.data == 'help':
-            await call.message.answer('<i><b>&#10067; Справка по игре в Живополис</b>\nКоманды бота: https://telegra.ph/Komandy-ZHivopolisa-11-21\nКак играть: https://telegra.ph/Kak-igrat-v-ZHivopolis-11-21</i>', parse_mode = 'html')
+            await call.message.answer('<i><b>&#10067; Справка по игре в Живополис</b>\nКоманды бота: https://telegra.ph/Komandy-ZHivopolisa-11-21\nКак играть: https://telegra.ph/Kak-igrat-v-ZHivopolis-11-21</i>' )
         if call.data == 'transfer':
             try:
                 a = call.from_user.id
@@ -2838,14 +2709,14 @@ morebus = 20
                 await metrocall(call)
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
             await main.delete_message(call.message.chat.id, call.message.message_id)
         if call.data == 'airport':
             try:
                 await aircall(call)
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'flight':
             try:
                 if not isinterval('plane'):
@@ -2857,7 +2728,7 @@ morebus = 20
                 await call.message.answer('<i>&#128745; Полёт на самолёте стоит <b>${0}</b>. Вы уверены, что хотите продолжить?</i>'.format(aircost), parse_mode='html', reply_markup=markup)
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'flight_confirm':
             try:
                 if not isinterval('plane'):
@@ -2875,14 +2746,14 @@ morebus = 20
                 conn.commit()
                 tim = random.randint(lessair, moreair)
                 if station == 'Аэропорт Котай':
-                    await main.send_photo(call.message.chat.id, 'https://telegra.ph/file/d34459cedf14cb4b4a19a.jpg', caption='<i>Наш самолёт направляется к <b>Национальному аэропорту Живополис</b>. Путешествие займёт не более 2 минут. Удачного полёта!</i>', parse_mode = 'html')
+                    await main.send_photo(call.message.chat.id, 'https://telegra.ph/file/d34459cedf14cb4b4a19a.jpg', caption='<i>Наш самолёт направляется к <b>Национальному аэропорту Живополис</b>. Путешествие займёт не более 2 минут. Удачного полёта!</i>' )
                     dest = 'Национальный аэропорт'
                     destline = 2
                     await asyncio.sleep(tim)
                     await tostation(user=a, station=dest, line=destline)
                     await aircall(call)
                 elif station == 'Национальный аэропорт':
-                    await main.send_photo(call.message.chat.id, 'https://telegra.ph/file/d34459cedf14cb4b4a19a.jpg', caption='<i>Наш самолёт направляется к <b>Аэропорту Котай</b>. Путешествие займёт не более 2 минут. Удачного полёта!</i>', parse_mode = 'html')
+                    await main.send_photo(call.message.chat.id, 'https://telegra.ph/file/d34459cedf14cb4b4a19a.jpg', caption='<i>Наш самолёт направляется к <b>Аэропорту Котай</b>. Путешествие займёт не более 2 минут. Удачного полёта!</i>' )
                     dest = 'Аэропорт Котай'
                     destline = 1
                     await asyncio.sleep(tim)
@@ -2893,7 +2764,7 @@ morebus = 20
                     return
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
             await main.delete_message(call.message.chat.id, call.message.message_id)
         if call.data == 'railway_tickets':
             try:
@@ -2908,7 +2779,7 @@ morebus = 20
                 await call.message.answer('<i>Сколько билетов вы хотите купить?\nТариф <b>Железная дорога</b></i>', parse_mode='html', reply_markup=markup)
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'metro_tickets':
             try:
                 markup = types.InlineKeyboardMarkup()
@@ -2922,7 +2793,7 @@ morebus = 20
                 await call.message.answer('<i>Сколько жетонов вы хотите купить?\nТариф <b>Метро и городская электричка</b></i>', parse_mode='html', reply_markup=markup)
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'trolley_tickets':
             try:
                 markup = types.InlineKeyboardMarkup()
@@ -2936,7 +2807,7 @@ morebus = 20
                 await call.message.answer('<i>Сколько талонов вы хотите купить?\nТариф <b>Троллейбус</b></i>', parse_mode='html', reply_markup=markup)
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'tickets':
             try:
                 markup = types.InlineKeyboardMarkup()
@@ -2947,31 +2818,31 @@ morebus = 20
                 await call.message.answer('<i>Выберите тариф</i>', parse_mode='html', reply_markup=markup)
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'lounge':
             try:
                 await traincall(call)
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'bus_lounge':
             try:
                 await regbuscall(call)
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'work':
             try:
                 await work(call)
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'salary':
             try:
                 await ask(call.from_user.id, call.message)
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data.startswith('train_'):
             try:
                 if not isinterval('train'):
@@ -2992,13 +2863,13 @@ morebus = 20
                 tim = random.randint(lesstrain, moretrain)
                 name = trains[2][trains[0].index(st)]
                 await main.delete_message(call.message.chat.id, call.message.message_id)
-                await main.send_photo(call.message.chat.id, 'https://telegra.ph/file/ead2a4bfc5e78cf56ba1e.jpg', caption='🚆 <i>Наш поезд отправляется на станцию <b>{0}</b>. Путешествие займёт не больше минуты. Удачной поездки!</i>'.format(name), parse_mode = 'html')
+                await main.send_photo(call.message.chat.id, 'https://telegra.ph/file/ead2a4bfc5e78cf56ba1e.jpg', caption='🚆 <i>Наш поезд отправляется на станцию <b>{0}</b>. Путешествие займёт не больше минуты. Удачной поездки!</i>'.format(name) )
                 await asyncio.sleep(tim)
                 await tostation(user=a, station=st)
                 await traincall(call)
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data.startswith('walk_'):
             try:
                 a = call.from_user.id
@@ -3021,7 +2892,7 @@ morebus = 20
                 if not exists:
                     return
                 tim = walks[index]
-                await call.message.answer('🚶 <i>Как же хорошо пройтись пешочком. Путешествие до места <b>{0}</b> займёт около {1} секунд. Удачного путешествия!</i>'.format(name, tim), parse_mode = 'html')
+                await call.message.answer('🚶 <i>Как же хорошо пройтись пешочком. Путешествие до места <b>{0}</b> займёт около {1} секунд. Удачного путешествия!</i>'.format(name, tim) )
                 await asyncio.sleep(tim)
                 await tostation(user=a, station=name)
                 cursor.execute('UPDATE userdata SET walk=walk+1 WHERE user_id=?', (a,))
@@ -3033,7 +2904,7 @@ morebus = 20
                 await city(message, a)
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data.startswith('gobus_'):
             try:
                 if not isinterval('taxi'):
@@ -3051,7 +2922,7 @@ morebus = 20
                 station = cursor.fetchone()[0]
                 cursor.execute('UPDATE userdata SET balance=balance-? WHERE user_id=?', (buscost,a,))
                 tim = random.randint(lesstrain, moretrain)
-                await main.send_photo(call.message.chat.id, 'https://telegra.ph/file/8da21dc03e8f266e0845a.jpg', caption='🚐 <i>Посадка завершена. Следующая остановка: <b>{0}</b>. Путешествие займёт не больше минуты. Удачной поездки!</i>'.format(name), parse_mode = 'html')
+                await main.send_photo(call.message.chat.id, 'https://telegra.ph/file/8da21dc03e8f266e0845a.jpg', caption='🚐 <i>Посадка завершена. Следующая остановка: <b>{0}</b>. Путешествие займёт не больше минуты. Удачной поездки!</i>'.format(name) )
                 await main.delete_message(call.message.chat.id, call.message.message_id)
                 await asyncio.sleep(tim)
                 await tostation(user=a, station=name)
@@ -3059,7 +2930,7 @@ morebus = 20
                 await achieve(a, call.message.chat.id, 'busride')
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data.startswith('goreg_'):
             try:
                 if not isinterval('bus'):
@@ -3077,14 +2948,14 @@ morebus = 20
                 station = cursor.fetchone()[0]
                 cursor.execute('UPDATE userdata SET balance=balance-? WHERE user_id=?', (regbuscost,a,))
                 tim = random.randint(lesstrain, moretrain)
-                await main.send_photo(call.message.chat.id, 'https://telegra.ph/file/34226b77d11cbd7e19b7b.jpg', caption='🚌 <i>Посадка завершена. Следующая остановка: <b>{0}</b>. Путешествие займёт не больше минуты. Удачной поездки!</i>'.format(name), parse_mode = 'html')
+                await main.send_photo(call.message.chat.id, 'https://telegra.ph/file/34226b77d11cbd7e19b7b.jpg', caption='🚌 <i>Посадка завершена. Следующая остановка: <b>{0}</b>. Путешествие займёт не больше минуты. Удачной поездки!</i>'.format(name) )
                 await main.delete_message(call.message.chat.id, call.message.message_id)
                 await asyncio.sleep(tim)
                 await tostation(user=a, station=name)
                 await regbuscall(call)
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data.startswith('paybill '):
             try:
                 a = call.from_user.id
@@ -3092,9 +2963,9 @@ morebus = 20
                 ownerid = int(call.data.split(" ")[2])
                 if ownerid==a:
                     if call.message!=None:
-                        await main.edit_message_text(chat_id = call.message.chat.id, message_id = call.message.message_id, text = '<i>Счёт отменён</i>', parse_mode = 'html')
+                        await main.edit_message_text(chat_id = call.message.chat.id, message_id = call.message.message_id, text = '<i>Счёт отменён</i>' )
                     else:
-                        await main.edit_message_text(inline_message_id = call.inline_message_id, text = '<i>Счёт отменён</i>', parse_mode = 'html')
+                        await main.edit_message_text(inline_message_id = call.inline_message_id, text = '<i>Счёт отменён</i>' )
                     return
                 cursor.execute('SELECT balance FROM userdata WHERE user_id=?', (a,))
                 balance = cursor.fetchone()[0]
@@ -3113,18 +2984,18 @@ morebus = 20
                 conn.commit()
                 await call.answer(text='✅ Вы оплатили счёт', show_alert = True)
                 try:
-                    await main.send_message(ownerid, text = '<i><b><a href="tg://user?id={3}">{0}{1}</a></b> оплатил счёт <b>${2}</b></i>'.format(rasa, nick, money, a), parse_mode = 'html')
+                    await main.send_message(ownerid, text = '<i><b><a href="tg://user?id={3}">{0}{1}</a></b> оплатил счёт <b>${2}</b></i>'.format(rasa, nick, money, a) )
                 except:
                     if call.message!=None:
-                        await call.message.reply('<i><b><a href="tg://user?id={3}">{0}{1}</a></b> оплатил счёт <b>${2}</b></i>'.format(rasa, nick, money, a), parse_mode = 'html')
+                        await call.message.reply('<i><b><a href="tg://user?id={3}">{0}{1}</a></b> оплатил счёт <b>${2}</b></i>'.format(rasa, nick, money, a) )
                     else:
-                        await main.edit_message_text(inline_message_id = call.inline_message_id, text = '<i><b><a href="tg://user?id={3}">{0}{1}</a></b> оплатил счёт <b>${2}</b></i>'.format(rasa, nick, money, a), parse_mode = 'html')
+                        await main.edit_message_text(inline_message_id = call.inline_message_id, text = '<i><b><a href="tg://user?id={3}">{0}{1}</a></b> оплатил счёт <b>${2}</b></i>'.format(rasa, nick, money, a) )
                 if money>0:
-                    await main.send_message(fid, text = '<i><b><a href="tg://user?id={3}">{0}{1}</a></b> оплатил счёт <b>${2}</b>\n#user_getcheck</i>'.format(rasa, nick, money, a), parse_mode = 'html')
+                    await main.send_message(fid, text = '<i><b><a href="tg://user?id={3}">{0}{1}</a></b> оплатил счёт <b>${2}</b>\n#user_getcheck</i>'.format(rasa, nick, money, a) )
             except Exception as e:
                 try:
                     await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                    await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                    await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
                 except:
                     await main.edit_message_text(inline_message_id = call.inline_message_id, text = '<i><b>Ошибка: </b>{0}</i>'.format(e), parse_mode='html')
         if call.data == 'cancel_process':
@@ -3135,7 +3006,7 @@ morebus = 20
                 conn.commit()
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data.startswith('slot '):
             try:
                 a = call.from_user.id
@@ -3145,9 +3016,9 @@ morebus = 20
                 cost = int(arr[2])
                 if a==int(oth):
                     if call.message != None:
-                        await main.edit_message_text(chat_id = call.message.chat.id, message_id = call.message.message_id, text = '<i>Слот отменён продавцом</i>', parse_mode = 'html')
+                        await main.edit_message_text(chat_id = call.message.chat.id, message_id = call.message.message_id, text = '<i>Слот отменён продавцом</i>' )
                     else:
-                        await main.edit_message_text(inline_message_id=call.inline_message_id, text = '<i>Слот отменён продавцом</i>', parse_mode = 'html')
+                        await main.edit_message_text(inline_message_id=call.inline_message_id, text = '<i>Слот отменён продавцом</i>' )
                     cursor.execute('UPDATE userdata SET {0} = {0}+1 WHERE user_id=?'.format(item), (a,))
                     conn.commit()
                     return
@@ -3171,22 +3042,22 @@ morebus = 20
                 ind = ITEMS[1].index(item)
                 itm = ITEMS[0][ind]+' '+ITEMS[2][ind]
                 try:
-                    await main.send_message(oth, '<i><b><a href="tg://user?id={3}">{0}{1}</a></b> купил у вас <b>{2}</b> за <b>${4}</b></i>'.format(rasa, nick, itm, a, cost), parse_mode = 'html')
+                    await main.send_message(oth, '<i><b><a href="tg://user?id={3}">{0}{1}</a></b> купил у вас <b>{2}</b> за <b>${4}</b></i>'.format(rasa, nick, itm, a, cost) )
                 except:
                     pass
                 if cost>0:
-                    await main.send_message(fid, '<i><b><a href="tg://user?id={3}">{0}{1}</a></b> купил <b>{2}</b> за <b>${4}</b>\n#user_getitem</i>'.format(rasa, nick, itm, a, cost), parse_mode = 'html')
+                    await main.send_message(fid, '<i><b><a href="tg://user?id={3}">{0}{1}</a></b> купил <b>{2}</b> за <b>${4}</b>\n#user_getitem</i>'.format(rasa, nick, itm, a, cost) )
                 try:
-                    await main.edit_message_text(chat_id = call.message.chat.id, message_id = call.message.message_id, text = '<i><b><a href="tg://user?id={3}">{0}{1}</a></b> купил <b>{2}</b> за <b>${4}</b></i>'.format(rasa, nick, itm, a, cost), parse_mode = 'html')
+                    await main.edit_message_text(chat_id = call.message.chat.id, message_id = call.message.message_id, text = '<i><b><a href="tg://user?id={3}">{0}{1}</a></b> купил <b>{2}</b> за <b>${4}</b></i>'.format(rasa, nick, itm, a, cost) )
                 except:
-                    await main.edit_message_text(inline_message_id = call.inline_message_id, text = '<i><b><a href="tg://user?id={3}">{0}{1}</a></b> купил <b>{2}</b> за <b>${4}</b></i>'.format(rasa, nick, itm, a, cost), parse_mode = 'html')
+                    await main.edit_message_text(inline_message_id = call.inline_message_id, text = '<i><b><a href="tg://user?id={3}">{0}{1}</a></b> купил <b>{2}</b> за <b>${4}</b></i>'.format(rasa, nick, itm, a, cost) )
                 await call.answer("Спасибо за покупку", show_alert=True)
             except Exception as e:
                 if call.message!=None:
                     await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                    await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                    await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
                 else:
-                    await main.edit_message_text(inline_message_id = call.inline_message_id, text = '<i><b>Ошибка: </b>{0}</i>'.format(e), parse_mode = 'html')
+                    await main.edit_message_text(inline_message_id = call.inline_message_id, text = '<i><b>Ошибка: </b>{0}</i>'.format(e) )
         if call.data == 'call_clan':
             try:
                 a = call.from_user.id
@@ -3198,7 +3069,7 @@ morebus = 20
                 cursor.execute('SELECT username FROM clandata WHERE group_id = ?', (chid,))
                 chu = cursor.fetchone()[0]
                 if not isinstance(await main.get_chat_member(chid, a), types.ChatMemberAdministrator) and not isinstance(await main.get_chat_member(chid, a), types.ChatMemberOwner):
-                    await main.send_message(chid, '&#10060; <i>Созвать клан может только администратор чата</i>', parse_mode = 'html')
+                    await main.send_message(chid, '&#10060; <i>Созвать клан может только администратор чата</i>' )
                     return
                 if count == 0:
                     await call.answer(text='В клане никого нет :(')
@@ -3208,14 +3079,14 @@ morebus = 20
                 nerr = 0
                 for row in cursor:
                     try:
-                        await main.send_message(row[1], '<i>Клан <b><a href="{1}">{0}</a></b> созывает вас</i>'.format(chn, chu), parse_mode = 'html')
+                        await main.send_message(row[1], '<i>Клан <b><a href="{1}">{0}</a></b> созывает вас</i>'.format(chn, chu) )
                         nerr+=1
                     except:
                         err+=1
-                await call.message.answer('<i><b>&#128227; Рассылка завершена</b>\n&#9989; Удачно: {0}\n&#10060; Ошибки: {1}</i>'.format(nerr, err), parse_mode = 'html')
+                await call.message.answer('<i><b>&#128227; Рассылка завершена</b>\n&#9989; Удачно: {0}\n&#10060; Ошибки: {1}</i>'.format(nerr, err) )
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'clan_members':
             try:
                 a = call.from_user.id
@@ -3234,10 +3105,10 @@ morebus = 20
                 cursor.execute('SELECT * FROM userdata WHERE clan = ?', (chid,))
                 for row in cursor:
                     parts = parts+'\n<a href="tg://user?id={0}">{1}{2}</a>'.format(row[1], row[9], row[7])
-                await main.send_message(chid, '<i><b>{0}</b></i>'.format(parts), parse_mode = 'html')
+                await main.send_message(chid, '<i><b>{0}</b></i>'.format(parts) )
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'clan_settings':
             await clancall(call)
         if call.data == 'clan_settings2':
@@ -3263,7 +3134,7 @@ morebus = 20
                 if count == 0:
                     return
                 if not isinstance(await main.get_chat_member(chid, a), types.ChatMemberAdministrator) and not isinstance(await main.get_chat_member(chid, a), types.ChatMemberOwner):
-                    await main.send_message(chid, '&#10060; <i>Управлять кланом может только администратор чата</i>', parse_mode = 'html')
+                    await main.send_message(chid, '&#10060; <i>Управлять кланом может только администратор чата</i>' )
                     return
                 typ = ''
                 if call.message.chat.username is None:
@@ -3285,7 +3156,7 @@ morebus = 20
                     conn.commit()
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
             await main.delete_message(call.message.chat.id, call.message.message_id)
             await clancall(call)
         if call.data == 'clan_notifications':
@@ -3297,7 +3168,7 @@ morebus = 20
                 if count == 0:
                     return
                 if not isinstance(await main.get_chat_member(chid, a), types.ChatMemberAdministrator) and not isinstance(await main.get_chat_member(chid, a), types.ChatMemberOwner):
-                    await main.send_message(chid, '&#10060; <i>Управлять кланом может только администратор чата</i>', parse_mode = 'html')
+                    await main.send_message(chid, '&#10060; <i>Управлять кланом может только администратор чата</i>' )
                     return
                 cursor.execute('SELECT notif FROM clandata WHERE group_id=?', (chid,))
                 if cursor.fetchone()[0] == 1:
@@ -3308,7 +3179,7 @@ morebus = 20
                     conn.commit()
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
             await main.delete_message(call.message.chat.id, call.message.message_id)
             await clancall(call)
         if call.data == 'set_user_nick':
@@ -3322,7 +3193,7 @@ morebus = 20
                 await main.send_message(chid, '<i>Введите новый ник</i>', parse_mode='html', reply_markup = markup)
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'set_user_photo':
             try:
                 a = call.from_user.id
@@ -3335,7 +3206,7 @@ morebus = 20
                 await main.send_message(chid, '<i>Отправьте ссылку на фото или само фото</i>', parse_mode='html', reply_markup = markup)
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'clear_user_photo':
             try:
                 a = call.from_user.id
@@ -3347,7 +3218,7 @@ morebus = 20
                 await main.send_message(chid, '<i>Фото удалено</i>', parse_mode='html')
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'hq_number':
             try:
                 a = call.from_user.id
@@ -3359,7 +3230,7 @@ morebus = 20
                 await main.send_message(chid, '<i>Введите номер дома</i>', parse_mode='html', reply_markup = markup)
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'set_user_key':
             try:
                 if call.message.chat.type!='private':
@@ -3376,7 +3247,7 @@ morebus = 20
                 await main.send_message(chid, '<i>Введите новый ключ доступа</i>', parse_mode='html', reply_markup = markup)
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'log_in':
             try:
                 a = call.from_user.id
@@ -3388,7 +3259,7 @@ morebus = 20
                 await main.send_message(chid, '<i>Введите ключ доступа</i>', parse_mode='html', reply_markup = markup)
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'proceed_trolley':
             try:
                 a = call.from_user.id
@@ -3404,7 +3275,7 @@ morebus = 20
                 await buscall(call)
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'clan_link':
             try:
                 a = call.from_user.id
@@ -3414,16 +3285,16 @@ morebus = 20
                 if count == 0:
                     return
                 if not isinstance(await main.get_chat_member(chid, a), types.ChatMemberAdministrator) and not isinstance(await main.get_chat_member(chid, a), types.ChatMemberOwner):
-                    await main.send_message(chid, '&#10060; <i>Изменять настройки клана может только администратор чата</i>', parse_mode = 'html')
+                    await main.send_message(chid, '&#10060; <i>Изменять настройки клана может только администратор чата</i>' )
                     return
                 cursor.execute('UPDATE userdata SET process=? WHERE user_id=?', ('clanuser', a,))
                 conn.commit()
                 markup = types.InlineKeyboardMarkup()
                 markup.add(types.InlineKeyboardButton(text='❌ Отмена', callback_data='cancel_process'))
-                await main.send_message(chid, '<i>Введите новую ссылку клана. Ссылка на чат должна начинаться с <code>https://t.me/</code> или <code>t.me/</code>.\nРазрешено указывать ссылку на пользователя Telegram (при разрешении этого пользователя), некоммерческий канала или бот, связанный с игрой. Указывать ссылку на коммерческие или не связанные с игрой боты, группы и каналы запрещено</i>', parse_mode = 'html', reply_markup = markup)
+                await main.send_message(chid, '<i>Введите новую ссылку клана. Ссылка на чат должна начинаться с <code>https://t.me/</code> или <code>t.me/</code>.\nРазрешено указывать ссылку на пользователя Telegram (при разрешении этого пользователя), некоммерческий канала или бот, связанный с игрой. Указывать ссылку на коммерческие или не связанные с игрой боты, группы и каналы запрещено</i>' , reply_markup = markup)
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'delete_clan':
             try:
                 a = call.from_user.id
@@ -3434,15 +3305,15 @@ morebus = 20
                     return
                 cursor.execute('SELECT owner_id FROM clandata WHERE group_id=?', (chid,))
                 if a != cursor.fetchone()[0]:
-                    await main.send_message(chid, '&#10060; <i>Распустить клан может только его создатель</i>', parse_mode = 'html')
+                    await main.send_message(chid, '&#10060; <i>Распустить клан может только его создатель</i>' )
                     return
                 markup = types.InlineKeyboardMarkup()
                 markup.add(types.InlineKeyboardButton(text = '✅ Подтвердить роспуск', callback_data = 'delete_clan_confirm'))
                 markup.add(types.InlineKeyboardButton(text = '❌ Отменить', callback_data = 'cancel_action'))
-                await call.message.answer('<i>Вы уверены, что хотите распустить клан? Это действие отменить нельзя</i>', parse_mode = 'html', reply_markup=markup)
+                await call.message.answer('<i>Вы уверены, что хотите распустить клан? Это действие отменить нельзя</i>' , reply_markup=markup)
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'delete_clan_confirm':
             try:
                 a = call.from_user.id
@@ -3453,7 +3324,7 @@ morebus = 20
                     return
                 cursor.execute('SELECT owner_id FROM clandata WHERE group_id=?', (chid,))
                 if a != cursor.fetchone()[0]:
-                    await main.send_message(chid, '&#10060; <i>Распустить клан может только его создатель</i>', parse_mode = 'html')
+                    await main.send_message(chid, '&#10060; <i>Распустить клан может только его создатель</i>' )
                     return
                 cursor.execute('SELECT rasa FROM userdata WHERE user_id=?', (a,))
                 rasa = cursor.fetchone()[0]
@@ -3464,10 +3335,10 @@ morebus = 20
                 await main.send_message(fid, '<i><b><a href="tg://user?id={0}">{1}{2}</a></b> распустил клан <b>{3} ({4})</b>\n#clan_delete</i>'.format(a, rasa, nick, chn, chid), parse_mode='html')
                 cursor.execute('DELETE FROM clandata WHERE group_id = ?', (chid,))
                 conn.commit()
-                await call.message.answer('<i>Клан успешно распущен</i>', parse_mode = 'html')
+                await call.message.answer('<i>Клан успешно распущен</i>' )
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'headquarters':
             try:
                 a = call.from_user.id
@@ -3477,7 +3348,7 @@ morebus = 20
                 if count == 0:
                     return
                 if not isinstance(await main.get_chat_member(chid, a), types.ChatMemberAdministrator) and not isinstance(await main.get_chat_member(chid, a), types.ChatMemberOwner):
-                    await main.send_message(chid, '&#10060; <i>Создать штаб-квартиру клана может только администратор чата</i>', parse_mode = 'html')
+                    await main.send_message(chid, '&#10060; <i>Создать штаб-квартиру клана может только администратор чата</i>' )
                     return
                 cursor.execute('SELECT place FROM userdata WHERE user_id = ?', (a,))
                 place = cursor.fetchone()[0]
@@ -3499,10 +3370,10 @@ morebus = 20
                 conn.commit()
                 cursor.execute('SELECT address FROM clandata WHERE group_id=?', (chid,))
                 address = cursor.fetchone()[0]
-                await main.send_message(chid, '<i>&#127970; Готово! Теперь адрес штаб-квартиры клана: <b>{0}, {1}</b></i>'.format(hqplace, address), parse_mode = 'html')
+                await main.send_message(chid, '<i>&#127970; Готово! Теперь адрес штаб-квартиры клана: <b>{0}, {1}</b></i>'.format(hqplace, address) )
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'clan_buildings':
             try:
                 a = call.from_user.id
@@ -3532,7 +3403,7 @@ morebus = 20
                 await main.send_message(chid, '<i>&#127959; <b>Постройки </b>- один из самых интересных способов разнообразить клан</i>', parse_mode='html', reply_markup=markup)
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'building_shop':
             try:
                 a = call.from_user.id
@@ -3542,7 +3413,7 @@ morebus = 20
                 if count == 0:
                     return
                 if not isinstance(await main.get_chat_member(chid, a), types.ChatMemberAdministrator) and not isinstance(await main.get_chat_member(chid, a), types.ChatMemberOwner):
-                    await main.send_message(chid, '&#10060; <i>Управлять постройками клана может только администратор чата</i>', parse_mode = 'html')
+                    await main.send_message(chid, '&#10060; <i>Управлять постройками клана может только администратор чата</i>' )
                     return
                 markup = types.InlineKeyboardMarkup()
                 markup.add(types.InlineKeyboardButton(text='🏤 Почтовое отделение', callback_data='mailoffice'))
@@ -3552,7 +3423,7 @@ morebus = 20
                 await main.send_message(chid, '<i>&#127959; <b>Постройки </b>- один из самых интересных способов разнообразить клан</i>', parse_mode='html', reply_markup=markup)
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'clan_plugins':
             try:
                 a = call.from_user.id
@@ -3562,7 +3433,7 @@ morebus = 20
                 if count == 0:
                     return
                 if not isinstance(await main.get_chat_member(chid, a), types.ChatMemberAdministrator) and not isinstance(await main.get_chat_member(chid, a), types.ChatMemberOwner):
-                    await main.send_message(chid, '&#10060; <i>Управлять дополнениями клана может только администратор чата</i>', parse_mode = 'html')
+                    await main.send_message(chid, '&#10060; <i>Управлять дополнениями клана может только администратор чата</i>' )
                     return
                 markup = types.InlineKeyboardMarkup()
                 markup.add(types.InlineKeyboardButton(text='📛 Фильтр сообщений', callback_data='clanfilter'))
@@ -3570,7 +3441,7 @@ morebus = 20
                 await main.send_message(chid, '<i>➕ <b>Дополнения</b> - способы улучшить клан</i>', parse_mode='html', reply_markup=markup)
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'clanfilter':
             try:
                 a = call.from_user.id
@@ -3580,7 +3451,7 @@ morebus = 20
                 if count == 0:
                     return
                 if not isinstance(await main.get_chat_member(chid, a), types.ChatMemberAdministrator) and not isinstance(await main.get_chat_member(chid, a), types.ChatMemberOwner):
-                    await main.send_message(chid, '&#10060; <i>Управлять дополнениями клана может только администратор чата</i>', parse_mode = 'html')
+                    await main.send_message(chid, '&#10060; <i>Управлять дополнениями клана может только администратор чата</i>' )
                     return
                 cursor.execute('SELECT stickers FROM clandata WHERE group_id = ?', (chid,))
                 stickers = cursor.fetchone()[0]
@@ -3595,7 +3466,7 @@ morebus = 20
                 await main.send_message(chid, '<i>📛 <b>Фильтр сообщений</b> - отличный способ навести порядок в клане. Бот будет удалять сообщения, которые не соответствуют требованиям фильтра</i>', parse_mode='html', reply_markup=markup)
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data.startswith('clanfset_'):
             try:
                 a = call.from_user.id
@@ -3606,7 +3477,7 @@ morebus = 20
                 if count == 0:
                     return
                 if not isinstance(await main.get_chat_member(chid, a), types.ChatMemberAdministrator) and not isinstance(await main.get_chat_member(chid, a), types.ChatMemberOwner):
-                    await main.send_message(chid, '&#10060; <i>Управлять дополнениями клана может только администратор чата</i>', parse_mode = 'html')
+                    await main.send_message(chid, '&#10060; <i>Управлять дополнениями клана может только администратор чата</i>' )
                     return
                 cursor.execute('SELECT {0} FROM clandata WHERE group_id = ?'.format(set), (chid,))
                 stickers = cursor.fetchone()[0]
@@ -3617,7 +3488,7 @@ morebus = 20
                 await main.delete_message(call.message.chat.id, call.message.message_id)
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'clangameclub':
             try:
                 a = call.from_user.id
@@ -3627,7 +3498,7 @@ morebus = 20
                 if count == 0:
                     return
                 if not isinstance(await main.get_chat_member(chid, a), types.ChatMemberAdministrator) and not isinstance(await main.get_chat_member(chid, a), types.ChatMemberOwner):
-                    await main.send_message(chid, '&#10060; <i>Управлять дополнениями клана может только администратор чата</i>', parse_mode = 'html')
+                    await main.send_message(chid, '&#10060; <i>Управлять дополнениями клана может только администратор чата</i>' )
                     return
                 cursor.execute('SELECT gameclub FROM clandata WHERE group_id = ?', (chid,))
                 gameclub = cursor.fetchone()[0]
@@ -3640,7 +3511,7 @@ morebus = 20
                 await main.send_message(chid, '<i>🎰 <b>Мини-казино</b> даёт пользователям возможность играть в игровые автоматы. Условия:\n1. 50% денег за каждую крутку идёт на баланс клана, 50% отдаётся Игровому клубу.\n2. Деньги за выигрыши вычитаются из баланса клана. При нехватке денег на балансе клана из казны забирается удвоенная сумма выигрыша, в Игровой клуб отдаётся сумма выигрыша. При нехватке денег в казне пользователь не может получить выигрыш.\n3. Услугу "Мини-казино" можно отменить, при этом отменившему админу возвращается оплаченная при покупке сумма.</i>', parse_mode='html', reply_markup=markup)
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'clanlocation':
             try:
                 a = call.from_user.id
@@ -3650,7 +3521,7 @@ morebus = 20
                 if count == 0:
                     return
                 if not isinstance(await main.get_chat_member(chid, a), types.ChatMemberAdministrator) and not isinstance(await main.get_chat_member(chid, a), types.ChatMemberOwner):
-                    await main.send_message(chid, '&#10060; <i>Управлять настройками клана может только администратор чата</i>', parse_mode = 'html')
+                    await main.send_message(chid, '&#10060; <i>Управлять настройками клана может только администратор чата</i>' )
                     return
                 cursor.execute('SELECT islocation FROM clandata WHERE group_id = ?', (chid,))
                 loc = cursor.fetchone()[0]
@@ -3663,7 +3534,7 @@ morebus = 20
                 await main.send_message(chid, '<i>При включённом режиме 🏛 <b>Локации</b> клан будет показываться в списке локаций местности, в которой размещена штаб-квартира. Клан при этом должен быть публичным и иметь штаб-квартиру.\nПостройка локации стоит $1200, при её отмене отменившему администратору возвращается эта сумма</i>', parse_mode='html', reply_markup=markup)
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'buy_location':
             try:
                 a = call.from_user.id
@@ -3677,7 +3548,7 @@ morebus = 20
                 cursor.execute('SELECT islocation FROM clandata WHERE group_id = ?', (chid,))
                 loc = cursor.fetchone()[0]
                 if not isinstance(await main.get_chat_member(chid, a), types.ChatMemberAdministrator) and not isinstance(await main.get_chat_member(chid, a), types.ChatMemberOwner):
-                    await main.send_message(chid, '&#10060; <i>Покупать и продавать постройки для клана может только администратор чата</i>', parse_mode = 'html')
+                    await main.send_message(chid, '&#10060; <i>Покупать и продавать постройки для клана может только администратор чата</i>' )
                     return
                 if loc == 0:
                     cursor.execute('SELECT type FROM clandata WHERE group_id = ?', (chid,))
@@ -3698,7 +3569,7 @@ morebus = 20
                         return
                 else:
                     if not isinstance(await main.get_chat_member(chid, a), types.ChatMemberAdministrator) and not isinstance(await main.get_chat_member(chid, a), types.ChatMemberOwner):
-                        await main.send_message(chid, '&#10060; <i>Покупать постройки для клана может только администратор чата</i>', parse_mode = 'html')
+                        await main.send_message(chid, '&#10060; <i>Покупать постройки для клана может только администратор чата</i>' )
                         return
                     cursor.execute('UPDATE clandata SET islocation=0 WHERE group_id=?', (chid,))
                     conn.commit()
@@ -3709,7 +3580,7 @@ morebus = 20
                 await main.delete_message(call.message.chat.id, call.message.message_id)
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'buy_gameclub':
             try:
                 a = call.from_user.id
@@ -3723,7 +3594,7 @@ morebus = 20
                 cursor.execute('SELECT gameclub FROM clandata WHERE group_id = ?', (chid,))
                 gameclub = cursor.fetchone()[0]
                 if not isinstance(await main.get_chat_member(chid, a), types.ChatMemberAdministrator) and not isinstance(await main.get_chat_member(chid, a), types.ChatMemberOwner):
-                    await main.send_message(chid, '&#10060; <i>Покупать и продавать постройки для клана может только администратор чата</i>', parse_mode = 'html')
+                    await main.send_message(chid, '&#10060; <i>Покупать и продавать постройки для клана может только администратор чата</i>' )
                     return
                 if gameclub == 1:
                     if balance>=700:
@@ -3737,7 +3608,7 @@ morebus = 20
                         return
                 else:
                     if not isinstance(await main.get_chat_member(chid, a), types.ChatMemberAdministrator) and not isinstance(await main.get_chat_member(chid, a), types.ChatMemberOwner):
-                        await main.send_message(chid, '&#10060; <i>Покупать постройки для клана может только администратор чата</i>', parse_mode = 'html')
+                        await main.send_message(chid, '&#10060; <i>Покупать постройки для клана может только администратор чата</i>' )
                         return
                     cursor.execute('UPDATE clandata SET gameclub=? WHERE group_id=?', (1, chid,))
                     conn.commit()
@@ -3748,7 +3619,7 @@ morebus = 20
                 await main.delete_message(call.message.chat.id, call.message.message_id)
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'buy_mailoffice':
             try:
                 a = call.from_user.id
@@ -3762,7 +3633,7 @@ morebus = 20
                 if count == 0:
                     return
                 if not isinstance(await main.get_chat_member(chid, a), types.ChatMemberAdministrator) and not isinstance(await main.get_chat_member(chid, a), types.ChatMemberOwner):
-                    await main.send_message(chid, '&#10060; <i>Покупать постройки для клана может только администратор чата</i>', parse_mode = 'html')
+                    await main.send_message(chid, '&#10060; <i>Покупать постройки для клана может только администратор чата</i>' )
                     return
                 if balance>=700:
                     cursor.execute('UPDATE clandata SET lootbox=? WHERE group_id=?', (lootbox+1, chid))
@@ -3774,7 +3645,7 @@ morebus = 20
                     await call.answer('❌ У вас недостаточно средств', show_alert = True)
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'act_mailoffice':
             try:
                 a = call.from_user.id
@@ -3796,7 +3667,7 @@ morebus = 20
                 if count == 0:
                     return
                 if not isinstance(await main.get_chat_member(chid, a), types.ChatMemberAdministrator) and not isinstance(await main.get_chat_member(chid, a), types.ChatMemberOwner):
-                    await main.send_message(chid, '&#10060; <i>Раздавать лутбоксы для клана может только администратор чата</i>', parse_mode = 'html')
+                    await main.send_message(chid, '&#10060; <i>Раздавать лутбоксы для клана может только администратор чата</i>' )
                     return
                 if lootbox==0:
                     await main.send_message(chid, '<i>&#10060; В клане нет постройки <b>"Почтовое отделение"</b></i>', parse_mode='html')
@@ -3807,12 +3678,12 @@ morebus = 20
                     nerr = 0
                     for row in cursor:
                         try:
-                            await main.send_message(row[1], '<i>Клан <b><a href="{1}">{0}</a></b> дарит вам {2} &#128230;<b>Лутбокс</b></i>'.format(chn, chu, lootbox), parse_mode = 'html')
+                            await main.send_message(row[1], '<i>Клан <b><a href="{1}">{0}</a></b> дарит вам {2} &#128230;<b>Лутбокс</b></i>'.format(chn, chu, lootbox) )
                             nerr+=1
                         except:
                             err+=1
                     conn.commit()
-                    await call.message.answer('<i><b>📦 Рассылка лутбоксов завершена</b>\n&#9989; Удачно: {0}\n&#10060; Ошибки: {1}</i>'.format(nerr, err), parse_mode = 'html')
+                    await call.message.answer('<i><b>📦 Рассылка лутбоксов завершена</b>\n&#9989; Удачно: {0}\n&#10060; Ошибки: {1}</i>'.format(nerr, err) )
                     cursor.execute('UPDATE userdata SET lootbox=lootbox+? WHERE clan=?', (lootbox, chid,))
                     cursor.execute('UPDATE clandata SET lastbox = ? WHERE group_id = ?', ((now - datetime.fromtimestamp(0)).total_seconds(), chid,))
                     conn.commit()
@@ -3824,7 +3695,7 @@ morebus = 20
                     await main.send_message(chid, f'<i>Следующий лутбокс ожидается через {d} дней {h} часов {m} минут {s} секунд</i>', parse_mode='html')
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'mailoffice':
             try:
                 a = call.from_user.id
@@ -3845,10 +3716,10 @@ morebus = 20
                 else:
                     markup.add(types.InlineKeyboardButton(text='🏤 Купить - $700', callback_data='buy_mailoffice'))
                     lvl = 'У вас нет почтового отделения'
-                await main.send_message(chid, '<i>&#127972; <b>Почтовое отделение</b> - полезная постройка для раздачи лутбоксов соклановцам. {0}</i>'.format(lvl), parse_mode = 'html', reply_markup = markup)
+                await main.send_message(chid, '<i>&#127972; <b>Почтовое отделение</b> - полезная постройка для раздачи лутбоксов соклановцам. {0}</i>'.format(lvl) , reply_markup = markup)
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'clan_farm':
             try:
                 a = call.from_user.id
@@ -3872,10 +3743,10 @@ morebus = 20
                 else:
                     markup.add(types.InlineKeyboardButton(text='🐄 Купить - $500', callback_data='buy_farm'))
                     lvl = 'В клане нет фермы'
-                await main.send_message(chid, '<i>&#128004; <b>Ферма</b> - отличный способ получить молоко в клане. Доить коров можно раз в день.\n{0}</i>'.format(lvl), parse_mode = 'html', reply_markup = markup)
+                await main.send_message(chid, '<i>&#128004; <b>Ферма</b> - отличный способ получить молоко в клане. Доить коров можно раз в день.\n{0}</i>'.format(lvl) , reply_markup = markup)
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'sell_canteen':
             try:
                 a = call.from_user.id
@@ -3885,14 +3756,14 @@ morebus = 20
                 cursor.execute('SELECT foodshop FROM clandata WHERE group_id = ?', (chid,))
                 foodshop = cursor.fetchone()[0]
                 if foodshop<1:
-                    await main.send_message(chid, '<i>В клане нет столовой</i>', parse_mode = 'html')
+                    await main.send_message(chid, '<i>В клане нет столовой</i>' )
                     return
                 cursor.execute('SELECT balance FROM userdata WHERE user_id = ?', (a,))
                 balance = cursor.fetchone()[0]
                 if count == 0:
                     return
                 if not isinstance(await main.get_chat_member(chid, a), types.ChatMemberAdministrator) and not isinstance(await main.get_chat_member(chid, a), types.ChatMemberOwner):
-                    await main.send_message(chid, '&#10060; <i>Продавать постройки клана может только администратор чата</i>', parse_mode = 'html')
+                    await main.send_message(chid, '&#10060; <i>Продавать постройки клана может только администратор чата</i>' )
                     return
                 cursor.execute('UPDATE clandata SET foodshop=? WHERE group_id=?', (0, chid))
                 conn.commit()
@@ -3901,7 +3772,7 @@ morebus = 20
                 await clancall(call)
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'sell_farm':
             try:
                 a = call.from_user.id
@@ -3911,14 +3782,14 @@ morebus = 20
                 cursor.execute('SELECT farm FROM clandata WHERE group_id = ?', (chid,))
                 foodshop = cursor.fetchone()[0]
                 if foodshop<1:
-                    await main.send_message(chid, '<i>В клане нет фермы</i>', parse_mode = 'html')
+                    await main.send_message(chid, '<i>В клане нет фермы</i>' )
                     return
                 cursor.execute('SELECT balance FROM userdata WHERE user_id = ?', (a,))
                 balance = cursor.fetchone()[0]
                 if count == 0:
                     return
                 if not isinstance(await main.get_chat_member(chid, a), types.ChatMemberAdministrator) and not isinstance(await main.get_chat_member(chid, a), types.ChatMemberOwner):
-                    await main.send_message(chid, '&#10060; <i>Продавать постройки клана может только администратор чата</i>', parse_mode = 'html')
+                    await main.send_message(chid, '&#10060; <i>Продавать постройки клана может только администратор чата</i>' )
                     return
                 cursor.execute('UPDATE clandata SET farm=? WHERE group_id=?', (0, chid))
                 conn.commit()
@@ -3927,7 +3798,7 @@ morebus = 20
                 await clancall(call)
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'sell_mailoffice':
             try:
                 a = call.from_user.id
@@ -3937,14 +3808,14 @@ morebus = 20
                 cursor.execute('SELECT lootbox FROM clandata WHERE group_id = ?', (chid,))
                 lootbox = cursor.fetchone()[0]
                 if lootbox<1:
-                    await main.send_message(chid, '<i>В клане нет почтового отделения</i>', parse_mode = 'html')
+                    await main.send_message(chid, '<i>В клане нет почтового отделения</i>' )
                     return
                 cursor.execute('SELECT balance FROM userdata WHERE user_id = ?', (a,))
                 balance = cursor.fetchone()[0]
                 if count == 0:
                     return
                 if not isinstance(await main.get_chat_member(chid, a), types.ChatMemberAdministrator) and not isinstance(await main.get_chat_member(chid, a), types.ChatMemberOwner):
-                    await main.send_message(chid, '&#10060; <i>Продавать постройки клана может только администратор чата</i>', parse_mode = 'html')
+                    await main.send_message(chid, '&#10060; <i>Продавать постройки клана может только администратор чата</i>' )
                     return
                 cursor.execute('UPDATE clandata SET lootbox=? WHERE group_id=?', (0, chid))
                 conn.commit()
@@ -3953,7 +3824,7 @@ morebus = 20
                 await clancall(call)
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'sell_chemists':
             try:
                 a = call.from_user.id
@@ -3963,14 +3834,14 @@ morebus = 20
                 cursor.execute('SELECT apteka FROM clandata WHERE group_id = ?', (chid,))
                 apteka = cursor.fetchone()[0]
                 if apteka<1:
-                    await main.send_message(chid, '<i>В клане нет аптеки</i>', parse_mode = 'html')
+                    await main.send_message(chid, '<i>В клане нет аптеки</i>' )
                     return
                 cursor.execute('SELECT balance FROM userdata WHERE user_id = ?', (a,))
                 balance = cursor.fetchone()[0]
                 if count == 0:
                     return
                 if not isinstance(await main.get_chat_member(chid, a), types.ChatMemberAdministrator) and not isinstance(await main.get_chat_member(chid, a), types.ChatMemberOwner):
-                    await main.send_message(chid, '&#10060; <i>Продавать постройки клана может только администратор чата</i>', parse_mode = 'html')
+                    await main.send_message(chid, '&#10060; <i>Продавать постройки клана может только администратор чата</i>' )
                     return
                 cursor.execute('UPDATE clandata SET apteka=? WHERE group_id=?', (0, chid))
                 conn.commit()
@@ -3979,7 +3850,7 @@ morebus = 20
                 await clancall(call)
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'buy_canteen':
             try:
                 a = call.from_user.id
@@ -3989,14 +3860,14 @@ morebus = 20
                 cursor.execute('SELECT foodshop FROM clandata WHERE group_id = ?', (chid,))
                 foodshop = cursor.fetchone()[0]
                 if foodshop>=1:
-                    await main.send_message(chid, '<i>В клане уже есть столовая</i>', parse_mode = 'html')
+                    await main.send_message(chid, '<i>В клане уже есть столовая</i>' )
                     return
                 cursor.execute('SELECT balance FROM userdata WHERE user_id = ?', (a,))
                 balance = cursor.fetchone()[0]
                 if count == 0:
                     return
                 if not isinstance(await main.get_chat_member(chid, a), types.ChatMemberAdministrator) and not isinstance(await main.get_chat_member(chid, a), types.ChatMemberOwner):
-                    await main.send_message(chid, '&#10060; <i>Покупать постройки для клана может только администратор чата</i>', parse_mode = 'html')
+                    await main.send_message(chid, '&#10060; <i>Покупать постройки для клана может только администратор чата</i>' )
                     return
                 if balance>=500:
                     cursor.execute('UPDATE clandata SET foodshop=? WHERE group_id=?', (foodshop+1, chid))
@@ -4008,7 +3879,7 @@ morebus = 20
                     await call.answer('❌ У вас недостаточно средств', show_alert = True)
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'buy_farm':
             try:
                 a = call.from_user.id
@@ -4018,14 +3889,14 @@ morebus = 20
                 cursor.execute('SELECT farm FROM clandata WHERE group_id = ?', (chid,))
                 farm = cursor.fetchone()[0]
                 if farm>=1:
-                    await main.send_message(chid, '<i>В клане уже есть ферма</i>', parse_mode = 'html')
+                    await main.send_message(chid, '<i>В клане уже есть ферма</i>' )
                     return
                 cursor.execute('SELECT balance FROM userdata WHERE user_id = ?', (a,))
                 balance = cursor.fetchone()[0]
                 if count == 0:
                     return
                 if not isinstance(await main.get_chat_member(chid, a), types.ChatMemberAdministrator) and not isinstance(await main.get_chat_member(chid, a), types.ChatMemberOwner):
-                    await main.send_message(chid, '&#10060; <i>Покупать постройки для клана может только администратор чата</i>', parse_mode = 'html')
+                    await main.send_message(chid, '&#10060; <i>Покупать постройки для клана может только администратор чата</i>' )
                     return
                 if balance>=500:
                     cursor.execute('UPDATE clandata SET farm=? WHERE group_id=?', (farm+1, chid))
@@ -4037,7 +3908,7 @@ morebus = 20
                     await call.answer('❌ У вас недостаточно средств', show_alert = True)
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'buy_chemists':
             try:
                 a = call.from_user.id
@@ -4047,14 +3918,14 @@ morebus = 20
                 cursor.execute('SELECT apteka FROM clandata WHERE group_id = ?', (chid,))
                 apt = cursor.fetchone()[0]
                 if apt>=1:
-                    await main.send_message(chid, '<i>В клане уже есть аптека</i>', parse_mode = 'html')
+                    await main.send_message(chid, '<i>В клане уже есть аптека</i>' )
                     return
                 cursor.execute('SELECT balance FROM userdata WHERE user_id = ?', (a,))
                 balance = cursor.fetchone()[0]
                 if count == 0:
                     return
                 if not isinstance(await main.get_chat_member(chid, a), types.ChatMemberAdministrator) and not isinstance(await main.get_chat_member(chid, a), types.ChatMemberOwner):
-                    await main.send_message(chid, '&#10060; <i>Покупать постройки для клана может только администратор чата</i>', parse_mode = 'html')
+                    await main.send_message(chid, '&#10060; <i>Покупать постройки для клана может только администратор чата</i>' )
                     return
                 if balance>=500:
                     cursor.execute('UPDATE clandata SET apteka=? WHERE group_id=?', (apt+1, chid))
@@ -4066,7 +3937,7 @@ morebus = 20
                     await call.answer('❌ У вас недостаточно средств', show_alert = True)
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'donate_cow':
             try:
                 a = call.from_user.id
@@ -4091,7 +3962,7 @@ morebus = 20
                 await call.answer(text='Передача совершена успешно. Теперь у вас {0} коров.\nВ клане теперь {1} коров'.format(cow, clancow), show_alert = True)
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'milk_clan':
             try:
                 a = call.from_user.id
@@ -4131,7 +4002,7 @@ morebus = 20
                     return
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'canteen':
             try:
                 a = call.from_user.id
@@ -4151,10 +4022,10 @@ morebus = 20
                 else:
                     markup.add(types.InlineKeyboardButton(text='🍵 Купить - $500', callback_data='buy_canteen'))
                     lvl = '. В клане нет столовой'
-                await main.send_message(chid, '<i>&#127861; <b>Столовая</b> - хорошее место для быстрого перекуса{0}</i>'.format(lvl), parse_mode = 'html', reply_markup = markup)
+                await main.send_message(chid, '<i>&#127861; <b>Столовая</b> - хорошее место для быстрого перекуса{0}</i>'.format(lvl) , reply_markup = markup)
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'chemists':
             try:
                 a = call.from_user.id
@@ -4173,10 +4044,10 @@ morebus = 20
                 else:
                     markup.add(types.InlineKeyboardButton(text='💊 Купить - $500', callback_data='buy_chemists'))
                     lvl = '. В клане нет столовой'
-                await main.send_message(chid, '<i>&#128138; <b>Аптека</b> - тут можно купить лекарства дешевле, чем в Райбольнице{0}</i>'.format(lvl), parse_mode = 'html', reply_markup = markup)
+                await main.send_message(chid, '<i>&#128138; <b>Аптека</b> - тут можно купить лекарства дешевле, чем в Райбольнице{0}</i>'.format(lvl) , reply_markup = markup)
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'clan_name':
             try:
                 a = call.from_user.id
@@ -4186,16 +4057,16 @@ morebus = 20
                 if count == 0:
                     return
                 if not isinstance(await main.get_chat_member(chid, a), types.ChatMemberAdministrator) and not isinstance(await main.get_chat_member(chid, a), types.ChatMemberOwner):
-                    await main.send_message(chid, '&#10060; <i>Изменять настройки клана может только администратор чата</i>', parse_mode = 'html')
+                    await main.send_message(chid, '&#10060; <i>Изменять настройки клана может только администратор чата</i>' )
                     return
                 cursor.execute('UPDATE userdata SET process=? WHERE user_id=?', ('clanname', a,))
                 conn.commit()
                 markup = types.InlineKeyboardMarkup()
                 markup.add(types.InlineKeyboardButton(text='❌ Отмена', callback_data='cancel_process'))
-                await main.send_message(chid, '<i>Введите новое название клана</i>', parse_mode = 'html', reply_markup=markup)
+                await main.send_message(chid, '<i>Введите новое название клана</i>' , reply_markup=markup)
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'clan_photo':
             try:
                 a = call.from_user.id
@@ -4205,7 +4076,7 @@ morebus = 20
                 if count == 0:
                     return
                 if not isinstance(await main.get_chat_member(chid, a), types.ChatMemberAdministrator) and not isinstance(await main.get_chat_member(chid, a), types.ChatMemberOwner):
-                    await main.send_message(chid, '&#10060; <i>Изменять настройки клана может только администратор чата</i>', parse_mode = 'html')
+                    await main.send_message(chid, '&#10060; <i>Изменять настройки клана может только администратор чата</i>' )
                     return
                 cursor.execute('UPDATE userdata SET process=? WHERE user_id=?', ('clanphoto', a,))
                 conn.commit()
@@ -4215,7 +4086,7 @@ morebus = 20
                 await main.send_message(chid, '<i>Отправьте ссылку на фото или само фото</i>', parse_mode='html', reply_markup = markup)
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'clear_clan_photo':
             try:
                 a = call.from_user.id
@@ -4226,7 +4097,7 @@ morebus = 20
                 if count == 0:
                     return
                 if not isinstance(await main.get_chat_member(chid, a), types.ChatMemberAdministrator) and not isinstance(await main.get_chat_member(chid, a), types.ChatMemberOwner):
-                    await main.send_message(chid, '&#10060; <i>Изменять настройки клана может только администратор чата</i>', parse_mode = 'html')
+                    await main.send_message(chid, '&#10060; <i>Изменять настройки клана может только администратор чата</i>' )
                     return
                 cursor.execute('UPDATE userdata SET process=? WHERE user_id=?', ('nothing', a,))
                 conn.commit()
@@ -4235,7 +4106,7 @@ morebus = 20
                 await main.send_message(chid, '<i>Фото удалено</i>', parse_mode='html')
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'clan_bio':
             try:
                 a = call.from_user.id
@@ -4245,7 +4116,7 @@ morebus = 20
                 if count == 0:
                     return
                 if not isinstance(await main.get_chat_member(chid, a), types.ChatMemberAdministrator) and not isinstance(await main.get_chat_member(chid, a), types.ChatMemberOwner):
-                    await main.send_message(chid, '&#10060; <i>Изменять настройки клана может только администратор чата</i>', parse_mode = 'html')
+                    await main.send_message(chid, '&#10060; <i>Изменять настройки клана может только администратор чата</i>' )
                     return
                 cursor.execute('UPDATE userdata SET process=? WHERE user_id=?', ('clanbio', a,))
                 conn.commit()
@@ -4255,7 +4126,7 @@ morebus = 20
                 await main.send_message(chid, '<i>Отправьте новое описание</i>', parse_mode='html', reply_markup = markup)
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'clear_clan_bio':
             try:
                 a = call.from_user.id
@@ -4266,7 +4137,7 @@ morebus = 20
                 if count == 0:
                     return
                 if not isinstance(await main.get_chat_member(chid, a), types.ChatMemberAdministrator) and not isinstance(await main.get_chat_member(chid, a), types.ChatMemberOwner):
-                    await main.send_message(chid, '&#10060; <i>Изменять настройки клана может только администратор чата</i>', parse_mode = 'html')
+                    await main.send_message(chid, '&#10060; <i>Изменять настройки клана может только администратор чата</i>' )
                     return
                 cursor.execute('UPDATE userdata SET process=? WHERE user_id=?', ('nothing', a,))
                 conn.commit()
@@ -4275,7 +4146,7 @@ morebus = 20
                 await main.send_message(chid, '<i>Описание удалено</i>', parse_mode='html')
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'clear_headquarters':
             try:
                 a = call.from_user.id
@@ -4285,16 +4156,16 @@ morebus = 20
                 if count == 0:
                     return
                 if not isinstance(await main.get_chat_member(chid, a), types.ChatMemberAdministrator) and not isinstance(await main.get_chat_member(chid, a), types.ChatMemberOwner):
-                    await main.send_message(chid, '&#10060; <i>Снести штаб-квартиру клана может только администратор чата</i>', parse_mode = 'html')
+                    await main.send_message(chid, '&#10060; <i>Снести штаб-квартиру клана может только администратор чата</i>' )
                     return
                 cursor.execute('UPDATE clandata SET hqplace=? WHERE group_id=?', ('', chid,))
                 conn.commit()
                 cursor.execute('UPDATE clandata SET address=0 WHERE group_id=?', (chid,))
                 conn.commit()
-                await main.send_message(chid, '<i>&#127970; Готово! Теперь штаб-квартира клана снесена</i>', parse_mode = 'html')
+                await main.send_message(chid, '<i>&#127970; Готово! Теперь штаб-квартира клана снесена</i>' )
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'sign_up':
             await create_acc(call.from_user, call.message.chat.id)
         if call.data == 'clan_qrcode':
@@ -4358,10 +4229,10 @@ morebus = 20
                 if style=='yellowlight':
                     color = '255-255-0'
                     bgcolor = '255-255-255'
-                await main.send_photo(call.message.chat.id, 'https://api.qrserver.com/v1/create-qr-code/?data={0}&size=512x512&charset-source=UTF-8&charset-target=UTF-8&ecc=L&color={1}&bgcolor={2}&margin=1&qzone=1&format=png'.format(username, color, bgcolor), '<i>QR-код готов</i>', parse_mode = 'html')
+                await main.send_photo(call.message.chat.id, 'https://api.qrserver.com/v1/create-qr-code/?data={0}&size=512x512&charset-source=UTF-8&charset-target=UTF-8&ecc=L&color={1}&bgcolor={2}&margin=1&qzone=1&format=png'.format(username, color, bgcolor), '<i>QR-код готов</i>' )
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data == 'local_clans':
             try:
                 a = call.from_user.id
@@ -4371,24 +4242,23 @@ morebus = 20
                 cursor.execute('SELECT count(*) FROM clandata WHERE hqplace = ? AND type=?', (place, 'public',))
                 count = cursor.fetchone()[0]
                 if count == 0:
-                    await call.message.answer('<i>В этой местности кланов нет :(</i>', parse_mode = 'html')
+                    await call.message.answer('<i>В этой местности кланов нет :(</i>' )
                     return
                 cursor.execute('SELECT * FROM clandata WHERE hqplace = ? AND type = ? ORDER BY address LIMIT 50', (place, 'public',))
                 for row in cursor:
                     clans+='\n<b>{0}.</b> <a href = "{1}">{2}</a>'.format(row[11], row[8], row[1])
                 markup = types.InlineKeyboardMarkup()
                 markup.add(types.InlineKeyboardButton(text='Искать по номеру дома', callback_data='hq_number'))
-                await call.message.answer('<i>&#127970; Кланы поблизости: <b>{0}</b></i>'.format(clans), parse_mode = 'html', reply_markup=markup)
+                await call.message.answer('<i>&#127970; Кланы поблизости: <b>{0}</b></i>'.format(clans) , reply_markup=markup)
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
         if call.data.startswith('battle_'):
             try:
                 await battle(call.message, call.from_user.id, int(call.data[7:]))
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e), parse_mode = 'html')
-    
+                await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) ) 
     @bot.message_handler(content_types=['new_chat_members'])
     async def welcome_new_member(message: types.Message):
         if message.new_chat_members[0].id == ID:
@@ -4397,86 +4267,85 @@ morebus = 20
 🚆 Акцент в этой игре делается не на жестокие битвы, а на мирные путешествия (хотя жестокие битвы на бан тоже можно проводить :)
 💼 Работай, зарабатывай деньги и трать их в многочисленных магазинах по всему Живополису (а ещё деньги можно красть, но лучше так не делать, ибо админы всё видят👀 :)
 👦🏿 Ты можешь стать кем угодно, от енота до нигера (нет, последним нельзя или бан :)
-🤬 У нас всё под контролем. За нарушение правил добрые админы вам обнулят аккаунт</i>''', parse_mode = 'html')
+🤬 У нас всё под контролем. За нарушение правил добрые админы вам обнулят аккаунт</i>''' )
         else:
-            await startdef(message)
-    
+            await startdef(message)    
     @inline.bot
-            if money<0 and whole:
-                markup.add(types.InlineKeyboardButton(text='💵 Оплатить счёт', callback_data='paybill {0} {1}'.format(-money, a)))
-                item.append(InlineQueryResultArticle(
-                    id = 'bill_{0}'.format(money),
-                    title = f'💵 Отправить счёт на сумму ${-money}',
-                    description='Баланс: ${0}'.format(balance),
-                    input_message_content=InputTextMessageContent('<i>&#128181; <b><a href="tg://user?id={3}">{0}{1}</a></b> выставил вам счёт на сумму <b>${2}</b></i>'.format(rasa, nick, -money, a), parse_mode='html'),
-                    reply_markup = markup,
-                ))
-            if not whole:
-                item.append(InlineQueryResultArticle(
-                    id = 'error',
-                    title = f'💲 Отправить чек на сумму $',
-                    description='❌ Введите целое число после знака $\nБаланс: ${0}'.format(balance),
-                    input_message_content=InputTextMessageContent('<i>Нужно ввести целое число</i>', parse_mode='html'),
-                    reply_markup = markup,
-                ))
-            if item[0].id.startswith('check_'):
-                money = int(item[0].id[6:])
-                if money>balance:
-                    return
-                else:
-                    cursor.execute('UPDATE userdata SET balance=balance-? WHERE user_id=?', (money, a,))
-                    conn.commit()
+    async def inline():
+        if money<0 and whole:
+            markup.add(types.InlineKeyboardButton(text='💵 Оплатить счёт', callback_data='paybill {0} {1}'.format(-money, a)))
+            item.append(InlineQueryResultArticle(
+                id = 'bill_{0}'.format(money),
+                title = f'💵 Отправить счёт на сумму ${-money}',
+                description='Баланс: ${0}'.format(balance),
+                input_message_content=InputTextMessageContent('<i>&#128181; <b><a href="tg://user?id={3}">{0}{1}</a></b> выставил вам счёт на сумму <b>${2}</b></i>'.format(rasa, nick, -money, a), parse_mode='html'),
+                reply_markup = markup,
+            ))
+        if not whole:
+            item.append(InlineQueryResultArticle(
+                id = 'error',
+                title = f'💲 Отправить чек на сумму $',
+                description='❌ Введите целое число после знака $\nБаланс: ${0}'.format(balance),
+                input_message_content=InputTextMessageContent('<i>Нужно ввести целое число</i>', parse_mode='html'),
+                reply_markup = markup,
+            ))
+        if item[0].id.startswith('check_'):
+            money = int(item[0].id[6:])
+            if money>balance:
+                return
+            else:
+                cursor.execute('UPDATE userdata SET balance=balance-? WHERE user_id=?', (money, a,))
+                conn.commit()
         elif text.startswith('%'):
             try:
                 money = int(text[1:])
             except:
                 money = 0
-                whole = False
-            markup = types.InlineKeyboardMarkup()
-            if money>=0 and whole:
-                for itid in ITEMS[1]:
-                    markup = types.InlineKeyboardMarkup()
-                    if money == 0:
-                        markup.add(types.InlineKeyboardButton(text='Забрать бесплатно', callback_data='slot {0} 0 {1}'.format(itid, a)))
-                    else:
-                        markup.add(types.InlineKeyboardButton(text='Купить за ${0}'.format(money), callback_data='slot {0} {1} {2}'.format(itid, money, a)))
-                    ids = ITEMS[1].index(itid)
-                    if itemdata(a, itid)!='emptyslot':
+                    whole = False
+                markup = types.InlineKeyboardMarkup()
+                if money>=0 and whole:
+                    for itid in ITEMS[1]:
+                        markup = types.InlineKeyboardMarkup()
+                        if money == 0:
+                            markup.add(types.InlineKeyboardButton(text='Забрать бесплатно', callback_data='slot {0} 0 {1}'.format(itid, a)))
+                        else:
+                            markup.add(types.InlineKeyboardButton(text='Купить за ${0}'.format(money), callback_data='slot {0} {1} {2}'.format(itid, money, a)))
+                        ids = ITEMS[1].index(itid)
+                        if itemdata(a, itid)!='emptyslot':
+                            cursor.execute('SELECT {0} FROM userdata WHERE user_id=?'.format(itid), (a,))
+                            amt = cursor.fetchone()[0]
+                            item.append(InlineQueryResultArticle(
+                                id = 'slot {0} {1}'.format(ids, money),
+                                title = 'Продать {0}{1} за ${2}'.format(ITEMS[0][ids], ITEMS[2][ids], money),
+                                description = 'У вас этого предмета: {0}'.format(amt),
+                                input_message_content=InputTextMessageContent('<i><b><a href="tg://user?id={3}">{0}{1}</a></b> предлагает вам <b>{4} {5}</b> за <b>${2}</b></i>'.format(rasa, nick, money, a, ITEMS[0][ids], ITEMS[2][ids]), parse_mode='html'),
+                                reply_markup = markup,
+                            ))
+                if not whole or money<0:
+                    item.append(InlineQueryResultArticle(
+                        id = 'error',
+                        title = f'🚫 Продать товар за $',
+                        description='❌ Введите целое неотрицательное число после знака $'.format(balance),
+                        input_message_content=InputTextMessageContent('<i>Нужно ввести целое неотрицательное число</i>', parse_mode='html'),
+                        reply_markup = markup,
+                    ))
+                for inst in item:
+                    if inst.id.startswith('slot '):
+                        itid = ITEMS[1][int(inst.id.split(' ')[1])]
                         cursor.execute('SELECT {0} FROM userdata WHERE user_id=?'.format(itid), (a,))
                         amt = cursor.fetchone()[0]
-                        item.append(InlineQueryResultArticle(
-                            id = 'slot {0} {1}'.format(ids, money),
-                            title = 'Продать {0}{1} за ${2}'.format(ITEMS[0][ids], ITEMS[2][ids], money),
-                            description = 'У вас этого предмета: {0}'.format(amt),
-                            input_message_content=InputTextMessageContent('<i><b><a href="tg://user?id={3}">{0}{1}</a></b> предлагает вам <b>{4} {5}</b> за <b>${2}</b></i>'.format(rasa, nick, money, a, ITEMS[0][ids], ITEMS[2][ids]), parse_mode='html'),
-                            reply_markup = markup,
-                        ))
-            if not whole or money<0:
-                item.append(InlineQueryResultArticle(
-                    id = 'error',
-                    title = f'🚫 Продать товар за $',
-                    description='❌ Введите целое неотрицательное число после знака $'.format(balance),
-                    input_message_content=InputTextMessageContent('<i>Нужно ввести целое неотрицательное число</i>', parse_mode='html'),
-                    reply_markup = markup,
+                        if amt<1:
+                            return
+                        else:
+                            cursor.execute('UPDATE userdata SET {0}={0}-1 WHERE user_id=?'.format(itid), (a,))
+                            conn.commit()
+                else:
+                    item.append(InlineQueryResultArticle(
+                        id = 'help',
+                        title = 'Команды',
+                        description = '${сумма} - выписать чек или счёт\n%{стоимость} - продать товар\nНажмите для подробностей',
+                        input_message_content=InputTextMessageContent('<i><b>Команды</b>\n<code>${сумма}</code> - выписать чек (или счёт, если сумма отрицательная) на указанную сумму.\n<code>%{цена}</code> - продать выбранный товар по указанной цене</i>', parse_mode='html'),
                 ))
-            for inst in item:
-                if inst.id.startswith('slot '):
-                    itid = ITEMS[1][int(inst.id.split(' ')[1])]
-                    cursor.execute('SELECT {0} FROM userdata WHERE user_id=?'.format(itid), (a,))
-                    amt = cursor.fetchone()[0]
-                    if amt<1:
-                        return
-                    else:
-                        cursor.execute('UPDATE userdata SET {0}={0}-1 WHERE user_id=?'.format(itid), (a,))
-                        conn.commit()
-        else:
-            item.append(InlineQueryResultArticle(
-                id = 'help',
-                title = 'Команды',
-                description = '${сумма} - выписать чек или счёт\n%{стоимость} - продать товар\nНажмите для подробностей',
-                input_message_content=InputTextMessageContent('<i><b>Команды</b>\n<code>${сумма}</code> - выписать чек (или счёт, если сумма отрицательная) на указанную сумму.\n<code>%{цена}</code> - продать выбранный товар по указанной цене</i>', parse_mode='html'),
-            ))
-
     @bot.chosen_inline_handler()
     async def huy():
         if query.startswith('%'):

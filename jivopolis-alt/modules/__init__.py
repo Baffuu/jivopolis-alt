@@ -5,6 +5,7 @@ from . import (
     on_photo_sent,
     start,
     stickers_handler,
+    emoji_handler,
 )
 from .. import Dispatcher
 
@@ -26,4 +27,4 @@ async def register_all(dp: Dispatcher) -> None:
     on_photo_sent.register(dp)
     start.register(dp)
     stickers_handler.register(dp)
-    
+    emoji_handler.register(dp)

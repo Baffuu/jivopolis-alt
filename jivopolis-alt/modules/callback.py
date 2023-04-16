@@ -35,7 +35,7 @@ async def callback_handler(call: CallbackQuery):
         if health < 0:
             await call.answer(text='☠️ Вы умерли')
             if call.message.chat.type == 'private':
-                return await call.message.answer('<i>☠️ Вы умерли. Попросите кого-нибудь вас воскресить</i>', parse_mode = 'html')
+                return await call.message.answer('<i>☠️ Вы умерли. Попросите кого-нибудь вас воскресить</i>' )
 
         match (call.data):
             case sign if sign.startswith('sign_up'):
