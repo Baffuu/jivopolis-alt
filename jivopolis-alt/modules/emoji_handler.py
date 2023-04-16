@@ -2,6 +2,7 @@ import contextlib
 import random
 import asyncio
 from time import time
+from ..filters import RequireAdminFilter
 from ..database.functions import check, earn
 from ..database.sqlitedb import cur, conn
 from ..misc import OfficialChats, get_embedded_link
@@ -118,4 +119,4 @@ async def _slots_win(user_id, chat_id = None, winner: int = 0, price: int = None
     return True
 
 def register(dp: Dispatcher):
-    dp.register_message_handler(dice_handler, content_types=['dice'])
+    dp.register_message_handler(dice_handler, RequireAdminFilter(), content_types=['dice'])

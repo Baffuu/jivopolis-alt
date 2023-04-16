@@ -13,4 +13,4 @@ def debug_only(record):
 def not_debug(record):
     return record["level"].name != "DEBUG"
 logger.add("debug.log", filter=debug_only, rotation="10000 MB")
-logger.add("{time}.log", filter=not_debug, rotation="1000 MB")
+logger.add(".log", filter=not_debug, rotation="10000 MB")

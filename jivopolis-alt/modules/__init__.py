@@ -9,6 +9,7 @@ from . import (
 )
 from .. import Dispatcher
 
+
 async def register_all(dp: Dispatcher) -> None:
     """
     function to register all bot hadlers
@@ -28,3 +29,4 @@ async def register_all(dp: Dispatcher) -> None:
     start.register(dp)
     stickers_handler.register(dp)
     emoji_handler.register(dp)
+    from . import new_member_handler

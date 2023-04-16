@@ -7,6 +7,7 @@ from aiogram.utils.exceptions import ChatNotFound, BotBlocked, CantInitiateConve
 from aiogram.utils.deep_linking import decode_payload
 
 from .. import bot, Dispatcher, logger
+from ..filters import RequireAdminFilter
 from ..misc import get_mask, get_link, current_time, OfficialChats, constants
 from ..database.sqlitedb import cur, conn, insert_user
 from ..database.functions import check, profile
@@ -372,4 +373,4 @@ async def create_acc(user: User, chat_id: int) -> None:
 
 
 def register(dp: Dispatcher):
-    dp.register_message_handler(StartCommand().start_cmd, commands=['start'])
+    dp.register_message_handler(StartCommand().start_cmd, RequireAdminFilter(), commands=['start'])

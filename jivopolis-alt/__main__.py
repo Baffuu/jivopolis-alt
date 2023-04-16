@@ -1,3 +1,6 @@
+from .database.sqlitedb import connect_database
+connect_database()
+
 import asyncio
 import time
 
@@ -5,7 +8,7 @@ from typing import Optional, List
 
 from . import bot, dp, Dispatcher, logger
 from ._async_sched import AsyncScheduler
-from .database.sqlitedb import connect_database
+from .filters import RequireAdminFilter
 
 from aiogram.utils.executor import Executor, _setup_callbacks
 from aiogram.utils.exceptions import ChatNotFound
@@ -20,9 +23,7 @@ async def update():
 
 
 async def on_startup(dp : Dispatcher):
-    try:
-        connect_database()
-        
+    try:        
         from .database.sqlitedb import cur, conn
         cur.execute("INSERT INTO globaldata(treasury) VALUES (0)")
         conn.commit()
@@ -50,7 +51,6 @@ async def on_shutdown(dp: Dispatcher):
 
 def start_polling(reset_webhook=None, timeout=20, relax=0.1, fast=True,
                   allowed_updates: Optional[List[str]] = None):
-    connect_database()
     executor._prepare_polling()
     loop = asyncio.new_event_loop()
     try:
@@ -73,6 +73,12 @@ def start_polling(reset_webhook=None, timeout=20, relax=0.1, fast=True,
 
 
 if __name__ == '__main__':
+    dp.filters_factory.bind(
+            RequireAdminFilter, 
+            event_handlers=[
+                dp.message_handlers,
+            ]
+    )
     scheduler = AsyncScheduler(time.time, asyncio.sleep)
     executor = Executor(dp, skip_updates=True)
     _setup_callbacks(executor, on_startup, on_shutdown)

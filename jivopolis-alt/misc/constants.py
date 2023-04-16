@@ -10,6 +10,7 @@ class OfficialChats():
     SUPPORTCHATLINK =  '#TODO: insert chat link here'
 
 MINIMUM_HEALTH = 1
+BETATEST_MINIMUM_RANK = 1
 ADMINPANEL_MINIMUM_RANK = 2
 MINIMUM_CAR_LEVEL = 8
 

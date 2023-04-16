@@ -1,6 +1,7 @@
 import contextlib
 import sqlite3
 
+from ..filters import RequireAdminFilter
 from .. import bot, Dispatcher, logger
 
 from ..database.sqlitedb import cur, conn
@@ -139,6 +140,6 @@ async def getall_cmd(message: Message) -> None:
 
 
 def register(dp: Dispatcher):
-    dp.register_message_handler(sqlrun_cmd, Text(startswith=".sqlrun"))
-    dp.register_message_handler(globan_cmd, Text(startswith='.globan'))
-    dp.register_message_handler(getall_cmd, Text(startswith='.getall'))
+    dp.register_message_handler(sqlrun_cmd, Text(startswith=".sqlrun"), RequireAdminFilter())
+    dp.register_message_handler(globan_cmd, Text(startswith='.globan'), RequireAdminFilter())
+    dp.register_message_handler(getall_cmd, Text(startswith='.getall'), RequireAdminFilter())
