@@ -29,7 +29,6 @@ async def update_crypto():
     crypto = await get_crypto()
     if lastupdate >= 3600*4: # 4 hours
         for c in crypto:
-            print(c)
             with contextlib.suppress(TypeError):
                 crv = cur.execute(f"SELECT value FROM cryptodata WHERE crypto=\"{c}\"").fetchone()[0]
             change = random.randint(-500, 650)
@@ -38,7 +37,7 @@ async def update_crypto():
             cur.execute(f"UPDATE cryptodata SET value = value+{change} WHERE crypto = \"{c}\"")
             conn.commit()
         cur.execute(f"UPDATE globaldata SET lastcrypto={time.time()}")
-        logger.info("Cryptocurrency was changed succesfully")
+        logger.info("Cryptocurrency value was changed succesfully")
         await tglog("📊 Курс криптовалюты изменился.", "#crypto_change")
 
 async def get_crypto() -> list:
