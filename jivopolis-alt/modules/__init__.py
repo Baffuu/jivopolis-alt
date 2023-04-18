@@ -30,3 +30,4 @@ async def register_all(dp: Dispatcher) -> None:
     stickers_handler.register(dp)
     emoji_handler.register(dp)
     from . import new_member_handler
+    from . import message_handlers
