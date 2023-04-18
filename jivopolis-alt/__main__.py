@@ -8,7 +8,7 @@ from typing import Optional, List
 
 from . import bot, dp, Dispatcher, logger
 from ._async_sched import AsyncScheduler
-from .filters import RequireAdminFilter
+from .filters import  RequireBetaFilter
 
 from aiogram.utils.executor import Executor, _setup_callbacks
 from aiogram.utils.exceptions import ChatNotFound
@@ -63,21 +63,19 @@ def start_polling(reset_webhook=None, timeout=20, relax=0.1, fast=True,
         )
         scheduler.enter(10, 1, update)
         loop.create_task(scheduler.run())
+        logger.info("updater setted up, everything starting in a while...")
         loop.run_forever()
     except (KeyboardInterrupt, SystemExit):
-        # loop.stop()
-        pass
+        loop.stop()
     finally:
         loop.run_until_complete(executor._shutdown_polling())
-        logger.warning("Goodbye!")
+        logger.warning("long-polling ended succesfully.")
 
 
 if __name__ == '__main__':
     dp.filters_factory.bind(
-            RequireAdminFilter, 
-            event_handlers=[
-                dp.message_handlers,
-            ]
+        RequireBetaFilter, 
+        event_handlers=[dp.message_handlers]
     )
     scheduler = AsyncScheduler(time.time, asyncio.sleep)
     executor = Executor(dp, skip_updates=True)
