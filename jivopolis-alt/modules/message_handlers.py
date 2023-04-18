@@ -19,7 +19,7 @@ async def chatbot_functions(message: Message):
         await message.reply(f'<i>{random.choice(text.split(" или "))}</i>')
     elif text.__contains__('профиль'):
         await profile_alias_text(message)
-    elif text.__contains__("мой баланс"):
+    elif text.__contains__("баланс"):
         await my_balance_text(message)
     else:
         await message.reply(f"<i>{random.choice(['А?', 'Что надо?', 'Чё звал?', 'Ещё раз позовёшь - получишь бан!', 'И тебе привет', 'Да?'])}</i>")

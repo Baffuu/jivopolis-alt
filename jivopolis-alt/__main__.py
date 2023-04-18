@@ -66,7 +66,8 @@ def start_polling(reset_webhook=None, timeout=20, relax=0.1, fast=True,
         logger.info("updater setted up, everything starting in a while...")
         loop.run_forever()
     except (KeyboardInterrupt, SystemExit):
-        loop.stop()
+        #loop.stop()
+        pass
     finally:
         loop.run_until_complete(executor._shutdown_polling())
         logger.warning("long-polling ended succesfully.")

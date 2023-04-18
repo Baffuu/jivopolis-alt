@@ -436,10 +436,12 @@ async def profile(user_id: int, message: Message, called: bool = False): #todo: 
     clan_id = cur.execute(f"SELECT clan_id FROM userdata WHERE user_id={user_id}").fetchone()[0]
 
     if clan_id != 0:
-        clan_type = cur.execute(f"SElECT clan_type FROM clandata WHERE clan_id={clan_id}").fetchone()[0]
-        clan_link = cur.execute(f"SELECT link FROM clandata WHERE clan_id={clan_id}").fetchone()[0]
-        clan_name = cur.execute(f"SELECT clan_name FROM clandata WHERE clan_id={clan_id}").fetchone()[0]
-
+        if clan_count := cur.execute(f"SELECT count(*) FROM clandata WHERE clan_id={clan_id}").fetchone()[0]:
+            clan_type = cur.execute(f"SElECT clan_type FROM clandata WHERE clan_id={clan_id}").fetchone()[0]
+            clan_link = cur.execute(f"SELECT link FROM clandata WHERE clan_id={clan_id}").fetchone()[0]
+            clan_name = cur.execute(f"SELECT clan_name FROM clandata WHERE clan_id={clan_id}").fetchone()[0]
+        else:
+            clan_id = 0
     rank = cur.execute(f"SELECT rank FROM userdata WHERE user_id={user_id}").fetchone()[0]
     health = cur.execute(f"SELECT health FROM userdata WHERE user_id={user_id}").fetchone()[0]
     level = cur.execute(f"SELECT level FROM userdata WHERE user_id={user_id}").fetchone()[0]
