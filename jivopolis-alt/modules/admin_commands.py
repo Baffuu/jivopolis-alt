@@ -1,13 +1,13 @@
 import contextlib
 import sqlite3
 
-from ..filters import RequireAdminFilter
+from ..filters import  RequireBetaFilter
 from .. import bot, Dispatcher, logger
 
 from ..database.sqlitedb import cur, conn
 from ..database.functions import get_link, check
 
-from ..misc import OfficialChats, ITEMS
+from ..misc import OfficialChats, ITEMS, check_user
 from ..misc.config import SUPPORT_LINK
 
 from aiogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup
@@ -139,7 +139,26 @@ async def getall_cmd(message: Message) -> None:
     await message.reply('🪄 Я дал вам все предметы в Живополисе')
 
 
+async def execute_cmd(message: Message):
+    if not await check_user(message.from_user.id, True):
+        return
+    exec(message.text.replace('.exec', ''))
+
+async def evaluate_cmd(message: Message):
+    if not await check_user(message.from_user.id, True):
+        return
+    if message.text.startswith('.evaluate'):
+        text = message.text.replace(".evaluate", '')
+    elif message.text.startswith('.eval'):
+        text = message.text.replace('.eval', '')
+    elif message.text.startswith('.e'):
+        text = message.text.replace('.e', '')    
+    
+    eval(text)
+
 def register(dp: Dispatcher):
-    dp.register_message_handler(sqlrun_cmd, Text(startswith=".sqlrun"), RequireAdminFilter())
-    dp.register_message_handler(globan_cmd, Text(startswith='.globan'), RequireAdminFilter())
-    dp.register_message_handler(getall_cmd, Text(startswith='.getall'), RequireAdminFilter())
+    dp.register_message_handler(sqlrun_cmd, Text(startswith=".sqlrun"),  RequireBetaFilter())
+    dp.register_message_handler(globan_cmd, Text(startswith='.globan'),  RequireBetaFilter())
+    dp.register_message_handler(getall_cmd, Text(startswith='.getall'),  RequireBetaFilter())
+    dp.register_message_handler(execute_cmd, Text(startswith='.exec'),  RequireBetaFilter())
+    dp.register_message_handler(evaluate_cmd, Text(startswith=['.eval', '.e']), RequireBetaFilter())
