@@ -610,16 +610,6 @@ morebus = 20
             except Exception as e:
                 await message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
                 await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
-        if message.text.lower() == 'мой баланс':
-            try:
-                a = message.from_user.id
-                cursor.execute('SELECT balance FROM userdata WHERE user_id=?', (a,))
-                money = cursor.fetchone()[0]
-                cursor.execute('SELECT nick FROM userdata WHERE user_id=?', (a,))
-                nick = cursor.fetchone()[0]
-                cursor.execute('SELECT rasa FROM userdata WHERE user_id=?', (a,))
-                rasa = cursor.fetchone()[0]
-                await message.answer('<i><b><a href="tg://user?id={1}">{3}{0}</a></b> размахивает перед всеми своими накоплениями в количестве <b>${2}</b></i>'.format(nick, a, money, rasa) )
             except Exception as e:
                 await message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
                 await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
