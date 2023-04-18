@@ -6,6 +6,7 @@ from .. import bot, logger, Dispatcher
 from ..misc import ITEMS
 from ..misc.config import SUPPORT_LINK, villages, trains
 from ..database.functions import check, cur, profile, eat
+from ..filters import RequireBetaFilter
 
 from aiogram.types import CallbackQuery
 
@@ -276,4 +277,4 @@ async def callback_handler(call: CallbackQuery):
  
         
 def register(dp: Dispatcher):
-    dp.register_callback_query_handler(callback_handler)
+    dp.register_callback_query_handler(callback_handler, RequireBetaFilter())
