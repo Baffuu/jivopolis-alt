@@ -21,6 +21,8 @@ async def chatbot_functions(message: Message):
         await profile_alias_text(message)
     elif text.__contains__("баланс"):
         await my_balance_text(message)
+    elif text.__contains__("ид") or text.__contains__("id"):
+        await user_id_text(message)
     else:
         await message.reply(f"<i>{random.choice(['А?', 'Что надо?', 'Чё звал?', 'Ещё раз позовёшь - получишь бан!', 'И тебе привет', 'Да?'])}</i>")
         
@@ -36,3 +38,11 @@ async def my_balance_text(message: Message):
     user_id = message.from_user.id
     money = cur.execute(f'SELECT balance FROM userdata WHERE user_id={user_id}').fetchone()[0]
     await message.answer(f'<i><b>{await get_embedded_link(user_id)}</b> размахивает перед всеми своими накоплениями в количестве <b>${money}</b></i>')
+    
+@dp.message_handler(Text(equals=['ид', 'id']))
+async def user_id_text(message: Message):
+    await message.reply(
+        f"<code>{message.reply_to_message.from_user.id}</code>"
+        if message.reply_to_message
+        else f"<code>{message.from_user.id}</code>"
+    )

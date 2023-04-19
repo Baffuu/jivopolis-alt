@@ -601,12 +601,6 @@ morebus = 20
             await message.reply('Ты даун' if message.from_user.id == 1002930622 else 'Ты {0.first_name}'.format(message.from_user))
         if message.text.lower() == 'ахах':
             await message.reply('Разрывная')
-        if message.text.lower() == 'ид':
-            try:
-                a = message.from_user.id
-                cursor.execute('SELECT user_id FROM userdata WHERE user_id=?', (a,))
-                for ids in cursor.fetchall():
-                    await message.answer(ids)
             except Exception as e:
                 await message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
                 await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
