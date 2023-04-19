@@ -1064,8 +1064,7 @@ morebus = 20
                 await message.answer('&#10060; <i><b>Ошибка:</b> Проблема с базой данных</i>', parse_mode='html')
             except OverflowError:
                 await message.answer('&#10060; <i><b>Ошибка:</b> Баланс чересчур большой</i>', parse_mode='html')
-        if message.text.lower() == 'пинг':
-            await message.reply('Понг' )
+
         if message.text.lower().startswith('/nick '):
             try:
                 a = message.from_user.id
@@ -1178,8 +1177,7 @@ morebus = 20
                 await message.answer('&#10060; <i>Нужно ответить на сообщение пользователя</i>', parse_mode='html')
                 return
             await battle(message, message.from_user.id, message.reply_to_message.from_user.id)
-        if message.text.lower() == 'ящик':
-            await aschik(message.from_user.id, message)
+
         if message.text.lower().startswith('/unmute'):
             if not hasattr(message.reply_to_message, 'text'):
                 await message.answer('&#10060; <i>Нужно ответить на сообщение пользователя</i>', parse_mode='html')

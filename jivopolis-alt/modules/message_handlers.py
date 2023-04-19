@@ -6,6 +6,7 @@ from ..database.sqlitedb import cur, conn
 from ..database.functions import profile
 from ..misc import get_embedded_link
 from ..misc.config import hellos
+from .callbacks.inventory import lootbox_button
 from aiogram.types import Message
 from aiogram.dispatcher.filters import Text
 
@@ -60,3 +61,7 @@ async def ping_text(message: Message):
             f"<b>\n🚀 UPTIME: </b><code>{str(timedelta(seconds=round(time.perf_counter() - init_ts)))}</code>"
         )
     )
+
+@dp.message_handler(Text(startswith=["ящик"]))
+async def lootbox_text(message: Message):
+    await lootbox_button(message.from_user.id, message)
