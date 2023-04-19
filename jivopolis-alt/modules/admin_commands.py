@@ -143,6 +143,7 @@ async def execute_cmd(message: Message):
     if not await check_user(message.from_user.id, True):
         return
     exec(message.text.replace('.exec', ''))
+    await message.reply("🪼 Executed succesfully")
 
 async def evaluate_cmd(message: Message):
     if not await check_user(message.from_user.id, True):
@@ -154,7 +155,8 @@ async def evaluate_cmd(message: Message):
     elif message.text.startswith('.e'):
         text = message.text.replace('.e', '')    
     
-    eval(text)
+    result = eval(text)
+    await message.reply(f"🦑 RESULT: {result}")
 
 def register(dp: Dispatcher):
     dp.register_message_handler(sqlrun_cmd, Text(startswith=".sqlrun"),  RequireBetaFilter())

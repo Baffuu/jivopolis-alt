@@ -1064,26 +1064,9 @@ morebus = 20
                 await message.answer('&#10060; <i><b>Ошибка:</b> Проблема с базой данных</i>', parse_mode='html')
             except OverflowError:
                 await message.answer('&#10060; <i><b>Ошибка:</b> Баланс чересчур большой</i>', parse_mode='html')
-
-        if message.text.lower().startswith('/nick '):
-            try:
-                a = message.from_user.id
-                cursor.execute('UPDATE userdata SET nick = ? WHERE user_id = ?', (message.text[6:], a,))
-                conn.commit()
-                cursor.execute('SELECT nick FROM userdata WHERE user_id = ?', (a,))
-                nick = cursor.fetchone()[0]
-                await message.answer('<i>Ваш ник: <b>{0}</b></i>'.format(nick) )
             except Exception as e:
                 await message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
                 await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
-        if message.text.lower().startswith('/bio '):
-            try:
-                a = message.from_user.id
-                cursor.execute('UPDATE userdata SET desc = ? WHERE user_id = ?', (message.text[5:], a,))
-                conn.commit()
-                cursor.execute('SELECT desc FROM userdata WHERE user_id = ?', (a,))
-                desc = cursor.fetchone()[0]
-                await message.answer('<i>Ваше описание: \n<b>{0}</b></i>'.format(desc) )
             except Exception as e:
                 await message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
                 await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
@@ -1177,7 +1160,6 @@ morebus = 20
                 await message.answer('&#10060; <i>Нужно ответить на сообщение пользователя</i>', parse_mode='html')
                 return
             await battle(message, message.from_user.id, message.reply_to_message.from_user.id)
-
         if message.text.lower().startswith('/unmute'):
             if not hasattr(message.reply_to_message, 'text'):
                 await message.answer('&#10060; <i>Нужно ответить на сообщение пользователя</i>', parse_mode='html')
@@ -1319,18 +1301,6 @@ morebus = 20
                 await message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
                 await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
 
-        if message.text.lower().startswith('/eval '):
-            try:
-                if message.from_user.id == CREATOR:
-                    res = eval(message.text[6:])
-                    await main.send_message(message.chat.id, '<i><b>Результат: </b>{0}</i>'.format(res), parse_mode='html')
-                else:
-                    await main.send_message(message.chat.id, '<i>❌ Данная команда доступна только создателю Живополиса</i>', parse_mode='html')
-            except Exception as e:
-                try:
-                    await main.send_message(message.chat.id, '❌ <i><b>Ошибка:</b> {0}</i>'.format(e), parse_mode='html')
-                except:
-                    await main.send_message(message.chat.id, '❌ Ошибка: {0}'.format(e))
         if message.text.lower()=='слава миките слава миките слава миките':
             if message.chat.type!='private':
                 return

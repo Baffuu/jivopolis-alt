@@ -100,7 +100,6 @@ async def inventory(call: CallbackQuery) -> None:
     
     try:
         mask = cur.execute(f"SELECT mask FROM userdata WHERE user_id={user_id}").fetchone()[0]
-        print(mask)
     except TypeError:
         mask = ''
     if not mask:

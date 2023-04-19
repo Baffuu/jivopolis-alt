@@ -17,8 +17,6 @@ from aiogram.utils.exceptions import ChatNotFound
 async def update():
     from ._world_updater import update
     await update()
-
-    print("inside function")
     scheduler.enter(60, 1, update)
 
 
