@@ -13,3 +13,6 @@ def _not_debug(record):
     return record["level"].name != "DEBUG"
 logger.add("debug.log", filter=_debug_only, rotation="10000 MB")
 logger.add(".log", filter=_not_debug, rotation="10000 MB")
+
+import time
+init_ts = time.perf_counter()

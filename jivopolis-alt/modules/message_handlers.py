@@ -1,5 +1,7 @@
 import random
-from .. import dp, bot, logger 
+import time
+from datetime import timedelta
+from .. import dp, bot, logger, init_ts
 from ..database.sqlitedb import cur, conn
 from ..database.functions import profile
 from ..misc import get_embedded_link
@@ -39,10 +41,22 @@ async def my_balance_text(message: Message):
     money = cur.execute(f'SELECT balance FROM userdata WHERE user_id={user_id}').fetchone()[0]
     await message.answer(f'<i><b>{await get_embedded_link(user_id)}</b> размахивает перед всеми своими накоплениями в количестве <b>${money}</b></i>')
     
-@dp.message_handler(Text(equals=['ид', 'id']))
+@dp.message_handler(Text(equals=['ид', 'id'], ignore_case=True))
 async def user_id_text(message: Message):
     await message.reply(
         f"<code>{message.reply_to_message.from_user.id}</code>"
         if message.reply_to_message
         else f"<code>{message.from_user.id}</code>"
+    )
+
+@dp.message_handler(Text(startswith=["ping", "пинг"], ignore_case=True))
+async def ping_text(message: Message):
+    start = time.perf_counter_ns()
+    message = await message.reply("🌘")
+
+    await message.edit_text(
+        (
+            f"<b>PONG ⚡️ </b><code>{round((time.perf_counter_ns() - start) / 10**6, 3)}</code><b> ms.</b>"
+            f"<b>\n🚀 UPTIME: </b><code>{str(timedelta(seconds=round(time.perf_counter() - init_ts)))}</code>"
+        )
     )

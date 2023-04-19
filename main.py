@@ -591,34 +591,14 @@ morebus = 20
                 await main.send_message(chid, '<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
 
         if message.text.lower() == createacc:
-            await create_acc(message.from_user, message.chat.id)
-        if message.text.lower() == '/id':
-            if hasattr(message.reply_to_message, "text"):
-                await message.reply('{0.id}'.format(message.reply_to_message.from_user))
-            else:
-                await message.reply('{0.id}'.format(message.from_user))
-        if message.text.lower() == 'хто я':
-            await message.reply('Ты даун' if message.from_user.id == 1002930622 else 'Ты {0.first_name}'.format(message.from_user))
-        if message.text.lower() == 'ахах':
-            await message.reply('Разрывная')
-            except Exception as e:
-                await message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
-            except Exception as e:
-                await message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-                await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
-        if message.text.startswith('$='):
             try:
-                a = message.from_user.id
-                cursor.execute('SELECT rang FROM userdata WHERE user_id=?', (a,))
-                rang = cursor.fetchone()[0]
-                if rang<2:
-                    await message.answer('&#10060; <i>Эта команда доступна только с ранга <b>[2] Админ</b></i>', parse_mode='html')
-                    return
-                cursor.execute('UPDATE userdata SET balance = ? WHERE user_id = ?', (int(message.text[2:]), message.from_user.id,))
-                conn.commit()
-                cursor.execute('SELECT balance FROM userdata WHERE user_id=?', (a,))
-                await message.answer('Ваш баланс: {0}'.format(cursor.fetchone()[0]))
+                await create_acc(message.from_user, message.chat.id)
+            except Exception as e:
+                await message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
+                await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
+            except Exception as e:
+                await message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
+                await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
             except Exception as e:
                 await message.answer('&#10060; <i><b>Ошибка:</b> {0}</i>'.format(e), parse_mode='html')
         if message.text.lower()=='вылечить':
