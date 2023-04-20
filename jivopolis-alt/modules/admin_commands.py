@@ -13,24 +13,12 @@ from ..misc.config import SUPPORT_LINK
 from aiogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.dispatcher.filters import Text
 from aiogram.utils.deep_linking import encode_payload
-
+from aiogram.utils.exceptions import MessageIsTooLong
 async def sqlrun_cmd(message: Message) -> None:
     try:
-        rank = cur.execute(f"SELECT rank FROM userdata WHERE user_id={message.from_user.id}").fetchone()[0]
-        is_banned = bool(cur.execute(f"SELECT is_banned FROM userdata WHERE user_id = {message.from_user.id}").fetchone()[0])
-    except TypeError:
-        return await message.reply('🧑‍🎨 Сэр, у вас нет аккаунта в живополисе. Прежде чем использовать любые комманды вам нужно зарегистрироваться.')
-    try:
-        await check(message.from_user.id, message.chat.id)
-
+        if not await check_user(message.from_user.id, True):
+             return
         args = message.text[8:]
-
-        if is_banned:
-            return await bot.send_message(message.from_user.id, f'🧛🏻‍♂️ Вы были забаненны в боте. Если вы считаете, что это - ошибка, обратитесь в <a href="{SUPPORT_LINK}">поддержку</a>.')
-
-        if rank < 2:
-            return await message.reply("👨‍⚖️ Сударь, эта команда доступна только админам.")
-
         if args.startswith("SELECT"):
             logger.info(f"someone catch data with SELECT: {args}")
             return await message.reply(cur.execute(args).fetchone())
@@ -39,6 +27,7 @@ async def sqlrun_cmd(message: Message) -> None:
 
         for request in args.split(' '):
             approve_request = request.lower() in approve_cmds
+        rank = cur.execute(f"SELECT rank FROM userdata WHERE user_id={message.from_user.id}").fetchone()[0]
         if approve_request and rank < 3:
             cur.execute(f"UPDATE userdata SET sql='{request}' WHERE user_id={message.from_user.id}")
             conn.commit()
@@ -61,7 +50,7 @@ async def sqlrun_cmd(message: Message) -> None:
                     )
             )
 
-        elif args.lower().startswith("select"):
+        elif args.lower().startswith("select") and rank < 3:
             cur.execute(args)
 
             values = ''
@@ -77,25 +66,33 @@ async def sqlrun_cmd(message: Message) -> None:
         elif rank > 2:
             cur.execute(args)
             conn.commit()   
+            if values := cur.fetchall():
+                try:
+                    await message.reply(f"<i><b>🧑‍🔧 SQLRun вернуло следующие значения: \n</b><code>{values}</code></i>")
+                except MessageIsTooLong:
+                    await message.reply(f"<i><b>🧑‍🔧 SQLRun вернуло следующие значения: \n</b><code>{values[:3800]}</code></i>")
+                    await message.reply(values[3800:])
+                return logger.success(
+                    (
+                        f"🪿 SQLQ was executed: {args}\n"
+                        f">>> {values}"
+                    )
+                )
             await message.reply('🧑‍🔧 sql cmd executed')         
-            return logger.success(f"SQL Query: {args}")
+            return logger.success(
+                (
+                    f"🐦‍⬛ SQLQ was executed: {args}\n"
+                    ">>> `nothing was returned`"
+                )
+            )
 
     except Exception as e:
         await message.answer(f"<i><b>something went wrong: </b>{e}</i>")
 
 
 async def globan_cmd(message: Message) -> None:    
-    try:
-        rank = cur.execute(f"SELECT rank FROM userdata WHERE user_id = {message.from_user.id}").fetchone()[0]
-        is_banned = bool(cur.execute(f"SELECT is_banned FROM userdata WHERE user_id = {message.from_user.id}").fetchone()[0])
-    except TypeError:
-        return message.reply("🧑‍🎨 Сэр, у вас нет аккаунта в живополисе. Прежде чем использовать любые комманды вам нужно зарегистрироваться.")
-
-    if is_banned:
-        return bot.send_message(message.from_user.id, f'🧛🏻‍♂️ Вы были забаненны в боте. Если вы считаете, что это - ошибка, обратитесь в <a href="{SUPPORT_LINK}">поддержку</a>.')
-
-    if rank < 2:
-        return message.reply("👨‍⚖️ Сударь, эта команда доступна только админам.")
+    if not await check_user(message.from_user.id, True):
+        return
 
     args = message.text[7:]
 
@@ -119,17 +116,8 @@ async def globan_cmd(message: Message) -> None:
 
 
 async def getall_cmd(message: Message) -> None:
-    try:
-        rank = cur.execute(f"SELECT rank FROM userdata WHERE user_id = {message.from_user.id}").fetchone()[0]
-        is_banned = bool(cur.execute(f"SELECT is_banned FROM userdata WHERE user_id = {message.from_user.id}").fetchone()[0])
-    except TypeError:
-        return await message.reply("🧑‍🎨 Сэр, у вас нет аккаунта в живополисе. Прежде чем использовать любые комманды вам нужно зарегистрироваться.")
-    
-    if is_banned:
-        return await bot.send_message(message.from_user.id, f'🧛🏻‍♂️ Вы были забаненны в боте. Если вы считаете, что это - ошибка, обратитесь в <a href="{SUPPORT_LINK}">поддержку</a>.')
-
-    if rank < 2:
-        return await message.reply("👨‍⚖️ Сударь, эта команда доступна только админам.") 
+    if not await check_user(message.from_user.id, True):
+        return
 
     await message.reply('🧬 Loading...')
 
@@ -142,8 +130,9 @@ async def getall_cmd(message: Message) -> None:
 async def execute_cmd(message: Message):
     if not await check_user(message.from_user.id, True):
         return
-    exec(message.text.replace('.exec', ''))
+    exec(message.text.replace('.exec ', ''))
     await message.reply("🪼 Executed succesfully")
+
 
 async def evaluate_cmd(message: Message):
     if not await check_user(message.from_user.id, True):
@@ -157,6 +146,7 @@ async def evaluate_cmd(message: Message):
     
     result = eval(text)
     await message.reply(f"🦑 RESULT: {result}")
+
 
 def register(dp: Dispatcher):
     dp.register_message_handler(sqlrun_cmd, Text(startswith=".sqlrun"),  RequireBetaFilter())

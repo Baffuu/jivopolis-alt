@@ -589,10 +589,8 @@ morebus = 20
             else:
                 await main.send_message(chid, '&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
                 await main.send_message(chid, '<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
-
-        if message.text.lower() == createacc:
             try:
-                await create_acc(message.from_user, message.chat.id)
+                pass
             except Exception as e:
                 await message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
                 await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
@@ -636,86 +634,7 @@ morebus = 20
                 await message.answer('Результат: {0}'.format(cursor.fetchone()[0]))
             except Exception as e:
                 await message.answer('&#10060; <i><b>Ошибка:</b> {0}</i>'.format(e), parse_mode='html')
-        if message.text.lower().startswith('/update '):
-            try:
-                arr = message.text.split(" ", maxsplit=3)
-                cursor.execute('SELECT rang FROM userdata WHERE user_id=?', (a,))
-                rang = cursor.fetchone()[0]
-                cursor.execute('SELECT rang FROM userdata WHERE user_id=?', (arr[1],))
-                orang = cursor.fetchone()[0]
-                cursor.execute('SELECT {0} FROM userdata WHERE user_id=?'.format(arr[2]), (arr[1],))
-                val = cursor.fetchone()[0]
-                if int(arr[1]) == 1006534370 and message.from_user.id!=1006534370 and (rang!=3 and arr[2]!='rang'):
-                    await message.answer('&#10060; <i>СЛЫШЬ, ЗАХОТЕЛ ИМПЕРАТОРУ ИНВЕНТАРЬ ОБНУЛИТЬ, ПИДАРАЗ?</i>', parse_mode='html')
-                    return
-                if arr[2]=='desc' or arr[2]=='nick' or arr[2]=='user_id' or (arr[2] == 'rasa' and orang>=2):
-                    await message.answer('&#10060; <i>СЛЫШЬ, ЭТО МЕНЯТЬ НЕЛЬЗЯ!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!</i>', parse_mode='html')
-                    return
-                a = message.from_user.id
-                cursor.execute('SELECT rasa FROM userdata WHERE user_id=?', (a,))
-                rasa = cursor.fetchone()[0]
-                cursor.execute('SELECT nick FROM userdata WHERE user_id=?', (a,))
-                nick = cursor.fetchone()[0]
-                if rang<2:
-                    await message.answer('&#10060; <i>Эта команда доступна только с ранга <b>[2] Админ</b></i>', parse_mode='html')
-                    return
-                cursor.execute('SELECT typeof({0}) FROM userdata'.format(arr[2]))
-                typ = cursor.fetchone()[0]
-                if typ=='text':
-                    cursor.execute('UPDATE userdata SET {0} = ? WHERE user_id = ?'.format(arr[2]), (arr[3], int(arr[1]),))
-                else:
-                    cursor.execute('UPDATE userdata SET {0} = ? WHERE user_id = ?'.format(arr[2]), (int(arr[3]), int(arr[1]),))
-                conn.commit()
-                cursor.execute('SELECT {0} FROM userdata WHERE user_id=?'.format(arr[2]), (arr[1],))
-                await message.answer('<i>Результат: <b>{0}</b></i>'.format(cursor.fetchone()[0]) )
-                cursor.execute("SELECT COUNT(*) FROM userdata WHERE user_id=?", (arr[1],))
-                count = cursor.fetchone()[0]
-                if count == 1:
-                    cursor.execute("SELECT rasa FROM userdata WHERE user_id=?", (arr[1],))
-                    orasa = cursor.fetchone()[0]
-                    cursor.execute("SELECT nick FROM userdata WHERE user_id=?", (arr[1],))
-                    onick = cursor.fetchone()[0]
-                    ouser = "<a href='tg://user?id={0}'>{1}{2}</a>".format(arr[1], orasa, onick)
-                else:
-                    ouser = "не определён"
-                await main.send_message(fid, "<i><b><a href='tg://user?id={0}'>{1}{2}</a></b> выполнил команду:\n\n<code>{3}</code>\n\nПользователь: <b>{4}</b>\nПервоначальное значение: <b>{5}</b>\n#admin_update</i>".format(a, rasa, nick, message.text.lower(), ouser, val) )
-            except Exception as e:
-                await message.answer('&#10060; <i><b>Ошибка:</b> {0}</i>'.format(e), parse_mode='html')
-        if message.text.lower().startswith('/broadcast '):
-            try:
-                text = message.text[11:]
-                a = message.from_user.id
-                cursor.execute('SELECT rang FROM userdata WHERE user_id=?', (a,))
-                rang = cursor.fetchone()[0]
-                cursor.execute('SELECT rasa FROM userdata WHERE user_id=?', (a,))
-                rasa = cursor.fetchone()[0]
-                cursor.execute('SELECT nick FROM userdata WHERE user_id=?', (a,))
-                nick = cursor.fetchone()[0]
-                if rang<2:
-                    await message.answer('&#10060; <i>Эта команда доступна только с ранга <b>[2] Админ</b></i>', parse_mode='html')
-                    return
-                cursor.execute('SELECT user_id FROM userdata')
-                k=0
-                ke=0
-                for usid in cursor.fetchall():
-                    try:
-                        await main.send_message(usid[0], '<i><b>Официальное сообщение\n<b>Отправитель:</b> <a href="tg://user?id={0}">{1}{2}</a></b> ({4})\n\n{3}</i>'.format(a, rasa, nick, text, message.from_user.first_name), parse_mode='html')
-                        k+=1
-                    except Exception as e:
-                        ke+=1
-                await main.send_message(a, '<i>&#128227; <b>Рассылка по пользователям завершена</b>\n&#9989; Доставлено: {0}\n&#10060; Ошибки: {1}</i>'.format(k, ke), parse_mode='html')
-                cursor.execute('SELECT group_id FROM clandata WHERE notif=1')
-                k=0
-                ke=0
-                for usid in cursor.fetchall():
-                    try:
-                        await main.send_message(usid[0], '<i><b>Официальное сообщение\n<b>Отправитель:</b> <a href="tg://user?id={0}">{1}{2}</a></b> ({4})\n\n{3}</i>'.format(a, rasa, nick, text, message.from_user.first_name), parse_mode='html')
-                        k+=1
-                    except Exception as e:
-                        ke+=1
-                await main.send_message(a, '<i>&#128227; <b>Рассылка по кланам завершена</b>\n&#9989; Доставлено: {0}\n&#10060; Ошибки: {1}</i>'.format(k, ke), parse_mode='html')
-            except Exception as e:
-                await message.answer('&#10060; <i><b>Ошибка:</b> {0}</i>'.format(e), parse_mode='html')
+
         if message.text.lower().startswith('/select '):
             try:
                 arr = message.text.lower().split(" ")
@@ -1300,7 +1219,6 @@ morebus = 20
             except Exception as e:
                 await message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
                 await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
-
         if message.text.lower()=='слава миките слава миките слава миките':
             if message.chat.type!='private':
                 return
@@ -1578,7 +1496,6 @@ morebus = 20
                 time+=' {0} секунд'.format(seconds)
             await call.answer('❌ Вы были арестованы и теперь сидите в тюрьме. Вам осталось сидеть {0}'.format(time),show_alert = True)
             return
-
         if call.data == 'drink_medicine':
             await cure(call.from_user.id, call.from_user.id, call.from_user.id)
         if call.data=='log_out':
@@ -1706,7 +1623,6 @@ morebus = 20
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
                 await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
-
         if call.data.startswith('trolleybus_'):
             try:
                 if not isinterval('trolleybus'):
@@ -1850,7 +1766,6 @@ morebus = 20
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
                 await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
-
         if call.data == 'rob_bank_confirm':
             try:
                 a = call.from_user.id

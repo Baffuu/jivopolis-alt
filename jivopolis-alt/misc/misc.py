@@ -165,7 +165,7 @@ async def check_user(user_id, is_admin = False) -> bool:
         with contextlib.suppress(Exception):
             await bot.send_message(user_id, "🧑‍🎨 Сэр, у вас нет аккаунта в живополисе. Прежде чем использовать любые комманды вам нужно зарегистрироваться.") 
         return False
-        
+
     if is_banned:
         with contextlib.suppress(Exception):
             await bot.send_message(
@@ -173,11 +173,10 @@ async def check_user(user_id, is_admin = False) -> bool:
                 f'🧛🏻‍♂️ Вы были забаненны в боте. Если вы считаете, что это - ошибка, обратитесь в <a href="{OfficialChats.SUPPORTCHATLINK}">поддержку</a>.'
             )
         return False
-        
-    if is_admin:
-        if rank < 2:
-            with contextlib.suppress(Exception):
-                await bot.send_message(user_id, "👨‍⚖️ Сударь, эта команда доступна только админам.") 
-            return False
+
+    if is_admin and rank < 2:
+        with contextlib.suppress(Exception):
+            await bot.send_message(user_id, "👨‍⚖️ Сударь, эта команда доступна только админам.")
+        return False
 
     return True

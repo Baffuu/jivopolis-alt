@@ -25,7 +25,7 @@ async def dice_handler(message: Message):
             return await bot.send_message(
                 message.from_user.id, 
                 ("🧛🏻‍♂️ Вы были забаненны в боте. Если вы считаете, что это - ошибка, "
-                f"обратитесь в <  href='{OfficialChats.SUPPORTCHATLINK}'>поддержку</a>."),
+                f"обратитесь в <a href='{OfficialChats.SUPPORTCHATLINK}'>поддержку</a>."),
             )
 
         if health < 0:
