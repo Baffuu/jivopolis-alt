@@ -2,18 +2,18 @@ import contextlib
 import sqlite3
 
 from ..filters import  RequireBetaFilter
-from .. import bot, Dispatcher, logger
+from .. import bot, dp, Dispatcher, logger
 
 from ..database.sqlitedb import cur, conn
-from ..database.functions import get_link, check
+from ..database.functions import get_link
 
-from ..misc import OfficialChats, ITEMS, check_user
-from ..misc.config import SUPPORT_LINK
+from ..misc import OfficialChats, ITEMS, check_user, get_embedded_link, tglog
 
-from aiogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup, Update
 from aiogram.dispatcher.filters import Text
 from aiogram.utils.deep_linking import encode_payload
 from aiogram.utils.exceptions import MessageIsTooLong
+
 async def sqlrun_cmd(message: Message) -> None:
     try:
         if not await check_user(message.from_user.id, True):
@@ -67,11 +67,15 @@ async def sqlrun_cmd(message: Message) -> None:
             cur.execute(args)
             conn.commit()   
             if values := cur.fetchall():
+                values = str(values)
                 try:
                     await message.reply(f"<i><b>🧑‍🔧 SQLRun вернуло следующие значения: \n</b><code>{values}</code></i>")
                 except MessageIsTooLong:
                     await message.reply(f"<i><b>🧑‍🔧 SQLRun вернуло следующие значения: \n</b><code>{values[:3800]}</code></i>")
-                    await message.reply(values[3800:])
+                    try:
+                        await message.reply(values[3800:])
+                    except MessageIsTooLong:
+                        await message.reply("🪿")
                 return logger.success(
                     (
                         f"🪿 SQLQ was executed: {args}\n"
@@ -147,6 +151,53 @@ async def evaluate_cmd(message: Message):
     result = eval(text)
     await message.reply(f"🦑 RESULT: {result}")
 
+def _raise(error: Exception):
+    raise error
+
+@dp.message_handler(Text(startswith='/update', ignore_case=True), RequireBetaFilter())
+async def update_cmd(message: Message):
+    args = message.text.split(" ", maxsplit=3)
+    _user_id = args[1]
+    if _user_id == "self":
+        _user_id = message.from_user.id
+    try:
+        int(_user_id)
+    except ValueError:
+        _adv_args = _user_id.split(':', maxsplit=2)
+        _user_id = cur.execute(f"SELECT user_id FROM userdata WHERE {_adv_args[0]}=\"{_adv_args[1]}\"").fetchone()
+        _user_id = _user_id[0] if _user_id is not None else _raise(ValueError("user with this param's does not exists."))
+    column = args[2]
+    new_value = args[3]
+    user_id = message.from_user.id
+
+    if not await check_user(user_id, True):
+        return
+
+    if column in ['desc', 'nick', 'user_id']:
+        return await message.answer('&#10060; <i>СЛЫШЬ, ЭТО МЕНЯТЬ НЕЛЬЗЯ!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!</i>', parse_mode='html')
+        
+    _old_value = cur.execute(f"SELECT {column} FROM userdata WHERE user_id={_user_id}").fetchone()
+    cur.execute(f'UPDATE userdata SET {column} = {new_value} WHERE user_id = {_user_id}')
+    conn.commit()
+    _new_value = cur.execute(f'SELECT {column} FROM userdata WHERE user_id={_user_id}').fetchone()
+
+    await message.reply(
+        (
+            f"<i>🚀 Вы обновляете столбец <code>{column}</code> игрока {await get_embedded_link(_user_id)}</i>"
+            f"\n>>> ☁️ старое значение: <code>{_old_value[0] if _old_value else 'NULL'}</code>"
+            f"\n>>> ✨ новое значение: <code>{_new_value[0] if _new_value else 'NULL'}</code>"
+        )
+    )
+     
+    await tglog(
+        (
+            f"<i>🚀 {await get_embedded_link(user_id)} обновляет столбец <code>{column}</code> игрока {await get_embedded_link(_user_id)}</i>"
+            f"\n>>> ☁️ старое значение: <code>{_old_value[0] if _old_value else 'NULL'}</code>"
+            f"\n>>> ✨ новое значение: <code>{_new_value[0] if _new_value else 'NULL'}</code>"
+            f"\n\n<code>{message.text.lower()}</code>"
+        ),
+        "#update_cmd"
+    )
 
 def register(dp: Dispatcher):
     dp.register_message_handler(sqlrun_cmd, Text(startswith=".sqlrun"),  RequireBetaFilter())
