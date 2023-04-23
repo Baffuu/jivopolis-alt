@@ -50,6 +50,7 @@ def create_userdata() -> None:
     last_steal      DATETIME        DEFAULT 0               NOT NULL,
     is_ready        INTEGER         DEFAULT 0               NOT NULL,
 
+    nonick_cmds     INTEGER         DEFAULT 0               NOT NULL,
     last_box        DATETIME        DEFAULT 0               NOT NULL,
     total_jackpots  INTEGER         DEFAULT 0               NOT NULL,
 

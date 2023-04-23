@@ -2,7 +2,7 @@ from .misc import (
     get_link, get_mask, 
     current_time, get_building,
     get_time_units, get_embedded_link,
-    tglog, check_user
+    tglog
 )
 
 from .items import Item, ITEMS

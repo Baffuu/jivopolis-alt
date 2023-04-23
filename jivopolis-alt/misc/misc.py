@@ -156,27 +156,3 @@ async def log_to_telegram(message: str, tag: str) -> Message:
 
 
 tglog = log_to_telegram #alias for telegram logger
-
-async def check_user(user_id, is_admin = False) -> bool:
-    try:
-        rank = cur.execute(f"SELECT rank FROM userdata WHERE user_id = {user_id}").fetchone()[0]
-        is_banned = bool(cur.execute(f"SELECT is_banned FROM userdata WHERE user_id = {user_id}").fetchone()[0])
-    except TypeError:
-        with contextlib.suppress(Exception):
-            await bot.send_message(user_id, "🧑‍🎨 Сэр, у вас нет аккаунта в живополисе. Прежде чем использовать любые комманды вам нужно зарегистрироваться.") 
-        return False
-
-    if is_banned:
-        with contextlib.suppress(Exception):
-            await bot.send_message(
-                user_id, 
-                f'🧛🏻‍♂️ Вы были забаненны в боте. Если вы считаете, что это - ошибка, обратитесь в <a href="{OfficialChats.SUPPORTCHATLINK}">поддержку</a>.'
-            )
-        return False
-
-    if is_admin and rank < 2:
-        with contextlib.suppress(Exception):
-            await bot.send_message(user_id, "👨‍⚖️ Сударь, эта команда доступна только админам.")
-        return False
-
-    return True

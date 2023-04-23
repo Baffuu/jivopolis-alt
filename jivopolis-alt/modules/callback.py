@@ -270,6 +270,11 @@ async def callback_handler(call: CallbackQuery):
             case car if car.startswith("car_menu_previous:"):
                 await car_menu_previous(call, int(call.data.replace("car_menu_previous:", "")))
 
+            case "toggle_nonick":
+                await toggle_nonick(call)
+            case "user_settings": 
+                await user_settings(call)
+            
             case _:
                 return await call.answer('♿️ 404: команда не найдена.', show_alert=True)
     except TypeError as e:

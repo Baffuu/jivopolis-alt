@@ -1,11 +1,48 @@
 import asyncio
-from . import cur
+import contextlib
+from . import cur, bot
+from .misc.constants import OfficialChats
 from aiogram.types import Message, CallbackQuery, Update
 from aiogram.utils.exceptions import RetryAfter
-from typing import overload, Union, Any
-
+from typing import overload, Union, Awaitable, Any
 
 DEFAULT_MESSAGE = "🌔"
+
+async def check_user(user_id, is_admin = False) -> bool:
+    if not user_exists(user_id):
+        with contextlib.suppress(Exception):
+            await bot.send_message(user_id, "🧑‍🎨 Сэр, у вас нет аккаунта в живополисе. Прежде чем использовать любые комманды вам нужно зарегистрироваться.") 
+        return False
+
+    is_banned = bool(cur.execute(f"SELECT is_banned FROM userdata WHERE user_id = {user_id}").fetchone()[0])
+
+    if is_banned:
+        with contextlib.suppress(Exception):
+            await bot.send_message(
+                user_id, 
+                f'🧛🏻‍♂️ Вы были забаненны в боте. Если вы считаете, что это - ошибка, обратитесь в <a href="{OfficialChats.SUPPORTCHATLINK}">поддержку</a>.'
+            )
+        return False
+
+    rank = cur.execute(f"SELECT rank FROM userdata WHERE user_id = {user_id}").fetchone()[0]
+    if rank < 2 and is_admin:
+        with contextlib.suppress(Exception):
+            await bot.send_message(user_id, "👨‍⚖️ Сударь, эта команда доступна только админам.")
+        return False
+    return True
+
+
+async def is_allowed_nonick(user_id: int) -> bool:
+    if not await check_user(user_id):
+        return
+
+    return bool(
+        cur.execute(
+            f"SELECT nonick_cmds FROM userdata WHERE user_id={user_id}"
+        ).fetchone()[0]
+    )
+
+
 def user_exists(user_id: str | int) -> bool:
     """returns `True` if user with such user_id exists, else `False`"""
     return (
@@ -15,6 +52,8 @@ def user_exists(user_id: str | int) -> bool:
         > 0
     )
 
+
+# --------------------------
 @overload
 async def answer(
     event: Message, 
@@ -61,7 +100,6 @@ async def answer(
     elif type(event) is CallbackQuery:
         return 
         
-
 async def _answer_message(
     event : Message, 
     message, 

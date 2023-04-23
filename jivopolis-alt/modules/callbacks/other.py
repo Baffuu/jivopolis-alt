@@ -1,5 +1,5 @@
 import time
-
+import contextlib
 from math import floor
 from ..callbacks.traveling import state_balance
 
@@ -13,7 +13,9 @@ from aiogram.types import (
     InlineKeyboardButton, 
     Message, CallbackQuery
 )
+from aiogram.utils.exceptions import MessageCantBeDeleted, MessageToDeleteNotFound
 from ..._world_updater import get_crypto
+from ...utils import is_allowed_nonick
 
 async def chats(user_id: int, message: Message) -> None:
     '''
@@ -216,3 +218,34 @@ async def economics(call: CallbackQuery) -> None:
         )
     )
             
+
+async def toggle_nonick(call: CallbackQuery) -> None:
+    if await is_allowed_nonick(call.from_user.id):
+        cur.execute(f"UPDATE userdata SET nonick_cmds=0 WHERE user_id={call.from_user.id}")
+        change = "выключен"
+    else:
+        cur.execute(f"UPDATE userdata SET nonick_cmds=1 WHERE user_id={call.from_user.id}")
+        change = "включён"
+
+    await call.answer(f"👁 Nonick теперь {change}", show_alert=True)
+    with contextlib.suppress(MessageCantBeDeleted, MessageToDeleteNotFound):
+        await call.message.delete()
+    await user_settings(call)
+
+async def user_settings(call: CallbackQuery):
+    markup = InlineKeyboardMarkup(row_width=1)
+    ready = cur.execute(
+                f'SELECT is_ready FROM userdata WHERE user_id={call.from_user.id}'
+            ).fetchone()[0]
+    if await is_allowed_nonick(call.from_user.id):
+        nonick = "включён"
+    else:
+        nonick = "выключен"
+    markup.add(
+        InlineKeyboardButton(text=f"⚔ Боевая готовность: {'Готов' if bool(ready) else 'Не готов'}", callback_data='toggle_fightmode'),
+        InlineKeyboardButton(f"👁️‍🗨️ Nonick: {nonick}", callback_data="toggle_nonick"),
+        InlineKeyboardButton(text='👨‍🏫 Настройки профиля', callback_data='profile_settings'),
+        InlineKeyboardButton(text='🔐 Конфиденциальность', callback_data='privacy_settings')
+    )
+    await call.message.answer('<i><b>Настройки</b></i>' , reply_markup = markup)
+
