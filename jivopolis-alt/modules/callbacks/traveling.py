@@ -149,16 +149,97 @@ async def car_menu(call: CallbackQuery) -> None:
     if car < 1:
         return await call.answer('❌ У вас нет машины', show_alert = True)
 
+    current_place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={user_id}").fetchone()[0]
+
+    places = []
+    for place in CITY:
+        if place == current_place:
+            places.append(InlineKeyboardButton(f"📍 {place}", callback_data=f'goto_on_car_{place}'))  
+            continue       
+        places.append(InlineKeyboardButton(f"🏘️ {place}", callback_data=f'goto_on_car_{place}')) 
     markup = InlineKeyboardMarkup(row_width=2)
-    places = [
-        InlineKeyboardButton(
-            text=f'{place}', callback_data=f'goto_on_car_{place}'
-        )
-        for place in CITY
-    ]
-    markup.add(*places)
+
+    for index, place in enumerate(places):
+        if index < MAXIMUM_DRIVE_MENU_SLOTS:
+            markup.add(place)
+        else:
+            break
+
+    if markup.values["inline_keyboard"] == []:
+        await call.answer("dead end", True)
+        with contextlib.suppress(MessageToDeleteNotFound, MessageCantBeDeleted):
+            return await message.delete()
+
+    markup.add(InlineKeyboardButton("⬅️", callback_data=f"car_menu_previous:1"), InlineKeyboardButton(text="➡️", callback_data=f"car_menu_next:1"))
     await message.answer('<i>👨‍✈️ Выберите место для поездки.</i>', reply_markup=markup)
 
+async def car_menu_next(call: CallbackQuery, menu: int):
+    user_id = call.from_user.id
+    message = call.message
+    car = cur.execute(f"SELECT red_car+blue_car FROM userdata WHERE user_id={user_id}").fetchone()[0] #todo more cars
+
+    if car < 1:
+        return await call.answer('❌ У вас нет машины', show_alert = True)
+        
+    current_place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={user_id}").fetchone()[0]
+    markup = InlineKeyboardMarkup(row_width=2)
+    places = []
+    for place in CITY:
+        if place == current_place:
+            places.append(InlineKeyboardButton(f"📍 {place}", callback_data=f'taxicost_{place}'))         
+        places.append(InlineKeyboardButton(f"🏘️ {place}", callback_data=f'taxicost_{place}')) 
+    
+    for index, place in enumerate(places):
+        if index < MAXIMUM_DRIVE_MENU_SLOTS * menu:
+            continue
+        elif index < MAXIMUM_DRIVE_MENU_SLOTS * (menu+1):
+            markup.add(place)
+        else:
+            break
+
+    if markup.values["inline_keyboard"] == []:
+        await call.answer("dead end", True)
+        with contextlib.suppress(MessageToDeleteNotFound, MessageCantBeDeleted):
+            return await message.delete()
+
+    markup.add(InlineKeyboardButton("⬅️", callback_data=f"taxi_previous:{menu+1}"), InlineKeyboardButton(text="➡️", callback_data=f"taxi_next:{menu+1}"))
+    await message.answer('<i>👨‍✈️ Выберите место для поездки.</i>', reply_markup=markup)
+    with contextlib.suppress(MessageToDeleteNotFound, MessageCantBeDeleted):
+        await message.delete()
+
+async def car_menu_previous(call: CallbackQuery, menu: int):
+    user_id = call.from_user.id
+    message = call.message
+    car = cur.execute(f"SELECT red_car+blue_car FROM userdata WHERE user_id={user_id}").fetchone()[0] #todo more cars
+
+    if car < 1:
+        return await call.answer('❌ У вас нет машины', show_alert = True)
+        
+    current_place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={user_id}").fetchone()[0]
+    markup = InlineKeyboardMarkup(row_width=2)
+    places = []
+    for place in CITY:
+        if place == current_place:
+            places.append(InlineKeyboardButton(f"📍 {place}", callback_data=f'taxicost_{place}'))
+            continue         
+        places.append(InlineKeyboardButton(f"🏘️ {place}", callback_data=f'taxicost_{place}')) 
+    
+    for index, place in enumerate(places):
+        if index > MAXIMUM_DRIVE_MENU_SLOTS * menu:
+            continue
+        elif index > MAXIMUM_DRIVE_MENU_SLOTS * (menu-1):
+            markup.add(place)
+        else:
+            break
+
+    if markup.values is None:
+        await call.answer("dead end", True)
+        with contextlib.suppress(MessageToDeleteNotFound, MessageCantBeDeleted):
+            return await message.delete()
+    markup.add(InlineKeyboardButton("⬅️", callback_data=f"taxi_previous:{menu-1}"), InlineKeyboardButton(text="➡️", callback_data=f"taxi_next:{menu-1}"))
+    await message.answer('<i>👨‍✈️ Выберите место для поездки.</i>', reply_markup=markup)
+    with contextlib.suppress(MessageToDeleteNotFound, MessageCantBeDeleted):
+        await message.delete()
 
 async def goto_on_car(call: CallbackQuery) -> None:
     '''
@@ -177,7 +258,7 @@ async def goto_on_car(call: CallbackQuery) -> None:
     await call.message.answer('<i>Скоро приедем!</i>')
 
     with contextlib.suppress(Exception):
-        await bot.delete_message(call.message.chat.id, call.message.message_id)
+        await call.message.delete()
     await asyncio.sleep(15)
     cur.execute(f"UPDATE userdata SET current_place=\"{station}\" WHERE user_id={user_id}")
     conn.commit()
@@ -391,7 +472,8 @@ async def taxi_menu(message: Message, user_id: int) -> None:
     places = []
     for place in CITY:
         if place == current_place:
-            places.append(InlineKeyboardButton(f"📍 {place}", callback_data=f'taxicost_{place}'))         
+            places.append(InlineKeyboardButton(f"📍 {place}", callback_data=f'taxicost_{place}'))    
+            continue     
         places.append(InlineKeyboardButton(f"🏘️ {place}", callback_data=f'taxicost_{place}')) 
     
     for index, place in enumerate(places):
@@ -418,7 +500,8 @@ async def taxi_next(call: CallbackQuery, menu: int):
     places = []
     for place in CITY:
         if place == current_place:
-            places.append(InlineKeyboardButton(f"📍 {place}", callback_data=f'taxicost_{place}'))         
+            places.append(InlineKeyboardButton(f"📍 {place}", callback_data=f'taxicost_{place}'))
+            continue         
         places.append(InlineKeyboardButton(f"🏘️ {place}", callback_data=f'taxicost_{place}')) 
     
     for index, place in enumerate(places):
@@ -452,7 +535,8 @@ async def taxi_previous(call: CallbackQuery, menu: int):
     places = []
     for place in CITY:
         if place == current_place:
-            places.append(InlineKeyboardButton(f"📍 {place}", callback_data=f'taxicost_{place}'))         
+            places.append(InlineKeyboardButton(f"📍 {place}", callback_data=f'taxicost_{place}'))
+            continue         
         places.append(InlineKeyboardButton(f"🏘️ {place}", callback_data=f'taxicost_{place}')) 
     
     for index, place in enumerate(places):
@@ -494,7 +578,6 @@ async def taxicost(call: CallbackQuery, place: str) -> None:
         )
 
     return await call.message.answer(f'<i>Стоимость поездки до локации <b>{place}</b> - <b>${cost}</b></i>', reply_markup = markup)
-
 
 async def taxi_goto_(call: CallbackQuery, place: str) -> None:
     '''

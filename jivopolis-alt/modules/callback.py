@@ -264,6 +264,12 @@ async def callback_handler(call: CallbackQuery):
                 await taxi_next(call, int(call.data.replace("taxi_next:", "")))
             case taxi if taxi.startswith("taxi_previous:"):
                 await taxi_previous(call, int(call.data.replace("taxi_previous:", "")))
+
+            case car if car.startswith("car_menu_next:"):
+                await car_menu_next(call, int(call.data.replace("car_menu_next:", "")))
+            case car if car.startswith("car_menu_previous:"):
+                await car_menu_previous(call, int(call.data.replace("car_menu_previous:", "")))
+
             case _:
                 return await call.answer('♿️ 404: команда не найдена.', show_alert=True)
     except TypeError as e:

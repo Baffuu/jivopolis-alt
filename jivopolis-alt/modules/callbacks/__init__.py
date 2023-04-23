@@ -32,7 +32,8 @@ from .traveling import (
     central_market_mask, buy24_, 
     buyclan_,
     bus, railway_station, 
-    taxi_next, taxi_previous)
+    taxi_next, taxi_previous,
+    car_menu_next, car_menu_previous)
 
 from .clans import (
     create_clan, joinclan, leaveclan
