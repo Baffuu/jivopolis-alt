@@ -4,8 +4,9 @@ from datetime import datetime
 from math import floor
 from typing import Union
 
-from .. import bot, logger
-from ..misc import current_time, get_link, get_mask, OfficialChats, ITEMS
+from .. import bot, logger, get_embedded_link, get_link, get_mask
+from ..utils import user_exists
+from ..misc import current_time, OfficialChats, ITEMS, constants
 from ..misc.config import limeteds, leveldesc, levelrange, ach, ADMINS, clanitems
 from ..database.sqlitedb import cur, conn, insert_user
 
@@ -17,7 +18,7 @@ from aiogram.types import (
     User, 
     Message
 )
-
+from aiogram.utils.text_decorations import HtmlDecoration
 
 async def check(user_id: int, chat_id: str) -> None:
     '''
@@ -211,26 +212,19 @@ async def poison(user: User, target_id: int, chat_id: int) -> None:
         cur.execute(f"UPDATE userdata SET poison=poison-1 WHERE user_id={user.id}")
         conn.commit()
 
-        nick = cur.execute(f"SELECT nick FROM userdata WHERE user_id={user.id}").fetchone()[0]
-        mask = get_mask(user.id)
-
-        target_nick = cur.execute(f"SELECT nick FROM userdata WHERE user_id={target_id}").fetchone()[0]
-        target_mask = get_mask(target_id)
-
         random_damage = random.randint(50, 200)
-        if done := random.choice([True, False]):
+        if random.choice([True, False]):
             cur.execute(f"UPDATE userdata SET health=health-{random_damage} WHERE user_id={target_id}")
             conn.commit()
 
-            await bot.send_message(OfficialChats.LOGCHAT, f"<i><b><a href=\"{await get_link(user.id)}\">{mask}{nick}</a></b> отравил <b><a href=\"{await get_link(target_id)}\">{target_mask}{target_nick}</a></b>.\n#user_poison</i>")
-            await bot.send_message(chat_id, f"<i>🧪 Вы отравили <b><a href=\"{await get_link(target_id)}\">{target_mask}{target_nick}</a></b></i>")
-            await bot.send_message(target_id, f"<i>🧪 Вас отравил <b><a href=\"{await get_link(user.id)}\">{mask}{nick}</a></b></i>")
+            await bot.send_message(OfficialChats.LOGCHAT, f"<i><b>{await get_embedded_link(user.id)}</b> отравил <b>{await get_embedded_link(target_id)}\"</b>.\n#user_poison</i>")
+            await bot.send_message(chat_id, f"<i>🧪 Вы отравили <b>{await get_embedded_link(target_id)}</b></i>")
+            await bot.send_message(target_id, f"<i>🧪 Вас отравил <b>{await get_embedded_link(user.id)}</b></i>")
         else:
             return await bot.send_message(chat_id, "<i>😵‍💫 Неудача. Возможно, это к лучшему.\nЯд потрачен зря</i>")
 
     except Exception as e:
-        await bot.send_message(chat_id, "&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>")
-        await bot.send_message(chat_id, f"<i><b>Текст ошибки: </b>{e}</i>")
+        await bot.send_message(chat_id, constants.ERROR_MESSAGE.format(e))
         return logger.exception(e)
 
 
@@ -411,54 +405,97 @@ async def cure(user_id: str, target_id: str, chat_id: str) -> None: #function is
         await bot.send_message(chat_id, f"<i><b>Текст ошибки: </b>{e}</i>")
 
 
-async def profile(user_id: int, message: Message, called: bool = False): #todo: refactor
-    nick = cur.execute(f"SELECT nickname FROM userdata WHERE user_id = {user_id}").fetchone()[0]
-    mask = get_mask(user_id)
+async def profile(user_id: int, message: Message, called: bool = False):
     profile_type = cur.execute(f"SELECT profile_type FROM userdata WHERE user_id = {user_id}").fetchone()[0]
 
     if profile_type == "private" and user_id != message.from_user.id and not called:
-        return await message.answer(f"🚫 <i><b><a href=\"tg://user?id={user_id}\">{mask}{nick}</a></b> скрыл свой профиль</i>")
+        return await message.answer(f"🚫 <i><b>{await get_embedded_link(user_id)}</b> скрыл свой профиль</i>")
 
-    balance = cur.execute(f"SELECT balance FROM userdata WHERE user_id={user_id}").fetchone()[0]
-    invited_by = cur.execute(f"SELECT inviter_id FROM userdata WHERE user_id={user_id}").fetchone()[0]
+    balance, inviter, description, xp, rank, health, level, lastseen, photo, register_date,\
+    clan_id, clan_type, clan_link, clan_name = await _get_everything(user_id)
 
-    if invited_by != 0:
-        invited_nick = cur.execute(f"SELECT nickname FROM userdata WHERE user_id = {invited_by}").fetchone()[0]
-        invited_mask = get_mask(invited_by)
-        inviter = f"\n📎 Пригласивший пользователь: <b><a href=\"{await get_link(user_id)}\">{invited_mask}{invited_nick}</a></b>"
-    else:
-        inviter = '' 
-
-    description = cur.execute(f"SELECT description FROM userdata WHERE user_id={user_id}").fetchone()[0]
-    ready = cur.execute(f"SELECT is_ready FROM userdata WHERE user_id={user_id}").fetchone()[0]
-    xp = cur.execute(f"SELECT xp FROM userdata WHERE user_id={user_id}").fetchone()[0]
-
+    if health < 0:
+        health = "<b>мёртв</b>"
     clan_id = cur.execute(f"SELECT clan_id FROM userdata WHERE user_id={user_id}").fetchone()[0]
 
-    if clan_id != 0:
-        if clan_count := cur.execute(f"SELECT count(*) FROM clandata WHERE clan_id={clan_id}").fetchone()[0]:
-            clan_type = cur.execute(f"SElECT clan_type FROM clandata WHERE clan_id={clan_id}").fetchone()[0]
-            clan_link = cur.execute(f"SELECT link FROM clandata WHERE clan_id={clan_id}").fetchone()[0]
-            clan_name = cur.execute(f"SELECT clan_name FROM clandata WHERE clan_id={clan_id}").fetchone()[0]
-        else:
-            clan_id = 0
+    markup = InlineKeyboardMarkup()
+
+    if (message.chat.type == "private" and message.from_user.id == user_id) or called:
+        markup = _add_setting_buttons(markup)
+
+    PROFILE_TEXT = (
+        f"{await get_embedded_link(user_id)} {f'[{rank}]' or ''}"
+        f"\n🌟{level} 💖 {health} 💡{xp}  💸 {balance}"
+        f"\n{random.choice(constants.TIME_EMOJIS)} Был(-а) {lastseen}"
+        f"\n🎞 Aккаунт создан: {register_date} {inviter}"
+        f"\n\n<i>{description}</i>"
+        f"\n\n🛡 Клан: <b>{(HtmlDecoration().link(clan_name, clan_link) if clan_type == 'public' else clan_name) if clan_id is not None else 'отсутствует'}</b>"
+    )
+    if photo:
+        return await message.reply_photo(photo, PROFILE_TEXT)
+    await message.reply(PROFILE_TEXT, reply_markup=markup)
+
+def _add_setting_buttons(markup):
+    markup.add(
+            InlineKeyboardButton(
+                text="💡 Достижения", 
+                callback_data="achievements"
+            ),
+            InlineKeyboardButton(
+                text="⚙ Настройки", 
+                callback_data="user_settings"
+            ),
+            InlineKeyboardButton(
+                text="🖇 Реферальная ссылка", 
+                callback_data="my_reflink"
+            ),
+            InlineKeyboardButton(
+                text="👥 Привлечённые пользователи", 
+                callback_data="refusers"
+            )
+        )
+    return markup
+
+async def _get_everything(user_id):
+    balance = cur.execute(f"SELECT balance FROM userdata WHERE user_id={user_id}").fetchone()[0]
+    invited_by = cur.execute(f"SELECT inviter_id FROM userdata WHERE user_id={user_id}").fetchone()[0]
+    inviter = f"\n📎 Пригласивший пользователь: <b>{await get_embedded_link(invited_by)}</b>" if invited_by != 0 else ''
+    description = cur.execute(f"SELECT description FROM userdata WHERE user_id={user_id}").fetchone()[0]
+    xp = cur.execute(f"SELECT xp FROM userdata WHERE user_id={user_id}").fetchone()[0]
     rank = cur.execute(f"SELECT rank FROM userdata WHERE user_id={user_id}").fetchone()[0]
     health = cur.execute(f"SELECT health FROM userdata WHERE user_id={user_id}").fetchone()[0]
     level = cur.execute(f"SELECT level FROM userdata WHERE user_id={user_id}").fetchone()[0]
     lastseen = cur.execute(f"SELECT lastseen FROM userdata WHERE user_id={user_id}").fetchone()[0]
-    #photo = cur.execute(f"SELECT photo_id FROM userdata WHERE user_id={user_id}").fetchone()[0]
-
-    if level<len(levelrange)-1:
-        xp_left = f"XP из {levelrange[level+1]}"
-    else:
-        xp_left = "(макс. уровень"
-    if health < 0:
-        health = "<b>мёртв</b>"
-
+    photo = cur.execute(f"SELECT photo_id FROM userdata WHERE user_id={user_id}").fetchone()[0]
     rank = _get_rank_name(rank)
-
     seconds = current_time() - lastseen
+    lastseen = _get_lastseen(seconds)
+    register_date = _get_register_date(user_id)
+    clan_id, clan_type, clan_link, clan_name = _get_clan(clan_id)
 
+    return (
+        balance, inviter, description,
+        xp, rank, health, level,
+        lastseen, photo, register_date, 
+        clan_id, clan_type, clan_link, clan_name
+    )
+
+def _get_register_date(user_id):
+    try:
+        register_date = datetime.fromtimestamp(cur.execute(f"SELECT register_date FROM userdata WHERE user_id={user_id}").fetchone()[0])
+        reg_year = register_date.year
+        reg_month = register_date.month
+        reg_day = register_date.day
+        months = ["января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря"]
+        reg_month = months[reg_month-1]
+        register_date = f"{reg_day} {reg_month} {reg_year}"
+    except ValueError as e:
+        if str(e).endswith('is out of range'):
+            register_date = '🧌 Старше нашей планеты.'
+        else: return logger.exception(e)
+    return register_date
+
+def _get_lastseen(seconds):
     years = floor(seconds / 31536000)
     monthes = floor((seconds % 31536000) / 2628000)
     days = floor(((seconds % 31536000) % 2628000) / 86400)
@@ -520,57 +557,26 @@ async def profile(user_id: int, message: Message, called: bool = False): #todo: 
 
     if lastseen == "назад":
         lastseen = "только что"
-    try:
-        register_date = datetime.fromtimestamp(cur.execute(f"SELECT register_date FROM userdata WHERE user_id={user_id}").fetchone()[0])
-        reg_year = register_date.year
-        reg_month = register_date.month
-        reg_day = register_date.day
-        months = ["января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря"]
-        reg_month = months[reg_month-1]
-        register_date = f"{reg_day} {reg_month} {reg_year}"
-    except ValueError as e:
-        if str(e).endswith('is out of range'):
-            register_date = '🧌 Старше нашей планеты.'
-        else: return logger.exception(e)
+    return lastseen
 
-
-    markup = InlineKeyboardMarkup()
-
-    if (message.chat.type == "private" and message.from_user.id == user_id) or called:
-
-        markup.add(InlineKeyboardButton(text="💡 Достижения", callback_data="achievements"))
-        markup.add(InlineKeyboardButton(text="⚙ Настройки", callback_data="user_settings"))
-        markup.add(InlineKeyboardButton(text="🖇 Реферальная ссылка", callback_data="my_reflink"))
-        markup.add(InlineKeyboardButton(text="👥 Привлечённые пользователи", callback_data="refusers"))
-    try:
-        clan_link = f'"{clan_link}"'
-    except UnboundLocalError:
-        clan_link = ''
-    prof = f"<i><b><a href=\"tg://user?id={user_id}\">{mask}{nick}</a></b>\n\
-<b>{rank}</b>\n\
-<b>Был(-а)</b> {lastseen}\n\
-<b>Аккаунт создан:</b> {register_date}{inviter}\n\
-💰 Баланс: <b>${balance}</b>\n\
-📝 Описание: \n\
-<b>{description}</b>\n\
-⚔️ Режим готовности: <b>{'не готов' if ready == 0 else 'готов'}</b>\n\
-💡 Уровень: {level} ({xp} {xp_left})\n\
-🛡 Клан: <b>{(f'<a href={clan_link}>{clan_name}</a>' if clan_type == 'public' else clan_name) if clan_id != 0 else 'отсутствует'}</b>\n\
-💊 Здоровье: {health}</i>"
-
-    await message.reply(prof, reply_markup=markup)
-    '''if photo == "":
-        await message.reply(prof, reply_markup = markup)
-    else:
-        try:
-            await bot.send_photo(message.chat.id, photo, caption=prof, reply_markup = markup)
-        except:
-            await message.answer(prof, reply_markup = markup)'''
+def _get_clan(clan_id):
+    if clan_id != 0 and clan_id:
+        if (
+            cur.execute(
+                f"SELECT count(*) FROM clandata WHERE clan_id={clan_id}"
+            ).fetchone()[0]
+            == 0
+        ):
+            return None, None, None, None
+        clan_type = cur.execute(f"SElECT clan_type FROM clandata WHERE clan_id={clan_id}").fetchone()[0]
+        clan_link = cur.execute(f"SELECT link FROM clandata WHERE clan_id={clan_id}").fetchone()[0]
+        clan_name = cur.execute(f"SELECT clan_name FROM clandata WHERE clan_id={clan_id}").fetchone()[0]
+    return clan_id,clan_type,clan_link,clan_name
 
 def _get_rank_name(rank):
     match (rank):
         case 0:
-            rank = "👤 Игрок"
+            rank = None
         case 1:
             rank = "⚜️ VIP"
         case 2:
