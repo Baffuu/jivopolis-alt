@@ -83,7 +83,7 @@ class StartCommand():
         health = cur.execute(f"SELECT health FROM userdata WHERE user_id = {user_id}").fetchone()[0]
         level = cur.execute(f"SELECT level FROM userdata WHERE user_id={user_id}").fetchone()[0]
 
-        if level <= len(levelrange):
+        if level < len(levelrange)-1:
             xp_left = f"{xp} XP из {levelrange[level+1]}"
         else:
             xp_left = "макс. уровень"

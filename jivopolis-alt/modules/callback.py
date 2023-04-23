@@ -260,6 +260,10 @@ async def callback_handler(call: CallbackQuery):
             case buyclan if buyclan.startswith('buyclan_'):
                 await buyclan_(call, call.data.replace('buyclan_', ''))
                 
+            case taxi if taxi.startswith("taxi_next:"):
+                await taxi_next(call, int(call.data.replace("taxi_next:", "")))
+            case taxi if taxi.startswith("taxi_previous:"):
+                await taxi_previous(call, int(call.data.replace("taxi_previous:", "")))
             case _:
                 return await call.answer('♿️ 404: команда не найдена.', show_alert=True)
     except TypeError as e:

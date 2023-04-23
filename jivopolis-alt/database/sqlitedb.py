@@ -8,7 +8,8 @@ from aiogram.utils.deep_linking import encode_payload
 
 def connect_database() -> None:
     """
-    connects database, creates tables if they does not exists, etc."""
+    connects database, creates tables if they does not exists, etc.
+    """
     global conn, cur
     conn = sqlite3.connect('database.db', check_same_thread=False)
     cur = conn.cursor()

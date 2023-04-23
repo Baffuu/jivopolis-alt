@@ -4,7 +4,7 @@ import asyncio
 
 from ... import logger, bot
 from ...misc import get_building, get_link, get_mask, get_embedded_link, ITEMS
-from ...misc.constants import MINIMUM_CAR_LEVEL
+from ...misc.constants import MINIMUM_CAR_LEVEL, MAXIMUM_DRIVE_MENU_SLOTS
 from ...database.sqlitedb import cur, conn
 from ...database.functions import buy, buybutton, itemdata
 
@@ -22,6 +22,7 @@ from aiogram.types import (
     InlineKeyboardMarkup,
     CallbackQuery
 )
+from aiogram.utils.exceptions import MessageCantBeDeleted, MessageToDeleteNotFound
 
 async def city(message: Message, user_id: str):
     # sourcery skip: low-code-quality
@@ -219,7 +220,9 @@ async def delivery_menu(call: CallbackQuery) -> None:
         return await call.answer('Вам нужен телефон. Его можно купить в магазине на ул. Генерала Шелби и одноимённой станции метро', show_alert = True)
 
     markup = InlineKeyboardMarkup(row_width = 1)
-    sellitems = ['snegovik', 'snow', 'tree', 'fairy', 'santa_claus', 'mrs_claus', 'firework', 'fireworks', 'confetti', 'clown', 'ghost', 'alien', 'robot', 'shit', 'moyai', 'pasta', 'rice', 'sushi']
+    sellitems = ['snegovik', 'snow', 'tree', 'fairy', 'santa_claus', 'mrs_claus', 
+    'firework', 'fireworks', 'confetti', 'clown', 'ghost', 'alien', 'robot', 
+    'shit', 'moyai', 'pasta', 'rice', 'sushi']
 
     for item in sellitems:
         try:
@@ -383,17 +386,91 @@ async def taxi_menu(message: Message, user_id: int) -> None:
     if level < lvlcab:
         return await message.answer(f'🚫 Данная функция доступна только с уровня {lvlcab}')
 
+    current_place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={user_id}").fetchone()[0]
     markup = InlineKeyboardMarkup(row_width=2)
-    places = [
-        InlineKeyboardButton(place, callback_data=f'taxicost_{place}')
-        for place in CITY
-    ]
-    markup.add(*places)
+    places = []
+    for place in CITY:
+        if place == current_place:
+            places.append(InlineKeyboardButton(f"📍 {place}", callback_data=f'taxicost_{place}'))         
+        places.append(InlineKeyboardButton(f"🏘️ {place}", callback_data=f'taxicost_{place}')) 
+    
+    for index, place in enumerate(places):
+        if index < MAXIMUM_DRIVE_MENU_SLOTS:
+            markup.add(place)
+        else:
+            break
+    markup.add(InlineKeyboardButton("⬅️", callback_data="taxi_previous:1"), InlineKeyboardButton(text="➡️", callback_data="taxi_next:1"))
 
-    await message.answer('<i>&#128661; Куда поедем?</i>', reply_markup=markup)
+    await message.answer('<i>🚕 Куда поедем?</i>', reply_markup=markup)
     return await message.answer('<i>Стоимость поездки зависит от отдалённости места, в которое вы едете.\
     Чтобы посмотреть цену поездки до определённого места, нажмите на него в списке локаций в предыдущем сообщении</i>')
 
+async def taxi_next(call: CallbackQuery, menu: int):
+    user_id = call.from_user.id
+    level = cur.execute(f"SELECT level FROM userdata WHERE user_id={user_id}").fetchone()[0]
+    message = call.message
+    
+    if level < lvlcab:
+        return await message.answer(f'🚫 Данная функция доступна только с уровня {lvlcab}')
+        
+    current_place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={user_id}").fetchone()[0]
+    markup = InlineKeyboardMarkup(row_width=2)
+    places = []
+    for place in CITY:
+        if place == current_place:
+            places.append(InlineKeyboardButton(f"📍 {place}", callback_data=f'taxicost_{place}'))         
+        places.append(InlineKeyboardButton(f"🏘️ {place}", callback_data=f'taxicost_{place}')) 
+    
+    for index, place in enumerate(places):
+        if index < MAXIMUM_DRIVE_MENU_SLOTS * menu:
+            continue
+        elif index < MAXIMUM_DRIVE_MENU_SLOTS * (menu+1):
+            markup.add(place)
+        else:
+            break
+
+    if markup.values["inline_keyboard"] == []:
+        await call.answer("dead end", True)
+        with contextlib.suppress(MessageToDeleteNotFound, MessageCantBeDeleted):
+            return await message.delete()
+
+    markup.add(InlineKeyboardButton("⬅️", callback_data=f"taxi_previous:{menu+1}"), InlineKeyboardButton(text="➡️", callback_data=f"taxi_next:{menu+1}"))
+    await message.answer('<i>🚕 Куда поедем?</i>', reply_markup=markup)
+    with contextlib.suppress(MessageToDeleteNotFound, MessageCantBeDeleted):
+        await message.delete()
+
+async def taxi_previous(call: CallbackQuery, menu: int):
+    user_id = call.from_user.id
+    level = cur.execute(f"SELECT level FROM userdata WHERE user_id={user_id}").fetchone()[0]
+    message = call.message
+    
+    if level < lvlcab:
+        return await message.answer(f'🚫 Данная функция доступна только с уровня {lvlcab}')
+        
+    current_place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={user_id}").fetchone()[0]
+    markup = InlineKeyboardMarkup(row_width=2)
+    places = []
+    for place in CITY:
+        if place == current_place:
+            places.append(InlineKeyboardButton(f"📍 {place}", callback_data=f'taxicost_{place}'))         
+        places.append(InlineKeyboardButton(f"🏘️ {place}", callback_data=f'taxicost_{place}')) 
+    
+    for index, place in enumerate(places):
+        if index > MAXIMUM_DRIVE_MENU_SLOTS * menu:
+            continue
+        elif index > MAXIMUM_DRIVE_MENU_SLOTS * (menu-1):
+            markup.add(place)
+        else:
+            break
+
+    if markup.values is None:
+        await call.answer("dead end", True)
+        with contextlib.suppress(MessageToDeleteNotFound, MessageCantBeDeleted):
+            return await message.delete()
+    markup.add(InlineKeyboardButton("⬅️", callback_data=f"taxi_previous:{menu-1}"), InlineKeyboardButton(text="➡️", callback_data=f"taxi_next:{menu-1}"))
+    await message.answer('<i>🚕 Куда поедем?</i>', reply_markup=markup)
+    with contextlib.suppress(MessageToDeleteNotFound, MessageCantBeDeleted):
+        await message.delete()
 
 async def taxicost(call: CallbackQuery, place: str) -> None:
     '''
@@ -406,7 +483,8 @@ async def taxicost(call: CallbackQuery, place: str) -> None:
 
     if place not in CITY:
         raise ValueError('no such place')
-
+    if place == current_place:
+        return await call.answer("⛔️ Вы и так в этой местности.", show_alert=True)
     cost = (cabcost*abs(CITY.index(place)-CITY.index(current_place)))//1
     
     markup = InlineKeyboardMarkup(row_width=2).\

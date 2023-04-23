@@ -14,6 +14,8 @@ BETATEST_MINIMUM_RANK = 1
 ADMINPANEL_MINIMUM_RANK = 2
 MINIMUM_CAR_LEVEL = 8
 
+MAXIMUM_DRIVE_MENU_SLOTS = 8
+
 SLOTMACHINE_TOKEN_COST = 10
 SLOTMACHINE_TEXT = [
     "😞 В игровом клубе живополиса не осталось денег, мы не можем выдать вам ваше вознаграждение",
@@ -23,3 +25,5 @@ SLOTMACHINE_TEXT = [
 ]
 
 ERROR_MESSAGE = "<b>🪼 ERROR:</b> <i> {} </i>"
+
+TIME_EMOJIS = ["🕐", "🕑", "🕒", "🕓", "🕔", "🕕", "🕖", "🕗", "🕘", "🕙", "🕚", "🕛","🕜", "🕝", "🕞", "🕟", "🕠", "🕡", "🕢", "🕣", "🕤", "🕥", "🕦", "🕧"]
