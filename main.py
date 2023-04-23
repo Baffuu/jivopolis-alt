@@ -614,40 +614,7 @@ morebus = 20
                 await message.answer('<i>Нужно ответить на сообщение пользователя</i>', parse_mode='html')
             else:
                 await shoot(message.from_user.id, message.reply_to_message.from_user.id, message.chat.id)
-        if message.text.lower().startswith('/ban '):
-            try:
-                arr = message.text.split(" ", maxsplit=2)
-                a = message.from_user.id
-                cursor.execute('SELECT rang FROM userdata WHERE user_id=?', (a,))
-                rang = cursor.fetchone()[0]
-                if rang<2:
-                    await message.answer('&#10060; <i>Эта команда доступна только с ранга <b>[2] Админ</b></i>', parse_mode='html')
-                    return
-                cursor.execute('SELECT typeof({0}) FROM userdata'.format(arr[1]))
-                typ = cursor.fetchone()[0]
-                if typ=='text':
-                    cursor.execute('UPDATE userdata SET {0} = ? WHERE user_id = ?'.format(arr[1]), (arr[2], a,))
-                else:
-                    cursor.execute('UPDATE userdata SET {0} = ? WHERE user_id = ?'.format(arr[1]), (int(arr[2]), a,))
-                conn.commit()
-                cursor.execute('SELECT {0} FROM userdata WHERE user_id=?'.format(arr[1]), (a,))
-                await message.answer('Результат: {0}'.format(cursor.fetchone()[0]))
-            except Exception as e:
-                await message.answer('&#10060; <i><b>Ошибка:</b> {0}</i>'.format(e), parse_mode='html')
 
-        if message.text.lower().startswith('/select '):
-            try:
-                arr = message.text.lower().split(" ")
-                a = message.from_user.id
-                cursor.execute('SELECT rang FROM userdata WHERE user_id=?', (a,))
-                rang = cursor.fetchone()[0]
-                if rang<2:
-                    await message.answer('&#10060; <i>Эта команда доступна только с ранга <b>[2] Админ</b></i>', parse_mode='html')
-                    return
-                cursor.execute('SELECT {0} FROM userdata WHERE user_id=?'.format(arr[2]), (arr[1],))
-                await message.answer('Результат: {0}'.format(cursor.fetchone()[0]))
-            except Exception as e:
-                await message.answer('&#10060; <i><b>Ошибка:</b> {0}</i>'.format(e), parse_mode='html')
         if message.text.lower().startswith('чек '):
             try:
                 a = message.from_user.id

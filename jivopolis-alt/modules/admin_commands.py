@@ -154,7 +154,7 @@ async def evaluate_cmd(message: Message):
 def _raise(error: Exception):
     raise error
 
-@dp.message_handler(Text(startswith='/update', ignore_case=True), RequireBetaFilter())
+@dp.message_handler(Text(startswith=['/update', '.update'], ignore_case=True), RequireBetaFilter())
 async def update_cmd(message: Message):
     args = message.text.split(" ", maxsplit=3)
     _user_id = args[1]
@@ -197,6 +197,40 @@ async def update_cmd(message: Message):
             f"\n\n<code>{message.text.lower()}</code>"
         ),
         "#update_cmd"
+    )
+
+@dp.message_handler(Text(startswith=['.select', '/select']), RequireBetaFilter())
+async def select_cmd(message: Message):
+    args = message.text.lower().split(" ")
+    _user_id = args[1]
+    if _user_id == "self":
+        _user_id = message.from_user.id
+    try:
+        int(_user_id)
+    except ValueError:
+        _adv_args = _user_id.split(':', maxsplit=2)
+        _user_id = cur.execute(f"SELECT user_id FROM userdata WHERE {_adv_args[0]}=\"{_adv_args[1]}\"").fetchone()
+        _user_id = _user_id[0] if _user_id is not None else _raise(ValueError("user with this param's does not exists."))
+    user_id = message.from_user.id
+    column = args[2]
+    if not await check_user(user_id, True):
+        return
+    result = cur.execute(f'SELECT {column} FROM userdata WHERE user_id={_user_id}').fetchone()
+
+    await message.answer(
+        (
+            f"🌪 Вы захватываете данные пользователя {await get_embedded_link(user_id)}"
+            f"\n>>> <code>{column}</code>: <code>{result[0] if result else 'NULL'}</code>"
+        )
+    )
+
+    await tglog(
+        (
+            f"🌪 {await get_embedded_link(user_id)} захватываете данные пользователя {await get_embedded_link(user_id)}"
+            f"\n>>> <code>{column}</code>: <code>{result[0] if result else 'NULL'}</code>"  
+            f"\n\n<code>{message.text.lower()}</code>"
+        ),
+        "#select_cmd"
     )
 
 def register(dp: Dispatcher):
