@@ -7,8 +7,8 @@ from .. import bot, dp, Dispatcher, logger
 from ..database.sqlitedb import cur, conn
 from ..database.functions import get_link
 
-from ..misc import OfficialChats, ITEMS, check_user, get_embedded_link, tglog
-
+from ..misc import OfficialChats, ITEMS, get_embedded_link, tglog
+from ..utils import check_user
 from aiogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup, Update
 from aiogram.dispatcher.filters import Text
 from aiogram.utils.deep_linking import encode_payload
@@ -177,7 +177,7 @@ async def update_cmd(message: Message):
         return await message.answer('&#10060; <i>СЛЫШЬ, ЭТО МЕНЯТЬ НЕЛЬЗЯ!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!</i>', parse_mode='html')
         
     _old_value = cur.execute(f"SELECT {column} FROM userdata WHERE user_id={_user_id}").fetchone()
-    cur.execute(f'UPDATE userdata SET {column} = {new_value} WHERE user_id = {_user_id}')
+    cur.execute(f'UPDATE userdata SET {column} = \"{new_value}\" WHERE user_id = {_user_id}')
     conn.commit()
     _new_value = cur.execute(f'SELECT {column} FROM userdata WHERE user_id={_user_id}').fetchone()
 

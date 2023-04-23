@@ -156,7 +156,7 @@ async def car_menu(call: CallbackQuery) -> None:
         if place == current_place:
             places.append(InlineKeyboardButton(f"📍 {place}", callback_data=f'goto_on_car_{place}'))  
             continue       
-        places.append(InlineKeyboardButton(f"🏘️ {place}", callback_data=f'goto_on_car_{place}')) 
+        places.append(InlineKeyboardButton(f"🏘️ {place}", callback_data=f'goto_on_car_{place}'))
     markup = InlineKeyboardMarkup(row_width=2)
 
     for index, place in enumerate(places):
@@ -170,7 +170,10 @@ async def car_menu(call: CallbackQuery) -> None:
         with contextlib.suppress(MessageToDeleteNotFound, MessageCantBeDeleted):
             return await message.delete()
 
-    markup.add(InlineKeyboardButton("⬅️", callback_data=f"car_menu_previous:1"), InlineKeyboardButton(text="➡️", callback_data=f"car_menu_next:1"))
+    markup.add(
+        InlineKeyboardButton("⬅️", callback_data="car_menu_previous:1"),
+        InlineKeyboardButton(text="➡️", callback_data="car_menu_next:1"),
+    )
     await message.answer('<i>👨‍✈️ Выберите место для поездки.</i>', reply_markup=markup)
 
 async def car_menu_next(call: CallbackQuery, menu: int):
@@ -274,7 +277,7 @@ async def local_people(call: CallbackQuery) -> None:
     place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id = {call.from_user.id}").fetchone()[0]
     usercount = cur.execute(f"SELECT count(*) FROM userdata WHERE current_place = '{place}'").fetchone()[0]
 
-    if usercount < 1:
+    if usercount <= 1:
         return await call.message.answer(
             "<i>👤 Вы стоите один, оглядываясь по сторонам…</i>\n"
             "\n😓 В вашей местности не найдено людей. Помимо вас, само собой."
@@ -283,8 +286,10 @@ async def local_people(call: CallbackQuery) -> None:
     cur.execute(f"SELECT * FROM userdata WHERE current_place = '{place}'")
 
     users = ''.join(
-        f'\n{index}. {await get_embedded_link(row[2])}'
-        for index, row in enumerate(cur.fetchall(), start=1)
+        [
+            f'\n{index}. {await get_embedded_link(row[1])}'
+            for index, row in enumerate(cur.fetchall(), start=1)
+        ]
     )
     await call.message.answer(f'<i>👤 Пользователи в местности <b>{place}</b>: <b>{users}</b></i>')
 
