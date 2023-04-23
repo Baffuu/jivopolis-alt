@@ -166,9 +166,7 @@ async def car_menu(call: CallbackQuery) -> None:
             break
 
     if markup.values["inline_keyboard"] == []:
-        await call.answer("dead end", True)
-        with contextlib.suppress(MessageToDeleteNotFound, MessageCantBeDeleted):
-            return await message.delete()
+        return await call.answer("dead end", True)
 
     markup.add(
         InlineKeyboardButton("⬅️", callback_data="car_menu_previous:1"),
@@ -201,11 +199,9 @@ async def car_menu_next(call: CallbackQuery, menu: int):
             break
 
     if markup.values["inline_keyboard"] == []:
-        await call.answer("dead end", True)
-        with contextlib.suppress(MessageToDeleteNotFound, MessageCantBeDeleted):
-            return await message.delete()
+        return await call.answer("dead end", True)
 
-    markup.add(InlineKeyboardButton("⬅️", callback_data=f"taxi_previous:{menu+1}"), InlineKeyboardButton(text="➡️", callback_data=f"taxi_next:{menu+1}"))
+    markup.add(InlineKeyboardButton("⬅️", callback_data=f"car_menu_previous:{menu+1}"), InlineKeyboardButton(text="➡️", callback_data=f"car_menu_next:{menu+1}"))
     await message.answer('<i>👨‍✈️ Выберите место для поездки.</i>', reply_markup=markup)
     with contextlib.suppress(MessageToDeleteNotFound, MessageCantBeDeleted):
         await message.delete()
@@ -239,7 +235,7 @@ async def car_menu_previous(call: CallbackQuery, menu: int):
         await call.answer("dead end", True)
         with contextlib.suppress(MessageToDeleteNotFound, MessageCantBeDeleted):
             return await message.delete()
-    markup.add(InlineKeyboardButton("⬅️", callback_data=f"taxi_previous:{menu-1}"), InlineKeyboardButton(text="➡️", callback_data=f"taxi_next:{menu-1}"))
+    markup.add(InlineKeyboardButton("⬅️", callback_data=f"car_menu_previous:{menu-1}"), InlineKeyboardButton(text="➡️", callback_data=f"car_menu_next:{menu-1}"))
     await message.answer('<i>👨‍✈️ Выберите место для поездки.</i>', reply_markup=markup)
     with contextlib.suppress(MessageToDeleteNotFound, MessageCantBeDeleted):
         await message.delete()
