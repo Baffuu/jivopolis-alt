@@ -4,7 +4,8 @@ import asyncio
 
 from ... import logger, bot
 from ...misc import get_building, get_link, get_mask, get_embedded_link, ITEMS
-from ...misc.constants import MINIMUM_CAR_LEVEL, MAXIMUM_DRIVE_MENU_SLOTS
+from ...misc.config import METRO, LINES, linez, ticket_time
+from ...misc.constants import MINIMUM_CAR_LEVEL, MAXIMUM_DRIVE_MENU_SLOTS, MAP
 from ...database.sqlitedb import cur, conn
 from ...database.functions import buy, buybutton, itemdata
 
@@ -741,3 +742,67 @@ async def metro(call: CallbackQuery):
         markup.add(InlineKeyboardButton(text='🚉 Пройти на платформу', callback_data='proceed_metro'))
     markup.add(InlineKeyboardButton(text='🎫 Покупка жетонов', callback_data='metro_tickets'))
     await call.message.answer(f'<i>У вас <b>{token}</b> жетонов</i>', reply_markup=markup)
+
+async def proceed_metro(call: CallbackQuery):
+    user_id = call.from_user.id
+    token = cur.execute(f'SELECT metrotoken FROM userdata WHERE user_id={user_id}').fetchone()[0]
+    
+    if token < 1:
+        markup = InlineKeyboardMarkup()
+        markup.add()
+        return await call.message.answer(
+            '<i>🚫 У вас недостаточно жетонов</i>',
+            reply_markup=InlineKeyboardMarkup().add(
+                    InlineKeyboardButton(text='🎫 Покупка жетонов', callback_data='metro_tickets')
+                )
+            )
+        
+    cur.execute(f'UPDATE userdata SET metrotoken=metrotoken-1 WHERE user_id={user_id}')
+    conn.commit()
+    await metrocall(call)
+
+def _transfer(user_id) -> None | str:
+    line = cur.execute(f"SELECT line FROM userdata WHERE user_id={user_id}").fetchone()[0]
+    place = cur.execute(f'SELECT current_place FROM userdata WHERE user_id={user_id}').fetchone()[0]
+    for i in range(4):
+        if i != line and place in METRO[i]:
+            return i
+    return
+
+async def metrocall(call: CallbackQuery):
+    user_id = call.from_user.id
+    line = cur.execute(f"SELECT line FROM userdata WHERE user_id={user_id}").fetchone()[0]
+    place = cur.execute(f'SELECT current_place FROM userdata WHERE user_id={user_id}').fetchone()[0]
+    index = METRO[line].index(place)
+    markup = InlineKeyboardMarkup()
+    desc = str()
+    if trans := _transfer(user_id):
+        desc += f'Переход к поездам {linez[trans]}\n'
+        markup.add(InlineKeyboardButton(f'🔄 {LINES[trans]}', callback_data='transfer'))
+
+    if (
+        place in ['Котайский Мединститут', 'Крайний Север', 'Северо-Восток'] 
+        or 
+        (
+            place in ['Площадь Админов', 'Историческая'] 
+            and line==0
+        )
+    ):
+        desc += '<b>Конечная.</b> Поезд дальше не идёт, просьба пассажиров выйти из вагонов'
+    if index > 0:
+        previous_station = METRO[line][index-1]
+        markup.add(InlineKeyboardButton(text=f'⬅ {previous_station}', callback_data='back'))
+    if index < len(METRO[line])-1:
+        next_station = METRO[line][index+1]
+        markup.add(InlineKeyboardButton(text=f'➡ {next_station}', callback_data='forward'))
+    markup.add(InlineKeyboardButton(text='🏛 Выйти в город', callback_data='city'))
+
+    if line != 2 and line != 0:
+        message = await call.message.answer_photo(MAP, caption=f'<i>Станция <b>{place}</b>\n{desc}</i>', reply_markup = markup)
+    else:
+        message = await call.message.answer_photo(MAP, caption=f'<i>Остановочный пункт <b>{place}</b>\n{desc}</i>', reply_markup = markup)
+    await asyncio.sleep(ticket_time)
+
+    with contextlib.suppress(Exception):
+        await message.delete()
+        

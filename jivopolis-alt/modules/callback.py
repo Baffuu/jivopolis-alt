@@ -284,6 +284,10 @@ async def callback_handler(call: CallbackQuery):
                         "t-v-ZHivopolis-11-21</i>" 
                     )
                 )
+            case "metro":
+                await metro(call)
+            case "proceed_metro":
+                await proceed_metro(call)
             case _:
                 return await call.answer('♿️ 404: команда не найдена.', show_alert=True)
     except TypeError as e:

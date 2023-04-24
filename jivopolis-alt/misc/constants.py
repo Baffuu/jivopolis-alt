@@ -27,3 +27,5 @@ SLOTMACHINE_TEXT = [
 ERROR_MESSAGE = "<b>🪼 ERROR:</b> <i> {} </i>"
 
 TIME_EMOJIS = ["🕐", "🕑", "🕒", "🕓", "🕔", "🕕", "🕖", "🕗", "🕘", "🕙", "🕚", "🕛","🕜", "🕝", "🕞", "🕟", "🕠", "🕡", "🕢", "🕣", "🕤", "🕥", "🕦", "🕧"]
+
+MAP = 'https://telegra.ph/file/d8e0fbd1a975625a86713.jpg'

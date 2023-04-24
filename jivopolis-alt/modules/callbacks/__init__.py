@@ -35,7 +35,8 @@ from .traveling import (
     bus, railway_station, 
     taxi_next, taxi_previous,
     car_menu_next, car_menu_previous, 
-    metro)
+    metro, proceed_metro,
+    metrocall)
 
 from .clans import (
     create_clan, joinclan, leaveclan

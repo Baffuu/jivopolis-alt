@@ -1,8 +1,7 @@
 import contextlib
 from ..database.functions import cur, conn, check, get_mask, get_link
 from aiogram.types import InlineQuery, InlineQueryResultArticle, InputTextMessageContent, InlineKeyboardButton, InlineKeyboardMarkup, ChosenInlineResult
-from aiogram import Dispatcher
-from .. import logger, bot
+from .. import logger, bot, Dispatcher
 from ..misc import OfficialChats
 
 async def inline_mode(query: InlineQuery):

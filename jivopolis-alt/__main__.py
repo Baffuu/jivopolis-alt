@@ -1,6 +1,3 @@
-from .database.sqlitedb import connect_database
-connect_database()
-
 import asyncio
 import time
 
@@ -18,6 +15,7 @@ async def update():
     from ._world_updater import update
     await update()
     scheduler.enter(60, 1, update)
+    logger.debug("World was updated")
 
 
 async def on_startup(dp : Dispatcher):
@@ -32,7 +30,7 @@ async def on_startup(dp : Dispatcher):
             logger.warning('log chat not found :(\nprobably you forgot to add bot to the chat')
 
         logger.info('bot connected')
-
+        
         from . import modules
         await modules.register_all(dp)
         #await asyncio.gather(asyncio.create_task(update_loop()))
@@ -61,7 +59,6 @@ def start_polling(reset_webhook=None, timeout=20, relax=0.1, fast=True,
         )
         scheduler.enter(10, 1, update)
         loop.create_task(scheduler.run())
-        logger.info("updater setted up, everything starting in a while...")
         loop.run_forever()
     except (KeyboardInterrupt, SystemExit):
         #loop.stop()
