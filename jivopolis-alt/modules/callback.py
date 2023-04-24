@@ -275,6 +275,15 @@ async def callback_handler(call: CallbackQuery):
             case "user_settings": 
                 await user_settings(call)
             
+            case "help":
+                await call.message.answer(
+                    (
+                        "<i><b>&#10067; Справка по игре в Живополис</b>\n"
+                        "Команды бота: https://telegra.ph/Komandy-ZHivopol"
+                        "isa-11-21\nКак играть: https://telegra.ph/Kak-igra"
+                        "t-v-ZHivopolis-11-21</i>" 
+                    )
+                )
             case _:
                 return await call.answer('♿️ 404: команда не найдена.', show_alert=True)
     except TypeError as e:
