@@ -305,15 +305,15 @@ async def delivery_menu(call: CallbackQuery) -> None:
     sellitems = ['snegovik', 'snow', 'tree', 'fairy', 'santa_claus', 'mrs_claus', 
     'firework', 'fireworks', 'confetti', 'clown', 'ghost', 'alien', 'robot', 
     'shit', 'moyai', 'pasta', 'rice', 'sushi']
-
+    _sellitems = []
     for item in sellitems:
         try:
-            sellitems.append(buybutton(item, tip = 15))
+            _sellitems.append(buybutton(item, tip = 15))
         except ValueError:
             logger.error(f'no such item: {item}')
     
-    sellitems = list(filter(lambda item: item is not None, sellitems))
-    sellitems = list(filter(lambda item: type(item) is InlineKeyboardButton, sellitems))
+    sellitems = list(filter(lambda item: item is not None, _sellitems))
+    sellitems = list(filter(lambda item: type(item) is InlineKeyboardButton, _sellitems))
 
     markup.add(*sellitems)
     markup.add(InlineKeyboardMarkup(text='◀ Назад', callback_data='cancel_action'))
@@ -728,3 +728,16 @@ async def bus(call: CallbackQuery) -> None:
             InlineKeyboardButton(text='🍔 Кафетерий "Енот Кебаб"', callback_data='enot_kebab'))
 
     await call.message.answer('<i>Пора уже валить отсюда...</i>', reply_markup=markup)
+
+async def metro(call: CallbackQuery):
+    user_id = call.from_user.id
+    token = cur.execute(f'SELECT metrotoken FROM userdata WHERE user_id={user_id}').fetchone()[0]
+    line = cur.execute(f'SELECT line FROM userdata WHERE user_id={user_id}').fetchone()[0]
+
+    markup = InlineKeyboardMarkup()
+    if line not in [1, 2]:
+        markup.add(InlineKeyboardButton(text='🚇 Пройти на станцию', callback_data='proceed_metro'))
+    else:
+        markup.add(InlineKeyboardButton(text='🚉 Пройти на платформу', callback_data='proceed_metro'))
+    markup.add(InlineKeyboardButton(text='🎫 Покупка жетонов', callback_data='metro_tickets'))
+    await call.message.answer(f'<i>У вас <b>{token}</b> жетонов</i>', reply_markup=markup)

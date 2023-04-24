@@ -696,10 +696,10 @@ ITEMS = {
     ),
 
 
-    'metro': Item(
+    'metrotoken': Item(
         emoji='🚇',
-        name='metro',
-        ru_name='Metro',
+        name='metrotoken',
+        ru_name='Метро',
         cost=10,
         type='token'
     ),

@@ -145,7 +145,7 @@ def create_userdata() -> None:
     shaved_ice      INTEGER         DEFAULT 0               NOT NULL,
     ice_cream       INTEGER         DEFAULT 0               NOT NULL,
     stethoscope     INTEGER         DEFAULT 0               NOT NULL,
-    metro           INTEGER         DEFAULT 0               NOT NULL,
+    metrotoken      INTEGER         DEFAULT 0               NOT NULL,
     traintoken      INTEGER         DEFAULT 0               NOT NULL,
     phone           INTEGER         DEFAULT 0               NOT NULL,
     troleytoken     INTEGER         DEFAULT 0               NOT NULL,
