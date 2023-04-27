@@ -13,14 +13,19 @@ def connect_database() -> None:
     global conn, cur
     conn = sqlite3.connect('database.db', check_same_thread=False)
     cur = conn.cursor()
-    
+
     if conn:
-        create_userdata()
-        create_globaldata()
-        create_clandata()
-        create_cryptodata()
-        return logger.success('database connected')
+        return _connect_tables()
     return logger.critical('database is not connected')
+
+
+def _connect_tables():
+    create_userdata()
+    create_globaldata()
+    create_clandata()
+    create_cryptodata()
+    create_marketplace()
+    return logger.success('database connected')
 
 
 def create_userdata() -> None:
@@ -202,6 +207,19 @@ def create_cryptodata() -> None:
         value INTEGER DEFAULT 5 NOT NULL,
         bought INTEGER DEFAULT 0 NOT NULL,
         sold INTEGER DEFAULT 0 NOT NULL
+    )
+    """)
+
+
+def create_marketplace() -> None:
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS 
+    marketplace(
+        id INTEGER PRIMARY KEY,
+        type TEXT NOT NULL,
+        seller_id INTEGER NOT NULL,
+        put_up_date DATETIME,
+        cost INTEGER NOT NULL
     )
     """)
 
