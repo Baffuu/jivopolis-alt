@@ -2336,30 +2336,6 @@ morebus = 20
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
                 await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
-        if call.data == 'back':
-            try:
-                a = call.from_user.id
-                cursor.execute('SELECT line FROM userdata WHERE user_id=?', (a,))
-                line = cursor.fetchone()[0]
-                if line==0 or line==2:
-                    if not isinterval('citylines'):
-                        await call.answer('Посадка ещё не началась. Поезд приедет через {0}'.format(remaining('citylines')), show_alert = True)
-                        return
-                else:
-                    if not isinterval('metro'):
-                        await call.answer('Посадка ещё не началась. Поезд приедет через {0}'.format(remaining('metro')), show_alert = True)
-                        return
-                cursor.execute('SELECT place FROM userdata WHERE user_id=?', (a,))
-                station = cursor.fetchone()[0]
-                ind = metro[line].index(station)
-                if line!=2 and line!=0:
-                    await main.send_photo(call.message.chat.id, 'https://te.legra.ph/file/5104458f4a5bab9259a18.jpg', caption='<i>Следующая станция: <b>{0}</b>. Осторожно, двери закрываются!</i>'.format(metro[line][ind-1]), parse_mode='html')
-                else:
-                    await main.send_photo(call.message.chat.id, 'https://telegra.ph/file/06103228e0d120bacf852.jpg', caption='<i>Посадка завершена. Следующий остановочный пункт: <b>{0}</b></i>'.format(metro[line][ind-1]), parse_mode='html')
-                await main.delete_message(call.message.chat.id, call.message.message_id)
-                await asyncio.sleep(random.randint(less, more))
-                await tostation(user=a, station=metro[line][ind-1])
-                await metrocall(call)
             except Exception as e:
                 await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
                 await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )

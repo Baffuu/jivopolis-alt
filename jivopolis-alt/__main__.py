@@ -3,7 +3,7 @@ import time
 
 from typing import Optional, List
 
-from . import bot, dp, Dispatcher, logger
+from . import bot, dp, Dispatcher, logger, tglog
 from ._async_sched import AsyncScheduler
 from .filters import  RequireBetaFilter
 
@@ -24,8 +24,7 @@ async def on_startup(dp : Dispatcher):
         cur.execute("INSERT INTO globaldata(treasury) VALUES (0)")
         conn.commit()
         try:
-            from .misc import OfficialChats
-            await bot.send_message(OfficialChats.LOGCHAT, '<i>🔰 Бот успешно перезагружен. #restart</i>')
+            await tglog('🔰 Бот успешно перезагружен.', "#restart")
         except ChatNotFound:
             logger.warning('log chat not found :(\nprobably you forgot to add bot to the chat')
 
@@ -42,7 +41,7 @@ async def on_shutdown(dp: Dispatcher):
     from .database.sqlitedb import cur, conn
     cur.close(); conn.close()
     from .misc import OfficialChats
-    await bot.send_message(OfficialChats.LOGCHAT, '<i>❗️ Выключаюсь… #shutdown</i>')
+    await tglog('❗️ Выключаюсь…', '#shutdown')
 
 
 def start_polling(reset_webhook=None, timeout=20, relax=0.1, fast=True,

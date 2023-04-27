@@ -1,7 +1,7 @@
 import contextlib
-from ..database.functions import cur, conn, check, get_mask, get_link
+from ..database.functions import cur, conn, check, get_embedded_link, get_link, get_mask
 from aiogram.types import InlineQuery, InlineQueryResultArticle, InputTextMessageContent, InlineKeyboardButton, InlineKeyboardMarkup, ChosenInlineResult
-from .. import logger, bot, Dispatcher
+from .. import logger, bot, Dispatcher, tglog
 from ..misc import OfficialChats
 
 async def inline_mode(query: InlineQuery):
@@ -101,21 +101,18 @@ async def on_pressed_inline_query(inline: ChosenInlineResult):
     with contextlib.suppress(Exception):
         user_id = inline.from_user.id
         nick = cur.execute(f"SELECT nickname FROM userdata WHERE user_id={user_id}").fetchone()[0]
-        mask = get_mask(user_id)
         data = inline.query
 
         if data.startswith('$'):
             money = int(data[1:])
             if money > 0:
                 cur.execute(f"UPDATE userdata SET balance = balance - {money} WHERE user_id={user_id}"); conn.commit()
-                await bot.send_message(
-                    OfficialChats.LOGCHAT, 
-                    f'<i>&#128178; <b><a href="{await get_link(user_id)}">{mask}{nick}</a></b> выписал чек на <b>${money}</b>\n#user_check</i>'
+                await tglog(
+                    f'<i>&#128178; <b>{await get_embedded_link(user_id)}</b> выписал чек на <b>${money}</b>', '#user_check</i>'
                 )
             if money < 0:
-                await bot.send_message(
-                    OfficialChats.LOGCHAT, 
-                    f'<i>&#128178; <b><a href="{await get_link(user_id)}">{mask}{nick}</a></b> выставил счёт на <b>${money}</b>\n#user_bill</i>'
+                await tglog(
+                    f'<i>&#128178; <b>{await get_embedded_link(user_id)}</b> выставил счёт на <b>${money}</b>', '#user_bill</i>'
                 )
     
 

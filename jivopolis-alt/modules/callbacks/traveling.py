@@ -801,20 +801,22 @@ async def metrocall(call: CallbackQuery):
         markup.add(InlineKeyboardButton(text=f'➡ {next_station}', callback_data='metro_forward'))
     markup.add(InlineKeyboardButton(text='🏛 Выйти в город', callback_data='city'))
 
-    if line != 2 and line != 0:
-        message = await call.message.answer_photo(MAP, caption=f'<i>Станция <b>{place}</b>\n{desc}</i>', reply_markup = markup)
-    else:
+    if line in [2, 0]:
         message = await call.message.answer_photo(MAP, caption=f'<i>Остановочный пункт <b>{place}</b>\n{desc}</i>', reply_markup = markup)
+    else:
+        message = await call.message.answer_photo(MAP, caption=f'<i>Станция <b>{place}</b>\n{desc}</i>', reply_markup = markup)
     await asyncio.sleep(ticket_time)
 
     with contextlib.suppress(Exception):
         await message.delete()
         
 async def tostation(user_id, station, line=None):
-    if not line:
-        lines = cur.execute(f'SELECT line FROM userdata WHERE user_id={user_id}').fetchone()[0]
-    else:
-        lines = line
+    lines = (
+        line
+        or cur.execute(
+            f'SELECT line FROM userdata WHERE user_id={user_id}'
+        ).fetchone()[0]
+    )
     cur.execute(f'UPDATE userdata SET place = {station} WHERE user_id={user_id}')
     conn.commit()
     cur.execute(f'UPDATE userdata SET line = {lines} WHERE user_id={user_id}')
@@ -827,11 +829,10 @@ async def metro_forward(call: CallbackQuery):
     if line in [0, 2]:
         if not isinterval('citylines'):
             return await call.answer(f"Посадка ещё не началась. Поезд приедет через {remaining('citylines')}", show_alert = True)
-            
-    else:
-        if not isinterval('metro'):
-            return await call.answer(f"Посадка ещё не началась. Поезд приедет через {remaining('metro')}", show_alert = True)
-            
+
+    elif not isinterval('metro'):
+        return await call.answer(f"Посадка ещё не началась. Поезд приедет через {remaining('metro')}", show_alert = True)
+
     place = cur.execute(f'SELECT current_place FROM userdata WHERE user_id={user_id}').fetchone()[0]
     index = METRO[line].index(place)
 
@@ -840,14 +841,50 @@ async def metro_forward(call: CallbackQuery):
             'https://te.legra.ph/file/5104458f4a5bab9259a18.jpg', 
             f'<i>Следующая станция: <b>{METRO[line][index+1]}</b>. Осторожно, двери закрываются!</i>'
         )
-        
+
     else:
         await call.message.answer_photo(
             'https://telegra.ph/file/06103228e0d120bacf852.jpg', 
             f'<i>Посадка завершена. Следующий остановочный пункт: <b>{METRO[line][index+1]}</b></i>'
         )
+        
+    with contextlib.suppress(Exception):
+        await call.message.delete()
+    await asyncio.sleep(random.randint(METRO_LESS, METRO_MORE))
+    await tostation(user_id, station=METRO[line][index+1])
+    await metrocall(call)
+
+async def metro_back(call: CallbackQuery):            
+    user_id = call.from_user.id
+    line = cur.execute(f"SELECT line FROM userdata WHERE user_id={user_id}").fetchone()[0]
+
+    if line in [0, 2] and not isinterval('citylines'):
+        return await call.answer(
+            f"Посадка ещё не началась. Поезд приедет через {remaining('citylines')}", 
+            show_alert = True
+        )
+            
+    elif not isinterval('metro'):
+        return await call.answer(
+            f"Посадка ещё не началась. Поезд приедет через {remaining('metro')}", 
+            show_alert = True
+        )
+        
+    place = cur.execute(f'SELECT current_place FROM userdata WHERE user_id={user_id}')
+    index = METRO[line].index(place)
+
+    if line not in [2, 0]:
+        await call.message.answer_photo(
+            'https://te.legra.ph/file/5104458f4a5bab9259a18.jpg', 
+            caption=f'<i>Следующая станция: <b>{METRO[line][index-1]}</b>. Осторожно, двери закрываются!</i>'
+        )
+    else:
+        await call.message.answer_photo(
+            'https://telegra.ph/file/06103228e0d120bacf852.jpg', 
+            caption=f'<i>Посадка завершена. Следующий остановочный пункт: <b>{METRO[line][index-1]}</b></i>'
+        )
 
     await call.message.delete()
     await asyncio.sleep(random.randint(METRO_LESS, METRO_MORE))
-    await tostation(user_id, station=METRO[line][index+1])
+    await tostation(user_id, station=METRO[line][index-1])
     await metrocall(call)
