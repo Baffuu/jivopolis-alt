@@ -5,6 +5,7 @@ from ..database.functions import check
 
 from ..misc import OfficialChats
 
+from ..utils import check_user
 from aiogram.types import (
     ChatMemberAdministrator, ChatMemberOwner, 
     InlineKeyboardMarkup, InlineKeyboardButton, 
@@ -14,7 +15,8 @@ from aiogram.types import (
 async def get_photo_messages(message: Message):
     user_id = message.from_user.id
     chat_id = message.chat.id
-
+    if not await check_user(user_id):
+        return
     await check(message.from_user.id, message.chat.id)
 
     try:

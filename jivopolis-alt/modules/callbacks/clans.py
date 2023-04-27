@@ -1,5 +1,5 @@
 import contextlib
-from ... import bot
+from ... import bot, tglog
 from ...misc import OfficialChats
 
 from ...misc import get_mask, get_link, get_embedded_link
@@ -37,9 +37,8 @@ async def create_clan(call: CallbackQuery) -> None:
         else:
             raise
 
-    await bot.send_message(
-        OfficialChats.LOGCHAT, 
-        text=(
+    await tglog(
+        (
             f"🏘 #new_clan | {await get_embedded_link(user_id)}"
             f" создал новый клан: <a href='{link}'>{call.message.chat.title}</a>. <code>[{chat_id}]</code>"
         )

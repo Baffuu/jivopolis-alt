@@ -3,7 +3,8 @@ import random
 import asyncio
 
 from ... import logger, bot
-from ...misc import get_building, get_link, get_mask, get_embedded_link, ITEMS
+from ...misc import get_building, get_embedded_link, ITEMS
+from ...misc.misc import remaining, isinterval
 from ...misc.config import METRO, LINES, linez, ticket_time
 from ...misc.constants import MINIMUM_CAR_LEVEL, MAXIMUM_DRIVE_MENU_SLOTS, MAP
 from ...database.sqlitedb import cur, conn
@@ -24,6 +25,9 @@ from aiogram.types import (
     CallbackQuery
 )
 from aiogram.utils.exceptions import MessageCantBeDeleted, MessageToDeleteNotFound
+
+METRO_LESS = 15
+METRO_MORE = 30
 
 async def city(message: Message, user_id: str):
     # sourcery skip: low-code-quality
@@ -791,10 +795,10 @@ async def metrocall(call: CallbackQuery):
         desc += '<b>Конечная.</b> Поезд дальше не идёт, просьба пассажиров выйти из вагонов'
     if index > 0:
         previous_station = METRO[line][index-1]
-        markup.add(InlineKeyboardButton(text=f'⬅ {previous_station}', callback_data='back'))
+        markup.add(InlineKeyboardButton(text=f'⬅ {previous_station}', callback_data='metro_back'))
     if index < len(METRO[line])-1:
         next_station = METRO[line][index+1]
-        markup.add(InlineKeyboardButton(text=f'➡ {next_station}', callback_data='forward'))
+        markup.add(InlineKeyboardButton(text=f'➡ {next_station}', callback_data='metro_forward'))
     markup.add(InlineKeyboardButton(text='🏛 Выйти в город', callback_data='city'))
 
     if line != 2 and line != 0:
@@ -806,3 +810,44 @@ async def metrocall(call: CallbackQuery):
     with contextlib.suppress(Exception):
         await message.delete()
         
+async def tostation(user_id, station, line=None):
+    if not line:
+        lines = cur.execute(f'SELECT line FROM userdata WHERE user_id={user_id}').fetchone()[0]
+    else:
+        lines = line
+    cur.execute(f'UPDATE userdata SET place = {station} WHERE user_id={user_id}')
+    conn.commit()
+    cur.execute(f'UPDATE userdata SET line = {lines} WHERE user_id={user_id}')
+    conn.commit()
+
+async def metro_forward(call: CallbackQuery):
+    user_id = call.from_user.id
+    line = cur.execute(f'SELECT line FROM userdata WHERE user_id={user_id}').fetchone()[0]
+
+    if line in [0, 2]:
+        if not isinterval('citylines'):
+            return await call.answer(f"Посадка ещё не началась. Поезд приедет через {remaining('citylines')}", show_alert = True)
+            
+    else:
+        if not isinterval('metro'):
+            return await call.answer(f"Посадка ещё не началась. Поезд приедет через {remaining('metro')}", show_alert = True)
+            
+    place = cur.execute(f'SELECT current_place FROM userdata WHERE user_id={user_id}').fetchone()[0]
+    index = METRO[line].index(place)
+
+    if line not in [0, 2]:
+        await call.message.answer_photo(
+            'https://te.legra.ph/file/5104458f4a5bab9259a18.jpg', 
+            f'<i>Следующая станция: <b>{METRO[line][index+1]}</b>. Осторожно, двери закрываются!</i>'
+        )
+        
+    else:
+        await call.message.answer_photo(
+            'https://telegra.ph/file/06103228e0d120bacf852.jpg', 
+            f'<i>Посадка завершена. Следующий остановочный пункт: <b>{METRO[line][index+1]}</b></i>'
+        )
+
+    await call.message.delete()
+    await asyncio.sleep(random.randint(METRO_LESS, METRO_MORE))
+    await tostation(user_id, station=METRO[line][index+1])
+    await metrocall(call)

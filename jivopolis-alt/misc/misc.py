@@ -67,19 +67,20 @@ def current_time() -> float:
     return (datetime.now()-datetime.fromtimestamp(0)).total_seconds()
 
 
-def isinterval(type) -> bool: #it's useless now :(
+def isinterval(type) -> bool:
     now = current_time()
     interval = intervals[type]
     return now // 1 % interval[0] <= interval[1]
 
 
-def remaining(type) -> str: #it's useless now :(
+def remaining(type) -> str:
     '''remaining time due {something} happends, in minutes and seconds.'''
     now = current_time()
     interval = intervals[type][0]
     seconds = int(interval - now//1%interval)
     min, sec = divmod(seconds, 60)
-    return f'{(min) if min != 0 else ""}{1}'.format('{0} секунд'.format(sec) if sec != 0 else '')
+    sec = sec if sec != 0 else ''
+    return f'{min if min != 0 else ""}{f"{sec} секунд"}'
 
 
 def get_time_units(time: float) -> Tuple[int, int, int]:

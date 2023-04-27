@@ -6,7 +6,7 @@ from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, R
 from aiogram.utils.exceptions import ChatNotFound, BotBlocked, CantInitiateConversation
 from aiogram.utils.deep_linking import decode_payload
 
-from .. import bot, Dispatcher, logger
+from .. import bot, Dispatcher, logger, tglog
 from ..filters import  RequireBetaFilter
 from ..misc import get_mask, get_link, current_time, OfficialChats, constants
 from ..database.sqlitedb import cur, conn, insert_user
@@ -353,9 +353,8 @@ async def create_acc(user: User, chat_id: int) -> None:
             return await bot.send_message(chat_id, "<i>😨 Вы уже создавали аккаунт</i>", reply_markup = ReplyKeyboardRemove())
             
         insert_user(user)
-        await bot.send_message(
-            OfficialChats.LOGCHAT, 
-            f"<i><b><a href=\"{await get_link(user.id)}\">{user.full_name}</a></b> присоединился(-ась) к Живополису\n#user_signup</i>"
+        await tglog(
+            f"<i><b><a href=\"{await get_link(user.id)}\">{user.full_name}</a></b> присоединился(-ась) к Живополису", "#user_signup"
         )
         
         cur.execute(f"UPDATE userdata SET register_date = {current_time()} WHERE user_id={user.id}")

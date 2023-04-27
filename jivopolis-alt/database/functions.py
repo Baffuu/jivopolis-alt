@@ -4,7 +4,7 @@ from datetime import datetime
 from math import floor
 from typing import Union
 
-from .. import bot, logger, get_embedded_link, get_link, get_mask
+from .. import bot, logger, get_embedded_link, get_link, get_mask, tglog
 from ..utils import user_exists
 from ..misc import current_time, OfficialChats, ITEMS, constants
 from ..misc.config import limeteds, leveldesc, levelrange, ach, ADMINS, clanitems
@@ -47,13 +47,13 @@ async def check(user_id: int, chat_id: str) -> None:
 
         lvl = cur.execute(f"SELECT level FROM userdata WHERE user_id={user_id}").fetchone()[0]
 
-        if lvl > len(levelrange): 
+        if lvl >= len(levelrange)-1: 
             return
         elif xp >= levelrange[lvl] and xp < levelrange[lvl+1]:
             return
         for i in levelrange: 
             if xp >= i and levelrange.index(i) >= len(levelrange) - 1 and lvl != levelrange.index(i):
-                cur.execute(f"UPDATE userdata SET lvl={levelrange.index(i)} WHERE user_id={user_id}")
+                cur.execute(f"UPDATE userdata SET level={levelrange.index(i)} WHERE user_id={user_id}")
                 conn.commit()
                 try:
                     return await bot.send_message(user_id, f"<i>&#128305; Теперь ваш уровень в Живополисе: <b>{levelrange.index(i)}</b>\nПоздравляем!\n{leveldesc[levelrange.index(i)]}</i>")
@@ -69,10 +69,7 @@ async def check(user_id: int, chat_id: str) -> None:
                     return await bot.send_message(chat_id, f"<i>&#128305; Теперь ваш уровень в Живополисе: <b>{levelrange.index(i)}</b>\nПоздравляем!\n{leveldesc[levelrange.index(i)]}</i>")
 
     except Exception as e:
-        if "NoneType" in str(e):
-            logger.exception(e)
-        else:
-            return logger.exception(e)    
+        logger.exception(e)
 
 
 async def itemdata(user_id: int, item: str) -> Union[str, None, InlineKeyboardButton]:
@@ -217,7 +214,7 @@ async def poison(user: User, target_id: int, chat_id: int) -> None:
             cur.execute(f"UPDATE userdata SET health=health-{random_damage} WHERE user_id={target_id}")
             conn.commit()
 
-            await bot.send_message(OfficialChats.LOGCHAT, f"<i><b>{await get_embedded_link(user.id)}</b> отравил <b>{await get_embedded_link(target_id)}\"</b>.\n#user_poison</i>")
+            await tglog(f"<i><b>{await get_embedded_link(user.id)}</b> отравил <b>{await get_embedded_link(target_id)}\"</b></i>.", "#user_poison")
             await bot.send_message(chat_id, f"<i>🧪 Вы отравили <b>{await get_embedded_link(target_id)}</b></i>")
             await bot.send_message(target_id, f"<i>🧪 Вас отравил <b>{await get_embedded_link(user.id)}</b></i>")
         else:
@@ -237,47 +234,36 @@ async def shoot(user_id: int, target_id: int, chat_id: int) -> None: #function i
     
     :param chat_id (int) - Telegram Chat ID of chat in which messages will be sent 
     '''
-    try:
-        my_health = cur.execute(f"SELECT health FROM userdata WHERE user_id={user_id}")
+    gun = cur.execute(f"SELECT gun FROM userdata WHERE user_id={user_id}").fetchone()
 
-        if my_health < 0:
-            return await bot.send_message(chat_id, "<i>&#9760; Вы умерли. Попросите кого-нибудь вас воскресить</i>")
+    if gun < 1:
+        return await bot.send_message(chat_id, "<i>&#10060; У вас нет пистолета. Возможно, это к лучшему</i>")
 
-        gun = cur.execute(f"SELECT gun FROM userdata WHERE user_id={user_id}").fetchone()
+    cur.execute(f"UPDATE userdata SET gun=gun-1 WHERE user_id={user_id}")
+    conn.commit()
 
-        if gun < 1:
-            return await bot.send_message(chat_id, "<i>&#10060; У вас нет пистолета. Возможно, это к лучшему</i>")
-
-        health = cur.execute(f"SELECT health FROM userdata WHERE user_id={target_id}").fetchone()
-
-        cur.execute(f"UPDATE userdata SET gun=gun-1 WHERE user_id={user_id}")
+    rand = random.randint(100,200)
+    if random.choice([True, False]):
+        cur.execute(f"UPDATE userdata SET health=health-{rand} WHERE user_id={target_id}")
         conn.commit()
 
-        nick = cur.execute(f"SELECT nick FROM userdata WHERE user_id={user_id}").fetchone()
-        mask = get_mask(user_id)
-        target_nick = cur.execute(f"SELECT nick FROM userdata WHERE user_id={target_id}").fetchone()
-        target_mask = get_mask(target_id)
+        await tglog(f"<i><b>{await get_embedded_link(user_id)}</a></b> застрелил <b>{await get_embedded_link(target_id)}</b>", "#user_gunshoot")
+        await bot.send_message(chat_id, f"<i>&#128299; Вы застрелили <b>{await get_embedded_link(target_id)}</b></i>")
+        await bot.send_message(target_id, f"<i>&#128299; Вас застрелил <b>{await get_embedded_link(user_id)}</b></i>")
 
-        rand = random.randint(100,200)
-        if done := random.choice([True, False]):
-            cur.execute(f"UPDATE userdata SET health=health-{rand} WHERE user_id={target_id}")
+        if random.choice([True, False]):
+            cur.execute(f"UPDATE userdata SET prison={current_time() + 1200} WHERE user_id={user_id}")
             conn.commit()
 
-            await bot.send_message(OfficialChats.LOGCHAT, f"<i><b><a href=\"{await get_link(user_id)}\">{mask}{nick}</a></b> застрелил <b><a href=\"{await get_link(user_id)}\">{target_mask}{target_nick}</a></b>\n#user_gunshoot</i>")
-            await bot.send_message(chat_id, f"<i>&#128299; Вы застрелили <b><a href=\"{await get_link(target_id)}\">{target_mask}{target_nick}</a></b></i>")
-            await bot.send_message(target_id, f"<i>&#128299; Вас застрелил <b><a href=\"{await get_link(user_id)}\">{mask}{nick}</a></b></i>")
-
-            if prison := random.choice([True, False]):
-                cur.execute(f"UPDATE userdata SET prison={current_time() + 1200} WHERE user_id={user_id}")
-                conn.commit()
-
-                await bot.send_message(chat_id, f"<i>&#128110; Господин <b><a href=\"{await get_link(user_id)}\">{mask}{nick}</a></b>, вы задержаны за убийство огнестрельным оружием. Пройдёмте в отделение.\n\nВы были арестованы на <b>20 минут</b></i>")
+            await bot.send_message(
+                chat_id, 
+                (
+                    f"<i>&#128110; Господин <b>{await get_embedded_link(target_id)}</b>, вы задержаны за убийство огнестрельным оружием. "
+                    "Пройдёмте в отделение.\n\nВы были арестованы на <b>20 минут</b></i>"
+                )
+            )
         else:
             await bot.send_message(chat_id, f"<i>&#10060; Вы выстрелили мимо. Возможно, это к лучшему.\nПистолет потрачен зря</i>")
-
-    except Exception as e:
-        await bot.send_message(chat_id, "&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>")
-        await bot.send_message(chat_id, f"<i><b>Текст ошибки: </b>{e}</i>")
 
 
 async def achieve(user_id: int, chat_id : int, achievement: str) -> None: #todo new ACHIEVEMENTS
@@ -410,15 +396,14 @@ async def profile(user_id: int, message: Message, called: bool = False):
 
     if profile_type == "private" and user_id != message.from_user.id and not called:
         return await message.answer(f"🚫 <i><b>{await get_embedded_link(user_id)}</b> скрыл свой профиль</i>")
-
+    clan_id = cur.execute(f"SELECT clan_id FROM userdata WHERE user_id={user_id}").fetchone()[0]
     balance, inviter, description, xp, rank, health, level, lastseen, photo, register_date,\
-    clan_id, clan_type, clan_link, clan_name = await _get_everything(user_id)
+    clan_id, clan_type, clan_link, clan_name = await _get_everything(user_id, clan_id)
 
     if health < 0:
         health = "<b>мёртв</b>"
-    clan_id = cur.execute(f"SELECT clan_id FROM userdata WHERE user_id={user_id}").fetchone()[0]
 
-    markup = InlineKeyboardMarkup()
+    markup = InlineKeyboardMarkup(row_width=2)
 
     if (message.chat.type == "private" and message.from_user.id == user_id) or called:
         markup = _add_setting_buttons(markup)
@@ -448,7 +433,8 @@ def _add_setting_buttons(markup):
             InlineKeyboardButton(
                 text="🖇 Реферальная ссылка", 
                 callback_data="my_reflink"
-            ),
+            )
+    ).add(
             InlineKeyboardButton(
                 text="👥 Привлечённые пользователи", 
                 callback_data="refusers"
@@ -456,7 +442,7 @@ def _add_setting_buttons(markup):
         )
     return markup
 
-async def _get_everything(user_id):
+async def _get_everything(user_id, clan_id):
     balance = cur.execute(f"SELECT balance FROM userdata WHERE user_id={user_id}").fetchone()[0]
     invited_by = cur.execute(f"SELECT inviter_id FROM userdata WHERE user_id={user_id}").fetchone()[0]
     inviter = f"\n📎 Пригласивший пользователь: <b>{await get_embedded_link(invited_by)}</b>" if invited_by != 0 else ''
@@ -571,7 +557,8 @@ def _get_clan(clan_id):
         clan_type = cur.execute(f"SElECT clan_type FROM clandata WHERE clan_id={clan_id}").fetchone()[0]
         clan_link = cur.execute(f"SELECT link FROM clandata WHERE clan_id={clan_id}").fetchone()[0]
         clan_name = cur.execute(f"SELECT clan_name FROM clandata WHERE clan_id={clan_id}").fetchone()[0]
-    return clan_id,clan_type,clan_link,clan_name
+        return clan_id, clan_type, clan_link, clan_name
+    return None, None, None, None
 
 def _get_rank_name(rank):
     match (rank):

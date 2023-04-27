@@ -18,6 +18,8 @@ async def put_mask_off(call: CallbackQuery, user_id: int, anon: bool = False) ->
     if mask := cur.execute(
         f"SELECT mask FROM userdata WHERE user_id={user_id}"
     ).fetchone()[0]:
+        if mask is None:
+            return
         for item in ITEMS:
             if ITEMS[item].emoji == mask:
                 mask = item
@@ -29,7 +31,7 @@ async def put_mask_off(call: CallbackQuery, user_id: int, anon: bool = False) ->
         conn.commit()
 
         if not anon:
-            return call.answer("🦹🏼 Ваша маска снята.", show_alert=True)
+            return await call.answer("🦹🏼 Ваша маска снята.", show_alert=True)
 
 
 async def put_mask_on(call: CallbackQuery, item: str) -> None:

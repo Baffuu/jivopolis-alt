@@ -234,7 +234,7 @@ capitals = [
 ach = [[], [], [], [], [], [], [], []]
 
 ACHIEVEMENTS = \
-    {   #achievement: name, description, [reward: money, XP], db slot
+    {   #achievement: description, [reward: money, XP]
         'first_jackpot': [''],
         'masquerade': ['&#128122; Маскарад', 'Наденьте любую маску', [10, 4], 'masquerade'],
     }

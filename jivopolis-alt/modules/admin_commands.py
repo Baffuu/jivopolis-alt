@@ -110,13 +110,16 @@ async def globan_cmd(message: Message) -> None:
         user_nick = 'user'
         cur.execute(f"INSERT INTO userdata(user_id, nickname, login_id) VALUES ({args}, 'banned_user', \"{encode_payload(args)}\"")
         await bot.send_message(message.chat.id, f'👨‍🔬 Аккаунт <a href ="tg://user?id={args}>пользователя</a> насильно создан. | <a href="tg://user?id={message.from_user.id}>{admin_nick}</a>')
-        await bot.send_message(OfficialChats.LOGCHAT, f'👨‍🔬 Аккаунт <a href ="tg://user?id={args}>пользователя</a> насильно создан. | <a href="tg://user?id={message.from_user.id}>{admin_nick}</a>')
+        await tglog(
+            f'👨‍🔬 Аккаунт <a href ="tg://user?id={args}">пользователя</a> насильно создан. | <a href="tg://user?id={message.from_user.id}>{admin_nick}</a>',
+            "#account_created_by_admin"
+        )
 
     cur.execute(f"UPDATE userdata SET is_banned=True WHERE user_id={args}")
     conn.commit()
 
     await bot.send_message(message.chat.id, f'🥷 <a href="{await get_link(args)}">{user_nick}</a> [<code>id: {args}</code>] был успешно забанен. | <a href = "{await get_link(message.from_user.id)}">{admin_nick}</a>')
-    await bot.send_message(OfficialChats.LOGCHAT, f'🥷 <a href="{await get_link(args)}">{user_nick}</a> [<code>id: {args}</code>] был успешно забанен. | <a href = "{await get_link(message.from_user.id)}">{admin_nick}</a>')
+    await tglog(f'🥷 <a href="{await get_link(args)}">{user_nick}</a> [<code>id: {args}</code>] был успешно забанен. | <a href = "{await get_link(message.from_user.id)}">{admin_nick}</a>', "#globan")
 
 
 async def getall_cmd(message: Message) -> None:
