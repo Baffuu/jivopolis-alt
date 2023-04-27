@@ -292,6 +292,8 @@ async def callback_handler(call: CallbackQuery):
                 await metro_forward(call)
             case "metro_back":
                 await metro_back(call)
+            case "transfer":
+                await transfer_metro(call)
             case _:
                 return await call.answer('♿️ 404: команда не найдена.', show_alert=True)
     except TypeError as e:

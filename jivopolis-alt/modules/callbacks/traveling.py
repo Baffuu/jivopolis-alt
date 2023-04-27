@@ -817,7 +817,7 @@ async def tostation(user_id, station, line=None):
             f'SELECT line FROM userdata WHERE user_id={user_id}'
         ).fetchone()[0]
     )
-    cur.execute(f'UPDATE userdata SET place = {station} WHERE user_id={user_id}')
+    cur.execute(f'UPDATE userdata SET place = \"{station}\" WHERE user_id={user_id}')
     conn.commit()
     cur.execute(f'UPDATE userdata SET line = {lines} WHERE user_id={user_id}')
     conn.commit()
@@ -847,7 +847,7 @@ async def metro_forward(call: CallbackQuery):
             'https://telegra.ph/file/06103228e0d120bacf852.jpg', 
             f'<i>Посадка завершена. Следующий остановочный пункт: <b>{METRO[line][index+1]}</b></i>'
         )
-        
+
     with contextlib.suppress(Exception):
         await call.message.delete()
     await asyncio.sleep(random.randint(METRO_LESS, METRO_MORE))
@@ -888,3 +888,14 @@ async def metro_back(call: CallbackQuery):
     await asyncio.sleep(random.randint(METRO_LESS, METRO_MORE))
     await tostation(user_id, station=METRO[line][index-1])
     await metrocall(call)
+
+async def transfer_metro(call: CallbackQuery):
+    user_id = call.from_user.id
+
+    cur.execute(f'UPDATE userdata SET line={_transfer(user_id)} WHERE user_id={user_id}')
+    conn.commit()
+
+    await metrocall(call)
+
+    with contextlib.suppress(Exception):
+        await call.message.delete()

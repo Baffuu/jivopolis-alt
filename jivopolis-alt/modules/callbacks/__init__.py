@@ -37,7 +37,7 @@ from .traveling import (
     car_menu_next, car_menu_previous, 
     metro, proceed_metro,
     metrocall, metro_forward, 
-    metro_back
+    metro_back, transfer_metro
 )
 
 from .clans import (
