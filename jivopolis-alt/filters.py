@@ -6,8 +6,11 @@ from aiogram.types import Message
 
 class  RequireBetaFilter(BoundFilter):
     def __init__(self, *args, **kwargs):
-        self.is_beta = True
+        self.is_beta = False
 
     async def check(self, event) -> bool:
-        rank = cur.execute(f"SELECT rank FROM userdata WHERE user_id={event.from_user.id}").fetchone()[0]
-        return rank > BETATEST_MINIMUM_RANK if self.is_beta else True
+        try:
+            rank = cur.execute(f"SELECT rank FROM userdata WHERE user_id={event.from_user.id}").fetchone()[0]
+            return rank > BETATEST_MINIMUM_RANK if self.is_beta else True
+        except TypeError:
+            return not self.is_beta
