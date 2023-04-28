@@ -1464,35 +1464,6 @@ morebus = 20
                 await call.message.answer('<i>&#9989; Ваш аккаунт был безвозвратно удалён из базы данных</i>' );
             except Exception as e:
                 await call.message.answer('<i><b>&#10060; Ошибка: </b>{0}</i>'.format(e) );
-        if call.data=='change_rasa':
-            markup = types.InlineKeyboardMarkup()
-            markup.add(
-                types.InlineKeyboardButton(text='🐱 Кот', callback_data='cat'), 
-                types.InlineKeyboardButton(text='🐶 Собака', callback_data='dog'),
-                types.InlineKeyboardButton(text='🦝 Енот', callback_data='raccoon'),
-                types.InlineKeyboardButton(text='🐸 Жаба', callback_data='frog'),
-                types.InlineKeyboardButton(text='🦉 Сова', callback_data='owl'))
-            await call.message.answer('<i>Выберите расу</i>', reply_markup = markup )
-        if call.data == 'cat':
-            await call.answer(text='Отличный выбор!')
-            await setrasa(call.message, call.from_user, '&#128049', 0)
-            await main.delete_message(call.message.chat.id, call.message.message_id)
-        if call.data == 'dog':
-            await call.answer(text='Отличный выбор!')
-            await setrasa(call.message, call.from_user, '&#128054', 1)
-            await main.delete_message(call.message.chat.id, call.message.message_id)
-        if call.data == 'raccoon':
-            await call.answer(text='Отличный выбор!')
-            await setrasa(call.message, call.from_user, '&#129437', 2)
-            await main.delete_message(call.message.chat.id, call.message.message_id)
-        if call.data == 'frog':
-            await call.answer(text='Отличный выбор!')
-            await setrasa(call.message, call.from_user, '&#128056;', 3)
-            await main.delete_message(call.message.chat.id, call.message.message_id)
-        if call.data == 'owl':
-            await call.answer(text='Отличный выбор!')
-            await setrasa(call.message, call.from_user, '&#129417;', 4)
-            await main.delete_message(call.message.chat.id, call.message.message_id)
         if call.data == 'set_user_profile':
             try:
                 markup = types.InlineKeyboardMarkup()

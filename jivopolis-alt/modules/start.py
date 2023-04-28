@@ -1,8 +1,10 @@
 import random
 import sqlite3
 import contextlib
+from collections import namedtuple
 
-from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardRemove, User, ChatType, Chat
+from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardRemove, User, ChatType, Chat, CallbackQuery
+from aiogram.dispatcher.filters import Text
 from aiogram.utils.exceptions import ChatNotFound, BotBlocked, CantInitiateConversation
 from aiogram.utils.deep_linking import decode_payload
 
@@ -12,6 +14,41 @@ from ..misc import get_mask, get_link, current_time, OfficialChats, constants
 from ..database.sqlitedb import cur, conn, insert_user
 from ..database.functions import check, profile
 from ..misc.config import levelrange, hellos, randomtext, SUPPORT_LINK
+
+Rase = namedtuple('Rase', ['emoji', 'ru_name', 'name', 'image_url'])
+
+RASES = {
+    "🐱": Rase(
+        emoji="🐱",
+        name="cat",
+        ru_name="Кот",
+        image_url="https://telegra.ph/file/e088cc301adede07db382.jpg"
+    ),
+    "🐶": Rase(
+        emoji="🐶",
+        name="dog",
+        ru_name="Собака",
+        image_url="https://telegra.ph/file/ae98cd7c2cad60f6fdcd1.jpg"
+    ),
+    "🦝": Rase(
+        emoji="🦝",
+        name="raccoon",
+        ru_name="Енот",
+        image_url="https://telegra.ph/file/3f3cbfb04a7d1c39bb849.jpg"
+    ),
+    "🐸": Rase(
+        emoji="🐸",
+        name="frog",
+        ru_name="Лягушка",
+        image_url="https://telegra.ph/file/debe702d527967f9afd9a.jpg"
+    ),
+    "🦉": Rase(
+        emoji="🦉",
+        name="owl",
+        ru_name="Сова",
+        image_url="https://telegra.ph/file/5a07905d42444f2294418.jpg"
+    )
+}
 
 class StartCommand():
 
@@ -175,8 +212,7 @@ class StartCommand():
                 ),
             )
 
-        await message.answer("<i>👾 Вы успешно зарегистрировались в живополисе! Добро пожаловать :3</i>", reply_markup = ReplyKeyboardRemove())
-        await self._private_start(user.id)
+        await self._continue_registration(user.id)
 
 
     async def _register_refferal(self, message: Message, ref_id: int):
@@ -337,39 +373,78 @@ class StartCommand():
                 )
             )
         )
+    
+
+    async def on_sign_up(self, call: CallbackQuery):
+        if call.data == 'sign_up':
+            await self.sign_up(call.from_user)
+        else:
+            await self.sign_up_refferal(call.message, call.from_user, call.data[8:])
 
 
-async def create_acc(user: User, chat_id: int) -> None:
-    '''
-    Shell for inserting user into database 
+    async def _rase_selection_menu(self, user_id: int):
+        markup = InlineKeyboardMarkup(row_width=2)
+        values = list(RASES.values())
 
-    :param user (aiogram.types.User) - user that will be inserted
-    :param chat_id (int) - chat id in which messages will be sent 
-    ''' 
-    try: 
+        markup.add(
+            InlineKeyboardButton(text='🐱 Кот', callback_data='set_rase_🐱'), 
+            InlineKeyboardButton(text='🐶 Собака', callback_data='set_rase_🐶'),
+            InlineKeyboardButton(text='🦝 Енот', callback_data='set_rase_🦝'),
+            InlineKeyboardButton(text='🐸 Жаба', callback_data='set_rase_🐸'),
+            InlineKeyboardButton(text='🦉 Сова', callback_data='set_rase_🦉')
+        )
+        await bot.send_message(user_id, '<i>Выберите расу</i>', reply_markup = markup)
+        
+
+    async def set_rase(self, call: CallbackQuery):
+        user_id = call.from_user.id
+
+        rase = call.data.replace("set_rase_", "")
+        rase = RASES[rase]
+        print(rase, rase.emoji, rase.ru_name, rase.image_url)
+        await call.answer('Отличный выбор!')
+
+        cur.execute(f'UPDATE userdata SET rase = \"{rase}\" WHERE user_id = {user_id}')
+        conn.commit()
+
+        await bot.send_photo(user_id, rase.image_url, f"Ты: {rase.emoji} {rase.ru_name}")
+        await call.message.delete()
+        await self._continue_registration(user_id)
+        
+
+    async def _continue_registration(self, user_id: int):
+        rase = cur.execute(f"SELECT rase FROM userdata WHERE user_id={user_id}").fetchone()[0]
+        if not rase or rase == "🤔":
+            return await self._rase_selection_menu(user_id)
+        await bot.send_message(user_id, "<i>👾 Вы успешно зарегистрировались в живополисе! Добро пожаловать :3</i>", reply_markup = ReplyKeyboardRemove())
+        await self._private_start(user_id)
+
+
+    async def sign_up(self, user: User) -> None:
+        '''
+        Shell for inserting user into database 
+
+        :param user (aiogram.types.User) - user that will be inserted
+        :param chat_id (int) - chat id in which messages will be sent 
+        ''' 
         count = cur.execute(f"SELECT COUNT(*) FROM userdata WHERE user_id={user.id}").fetchone()[0]
 
         if count > 0:
-            return await bot.send_message(chat_id, "<i>😨 Вы уже создавали аккаунт</i>", reply_markup = ReplyKeyboardRemove())
-            
+            return await bot.send_message(user.id, "<i>😨 Вы уже создавали аккаунт</i>", reply_markup = ReplyKeyboardRemove())
+
         insert_user(user)
         await tglog(
-            f"<i><b><a href=\"{await get_link(user.id)}\">{user.full_name}</a></b> присоединился(-ась) к Живополису", "#user_signup"
+            f"<b><a href=\"{await get_link(user.id)}\">{user.full_name}</a></b> присоединился(-ась) к Живополису", 
+            "#user_signup"
         )
-        
+
         cur.execute(f"UPDATE userdata SET register_date = {current_time()} WHERE user_id={user.id}")
         conn.commit()
-
-    except Exception as e:
-        if str(e).startswith("UNIQUE constraint failed: "):
-            logger.exception(e)
-            await bot.send_message(chat_id, "<i>😨 Вы уже создавали аккаунт</i>", reply_markup = ReplyKeyboardRemove())
-        else:
-            logger.exception(e)
-        return
     
-    return await bot.send_message(chat_id, "<i>👾 Вы успешно зарегистрировались в живополисе! Добро пожаловать :3</i>", reply_markup = ReplyKeyboardRemove())
+        await self._continue_registration(user.id)
 
 
 def register(dp: Dispatcher):
     dp.register_message_handler(StartCommand().start_cmd,  RequireBetaFilter(), commands=['start'])
+    dp.register_callback_query_handler(StartCommand().on_sign_up, RequireBetaFilter(), Text(startswith="sign_up"))
+    dp.register_callback_query_handler(StartCommand().set_rase, RequireBetaFilter(), Text(startswith="set_rase_"))

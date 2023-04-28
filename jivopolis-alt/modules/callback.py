@@ -1,6 +1,6 @@
 import contextlib
 
-from .start import StartCommand, create_acc
+from .start import StartCommand
 from .callbacks import *
 from .. import bot, logger, Dispatcher
 from ..misc import ITEMS
@@ -29,8 +29,10 @@ async def callback_handler(call: CallbackQuery):
             )
             return await bot.send_message(
                 call.from_user.id, 
-                ("🧛🏻‍♂️ Вы были забаненны в боте. Если вы считаете, что это - ошибка, "
-                f"обратитесь в <a href='{SUPPORT_LINK}'>поддержку</a>."),
+                (
+                    "🧛🏻‍♂️ Вы были забаненны в боте. Если вы считаете, что это - ошибка, "
+                    f"обратитесь в <a href='{SUPPORT_LINK}'>поддержку</a>."
+                ),
             )
 
         if health < 0:
@@ -39,11 +41,6 @@ async def callback_handler(call: CallbackQuery):
                 return await call.message.answer('<i>☠️ Вы умерли. Попросите кого-нибудь вас воскресить</i>' )
 
         match (call.data):
-            case sign if sign.startswith('sign_up'):
-                if call.data == 'sign_up':
-                    await create_acc(call.from_user, call.from_user.id)
-                else:
-                    await StartCommand().sign_up_refferal(call.message, call.from_user, call.data[8:])
             case 'chats':
                 await chats(call.from_user.id, call.message)
             case 'adminpanel':
@@ -298,12 +295,6 @@ async def callback_handler(call: CallbackQuery):
                 return await call.answer('♿️ 404: команда не найдена.', show_alert=True)
     except TypeError as e:
         logger.exception(e)
-        if call.data.startswith('sign_up'):
-            if call.data == 'sign_up':
-                await create_acc(call.from_user, call.from_user.id)
-            else:
-                await StartCommand().sign_up_refferal(call.message, call.from_user, call.data[8:])
-            return await call.answer('☁️ Записываем ваши данные…')
         return await call.answer("🧑‍🎨 Сэр, у вас нет аккаунта в живополисе. Прежде чем использовать любые комманды вам нужно зарегистрироваться.", show_alert=True)
     except Exception as e:
         logger.exception(e)

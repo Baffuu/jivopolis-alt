@@ -22,11 +22,11 @@ async def register_all(dp: Dispatcher) -> None:
         - stickers handler
         - commands for admins
     """
+    start.register(dp)
     callback.register(dp)
     admin_commands.register(dp)
     inline_bot.register(dp)
     on_photo_sent.register(dp)
-    start.register(dp)
     stickers_handler.register(dp)
     emoji_handler.register(dp)
     from . import new_member_handler

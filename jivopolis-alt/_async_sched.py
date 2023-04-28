@@ -9,7 +9,7 @@ from itertools import count
 import threading
 from time import monotonic as _time
 
-__all__ = ["scheduler"]
+__all__ = ["AsyncScheduler"]
 
 Event = namedtuple('Event', 'time, priority, sequence, action, argument, kwargs')
 Event.time.__doc__ = ('''Numeric type compatible with the return value of the
