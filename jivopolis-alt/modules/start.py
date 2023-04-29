@@ -1,6 +1,7 @@
 import random
 import sqlite3
 import contextlib
+from time import time
 from collections import namedtuple
 
 from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardRemove, User, ChatType, Chat, CallbackQuery
@@ -11,7 +12,7 @@ from aiogram.utils.deep_linking import decode_payload
 from .. import bot, Dispatcher, logger, tglog
 from ..filters import  RequireBetaFilter
 from ..misc import get_mask, get_link, current_time, OfficialChats, constants
-from ..database.sqlitedb import cur, conn, insert_user
+from ..database import cur, conn, insert_user
 from ..database.functions import check, profile
 from ..misc.config import levelrange, hellos, randomtext, SUPPORT_LINK
 
@@ -96,7 +97,7 @@ class StartCommand():
             return await bot.send_message(chat_id, constants.ERROR_MESSAGE.format(e))
     
     
-    async def _private_start(self, user_id: str) -> None:
+    async def _private_start(self, user_id: str, give_text = False) -> None:
         nick = cur.execute(f"SELECT nickname FROM userdata WHERE user_id = {user_id}").fetchone()[0]
 
 
@@ -133,7 +134,7 @@ class StartCommand():
             f"\n❤️ Здоровье: <b>{health}</b>"
             f"\n{leaders}</i>"
         )
-
+        if give_text: return text
         await bot.send_message(user_id, f"<i>{random.choice(randomtext)}</i>")
         await bot.send_message(
             user_id, 
@@ -145,11 +146,17 @@ class StartCommand():
     def _start_buttons(self, user_id) -> list[InlineKeyboardButton]:
         rank = cur.execute(f"SELECT rank FROM userdata WHERE user_id = {user_id}").fetchone()[0]
         phone = cur.execute(f"SELECT phone FROM userdata WHERE user_id = {user_id}").fetchone()[0]
+        mailbox = cur.select("last_box", _from="userdata").where(user_id=user_id).one()
+        box = cur.select("lootbox", _from="userdata").where(user_id=user_id).one()
+        
+        mailbox = mailbox - time() > 60 * 60 * 24
+        box = mailbox or box > 0
+        box = random.choice(["📬", "📫"]) if box else random.choice(["📪", "📭"])
 
         buttons = [
                 InlineKeyboardButton(text="💼 Инвентарь", callback_data="inventory"), 
                 InlineKeyboardButton(text="🏛 Город", callback_data="city"),
-                InlineKeyboardButton(text="📬 Почтовый ящик", callback_data="mailbox"), 
+                InlineKeyboardButton(text=f"{box} Почтовый ящик", callback_data="mailbox"), 
                 InlineKeyboardButton(text="💬 Чаты", callback_data="chats"),
                 InlineKeyboardButton(text="🤵 Работать", callback_data="work"),
                 InlineKeyboardButton(text="🃏 Профиль", callback_data="profile"),
