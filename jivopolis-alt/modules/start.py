@@ -401,10 +401,9 @@ class StartCommand():
 
         rase = call.data.replace("set_rase_", "")
         rase = RASES[rase]
-        print(rase, rase.emoji, rase.ru_name, rase.image_url)
         await call.answer('Отличный выбор!')
 
-        cur.execute(f'UPDATE userdata SET rase = \"{rase}\" WHERE user_id = {user_id}')
+        cur.execute(f'UPDATE userdata SET rase = \"{rase.emoji}\" WHERE user_id = {user_id}')
         conn.commit()
 
         await bot.send_photo(user_id, rase.image_url, f"Ты: {rase.emoji} {rase.ru_name}")

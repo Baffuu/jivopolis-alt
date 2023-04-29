@@ -40,5 +40,6 @@ async def update_crypto():
         logger.info("Cryptocurrency value was changed succesfully")
         await tglog("📊 Курс криптовалюты изменился.", "#crypto_change")
 
+
 async def get_crypto() -> list:
     return [item for item in ITEMS if ITEMS[item].type == "crypto"]

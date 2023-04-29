@@ -3,17 +3,17 @@ import time
 
 from typing import Optional, List
 
-from . import bot, dp, Dispatcher, logger, tglog
+from . import dp, Dispatcher, logger, tglog
 from ._async_sched import AsyncScheduler
-from .filters import  RequireBetaFilter
+from ._world_updater import update as _update
+from .filters import RequireBetaFilter
 
 from aiogram.utils.executor import Executor, _setup_callbacks
 from aiogram.utils.exceptions import ChatNotFound
 
 
 async def update():
-    from ._world_updater import update
-    await update()
+    await _update()
     scheduler.enter(60, 1, update)
     logger.debug("World was updated")
 
@@ -26,9 +26,9 @@ async def on_startup(dp : Dispatcher):
         try:
             await tglog('🔰 Бот успешно перезагружен.', "#restart")
         except ChatNotFound:
-            logger.warning('log chat not found :(\nprobably you forgot to add bot to the chat')
+            logger.warning('Log chat not found :(\nprobably you forgot to add bot to the chat')
 
-        logger.info('bot connected')
+        logger.info('Bot connected')
         
         from . import modules
         await modules.register_all(dp)
@@ -40,7 +40,6 @@ async def on_startup(dp : Dispatcher):
 async def on_shutdown(dp: Dispatcher):
     from .database.sqlitedb import cur, conn
     cur.close(); conn.close()
-    from .misc import OfficialChats
     await tglog('❗️ Выключаюсь…', '#shutdown')
 
 
@@ -64,7 +63,7 @@ def start_polling(reset_webhook=None, timeout=20, relax=0.1, fast=True,
         pass
     finally:
         loop.run_until_complete(executor._shutdown_polling())
-        logger.warning("long-polling ended succesfully.")
+        logger.warning("Long-polling ended succesfully.")
 
 
 if __name__ == '__main__':

@@ -15,7 +15,8 @@ def connect_database() -> None:
     cur = conn.cursor()
 
     if conn:
-        return _connect_tables()
+        _connect_tables()
+        return conn, cur
     return logger.critical('database is not connected')
 
 
@@ -25,7 +26,7 @@ def _connect_tables():
     create_clandata()
     create_cryptodata()
     create_marketplace()
-    return logger.success('database connected')
+    return logger.success('Database connected')
 
 
 def create_userdata() -> None:

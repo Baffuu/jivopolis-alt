@@ -291,6 +291,13 @@ async def callback_handler(call: CallbackQuery):
                 await metro_back(call)
             case "transfer":
                 await transfer_metro(call)
+
+            case "work":
+                await call.answer("🏗 Ведутся строительные работы. Ожидайте открытия вашей работы в ближайших обновлениях.", True)
+            case "airport":
+                await airport(call)
+            case _flight if _flight.startswith("flight"):
+                await flight(call)
             case _:
                 return await call.answer('♿️ 404: команда не найдена.', show_alert=True)
     except TypeError as e:

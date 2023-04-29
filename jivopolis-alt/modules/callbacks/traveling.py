@@ -5,7 +5,7 @@ import asyncio
 from ... import logger, bot
 from ...misc import get_building, get_embedded_link, ITEMS
 from ...misc.misc import remaining, isinterval
-from ...misc.config import METRO, LINES, linez, ticket_time
+from ...misc.config import METRO, LINES, linez, ticket_time, aircost
 from ...misc.constants import MINIMUM_CAR_LEVEL, MAXIMUM_DRIVE_MENU_SLOTS, MAP
 from ...database.sqlitedb import cur, conn
 from ...database.functions import buy, buybutton, itemdata
@@ -28,6 +28,8 @@ from aiogram.utils.exceptions import MessageCantBeDeleted, MessageToDeleteNotFou
 
 METRO_LESS = 15
 METRO_MORE = 30
+AIRPLANE_LESS = 90
+AIRPLANE_MORE = 120
 
 async def city(message: Message, user_id: str):
     # sourcery skip: low-code-quality
@@ -192,8 +194,8 @@ async def car_menu_next(call: CallbackQuery, menu: int):
     places = []
     for place in CITY:
         if place == current_place:
-            places.append(InlineKeyboardButton(f"📍 {place}", callback_data=f'taxicost_{place}'))         
-        places.append(InlineKeyboardButton(f"🏘️ {place}", callback_data=f'taxicost_{place}')) 
+            places.append(InlineKeyboardButton(f"📍 {place}", callback_data=f'goto_on_car_{place}'))         
+        places.append(InlineKeyboardButton(f"🏘️ {place}", callback_data=f'goto_on_car_{place}')) 
     
     for index, place in enumerate(places):
         if index < MAXIMUM_DRIVE_MENU_SLOTS * menu:
@@ -224,9 +226,9 @@ async def car_menu_previous(call: CallbackQuery, menu: int):
     places = []
     for place in CITY:
         if place == current_place:
-            places.append(InlineKeyboardButton(f"📍 {place}", callback_data=f'taxicost_{place}'))
+            places.append(InlineKeyboardButton(f"📍 {place}", callback_data=f'goto_on_car_{place}'))
             continue         
-        places.append(InlineKeyboardButton(f"🏘️ {place}", callback_data=f'taxicost_{place}')) 
+        places.append(InlineKeyboardButton(f"🏘️ {place}", callback_data=f'goto_on_car_{place}')) 
     
     for index, place in enumerate(places):
         if index > MAXIMUM_DRIVE_MENU_SLOTS * menu:
@@ -246,12 +248,6 @@ async def car_menu_previous(call: CallbackQuery, menu: int):
         await message.delete()
 
 async def goto_on_car(call: CallbackQuery) -> None:
-    '''
-    Callback for clan joining
-    
-    :param call - callback:
-    :param user_id:
-    '''
     user_id = call.from_user.id
     car = cur.execute(f"SELECT red_car+blue_car FROM userdata WHERE user_id = {user_id}").fetchone()[0]
 
@@ -810,14 +806,14 @@ async def metrocall(call: CallbackQuery):
     with contextlib.suppress(Exception):
         await message.delete()
         
-async def tostation(user_id, station, line=None):
+async def tostation(user_id: int | str, station: str, line: int = None):
     lines = (
         line
         or cur.execute(
             f'SELECT line FROM userdata WHERE user_id={user_id}'
         ).fetchone()[0]
     )
-    cur.execute(f'UPDATE userdata SET place = \"{station}\" WHERE user_id={user_id}')
+    cur.execute(f'UPDATE userdata SET current_place = \"{station}\" WHERE user_id={user_id}')
     conn.commit()
     cur.execute(f'UPDATE userdata SET line = {lines} WHERE user_id={user_id}')
     conn.commit()
@@ -899,3 +895,76 @@ async def transfer_metro(call: CallbackQuery):
 
     with contextlib.suppress(Exception):
         await call.message.delete()
+
+async def airport(call: CallbackQuery):
+    user_id = call.from_user.id
+    place = cur.execute(f'SELECT current_place FROM userdata WHERE user_id={user_id}').fetchone()[0]
+    markup = InlineKeyboardMarkup()
+
+    match (place):
+        case 'Аэропорт Котай':
+            airport = 'Котай'
+            markup.add(InlineKeyboardButton(text='🛫 До Национального аэропорта', callback_data='flight'))
+        case 'Национальный аэропорт':
+            airport = 'Национальный аэропорт Живополис'
+            markup.add(InlineKeyboardButton(text='🛫 До Котая', callback_data='flight'))
+        case _:
+            return
+
+    markup.add(InlineKeyboardButton(text='🏛 Выйти в город', callback_data='city'))
+    await call.message.answer(f'✈ <i>Вы находитесь в аэропорту <b>{airport}</b></i>', reply_markup = markup)
+
+async def flight(call: CallbackQuery):
+    if not isinterval('plane'):
+        return await call.answer(
+            f'Посадка ещё не началась. Самолёт прилетит через {remaining("plane")}', 
+            show_alert = True
+        )
+
+    if call.data == "flight_confirm":
+        user_id = call.from_user.id
+        balance = cur.execute(
+            f'SELECT balance FROM userdata WHERE user_id={user_id}'
+        ).fetchone()[0]
+
+        if balance <= aircost:
+            return await call.message.answer('<i>У вас недостаточно средств :(</i>')
+                    
+        place = cur.execute(f'SELECT current_place FROM userdata WHERE user_id={user_id}').fetchone()[0]
+        cur.execute(f'UPDATE userdata SET balance=balance-{aircost} WHERE user_id={user_id}')
+        conn.commit()
+
+        sleep_time = random.randint(AIRPLANE_LESS, AIRPLANE_MORE)
+
+        if place == 'Аэропорт Котай':
+            await bot.send_photo(
+                call.message.chat.id, 
+                'https://telegra.ph/file/d34459cedf14cb4b4a19a.jpg', 
+                '<i>Наш самолёт направляется к <b>Национальному аэропорту Живополис</b>. Путешествие займёт не более 2 минут. Удачного полёта!</i>' 
+            )
+            destination = 'Национальный аэропорт'
+            destline = 2
+
+        elif place == 'Национальный аэропорт':
+            await bot.send_photo(
+                call.message.chat.id, 
+                'https://telegra.ph/file/d34459cedf14cb4b4a19a.jpg', 
+                '<i>Наш самолёт направляется к <b>Аэропорту Котай</b>. Путешествие займёт не более 2 минут. Удачного полёта!</i>' 
+            )
+            destination = 'Аэропорт Котай'
+            destline = 1
+        else:
+            return
+
+        #await achieve(a, call.message.chat.id, 'flightach')
+        await asyncio.sleep(1)#sleep_time)
+        await tostation(user_id, station=destination, line=destline)
+        
+        return await airport(call)
+        
+    markup = InlineKeyboardMarkup().\
+    add(
+        InlineKeyboardButton(text='🛫 Лететь', callback_data='flight_confirm'), 
+        InlineKeyboardButton(text='🚫 Отмена', callback_data='cancel_action')
+    )
+    await call.message.answer(f'<i>🛩 Полёт на самолёте стоит <b>${aircost}</b>. Вы уверены, что хотите продолжить?</i>', reply_markup=markup)
