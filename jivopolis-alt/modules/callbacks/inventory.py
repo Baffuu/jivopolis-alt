@@ -1,15 +1,12 @@
-import random
 
-from typing import Coroutine
-from math import ceil
 from ...misc import (
     Item, ITEMS,
     lootbox_open, LOOTBOX, 
     get_time_units, current_time
 )
 from ...misc.config import limeteds
-
-from ...database.sqlitedb import cur, conn
+from ..start import StartCommand
+from ...database import cur, conn
 from ...database.functions import itemdata
 
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, Message
@@ -155,7 +152,14 @@ async def lootbox_button(user_id: int, message: Message) -> None:
         return await message.answer(LOOTBOX[price_type].format(f"{item.emoji} {item.ru_name}"))
     if callable(price):
         return await price(message.chat.id)
-    return await message.answer(LOOTBOX[price_type].format(price))
+    await message.answer(LOOTBOX[price_type].format(price))
+    start = StartCommand()
+    await message.edit_text(
+        await start._private_start(user_id, True),
+        reply_markup=InlineKeyboardMarkup(row_width=2)\
+                .add(*start._start_buttons(user_id)
+            )
+        )
 
 
 async def sellitem(call: CallbackQuery, item: str) -> None:

@@ -1,7 +1,8 @@
 import random
 import time
 from datetime import timedelta
-from .. import dp, init_ts, cur, get_embedded_link, constants
+from .emoji_handler import slot_machine
+from .. import dp, init_ts, cur, bot, get_embedded_link, constants
 from ..utils import is_allowed_nonick
 from ..database.functions import profile
 from ..misc.config import hellos
@@ -10,13 +11,29 @@ from aiogram.types import Message
 from aiogram.dispatcher.filters import Text
 from aiogram.utils.text_decorations import HtmlDecoration
 
+def contains(text: str | tuple, content: str) -> bool:
+    if type(text) in [tuple, list]:
+        items = [content.__contains__(t) for t in text]
+    else:
+        items = [content.__contains__(text)]
+    return True in items
+    
 @dp.message_handler(Text(startswith="живополис", ignore_case=True))
 async def chatbot_functions(message: Message):
     text = message.text[9:].lower()
     if text.startswith(', '): text = text[1:]
-    if text.__contains__('привет'):
-        await message.reply(f'<i>{random.choice(hellos)}</i>')
-    elif text.__contains__('как дела'):
+
+    match (text):
+        case t if 'привет' in t:
+            await message.reply(f'<i>{random.choice(hellos)}</i>')
+        case t if contains('казино', t):
+            _message = await message.answer_dice("🎰")
+            await slot_machine(_message, message.from_user.id)
+            del _message
+        case t if t.startswith(' выйди'):
+            await message.reply("😭 Мне следует уйти? Очень жаль, прощайте, друзья…")
+            await bot.leave_chat(message.chat.id)
+    if text.__contains__('как дела'):
         await message.reply(f"<i>{random.choice(['Нормально', 'Нормально. А у тебя?', 'Типа того', 'Норм', 'Ну, нормас типа'])}</i>")
     elif text.__contains__('или'):
         await message.reply(f'<i>{random.choice(text.split(" или "))}</i>')
@@ -24,9 +41,9 @@ async def chatbot_functions(message: Message):
         await profile_alias_text(message, False)
     elif text.__contains__("баланс"):
         await my_balance_text(message, False)
-    elif text.__contains__("ид") or text.__contains__("id"):
+    elif contains(["ид", "id"], text):
         await user_id_text(message, False)
-    elif text.__contains__("ping") or text.__contains__("пинг"):
+    elif contains(["ping", "пинг"], text):
         await ping_text(message)
     elif text.__contains__("ящик"):
         await lootbox_text(message, False)
