@@ -7,7 +7,7 @@ from ...misc import get_building, get_embedded_link, ITEMS
 from ...misc.misc import remaining, isinterval
 from ...misc.config import METRO, LINES, linez, ticket_time, aircost
 from ...misc.constants import MINIMUM_CAR_LEVEL, MAXIMUM_DRIVE_MENU_SLOTS, MAP
-from ...database.sqlitedb import cur, conn
+from ...database import cur, conn
 from ...database.functions import buy, buybutton, itemdata
 
 from ...misc.config import (
@@ -961,7 +961,7 @@ async def flight(call: CallbackQuery):
         await tostation(user_id, station=destination, line=destline)
         
         return await airport(call)
-        
+
     markup = InlineKeyboardMarkup().\
     add(
         InlineKeyboardButton(text='🛫 Лететь', callback_data='flight_confirm'), 

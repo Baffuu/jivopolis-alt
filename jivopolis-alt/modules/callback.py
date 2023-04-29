@@ -5,7 +5,8 @@ from .callbacks import *
 from .. import bot, logger, Dispatcher
 from ..misc import ITEMS
 from ..misc.config import SUPPORT_LINK, villages, trains
-from ..database.functions import check, cur, profile, eat
+from ..database import cur
+from ..database.functions import check, profile, eat
 from ..filters import RequireBetaFilter
 
 from aiogram.types import CallbackQuery

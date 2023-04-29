@@ -7,7 +7,7 @@ from ...misc.config import (
 )
 from ...misc import OfficialChats, ITEMS
 
-from ...database.sqlitedb import cur, conn
+from ...database import cur, conn
 
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
 

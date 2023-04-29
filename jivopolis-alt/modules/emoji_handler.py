@@ -4,7 +4,7 @@ import asyncio
 from time import time
 from ..filters import  RequireBetaFilter
 from ..database.functions import check, earn
-from ..database.sqlitedb import cur, conn
+from ..database import cur, conn
 from ..misc import OfficialChats, get_embedded_link
 from ..misc.constants import SLOTMACHINE_TOKEN_COST, ERROR_MESSAGE
 from .. import bot, dp, Dispatcher, logger
@@ -59,10 +59,10 @@ async def dice_handler(message: Message):
         logger.exception(e)
         await message.answer(ERROR_MESSAGE.format(e))
 
-async def slot_machine(message: Message):
+async def slot_machine(message: Message, user_id: int | None = None):
     if message.forward_date: #to avoid dupe with forward
-        return 
-    user_id = message.from_user.id
+        return
+    user_id = user_id or message.from_user.id
     chat_id = message.chat.id 
 
     balance = cur.execute(f"SELECT balance FROM userdata WHERE user_id={user_id}").fetchone()[0]
@@ -79,7 +79,7 @@ async def slot_machine(message: Message):
     conn.commit()
 
     value = message.dice.value
-    
+
     match (value):
         case 1: # bar bar bar
             rand = random.randint(50,75)
@@ -111,7 +111,6 @@ async def _slots_win(user_id, chat_id = None, winner: int = 0, price: int = None
     if treasury < price:
         await bot.send_message(chat_id, WIN_MESSAGE[0])
         return False
-
     cur.execute(f"UPDATE clandata SET clan_balance=clan_balance+{price//4} WHERE clan_id={OfficialChats.CASINOCHAT}")
     cur.execute(f"UPDATE globaldata SET treasury=treasury-{price+price//4}")
     conn.commit()

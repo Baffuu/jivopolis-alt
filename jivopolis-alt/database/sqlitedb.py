@@ -1,18 +1,21 @@
 import sqlite3
 
-from .. import logger, bot 
+from typing import Tuple
+
+from .. import logger, bot
+from ..fyCursor import fyCursor 
 
 from aiogram.types import User, Chat
 from aiogram.utils.deep_linking import encode_payload
 
 
-def connect_database() -> None:
+def connect_database() -> Tuple[sqlite3.Connection, sqlite3.Cursor]:
     """
     connects database, creates tables if they does not exists, etc.
     """
     global conn, cur
     conn = sqlite3.connect('database.db', check_same_thread=False)
-    cur = conn.cursor()
+    cur = conn.cursor(fyCursor)
 
     if conn:
         _connect_tables()

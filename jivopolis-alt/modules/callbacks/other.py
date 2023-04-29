@@ -4,7 +4,7 @@ from math import floor
 from ..callbacks.traveling import state_balance
 
 from ... import bot, logger
-from ...database.sqlitedb import cur, conn
+from ...database import cur, conn
 from ...misc.config import limeteds
 from ...misc import get_mask, get_link, OfficialChats, get_embedded_link, ITEMS
 

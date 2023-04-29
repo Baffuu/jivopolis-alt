@@ -1,7 +1,7 @@
 from ... import bot
 from ...misc import ITEMS
 
-from ...database.sqlitedb import cur, conn
+from ...database import cur, conn
 
 from aiogram.utils.deep_linking import get_start_link
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery

@@ -1,4 +1,4 @@
-from ...database.sqlitedb import cur, conn
+from ...database import cur, conn
 from ...database.functions import buybutton
 
 from aiogram.types import CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton

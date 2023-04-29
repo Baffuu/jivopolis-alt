@@ -4,11 +4,11 @@ from datetime import datetime
 from math import floor
 from typing import Union
 
+from . import cur, conn, insert_user
 from .. import bot, logger, get_embedded_link, get_link, get_mask, tglog
 from ..utils import user_exists
 from ..misc import current_time, OfficialChats, ITEMS, constants
 from ..misc.config import limeteds, leveldesc, levelrange, ach, ADMINS, clanitems
-from ..database.sqlitedb import cur, conn, insert_user
 
 from aiogram.types import (
     InlineKeyboardButton,

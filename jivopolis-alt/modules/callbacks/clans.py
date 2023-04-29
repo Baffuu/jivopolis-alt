@@ -1,9 +1,8 @@
 import contextlib
 from ... import bot, tglog
-from ...misc import OfficialChats
 
-from ...misc import get_mask, get_link, get_embedded_link
-from ...database.sqlitedb import cur, conn, insert_clan
+from ...misc import get_embedded_link
+from ...database import cur, conn, insert_clan
 from ..start import StartCommand
 
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup

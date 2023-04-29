@@ -4,7 +4,7 @@ import sqlite3
 from ..filters import  RequireBetaFilter
 from .. import bot, dp, Dispatcher, logger
 
-from ..database.sqlitedb import cur, conn
+from ..database import cur, conn
 from ..database.functions import get_link
 
 from ..misc import OfficialChats, ITEMS, get_embedded_link, tglog
