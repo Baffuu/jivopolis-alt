@@ -180,7 +180,7 @@ async def economics(call: CallbackQuery) -> None:
             "SELECT clan_balance FROM clandata WHERE clan_id=-1001395868701"
         ).fetchone()[0]
     except TypeError:
-        logger.warning('game club does not exists or bot not added to the chat')
+        logger.warning('Game club does not exists or bot not added to the chat')
         balance = 0
     lastfill = cur.execute("SELECT lastfill FROM globaldata").fetchone()[0]
     coef = 1.5 #todo cur.execute("SELECT coef FROM globaldata").fetchone()[0]
@@ -202,7 +202,9 @@ async def economics(call: CallbackQuery) -> None:
     crypto_text = ''
     for c in crypto:
         value = cur.execute(f"SELECT value FROM cryptodata WHERE crypto='{c}'").fetchone()[0]
-        crypto_text += f"{ITEMS[c].emoji}{ITEMS[c].name} - ${value}\n"
+        prev_value = cur.execute(f"SELECT prev_value FROM cryptodata WHERE crypto=\"{c}\"").fetchone()[0]
+        crypto_text += f"{ITEMS[c].emoji}{ITEMS[c].name} - ${value}"
+        crypto_text += f" 🔻 {(value-prev_value)/100}%\n" if value-prev_value < 0 else f" 🔼 +{(value-prev_value)/100}%\n"
     return await call.message.answer(
         (
             f"<i><b>📊 ЭКОНОМИКА ЖИВОПОЛИСА</b>\n"

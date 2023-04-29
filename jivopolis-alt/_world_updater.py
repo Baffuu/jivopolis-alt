@@ -27,7 +27,7 @@ async def refill_market():
 async def update_crypto():
     lastupdate = time.time() - cur.execute("SELECT lastcrypto FROM globaldata").fetchone()[0]
     crypto = await get_crypto()
-    if lastupdate >= 3600*4: # 4 hours
+    if lastupdate >= 60 * 60 * 4: # 4 hours
         for c in crypto:
             with contextlib.suppress(TypeError):
                 crv = cur.execute(f"SELECT value FROM cryptodata WHERE crypto=\"{c}\"").fetchone()[0]
@@ -35,6 +35,7 @@ async def update_crypto():
             if crv+change <= 5:
                 change = random.randint(0, 650)
             cur.execute(f"UPDATE cryptodata SET value = value+{change} WHERE crypto = \"{c}\"")
+            cur.execute(f"UPDATE cryptodata SET prev_value={crv} WHERE crypto=\"{c}\"")
             conn.commit()
         cur.execute(f"UPDATE globaldata SET lastcrypto={time.time()}")
         logger.info("Cryptocurrency value was changed succesfully")

@@ -207,7 +207,10 @@ def create_cryptodata() -> None:
         crypto TEXT NOT NULL,
         value INTEGER DEFAULT 5 NOT NULL,
         bought INTEGER DEFAULT 0 NOT NULL,
-        sold INTEGER DEFAULT 0 NOT NULL
+        sold INTEGER DEFAULT 0 NOT NULL,
+        prev_value INTEGER,
+        prevday_value INTEGER,
+        last_prevday DATETIME
     )
     """)
 
