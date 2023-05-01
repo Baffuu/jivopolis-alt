@@ -58,6 +58,8 @@ def start_polling(reset_webhook=None, timeout=20, relax=0.1, fast=True,
         scheduler.enter(10, 1, update)
         loop.create_task(scheduler.run())
         loop.run_forever()
+    except asyncio.TimeoutError:
+        logger.warning("TimeoutError")
     except (KeyboardInterrupt, SystemExit):
         #loop.stop()
         pass
@@ -72,6 +74,7 @@ if __name__ == '__main__':
         event_handlers=[dp.message_handlers]
     )
     scheduler = AsyncScheduler(time.time, asyncio.sleep)
-    executor = Executor(dp, skip_updates=True)
+    executor = Executor(dp) #skip_updates=True)
     _setup_callbacks(executor, on_startup, on_shutdown)
     start_polling()
+        
