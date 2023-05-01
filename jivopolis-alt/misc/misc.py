@@ -101,7 +101,7 @@ def get_building(place: str) -> InlineKeyboardButton | None:
     
     :param place:
     
-    :return aiogram.types.InlineKeyboardButton
+    :returns `aiogram.types.InlineKeyboardButton`
     '''
     match (place):
         case "Ботаническая":
@@ -144,6 +144,10 @@ def get_building(place: str) -> InlineKeyboardButton | None:
             button = InlineKeyboardButton(text="📱 Магазин техники имени Шелби", callback_data="phone_shop")
         case 'Максименка':
             button = InlineKeyboardButton(text='🧱 Строительный магазин', callback_data='building_shop')
+        case "Площадь Админов":
+            button = InlineKeyboardButton("📊 Биржа", callback_data="exchange_center")
+        case "Админская улица":
+            button = InlineKeyboardButton("☕️ Подать админам на чай", callback_data="donate")
         case _:
             return None
     return button

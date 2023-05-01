@@ -23,6 +23,7 @@ async def register_all(dp: Dispatcher) -> None:
         - commands for admins
     """
     start.register(dp)
+    from . import payments
     callback.register(dp)
     admin_commands.register(dp)
     inline_bot.register(dp)

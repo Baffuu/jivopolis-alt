@@ -1,10 +1,17 @@
 from aiogram import Bot, Dispatcher
 
-TOKEN = '6013919640:AAHd1ShmwsLvcM1x8HYiQaDNGJxZcehsOhQ'  #токен бота
- 
+import configparser
+
+config = configparser.ConfigParser()
+config.read(".config")
+config.__setattr__("altToken", config.get("alt", "token"))
+config.__setattr__("stripeTest", config.get("alt", "StripeTest"))
+
 bot = Bot(
-    token=TOKEN, 
+    token=config.altToken, 
     parse_mode='html', 
     disable_web_page_preview=True
 )
 dp = Dispatcher(bot)
+
+PPT = config.stripeTest # Payments Provider Token

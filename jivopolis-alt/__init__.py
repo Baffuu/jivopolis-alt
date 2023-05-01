@@ -1,6 +1,6 @@
 import sys
 from loguru import logger
-from .bot import bot, dp
+from .bot import bot, dp, PPT
 from aiogram import Dispatcher
 
 if sys.version_info < (3, 10, 0):

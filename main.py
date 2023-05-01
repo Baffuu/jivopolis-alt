@@ -254,20 +254,6 @@ morebus = 20
         except Exception as e:
             await call.message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
             await call.message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
-    async def setrasa(message, user, rasa, photo):
-        photos = ['https://te.legra.ph/file/e088cc301adede07db382.jpg', 'https://te.legra.ph/file/ae98cd7c2cad60f6fdcd1.jpg', 'https://te.legra.ph/file/3f3cbfb04a7d1c39bb849.jpg', 'https://te.legra.ph/file/debe702d527967f9afd9a.jpg', 'https://te.legra.ph/file/5a07905d42444f2294418.jpg']
-        try:
-            a = user.id
-            cursor.execute('UPDATE userdata SET rase = ? WHERE user_id = ?', (rasa, a,))
-            conn.commit()
-            cursor.execute('UPDATE userdata SET  = ? WHERE user_id = ?', (rasa, a,))
-            conn.commit()
-            cursor.execute('SELECT rasa FROM userdata WHERE user_id = ?', (a,))
-            ras = cursor.fetchone()[0]
-            await main.send_photo(message.chat.id, photos[photo], caption='<i>Ваша раса: <b>{0}</b></i>'.format(ras) )
-        except Exception as e:
-            await message.answer('&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>', parse_mode='html')
-            await message.answer('<i><b>Текст ошибки: </b>{0}</i>'.format(e) )
     @bot.message_handler(content_types=['text'])
     async def get_text_messages(message: types.Message):
         try:
