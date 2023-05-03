@@ -1,13 +1,12 @@
 import contextlib 
 import random
 import asyncio
-from time import time
-from ..filters import  RequireBetaFilter
+from ..filters import RequireBetaFilter
 from ..database.functions import check, earn
 from ..database import cur, conn
 from ..misc import OfficialChats, get_embedded_link
 from ..misc.constants import SLOTMACHINE_TOKEN_COST, ERROR_MESSAGE
-from .. import bot, dp, Dispatcher, logger
+from .. import bot, Dispatcher, logger
 from aiogram.types import Message, ChatType
 
 async def dice_handler(message: Message):
@@ -94,8 +93,10 @@ async def slot_machine(message: Message, user_id: int | None = None):
             is_win = False
     await asyncio.sleep(60)
     await _message.delete()
+    
     if not is_win:
         await message.delete()
+
 WIN_MESSAGE = [
     "😞 В игровом клубе живополиса не осталось денег, мы не можем выдать вам ваше вознаграждение",
     "🎏 Неплохо! Вы получаете ${}.",

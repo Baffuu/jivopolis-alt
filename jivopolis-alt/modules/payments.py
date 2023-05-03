@@ -1,6 +1,6 @@
 from .. import PPT, bot, dp, cur, tglog, get_embedded_link
 from aiogram.dispatcher.filters import Text
-from aiogram.types import LabeledPrice, ContentTypes, Message, ShippingQuery, PreCheckoutQuery, CallbackQuery
+from aiogram.types import LabeledPrice, ContentTypes, Message, PreCheckoutQuery, CallbackQuery
 
 
 # Setup prices

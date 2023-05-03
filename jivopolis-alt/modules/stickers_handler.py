@@ -1,4 +1,4 @@
-from ..database.functions import cur, conn
+from ..database import cur, conn
 from .. import bot, Dispatcher, logger
 from ..filters import  RequireBetaFilter
 from ..misc import constants

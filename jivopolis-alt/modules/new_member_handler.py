@@ -1,6 +1,6 @@
 from .. import dp, Dispatcher, bot, logger
 from ..misc.constants import BETATEST_MINIMUM_RANK
-from ..database.sqlitedb import cur
+from ..database import cur
 from aiogram.types import Message
 
 @dp.message_handler(content_types=['new_chat_members'])
