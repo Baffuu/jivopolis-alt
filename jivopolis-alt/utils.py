@@ -122,7 +122,8 @@ async def _answer_message(
     if not message and not editable:
         raise AttributeError("You should specify either message or list of messages to be edited")
     elif message and not editable:
-        return await event.answer(message, reply, **kwargs)
+        return await event.answer(message, reply=reply, **kwargs)
+        
     else:
         if not message:
             message = DEFAULT_MESSAGE
@@ -169,6 +170,7 @@ def get_trace(e: Exception):
     full_stack = traceback.format_exc().replace(
             "Traceback (most recent call last):\n", ""
         )
+
     def _code_or_error(line):
         _line = f"<code>{escape_html(line)}</code>"
         return f"\n📛 <b>{escape_html(get_full_class_name(e))}</b>" if line == e.__class__.__name__ else _line
