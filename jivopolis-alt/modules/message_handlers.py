@@ -1,28 +1,31 @@
 import random
 import time
+from .. import utils
+from typing import Iterable
 from datetime import timedelta
 from .emoji_handler import slot_machine
-from .. import dp, init_ts, cur, bot, get_embedded_link, constants
+from .. import dp, init_ts, cur, bot, tglog, get_embedded_link
 from ..utils import is_allowed_nonick
 from ..database.functions import profile
 from ..misc.config import hellos
 from .callbacks.inventory import lootbox_button
-from aiogram.types import Message
+from aiogram.types import Message, ChatType
 from aiogram.dispatcher.filters import Text
-from aiogram.utils.text_decorations import HtmlDecoration
 
-def contains(text: str | tuple, content: str) -> bool:
-    if type(text) in [tuple, list]:
+def contains(text: str | Iterable, content: str) -> bool:
+    if type(text) is str:
+        items = [content.__contains__(text)]
+    elif isinstance(text, Iterable):
         items = [content.__contains__(t) for t in text]
     else:
-        items = [content.__contains__(text)]
+        return False
     return True in items
     
 @dp.message_handler(Text(startswith="живополис", ignore_case=True))
 async def chatbot_functions(message: Message):
     text = message.text[9:].lower()
     if text.startswith(', '): text = text[1:]
-
+    if text.startswith(" "): text = text[1:]
     match (text):
         case t if 'привет' in t:
             await message.reply(f'<i>{random.choice(hellos)}</i>')
@@ -30,9 +33,12 @@ async def chatbot_functions(message: Message):
             _message = await message.answer_dice("🎰")
             await slot_machine(_message, message.from_user.id)
             del _message
-        case t if t.startswith(' выйди'):
+        case t if t.startswith('выйди'):
             await message.reply("😭 Мне следует уйти? Очень жаль, прощайте, друзья…")
             await bot.leave_chat(message.chat.id)
+        case t if t.startswith(('передать ', 'пожертвовать ')):
+            message.text = text
+            await give_money(message, False)
     if text.__contains__('как дела'):
         await message.reply(f"<i>{random.choice(['Нормально', 'Нормально. А у тебя?', 'Типа того', 'Норм', 'Ну, нормас типа'])}</i>")
     elif text.__contains__('или'):
@@ -94,3 +100,55 @@ async def lootbox_text(message: Message, nonick = True):
     if not await is_allowed_nonick(message.from_user.id) and nonick:
         return
     await lootbox_button(message.from_user.id, message)
+
+async def give_money(message: Message, nonick=True):
+    if not await is_allowed_nonick(message.from_user.id) and nonick:
+        return
+
+    amount = int(message.text.split(" ")[1])
+
+    user_id = message.from_user.id
+    chat_id = message.chat.id
+
+    if message.chat.type == ChatType.PRIVATE:
+        return
+                
+    if not message.reply_to_message:
+        return
+
+    money = cur.select("balance", _from="userdata").where(user_id=user_id).one()
+    other_id = message.reply_to_message.from_user.id
+
+    if money < amount:
+        return await utils.answer(
+            message, 
+            "💨 Недостаточно денег.",
+            italise=True, 
+            reply=True
+        )
+    elif money < 0:
+        return await utils.answer(
+            message, 
+            "😧 Нельзя передать отрицательное количество денег!", 
+            italise=True,
+            reply=True 
+        )
+    elif user_id == other_id:
+        return await utils.answer(
+            message, 
+            f'<b>{await get_embedded_link(user_id)}</b> перекладывает из кармана в карман <b>${amount}</b>',
+            italise=True
+        )
+                    
+    cur.update("userdata").add(balance=-amount).where(user_id = user_id).commit()
+    cur.update("userdata").add(balance=amount).where(user_id = other_id).commit()
+
+    await utils.answer(
+        message,
+        f'<b>{await get_embedded_link(user_id)}</b> передал <b>{await get_embedded_link(other_id)}</b> ${amount}',
+        italise=True,
+        reply=True
+    )
+    await tglog(f"{await get_embedded_link(user_id)} передал {await get_embedded_link(other_id)} ${amount}", "#moneyshare")
+
+

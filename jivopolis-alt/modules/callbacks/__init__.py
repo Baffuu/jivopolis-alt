@@ -2,7 +2,7 @@ from .other import (
     chats, my_refferals, 
     get_cheque, cellphone_menu, 
     give_state, economics, toggle_nonick,
-    user_settings
+    user_settings, exchange_center, exchange_
 )
 
 from .for_admins import (
