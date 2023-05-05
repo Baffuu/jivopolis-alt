@@ -254,9 +254,13 @@ async def user_settings(call: CallbackQuery):
 
 async def exchange_center(call: CallbackQuery) -> None:
     crypto = await get_crypto()
-    buttons = []
-    for c in crypto:
-        buttons.append(InlineKeyboardButton(f"{ITEMS[c].emoji} {ITEMS[c].ru_name}", callback_data=f"exchange_{c}"))
+    buttons = [
+        InlineKeyboardButton(
+            f"{ITEMS[c].emoji} {ITEMS[c].ru_name}",
+            callback_data=f"exchange_{c}",
+        )
+        for c in crypto
+    ]
     await call.message.answer(
         "📊 Добро пожаловать в нашу биржу! Выберите криптовалюту, которую вы бы хотели обменять.", 
         reply_markup=InlineKeyboardMarkup(row_width=2).\
