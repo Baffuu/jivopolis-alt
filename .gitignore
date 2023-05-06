@@ -7,3 +7,4 @@ main.py
 **.yaml
 **.log
 .config
+**.db-journal
