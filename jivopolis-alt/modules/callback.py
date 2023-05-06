@@ -2,7 +2,7 @@ import contextlib
 
 from .start import StartCommand
 from .callbacks import *
-from .. import bot, logger, Dispatcher
+from .. import bot, logger, Dispatcher, tglog, utils
 from ..misc import ITEMS
 from ..misc.config import SUPPORT_LINK, villages, trains
 from ..database import cur
@@ -299,12 +299,15 @@ async def callback_handler(call: CallbackQuery):
                 await airport(call)
             case _flight if _flight.startswith("flight"):
                 await flight(call)
+            
             case _:
                 return await call.answer('♿️ 404: команда не найдена.', show_alert=True)
+        raise RuntimeError
     except TypeError as e:
         logger.exception(e)
         return await call.answer("🧑‍🎨 Сэр, у вас нет аккаунта в живополисе. Прежде чем использовать любые комманды вам нужно зарегистрироваться.", show_alert=True)
     except Exception as e:
+        await tglog(f"<b>☣️ TRACEBACK:</b> \n\n{utils.get_trace(e)}", "#traceback")
         logger.exception(e)
     return await call.answer('...')
  

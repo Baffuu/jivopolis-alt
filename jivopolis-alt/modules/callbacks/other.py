@@ -204,7 +204,7 @@ async def economics(call: CallbackQuery) -> None:
         value = cur.execute(f"SELECT value FROM cryptodata WHERE crypto='{c}'").fetchone()[0]
         prev_value = cur.execute(f"SELECT prev_value FROM cryptodata WHERE crypto=\"{c}\"").fetchone()[0]
         crypto_text += f"{ITEMS[c].emoji}{ITEMS[c].name} - ${value}"
-        crypto_text += f" 🔻 {(value-prev_value)/100}%\n" if value-prev_value < 0 else f" 🔼 +{(value-prev_value)/100}%\n"
+        crypto_text += f" 🔻 {round((value-prev_value)/prev_value*100, 2)}%\n" if value-prev_value < 0 else f" 🔼 +{round((value-prev_value)/prev_value*100, 2)}%\n"
     return await call.message.answer(
         (
             f"<i><b>📊 ЭКОНОМИКА ЖИВОПОЛИСА</b>\n"
@@ -251,3 +251,22 @@ async def user_settings(call: CallbackQuery):
     )
     await call.message.answer('<i><b>Настройки</b></i>' , reply_markup = markup)
 
+
+async def exchange_center(call: CallbackQuery) -> None:
+    crypto = await get_crypto()
+    buttons = [
+        InlineKeyboardButton(
+            f"{ITEMS[c].emoji} {ITEMS[c].ru_name}",
+            callback_data=f"exchange_{c}",
+        )
+        for c in crypto
+    ]
+    await call.message.answer(
+        "📊 Добро пожаловать в нашу биржу! Выберите криптовалюту, которую вы бы хотели обменять.", 
+        reply_markup=InlineKeyboardMarkup(row_width=2).\
+            add(buttons)
+    )
+
+async def exchange_(call: CallbackQuery):
+    crypto = call.data.replace("exchange_", "")
+    cur.select("value", _from="cryptodata").where(crypto=crypto).one()

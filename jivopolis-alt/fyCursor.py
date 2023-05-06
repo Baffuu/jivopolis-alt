@@ -27,7 +27,14 @@ class fyCursor(Cursor):
         self._query = f"UPDATE {table}"
         return self
 
-
+    def add(self, **kwargs) -> 'fyCursor':
+        if not self._query:
+            raise ProgrammingError("You should use something before `add`")
+        column = list(kwargs.keys())[0]
+        value = list(kwargs.values())[0]
+        self._query += f" SET {column} = {column} + {value}"
+        return self
+        
     def set(self, **kwargs) -> 'fyCursor':
         if not self._query:
             raise ProgrammingError("You should use something before `set`")
@@ -47,7 +54,7 @@ class fyCursor(Cursor):
     def _from(self, table) -> 'fyCursor':
         self._query += f" FROM {table}"
         return self
-        
+
     def where(self, **kwargs) -> 'fyCursor':
         if not self._query:
             raise ProgrammingError("You should use something before `where`")
@@ -63,8 +70,8 @@ class fyCursor(Cursor):
         """
         if not self._query:
             raise ProgrammingError("Nothing to fetch")
-        self.execute(self._query)
-        self.connection.commit()
+        super().execute(self._query)
+        super().connection.commit()
         return self.fetchone() if one else self.fetchall()        
 
 
@@ -77,7 +84,6 @@ class fyCursor(Cursor):
 
     def commit(self) -> 'fyCursor':
         if self._query:
-            print(self._query)
-            self.execute(self._query)
-        self.connection.commit()
+            super().execute(self._query)
+        super().connection.commit()
         return self

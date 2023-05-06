@@ -1,6 +1,6 @@
 from .. import bot, Dispatcher
 
-from ..database.sqlitedb import cur, conn
+from ..database import cur, conn
 from ..database.functions import check
 
 from ..misc import OfficialChats
