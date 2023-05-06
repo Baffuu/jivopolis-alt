@@ -4,7 +4,7 @@ from .misc.constants import BETATEST_MINIMUM_RANK
 from aiogram.dispatcher.filters import BoundFilter
 from aiogram.types import Message
 
-class  RequireBetaFilter(BoundFilter):
+class RequireBetaFilter(BoundFilter):
     def __init__(self, *args, **kwargs):
         self.is_beta = False
 
