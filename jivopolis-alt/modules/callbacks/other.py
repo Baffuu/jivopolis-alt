@@ -5,6 +5,7 @@ from ..callbacks.traveling import state_balance
 
 from ... import bot, logger
 from ...database import cur, conn
+from ...database.functions import buybutton
 from ...misc.config import limeteds
 from ...misc import get_mask, get_link, OfficialChats, get_embedded_link, ITEMS
 
@@ -254,15 +255,42 @@ async def user_settings(call: CallbackQuery):
 
 async def exchange_center(call: CallbackQuery) -> None:
     crypto = await get_crypto()
-    buttons = []
-    for c in crypto:
-        buttons.append(InlineKeyboardButton(f"{ITEMS[c].emoji} {ITEMS[c].ru_name}", callback_data=f"exchange_{c}"))
+    buttons = [
+        InlineKeyboardButton(
+            f"{ITEMS[c].emoji} {ITEMS[c].ru_name}",
+            callback_data=f"exchange_menu_{c}",
+        )
+        for c in crypto
+    ]
     await call.message.answer(
         "📊 Добро пожаловать в нашу биржу! Выберите криптовалюту, которую вы бы хотели обменять.", 
         reply_markup=InlineKeyboardMarkup(row_width=2).\
             add(buttons)
     )
 
+async def exchange_menu_(call: CallbackQuery):
+    crypto = call.data.replace("exchange_menu_", "")
+    crypto_value = cur.select("value", _from="cryptodata").where(crypto=crypto).one()
+    crypto = ITEMS[crypto]
+    buttons = [
+        InlineKeyboardButton("📊 Купить ", callback_data=f"exchange_{crypto}:1"),
+        InlineKeyboardButton("🔻 Продать ", callback_data=f"exchange_{crypto}:-1")
+    ]
+    await call.message.answer(
+        f"{crypto.emoji} {crypto.ru_name}\nТекущее значение: {crypto_value}",
+        reply_markup=InlineKeyboardMarkup().add(buttons)
+    )
+
+
 async def exchange_(call: CallbackQuery):
-    crypto = call.data.replace("exchange_", "")
-    cur.select("value", _from="cryptodata").where(crypto=crypto).one()
+    value = call.data.split("_")[1]
+    crypto = value.split(":")[0]
+    value = value.split(":")[1]
+
+    cur.update("cryptodata")
+    if value > 0:
+        cur.add(bought=value)
+        
+    else:
+        cur.add(sold=value)
+    cur.where(crypto=crypto).commit()
