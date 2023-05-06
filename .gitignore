@@ -1,10 +1,22 @@
-renaming items.py
-run.sh
+# database files
 **.db 
-.vscode/
-__pychache__/
-main.py
-**.yaml
-**.log
-.config
 **.db-journal
+
+# python chache files
+__pychache__/
+**/__pychache__/
+
+# my ide (vscode) configuration
+.vscode/
+
+# other configuration files
+**.yaml
+.config
+
+# log files
+**.log
+
+# my own files, do not care about them
+notes.py
+run.sh
+main.py
