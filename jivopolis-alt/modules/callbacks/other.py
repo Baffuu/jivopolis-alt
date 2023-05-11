@@ -1,7 +1,7 @@
 import time
 import contextlib
 from math import floor
-from ..callbacks.traveling import state_balance
+from .traveling import state_balance
 
 from ... import bot, logger
 from ...database import cur, conn
@@ -270,7 +270,7 @@ async def exchange_center(call: CallbackQuery) -> None:
 
 async def exchange_menu_(call: CallbackQuery):
     crypto = call.data.replace("exchange_menu_", "")
-    crypto_value = cur.select("value", _from="cryptodata").where(crypto=crypto).one()
+    crypto_value = cur.select("value", from_="cryptodata").where(crypto=crypto).one()
     crypto = ITEMS[crypto]
     buttons = [
         InlineKeyboardButton("📊 Купить ", callback_data=f"exchange_{crypto}:1"),
@@ -283,14 +283,21 @@ async def exchange_menu_(call: CallbackQuery):
 
 
 async def exchange_(call: CallbackQuery):
-    value = call.data.split("_")[1]
-    crypto = value.split(":")[0]
-    value = value.split(":")[1]
+    amount = call.data.split("_")[1]
+    crypto = amount.split(":")[0]
+    amount = amount.split(":")[1]
+    balance = "to-be-defined"
 
     cur.update("cryptodata")
-    if value > 0:
-        cur.add(bought=value)
-        
+
+    if amount > 0:
+        cur.add(bought=amount)
+        text = f"🍏 Вы успешно приобрели {ITEMS[crypto].emoji} {ITEMS[crypto].ru_name} в количестве {amount}. Ваш баланс: {balance}"
     else:
-        cur.add(sold=value)
+        cur.add(sold=amount)
+        text = f"🍎 Вы успешно продали {ITEMS[crypto].emoji} {ITEMS[crypto].ru_name} в количестве {amount}. Ваш баланс: {balance}"
+
     cur.where(crypto=crypto).commit()
+    
+    await call.answer(text, show_alert=True)
+    

@@ -2,17 +2,17 @@ import contextlib
 from datetime import datetime
 from .config import intervals
 
-from typing import Union, Tuple
+from typing import Union, Tuple, Optional
 from math import ceil
 
 from .constants import OfficialChats
 from .. import logger, bot
-from ..database.sqlitedb import cur
+from ..database import cur
 
 from aiogram.types import InlineKeyboardButton, User, Message
 from aiogram.utils.deep_linking import decode_payload
 
-async def get_link(user_id: int = None, encoded_id: str = None) -> str:
+async def get_link(user_id: Optional[int | str] = None, encoded_id: Optional[str] = None) -> str:
     '''
     get link to user profile in bot
     
@@ -32,13 +32,13 @@ async def get_link(user_id: int = None, encoded_id: str = None) -> str:
     return f"https://t.me/{me.username}?start={user_id}"
 
 
-async def get_embedded_link(user_id: str, nick: str = None, include_mask: bool = True) -> str:
+async def get_embedded_link(user_id: str | int, nick: str | None = None, include_mask: bool = True) -> str:
     if not nick:
         nick = cur.execute(f"SELECT nickname FROM userdata WHERE user_id={user_id}").fetchone()[0]
     return f"<a href='{await get_link(user_id)}'>{get_mask(user_id) if include_mask else ''}{nick}</a>"
 
 
-def get_mask(user_id: int) -> Union[str, None]:
+def get_mask(user_id: int | str) -> Union[str, None]:
     '''
     get mask or rase of user
     

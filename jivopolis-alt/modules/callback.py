@@ -1,6 +1,5 @@
 import contextlib
 
-from .start import StartCommand
 from .callbacks import *
 from .. import bot, logger, Dispatcher, tglog, utils
 from ..misc import ITEMS

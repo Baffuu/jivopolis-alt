@@ -1,5 +1,4 @@
 import random
-import sqlite3
 import contextlib
 from time import time
 from collections import namedtuple
@@ -53,15 +52,15 @@ RASES = {
 
 class StartCommand():
 
-    async def start_cmd(self, message: Message) -> None:
+    async def start_cmd(self, message: Message):
         '''
         handler for start command 
 
         :param message:
         '''
+        user_id = message.from_user.id
+        chat_id = message.chat.id
         try:
-            user_id = message.from_user.id
-            chat_id = message.chat.id
 
             usercount = cur.execute(f"SELECT count(*) FROM userdata WHERE user_id = {user_id}").fetchone()[0]
             if usercount < 1:
@@ -74,7 +73,7 @@ class StartCommand():
                 if usercount == 0:
                     pass
                 elif usercount == 1:
-                    return await profile(args, message)
+                    return await profile(int(args), message)
 
             is_banned = bool(cur.execute(f"SELECT is_banned FROM userdata WHERE user_id = {message.from_user.id}").fetchone()[0])
             if is_banned:
@@ -97,7 +96,7 @@ class StartCommand():
             return await bot.send_message(chat_id, constants.ERROR_MESSAGE.format(e))
     
     
-    async def _private_start(self, user_id: str, give_text = False) -> None:
+    async def _private_start(self, user_id: str | int, give_text = False) -> str | None:
         nick = cur.execute(f"SELECT nickname FROM userdata WHERE user_id = {user_id}").fetchone()[0]
 
 
@@ -146,8 +145,8 @@ class StartCommand():
     def _start_buttons(self, user_id) -> list[InlineKeyboardButton]:
         rank = cur.execute(f"SELECT rank FROM userdata WHERE user_id = {user_id}").fetchone()[0]
         phone = cur.execute(f"SELECT phone FROM userdata WHERE user_id = {user_id}").fetchone()[0]
-        mailbox = cur.select("last_box", _from="userdata").where(user_id=user_id).one()
-        box = cur.select("lootbox", _from="userdata").where(user_id=user_id).one()
+        mailbox = cur.select("last_box", from_="userdata").where(user_id=user_id).one()
+        box = cur.select("lootbox", from_="userdata").where(user_id=user_id).one()
         
         mailbox = mailbox - time() > 60 * 60 * 24
         box = mailbox or box > 0
@@ -178,7 +177,7 @@ class StartCommand():
         self,
         message: Message, 
         user: User, 
-        refferal_id: int
+        refferal_id: int | str
     ):
         '''
         Creates account for a user that sign up using refferal code 
@@ -222,7 +221,7 @@ class StartCommand():
         await self._continue_registration(user.id)
 
 
-    async def _register_refferal(self, message: Message, ref_id: int):
+    async def _register_refferal(self, message: Message, ref_id: int | str):
         '''
         Send message for refferal registration 
 
@@ -242,7 +241,7 @@ class StartCommand():
         )
 
 
-    async def _user_register_message(self, message: Message, user_id: int):
+    async def _user_register_message(self, message: Message, user_id: int | str):
         '''
         Preparing user for signing up
 
@@ -293,7 +292,7 @@ class StartCommand():
         elif inviter > 1:
             raise ValueError("more than one inviter with this referal ID")
         elif inviter == 1:
-            await self._register_refferal(message, decode_payload(refferal_link))
+            await self._register_refferal(message, int(decode_payload(refferal_link)))
 
 
     async def _clan_start(self, chat: Chat):
@@ -426,7 +425,7 @@ class StartCommand():
         await self._private_start(user_id)
 
 
-    async def sign_up(self, user: User) -> None:
+    async def sign_up(self, user: User):
         '''
         Shell for inserting user into database 
 

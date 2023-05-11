@@ -45,10 +45,10 @@ class fyCursor(Cursor):
         return self
         
 
-    def select(self, value, _from = None) -> 'fyCursor':
+    def select(self, value, from_ = None) -> 'fyCursor':
         self._query = f"SELECT {value}"
-        if _from is not None:
-            self._from(_from)
+        if from_ is not None:
+            self._from(from_)
         return self
 
     def _from(self, table) -> 'fyCursor':
@@ -72,14 +72,20 @@ class fyCursor(Cursor):
             raise ProgrammingError("Nothing to fetch")
         super().execute(self._query)
         super().connection.commit()
-        return self.fetchone() if one else self.fetchall()        
+        return super().fetchone() if one else super().fetchall()        
 
 
     def one(self) -> Any:
         """
         returns exact one result of fetching, not tuple
         """
-        return self.fetch(True)[0]
+        fetching = self.fetch(True)
+
+        if fetching is None:
+            return None
+        elif type(fetching) in [list, tuple]:
+            return fetching[0]
+        return fetching
 
 
     def commit(self) -> 'fyCursor':

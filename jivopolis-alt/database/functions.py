@@ -2,25 +2,23 @@ import random
 
 from datetime import datetime
 from math import floor
-from typing import Union
+from typing import Union, Optional
 
-from . import cur, conn, insert_user
-from .. import bot, logger, get_embedded_link, get_link, get_mask, tglog
-from ..utils import user_exists
-from ..misc import current_time, OfficialChats, ITEMS, constants
+from . import cur, conn
+from .. import bot, logger, get_embedded_link, get_link, get_mask, tglog, utils
+from ..misc import current_time, ITEMS, constants
 from ..misc.config import limeteds, leveldesc, levelrange, ach, ADMINS, clanitems
 
 from aiogram.types import (
     InlineKeyboardButton,
     InlineKeyboardMarkup, 
-    ReplyKeyboardRemove, 
     CallbackQuery, 
     User, 
     Message
 )
 from aiogram.utils.text_decorations import HtmlDecoration
 
-async def check(user_id: int, chat_id: str) -> None:
+async def check(user_id: int | str, chat_id: int | str) -> None | Message:
     '''
     checks everything 
     '''
@@ -93,7 +91,7 @@ async def itemdata(user_id: int, item: str) -> Union[str, None, InlineKeyboardBu
 
 def buybutton(
     item: str, 
-    status: str = None, 
+    status: str | None = None, 
     tip: int = 0
 ) -> Union[InlineKeyboardButton, None]:
     '''
@@ -138,7 +136,7 @@ def buybutton(
         )
 
 
-async def eat(call: CallbackQuery, food: str) -> None:
+async def eat(call: CallbackQuery, food: str) -> None | bool | Message:
     '''
     :param call (aiogram.types.CallbackQuery) - aiogram callback query
     :food (str) - food index 
@@ -150,7 +148,7 @@ async def eat(call: CallbackQuery, food: str) -> None:
     chat_id = call.message.chat.id
 
     if food in ITEMS:
-        heal = ITEMS[food].type_param
+        heal = int(ITEMS[food].type_param) # type: ignore    
     else:
         raise ValueError('no such food')
 
@@ -186,7 +184,7 @@ async def eat(call: CallbackQuery, food: str) -> None:
             return await bot.send_message(chat_id, "<i>&#9760; Вы умерли</i>")
 
 
-async def poison(user: User, target_id: int, chat_id: int) -> None:
+async def poison(user: User, target_id: int | str, chat_id: int| str) -> None | Message | bool:
     '''
     to use poison on a user 
     
@@ -225,7 +223,7 @@ async def poison(user: User, target_id: int, chat_id: int) -> None:
         return logger.exception(e)
 
 
-async def shoot(user_id: int, target_id: int, chat_id: int) -> None: #function is useless now...
+async def shoot(user_id: int | str, target_id: int | str, chat_id: int | str) -> None | Message: #function is useless now...
     '''
     shoot a person
     
@@ -266,7 +264,7 @@ async def shoot(user_id: int, target_id: int, chat_id: int) -> None: #function i
             await bot.send_message(chat_id, f"<i>&#10060; Вы выстрелили мимо. Возможно, это к лучшему.\nПистолет потрачен зря</i>")
 
 
-async def achieve(user_id: int, chat_id : int, achievement: str) -> None: #todo new ACHIEVEMENTS
+async def achieve(user_id: int | str, chat_id : int | str, achievement: str) -> None: #todo new ACHIEVEMENTS
     """
     achieve a user 
     
@@ -317,7 +315,7 @@ async def achieve(user_id: int, chat_id : int, achievement: str) -> None: #todo 
         await bot.send_message(chat_id, f"<i><b>Текст ошибки: </b>{e}</i>")
 
 
-async def cure(user_id: str, target_id: str, chat_id: str) -> None: #function is useless now...
+async def cure(user_id: str, target_id: str, chat_id: str) -> None | Message: #function is useless now...
     '''
     to cure someone...
     '''
@@ -390,192 +388,211 @@ async def cure(user_id: str, target_id: str, chat_id: str) -> None: #function is
         await bot.send_message(chat_id, "&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>")
         await bot.send_message(chat_id, f"<i><b>Текст ошибки: </b>{e}</i>")
 
-
-async def profile(user_id: int, message: Message, called: bool = False):
-    profile_type = cur.execute(f"SELECT profile_type FROM userdata WHERE user_id = {user_id}").fetchone()[0]
-
-    if profile_type == "private" and user_id != message.from_user.id and not called:
-        return await message.answer(f"🚫 <i><b>{await get_embedded_link(user_id)}</b> скрыл свой профиль</i>")
-    clan_id = cur.execute(f"SELECT clan_id FROM userdata WHERE user_id={user_id}").fetchone()[0]
-    balance, inviter, description, xp, rank, health, level, lastseen, photo, register_date,\
-    clan_id, clan_type, clan_link, clan_name = await _get_everything(user_id, clan_id)
-
-    if health < 0:
-        health = "<b>мёртв</b>"
-
-    markup = InlineKeyboardMarkup(row_width=2)
-
-    if (message.chat.type == "private" and message.from_user.id == user_id) or called:
-        markup = _add_setting_buttons(markup)
-
-    PROFILE_TEXT = (
-        f"{await get_embedded_link(user_id)} {f'[{rank}]' or ''}"
-        f"\n🌟{level} 💖 {health} 💡{xp}  💸 {balance}"
-        f"\n{random.choice(constants.TIME_EMOJIS)} Был(-а) {lastseen}"
-        f"\n🎞 Aккаунт создан: {register_date} {inviter}"
-        f"\n\n<i>{description}</i>"
-        f"\n\n🛡 Клан: <b>{(HtmlDecoration().link(clan_name, clan_link) if clan_type == 'public' else clan_name) if clan_id is not None else 'отсутствует'}</b>"
-    )
-    if photo:
-        return await message.reply_photo(photo, PROFILE_TEXT)
-    await message.reply(PROFILE_TEXT, reply_markup=markup)
-
-def _add_setting_buttons(markup):
-    markup.add(
-            InlineKeyboardButton(
-                text="💡 Достижения", 
-                callback_data="achievements"
-            ),
-            InlineKeyboardButton(
-                text="⚙ Настройки", 
-                callback_data="user_settings"
-            ),
-            InlineKeyboardButton(
-                text="🖇 Реферальная ссылка", 
-                callback_data="my_reflink"
-            )
-    ).add(
-            InlineKeyboardButton(
-                text="👥 Привлечённые пользователи", 
-                callback_data="refusers"
-            )
-        )
-    return markup
-
-async def _get_everything(user_id, clan_id):
-    balance = cur.execute(f"SELECT balance FROM userdata WHERE user_id={user_id}").fetchone()[0]
-    invited_by = cur.execute(f"SELECT inviter_id FROM userdata WHERE user_id={user_id}").fetchone()[0]
-    inviter = f"\n📎 Пригласивший пользователь: <b>{await get_embedded_link(invited_by)}</b>" if invited_by != 0 else ''
-    description = cur.execute(f"SELECT description FROM userdata WHERE user_id={user_id}").fetchone()[0]
-    xp = cur.execute(f"SELECT xp FROM userdata WHERE user_id={user_id}").fetchone()[0]
-    rank = cur.execute(f"SELECT rank FROM userdata WHERE user_id={user_id}").fetchone()[0]
-    health = cur.execute(f"SELECT health FROM userdata WHERE user_id={user_id}").fetchone()[0]
-    level = cur.execute(f"SELECT level FROM userdata WHERE user_id={user_id}").fetchone()[0]
-    lastseen = cur.execute(f"SELECT lastseen FROM userdata WHERE user_id={user_id}").fetchone()[0]
-    photo = cur.execute(f"SELECT photo_id FROM userdata WHERE user_id={user_id}").fetchone()[0]
-    rank = _get_rank_name(rank)
-    seconds = current_time() - lastseen
-    lastseen = _get_lastseen(seconds)
-    register_date = _get_register_date(user_id)
-    clan_id, clan_type, clan_link, clan_name = _get_clan(clan_id)
-
-    return (
-        balance, inviter, description,
-        xp, rank, health, level,
-        lastseen, photo, register_date, 
-        clan_id, clan_type, clan_link, clan_name
-    )
-
-def _get_register_date(user_id):
-    try:
-        register_date = datetime.fromtimestamp(cur.execute(f"SELECT register_date FROM userdata WHERE user_id={user_id}").fetchone()[0])
-        reg_year = register_date.year
-        reg_month = register_date.month
-        reg_day = register_date.day
-        months = ["января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря"]
-        reg_month = months[reg_month-1]
-        register_date = f"{reg_day} {reg_month} {reg_year}"
-    except ValueError as e:
-        if str(e).endswith('is out of range'):
-            register_date = '🧌 Старше нашей планеты.'
-        else: return logger.exception(e)
-    return register_date
-
-def _get_lastseen(seconds):
-    years = floor(seconds / 31536000)
-    monthes = floor((seconds % 31536000) / 2628000)
-    days = floor(((seconds % 31536000) % 2628000) / 86400)
-    hours = floor((seconds % (3600 * 24)) / 3600)
-    minutes = floor((seconds % 3600) / 60)
-
-    lastseen = ""
-
-    if years > 1:
-        lastseen = "очень давно"
-    elif monthes != 0:
-        match (monthes):
-            case 1:
-                month = "месяц"
-            case [2 | 3 | 4]:
-                month = "месяца"
-            case _:
-                month = "месяцев"
-
-        lastseen += f"{monthes} {month} "
-    elif days != 0:
-        day_lastnum = str(days)[len(str(days))-1]
-
-        match (int(day_lastnum)):
-            case 1:
-                day = "день"
-            case [2 | 3 | 4]:
-                day = "дня"
-            case _:
-                day = "дней"
-
-        lastseen += f"{days} {day} "
-    elif hours != 0:
-        hour_lastnum = str(hours)[len(str(hours))-1]
-
-        match (int(hour_lastnum)):
-            case 1:
-                hour = "час"
-            case [2 | 3 | 4]:
-                hour = "часа"
-            case _:
-                hour = "часов"
-
-        lastseen += f"{hours} {hour} "
-    elif minutes != 0:
-        min_lastnum = str(minutes)[len(str(minutes)) - 1]
-
-        match (int(min_lastnum)):
-            case 1:
-                minute = "минута"
-            case [2 | 3 | 4]:
-                minute = "минуты"
-            case _:
-                minute = "минут"
-        lastseen += f"{minutes} {minute} "
-
-    if years <= 0:
-        lastseen += "назад"
-
-    if lastseen == "назад":
-        lastseen = "только что"
-    return lastseen
-
-def _get_clan(clan_id):
-    if clan_id != 0 and clan_id:
+class profile_():
+    def __init__(self, dont_init: bool = False, user_id: Optional[int] = None, message: Optional[Message] = None, called: bool = False) -> None:
         if (
-            cur.execute(
-                f"SELECT count(*) FROM clandata WHERE clan_id={clan_id}"
-            ).fetchone()[0]
-            == 0
+            dont_init 
+            or not user_id 
+            or not message
         ):
-            return None, None, None, None
-        clan_type = cur.execute(f"SElECT clan_type FROM clandata WHERE clan_id={clan_id}").fetchone()[0]
-        clan_link = cur.execute(f"SELECT link FROM clandata WHERE clan_id={clan_id}").fetchone()[0]
-        clan_name = cur.execute(f"SELECT clan_name FROM clandata WHERE clan_id={clan_id}").fetchone()[0]
-        return clan_id, clan_type, clan_link, clan_name
-    return None, None, None, None
+            return
+        utils.run_async(self.init_(user_id, message, called))
 
-def _get_rank_name(rank):
-    match (rank):
-        case 0:
-            rank = None
-        case 1:
-            rank = "⚜️ VIP"
-        case 2:
-            rank = "🛠 Админ"
-        case 3:
-            rank = "👑 Создатель"
-        case _:
-            rank = '👽 Undefined'
-    return rank
+    async def init_(self, user_id: int, message: Message, called: bool = False):
+        # sourcery skip: remove-unreachable-code
+        profile_type = cur.execute(f"SELECT profile_type FROM userdata WHERE user_id = {user_id}").fetchone()[0]
+
+        if profile_type == "private" and user_id != message.from_user.id and not called:
+            return await message.answer(f"🚫 <i><b>{await get_embedded_link(user_id)}</b> скрыл свой профиль</i>")
+
+        clan_id = cur.execute(f"SELECT clan_id FROM userdata WHERE user_id={user_id}").fetchone()[0]
+        
+        balance, inviter, description, xp, rank, health, level, lastseen, photo, register_date,\
+        clan_id, clan_type, clan_link, clan_name = await self._get_everything(user_id, clan_id)
+
+        if health < 0:
+            health = "<b>мёртв</b>"
+
+        markup = InlineKeyboardMarkup(row_width=2)
+
+        if (message.chat.type == "private" and message.from_user.id == user_id) or called:
+            markup = self._add_setting_buttons(markup)
+
+        PROFILE_TEXT = (
+            f"{await get_embedded_link(user_id)} {f'[{rank}]' or ''}"
+            f"\n🌟{level} 💖 {health} 💡{xp}  💸 {balance}"
+            f"\n{random.choice(constants.TIME_EMOJIS)} Был(-а) {lastseen}"
+            f"\n🎞 Aккаунт создан: {register_date} {inviter}"
+            f"\n\n<i>{description}</i>"
+            f"\n\n🛡 Клан: <b>{(HtmlDecoration().link(str(clan_name), str(clan_link)) if clan_type == 'public' else clan_name) if clan_id is not None else 'отсутствует'}</b>"
+        )
+        if photo:
+            return await message.reply_photo(photo, PROFILE_TEXT)
+        await message.reply(PROFILE_TEXT, reply_markup=markup)
 
 
-async def earn(money: int, message: Message = None, user_id: int = None) -> None:
+    def _add_setting_buttons(self, markup):
+        markup.add(
+                InlineKeyboardButton(
+                    text="💡 Достижения", 
+                    callback_data="achievements"
+                ),
+                InlineKeyboardButton(
+                    text="⚙ Настройки", 
+                    callback_data="user_settings"
+                ),
+                InlineKeyboardButton(
+                    text="🖇 Реферальная ссылка", 
+                    callback_data="my_reflink"
+                )
+        ).add(
+                InlineKeyboardButton(
+                    text="👥 Привлечённые пользователи", 
+                    callback_data="refusers"
+                )
+            )
+        return markup
+
+
+    async def _get_everything(self, user_id, clan_id):
+        balance = cur.execute(f"SELECT balance FROM userdata WHERE user_id={user_id}").fetchone()[0]
+        invited_by = cur.execute(f"SELECT inviter_id FROM userdata WHERE user_id={user_id}").fetchone()[0]
+        inviter = f"\n📎 Пригласивший пользователь: <b>{await get_embedded_link(invited_by)}</b>" if invited_by != 0 else ''
+        description = cur.execute(f"SELECT description FROM userdata WHERE user_id={user_id}").fetchone()[0]
+        xp = cur.execute(f"SELECT xp FROM userdata WHERE user_id={user_id}").fetchone()[0]
+        rank = cur.execute(f"SELECT rank FROM userdata WHERE user_id={user_id}").fetchone()[0]
+        health = cur.execute(f"SELECT health FROM userdata WHERE user_id={user_id}").fetchone()[0]
+        level = cur.execute(f"SELECT level FROM userdata WHERE user_id={user_id}").fetchone()[0]
+        lastseen = cur.execute(f"SELECT lastseen FROM userdata WHERE user_id={user_id}").fetchone()[0]
+        photo = cur.execute(f"SELECT photo_id FROM userdata WHERE user_id={user_id}").fetchone()[0]
+        rank = self._get_rank_name(rank)
+        seconds = current_time() - lastseen
+        lastseen = self._get_lastseen(seconds)
+        register_date = self._get_register_date(user_id)
+        clan_id, clan_type, clan_link, clan_name = self._get_clan(clan_id)
+
+        return (
+            balance, inviter, description,
+            xp, rank, health, level,
+            lastseen, photo, register_date, 
+            clan_id, clan_type, clan_link, clan_name
+        )
+
+
+    def _get_register_date(self, user_id):
+        try:
+            register_date = datetime.fromtimestamp(cur.execute(f"SELECT register_date FROM userdata WHERE user_id={user_id}").fetchone()[0])
+            reg_year = register_date.year
+            reg_month = register_date.month
+            reg_day = register_date.day
+            months = ["января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря"]
+            reg_month = months[reg_month-1]
+            register_date = f"{reg_day} {reg_month} {reg_year}"
+        except ValueError as e:
+            if str(e).endswith('is out of range'):
+                register_date = '🧌 Старше нашей планеты.'
+            else: return logger.exception(e)
+        return register_date
+
+
+    def _get_lastseen(self, seconds):
+        years = floor(seconds / 31536000)
+        monthes = floor((seconds % 31536000) / 2628000)
+        days = floor(((seconds % 31536000) % 2628000) / 86400)
+        hours = floor((seconds % (3600 * 24)) / 3600)
+        minutes = floor((seconds % 3600) / 60)
+
+        lastseen = ""
+
+        if years > 1:
+            lastseen = "очень давно"
+        elif monthes != 0:
+            match (monthes):
+                case 1:
+                    month = "месяц"
+                case [2 | 3 | 4]:
+                    month = "месяца"
+                case _:
+                    month = "месяцев"
+
+            lastseen += f"{monthes} {month} "
+        elif days != 0:
+            day_lastnum = str(days)[len(str(days))-1]
+
+            match (int(day_lastnum)):
+                case 1:
+                    day = "день"
+                case [2 | 3 | 4]:
+                    day = "дня"
+                case _:
+                    day = "дней"
+
+            lastseen += f"{days} {day} "
+        elif hours != 0:
+            hour_lastnum = str(hours)[len(str(hours))-1]
+
+            match (int(hour_lastnum)):
+                case 1:
+                    hour = "час"
+                case [2 | 3 | 4]:
+                    hour = "часа"
+                case _:
+                    hour = "часов"
+
+            lastseen += f"{hours} {hour} "
+        elif minutes != 0:
+            min_lastnum = str(minutes)[len(str(minutes)) - 1]
+
+            match (int(min_lastnum)):
+                case 1:
+                    minute = "минута"
+                case [2 | 3 | 4]:
+                    minute = "минуты"
+                case _:
+                    minute = "минут"
+            lastseen += f"{minutes} {minute} "
+
+        if years <= 0:
+            lastseen += "назад"
+
+        if lastseen == "назад":
+            lastseen = "только что"
+        return lastseen
+
+
+    def _get_clan(self, clan_id):
+        if clan_id != 0 and clan_id:
+            if (
+                cur.execute(
+                    f"SELECT count(*) FROM clandata WHERE clan_id={clan_id}"
+                ).fetchone()[0]
+                == 0
+            ):
+                return None, None, None, None
+            clan_type = cur.execute(f"SElECT clan_type FROM clandata WHERE clan_id={clan_id}").fetchone()[0]
+            clan_link = cur.execute(f"SELECT link FROM clandata WHERE clan_id={clan_id}").fetchone()[0]
+            clan_name = cur.execute(f"SELECT clan_name FROM clandata WHERE clan_id={clan_id}").fetchone()[0]
+            return clan_id, clan_type, clan_link, clan_name
+        return None, None, None, None
+
+
+    def _get_rank_name(self, rank):
+        match (rank):
+            case 0:
+                rank = None
+            case 1:
+                rank = "⚜️ VIP"
+            case 2:
+                rank = "🛠 Админ"
+            case 3:
+                rank = "👑 Создатель"
+            case _:
+                rank = '👽 Undefined'
+        return rank
+
+profile = profile_(dont_init=True).init_ # async version of profile_
+
+async def earn(money: int, message: Message | None = None, user_id: int | None = None) -> None:
     '''
     To give money to a user 
 
@@ -584,6 +601,8 @@ async def earn(money: int, message: Message = None, user_id: int = None) -> None
     '''
     if not message and not user_id:
         raise ValueError("You must provide either message or user_id")
+    elif not message:
+        pass
     elif not user_id:
         user_id = message.from_user.id
 
@@ -591,7 +610,7 @@ async def earn(money: int, message: Message = None, user_id: int = None) -> None
     conn.commit()
 
 
-async def buy(call: CallbackQuery, item: str, user_id: int, cost: int = None, amount: int = 1):
+async def buy(call: CallbackQuery, item: str, user_id: int, cost: Optional[int] = None, amount: int = 1):
     '''
     buy an item 
     
@@ -605,7 +624,9 @@ async def buy(call: CallbackQuery, item: str, user_id: int, cost: int = None, am
         raise ValueError("no such item")
 
     if not cost:
-        cost = ITEMS[item].price
+        cost = ITEMS[item].cost
+        if not cost or cost < 0:
+            return
 
     balance = cur.execute(f"SELECT balance FROM userdata WHERE user_id = {user_id}").fetchone()[0]
 

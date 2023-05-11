@@ -1,6 +1,6 @@
 import sqlite3
 
-from typing import Tuple
+from typing import Tuple, Optional
 
 from .. import logger, bot
 from ..fyCursor import fyCursor 
@@ -9,30 +9,29 @@ from aiogram.types import User, Chat
 from aiogram.utils.deep_linking import encode_payload
 
 
-def connect_database() -> Tuple[sqlite3.Connection, sqlite3.Cursor]:
+def connect_database() -> Tuple[sqlite3.Connection, sqlite3.Cursor] | None:
     """
     connects database, creates tables if they does not exists, etc.
     """
-    global conn, cur
     conn = sqlite3.connect('database.db', check_same_thread=False)
-    cur = conn.cursor(fyCursor)
+    cur = conn.cursor(fyCursor) # type: ignore
 
     if conn:
-        _connect_tables()
+        _connect_tables(cur)
         return conn, cur
-    return logger.critical('database is not connected')
+    logger.critical('database is not connected')
 
 
-def _connect_tables():
-    create_userdata()
-    create_globaldata()
-    create_clandata()
-    create_cryptodata()
-    create_marketplace()
+def _connect_tables(cur: fyCursor):
+    create_userdata(cur)
+    create_globaldata(cur)
+    create_clandata(cur)
+    create_cryptodata(cur)
+    create_marketplace(cur)
     return logger.success('Database connected')
 
 
-def create_userdata() -> None:
+def create_userdata(cur: fyCursor) -> None:
     '''
     creates table with all users data 
     '''
@@ -164,7 +163,7 @@ def create_userdata() -> None:
 """)                       
 
 
-def create_globaldata() -> None:
+def create_globaldata(cur: fyCursor) -> None:
     """
     creates global jivopolis data 
     """
@@ -182,7 +181,7 @@ def create_globaldata() -> None:
 )""")
 
 
-def create_clandata() -> None:
+def create_clandata(cur: fyCursor) -> None:
     cur.execute("""CREATE TABLE IF NOT EXISTS clandata
 (
     id              INTEGER         PRIMARY KEY,
@@ -202,7 +201,14 @@ def create_clandata() -> None:
     """)
 
 
-def create_cryptodata() -> None:
+def create_cryptodata(cur: fyCursor) -> None:
+    try:
+        table = cur.execute("""SELECT FROM cryptodata""")
+    except sqlite3.OperationalError:
+        table = False
+    if table:
+        return
+
     cur.execute("""
     CREATE TABLE IF NOT EXISTS 
     cryptodata(
@@ -212,13 +218,20 @@ def create_cryptodata() -> None:
         bought INTEGER DEFAULT 0 NOT NULL,
         sold INTEGER DEFAULT 0 NOT NULL,
         prev_value INTEGER,
-        prevday_value INTEGER,
-        last_prevday DATETIME
+        hours_8 INTEGER,
+        hours_12 INTEGER,
+        hours_16 INTEGER,
+        hours_20 INTEGER,
+        hours_24 INTEGER
     )
     """)
+    from ..misc import ITEMS
+
+    for i in [item for item in ITEMS if ITEMS[item].type == "crypto"]:
+        cur.execute(f"INSERT INTO cryptodata(crypto) VALUES ({i})")
 
 
-def create_marketplace() -> None:
+def create_marketplace(cur: fyCursor) -> None:
     cur.execute("""
         CREATE TABLE IF NOT EXISTS 
     marketplace(
@@ -231,7 +244,7 @@ def create_marketplace() -> None:
     """)
 
 
-async def insert_clan(chat: Chat, user: User = None) -> str:
+async def insert_clan(chat: Chat, user: Optional[User] | dict = None) -> str:
     '''
     inserts chat into clandata 
 
@@ -244,7 +257,7 @@ async def insert_clan(chat: Chat, user: User = None) -> str:
     if user is None:
         user = {'id': None}
     link = await bot.create_chat_invite_link(chat.id, name='Jivopolis Default Invite Link')
-    
+    from . import cur, conn
     cur.execute(f"INSERT INTO clandata(clan_id, clan_name, owner_id, link) VALUES \
     ({chat.id}, '{chat.title}', '{user['id']}', '{link.invite_link}')")
     conn.commit()
@@ -259,7 +272,8 @@ def insert_user(user: User) -> None:
     """
     logger.info("user inserted")
     name = user.full_name
-    login_id = encode_payload(user.id)
+    login_id = encode_payload(str(user.id))
+    from . import cur, conn
     cur.execute(f"INSERT INTO userdata(user_id, nickname, login_id) VALUES ({user.id}, \"{name}\", \"{login_id}\")")
     conn.commit()
 

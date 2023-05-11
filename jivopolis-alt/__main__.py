@@ -11,7 +11,6 @@ from .filters import RequireBetaFilter
 from aiogram.utils.executor import Executor, _setup_callbacks
 from aiogram.utils.exceptions import ChatNotFound
 
-
 async def update():
     await _update()
     scheduler.enter(60, 1, update)
@@ -19,8 +18,8 @@ async def update():
 
 
 async def on_startup(dp : Dispatcher):
-    try:        
-        from .database.sqlitedb import cur, conn
+    try:    
+        from .database import cur, conn
         cur.execute("INSERT INTO globaldata(treasury) VALUES (0)")
         conn.commit()
         try:
@@ -32,13 +31,12 @@ async def on_startup(dp : Dispatcher):
         
         from . import modules
         await modules.register_all(dp)
-        #await asyncio.gather(asyncio.create_task(update_loop()))
     except Exception as e:
         return logger.exception(e)
 
 
 async def on_shutdown(dp: Dispatcher):
-    from .database.sqlitedb import cur, conn
+    from .database import cur, conn
     cur.close(); conn.close()
     await tglog('❗️ Выключаюсь…', '#shutdown')
 
@@ -74,7 +72,7 @@ if __name__ == '__main__':
         event_handlers=[dp.message_handlers]
     )
     scheduler = AsyncScheduler(time.time, asyncio.sleep)
-    executor = Executor(dp) #skip_updates=True)
+    executor = Executor(dp)
     _setup_callbacks(executor, on_startup, on_shutdown)
     start_polling()
         

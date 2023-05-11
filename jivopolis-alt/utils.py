@@ -9,9 +9,10 @@ from .misc.constants import OfficialChats
 from aiogram.types import Message, CallbackQuery, Update
 from aiogram.utils.exceptions import RetryAfter
 from aiogram.utils.text_decorations import HtmlDecoration
-from typing import overload, Union, Awaitable, Any, Iterable
+from typing import overload, Union, Iterable, Coroutine, Optional
 
 DEFAULT_MESSAGE = "🌔"
+DEFAULT_SLEEP = 5
 
 async def check_user(user_id, is_admin = False) -> bool:
     if not user_exists(user_id):
@@ -38,13 +39,14 @@ async def check_user(user_id, is_admin = False) -> bool:
 
 
 async def is_allowed_nonick(user_id: int) -> bool:
-    if not await check_user(user_id):
-        return
-
-    return bool(
-        cur.execute(
-            f"SELECT nonick_cmds FROM userdata WHERE user_id={user_id}"
-        ).fetchone()[0]
+    return (
+        bool(
+            cur.execute(
+                f"SELECT nonick_cmds FROM userdata WHERE user_id={user_id}"
+            ).fetchone()[0]
+        )
+        if await check_user(user_id)
+        else False
     )
 
 
@@ -58,45 +60,19 @@ def user_exists(user_id: str | int) -> bool:
     )
 
 
-@overload
-async def answer(
-    event: Message, 
-    message: str = None,
-    editable: bool | list = False, 
-    edit_sleep: Union[bool, int, float] = 1,
-    italise: bool = False,
-    reply: bool = False,
-    *args, 
-    **kwargs
-):
-    ...
-
-@overload
-async def answer(
-    event: CallbackQuery, 
-    message: str,
-    *args, 
-    **kwargs
-):
-    ...
-
-@overload
-async def answer(event: Update, *args, **kwargs):
-    ...
-
 async def answer(
     event: Union[Message, CallbackQuery, Update],  
-    message: str = None,
-    editable: Union[bool, list] = False,
+    message: Optional[str] = None,
+    editable: Optional[bool | list[str]] = False,
     edit_sleep: Union[bool, int, float] = 1,
     reply: bool = False,
     italise: bool = False,
     *args, 
     **kwargs
-) -> Union[None, Message, bool]:
+) -> Message | list[Message] | bool | None:
     if type(event) is Message:
         return await _answer_message(
-            event=event,
+            event,
             message=message,
             editable=editable,
             reply=reply, 
@@ -108,40 +84,42 @@ async def answer(
         return 
         
 async def _answer_message(
-    event : Message, 
-    message, 
-    editable, 
-    reply, 
-    edit_sleep, 
-    italise,
+    event: Message, 
+    message: Optional[str] = None, 
+    editable: Optional[list[str] | bool] = None, 
+    reply: bool = False, 
+    edit_sleep: Optional[float] = None, 
+    italise: bool = False,
     **kwargs
 ) -> Union[Message, list[Message]]:
-    message = await _italise(message) if italise else message
-    editable = await _italise(editable) if editable else editable
-    print(message)
+    message = await _italise(message) if italise else message #type: ignore
+    editable = await _italise(editable) if italise else editable #type: ignore
+
     if not message and not editable:
         raise AttributeError("You should specify either message or list of messages to be edited")
     elif message and not editable:
         return await event.answer(message, reply=reply, **kwargs)
-        
+
     else:
         if not message:
             message = DEFAULT_MESSAGE
         messages = [await event.answer(message, reply=reply, **kwargs)]
-        await asyncio.sleep(edit_sleep)
-        for _message in editable:
+        await asyncio.sleep(edit_sleep or DEFAULT_SLEEP)
+        if type(editable) is not Iterable:
+            raise TypeError('"editable" should be either Iterable or None')
+        for _message in editable: #type: ignore
             try:
                 messages.append(await messages[0].edit_text(_message))
-                await asyncio.sleep(edit_sleep)
+                await asyncio.sleep(edit_sleep or DEFAULT_SLEEP)
             except RetryAfter:
                 await asyncio.sleep(60)
                 messages.append(await messages[0].edit_text(_message))
         return messages
 
 
-async def _italise(text: str | Iterable[str]):
+async def _italise(text: str | list[str]) -> list[str] | str:
     if type(text) is not str:
-        return [await _italise(item) for item in text]
+        return [str(await _italise(item)) for item in text]
     return HtmlDecoration().italic(text)
 
 
@@ -157,7 +135,7 @@ line_regex = r'  File "(.*?)", line ([0-9]+), in (.+)'
 
 
 def format_exception_line(line: str) -> str:
-    filename_, lineno_, name_ = re.search(line_regex, line).groups()
+    filename_, lineno_, name_ = re.search(line_regex, line).groups() #type: ignore
     with contextlib.suppress(Exception):
         filename_ = os.path.basename(filename_)
     return (
@@ -186,8 +164,15 @@ def get_trace(e: Exception):
             ]
         )
 
+
 def get_full_class_name(object: object):
     module = object.__class__.__module__
     if module is None or module == str.__class__.__module__:
         return object.__class__.__name__
     return f'{module}.{object.__class__.__name__}'
+
+
+def run_async(coro: Coroutine, loop: Optional[asyncio.AbstractEventLoop] = None):
+    loop = loop or asyncio.get_running_loop()
+    return asyncio.run_coroutine_threadsafe(coro, loop).result()
+    

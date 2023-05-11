@@ -34,7 +34,7 @@ async def dice_handler(message: Message):
                 return await message.answer('<i>☠️ Вы умерли. Попросите кого-нибудь вас воскресить</i>' )
 
         cur.execute('SELECT count(*) FROM clandata WHERE clan_id = ?', (message.chat.id,))
-        count = 0 #cur.fetchone()[0] = 0
+        count = 0 #cur.fetchone()[0]
         if count != 0:
             cur.execute("SELECT dice FROM clandata WHERE group_id=?", (message.chat.id,))
             dice = cur.fetchone()[0]
