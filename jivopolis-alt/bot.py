@@ -1,10 +1,12 @@
 import sys
-import getpass
 
+from getpass import getpass
 from datetime import datetime
 from configparser import ConfigParser
 
 from aiogram import Bot, Dispatcher
+from aiogram.utils.exceptions import ValidationError
+
 
 def _colored_input(prompt: str = "", hide: bool = False) -> str:
     frame = sys._getframe(1)
@@ -36,14 +38,19 @@ config.__setattr__("PPT", config.get("core", "payments"))
 config.__setattr__("altToken", config.get("alt", "token"))
 config.__setattr__("altPPT", config.get("alt", "payments"))
 
-is_alt = _colored_input("Do you want to start alt bot? (y/n): ")
-is_alt = is_alt == "y"
+is_alt = True #_colored_input("Do you want to start alt bot? (y/n): ")
+is_alt = is_alt #== "y"
 
-bot = Bot(
-    token=config.altToken if is_alt else config.token, 
-    parse_mode='html', 
-    disable_web_page_preview=True
-)
-dp = Dispatcher(bot)
+try:
+    bot = Bot(
+        token=config.altToken if is_alt else config.token, #type: ignore
+        parse_mode='html', 
+        disable_web_page_preview=True
+    )
+    dp = Dispatcher(bot)
+except ValidationError:
+    from loguru import logger
+    logger.critical("Your bot token is invalid!")
+    sys.exit(1)
 
-PPT = config.altPPT if is_alt else config.PPT  # Payments Provider Token
+PPT = config.altPPT if is_alt else config.PPT  # type: ignore # Payments Provider Token 
