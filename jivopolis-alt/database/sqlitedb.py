@@ -1,25 +1,25 @@
+from fyCursor import connect, fyCursor
 import sqlite3
 
-from typing import Tuple, Optional
+from typing import Tuple, Optional, NoReturn, Any
 
-from .. import logger, bot
-from ..fyCursor import fyCursor 
+from ..bot import bot
+from loguru import logger
 
 from aiogram.types import User, Chat
 from aiogram.utils.deep_linking import encode_payload
 
 
-def connect_database() -> Tuple[sqlite3.Connection, sqlite3.Cursor] | None:
+def connect_database() -> Tuple[sqlite3.Connection, fyCursor] | NoReturn:
     """
     connects database, creates tables if they does not exists, etc.
     """
-    conn = sqlite3.connect('database.db', check_same_thread=False)
-    cur = conn.cursor(fyCursor) # type: ignore
-
-    if conn:
+    cur = connect('database.db')
+    if conn := cur.connection:
         _connect_tables(cur)
         return conn, cur
     logger.critical('database is not connected')
+    raise RuntimeError('database is not connected')
 
 
 def _connect_tables(cur: fyCursor):
@@ -33,7 +33,7 @@ def _connect_tables(cur: fyCursor):
 
 def create_userdata(cur: fyCursor) -> None:
     '''
-    creates table with all users data 
+    creates table with all users data
     '''
     cur.execute(""" CREATE TABLE IF NOT EXISTS userdata
 (
@@ -46,7 +46,7 @@ def create_userdata(cur: fyCursor) -> None:
     photo_id        TEXT,
     rase            VARCHAR         DEFAULT \"🤔\"          NOT NULL,
     mask            TEXT,
-    inviter_id      INTEGER         DEFAULT 0               NOT NULL,         
+    inviter_id      INTEGER         DEFAULT 0               NOT NULL,
 
     login_id        TEXT,
     login_password  TEXT            DEFAULT 0               NOT NULL,
@@ -159,13 +159,13 @@ def create_userdata(cur: fyCursor) -> None:
     troleytoken     INTEGER         DEFAULT 0               NOT NULL,
     hamster         INTEGER         DEFAULT 0               NOT NULL,
     fan             INTEGER         DEFAULT 0               NOT NULL
-)       
-""")                       
+)
+""")
 
 
 def create_globaldata(cur: fyCursor) -> None:
     """
-    creates global jivopolis data 
+    creates global jivopolis data
     """
     cur.execute("""CREATE TABLE IF NOT EXISTS globaldata
 (
@@ -185,7 +185,7 @@ def create_clandata(cur: fyCursor) -> None:
     cur.execute("""CREATE TABLE IF NOT EXISTS clandata
 (
     id              INTEGER         PRIMARY KEY,
-    clan_id         INTEGER, 
+    clan_id         INTEGER,
     clan_name       TEXT,
     clan_type       TEXT            DEFAULT \"public\"      NOT NULL,
     clan_balance    INTEGER         DEFAULT 0               NOT NULL,
@@ -194,7 +194,7 @@ def create_clandata(cur: fyCursor) -> None:
     address         INTEGER,
     link            TEXT,
     lootbox         INTEGER         DEFAULT 0               NOT NULL,
-    last_box        DATETIME        DEFAULT 0               NOT NULL, 
+    last_box        DATETIME        DEFAULT 0               NOT NULL,
     description     TEXT,
     photo_id        TEXT
 )
@@ -203,14 +203,14 @@ def create_clandata(cur: fyCursor) -> None:
 
 def create_cryptodata(cur: fyCursor) -> None:
     try:
-        table = cur.execute("""SELECT FROM cryptodata""")
+        table = cur.execute("""SELECT * FROM cryptodata""").fetchone()
     except sqlite3.OperationalError:
         table = False
     if table:
         return
 
     cur.execute("""
-    CREATE TABLE IF NOT EXISTS 
+    CREATE TABLE IF NOT EXISTS
     cryptodata(
         id INTEGER PRIMARY KEY,
         crypto TEXT NOT NULL,
@@ -225,15 +225,15 @@ def create_cryptodata(cur: fyCursor) -> None:
         hours_24 INTEGER
     )
     """)
-    from ..misc import ITEMS
+    from ..items import ITEMS
 
     for i in [item for item in ITEMS if ITEMS[item].type == "crypto"]:
-        cur.execute(f"INSERT INTO cryptodata(crypto) VALUES ({i})")
+        cur.execute(f"INSERT INTO cryptodata(crypto) VALUES (\"{i}\")")
 
 
 def create_marketplace(cur: fyCursor) -> None:
     cur.execute("""
-        CREATE TABLE IF NOT EXISTS 
+        CREATE TABLE IF NOT EXISTS
     marketplace(
         id INTEGER PRIMARY KEY,
         type TEXT NOT NULL,
@@ -244,36 +244,46 @@ def create_marketplace(cur: fyCursor) -> None:
     """)
 
 
-async def insert_clan(chat: Chat, user: Optional[User] | dict = None) -> str:
+async def insert_clan(
+    chat: Chat, user: Optional[User] | dict[Any, Any] = None
+) -> str:
     '''
-    inserts chat into clandata 
+    inserts chat into clandata
 
-    :param chat - chat that will be inserted 
+    :param chat - chat that will be inserted
     :param user - (Optional) clan creator
-    
+
     :returns - new chat invite link
     '''
 
     if user is None:
         user = {'id': None}
-    link = await bot.create_chat_invite_link(chat.id, name='Jivopolis Default Invite Link')
+
+    link = await bot.create_chat_invite_link(
+        chat.id, name='Jivopolis Default Invite Link'
+    )
+
     from . import cur, conn
-    cur.execute(f"INSERT INTO clandata(clan_id, clan_name, owner_id, link) VALUES \
-    ({chat.id}, '{chat.title}', '{user['id']}', '{link.invite_link}')")
+    cur.execute(
+        f"INSERT INTO clandata(clan_id, clan_name, owner_id, link) VALUES"
+        f"({chat.id}, '{chat.title}', '{user['id']}', '{link.invite_link}')"
+    )
     conn.commit()
     return link.invite_link
-    
-    
+
+
 def insert_user(user: User) -> None:
     """
-    insets user into userdata table 
+    insets user into userdata table
 
     :param user (aiogram.types.User) - user that will be inserted
     """
     logger.info("user inserted")
-    name = user.full_name
+    name = user.full_name  # type: ignore
     login_id = encode_payload(str(user.id))
     from . import cur, conn
-    cur.execute(f"INSERT INTO userdata(user_id, nickname, login_id) VALUES ({user.id}, \"{name}\", \"{login_id}\")")
+    cur.execute(
+        "INSERT INTO userdata(user_id, nickname, login_id) "
+        f"VALUES ({user.id}, \"{name}\", \"{login_id}\")"
+    )
     conn.commit()
-

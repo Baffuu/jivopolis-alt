@@ -298,7 +298,12 @@ async def callback_handler(call: CallbackQuery):
                 await airport(call)
             case _flight if _flight.startswith("flight"):
                 await flight(call)
-            
+            case "exchange_center":
+                await exchange_center(call)
+            case ex if ex.startswith("exchange_menu_"):
+                await exchange_menu_(call)
+            case ex if ex.startswith("exchange_"):
+                await exchange_(call)
             case _:
                 return await call.answer('♿️ 404: команда не найдена.', show_alert=True)
         raise RuntimeError

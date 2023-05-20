@@ -1,5 +1,7 @@
 import sys
-from loguru import logger
+import time
+
+from loguru import logger, Record
 from .bot import bot, dp, PPT
 from aiogram import Dispatcher
 
@@ -7,16 +9,28 @@ if sys.version_info < (3, 10, 0):
     logger.critical('your python version is too low. Install version 3.10+')
     sys.exit(1)
 
-from .database import cur, conn
-from .misc import *
+try:
+    import asyncio
+    import uvloop
+    asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+except Exception as e:
+    raise ImportError("Please, install uvloop.") from e
 
-def _debug_only(record):
+from .database import cur, conn
+from .misc import *  # noqa: F401, F403 # * todo: remove it
+
+
+def _debug_only(record: Record):
     return record["level"].name == "DEBUG"
-def _not_debug(record):
+
+
+def _not_debug(record: Record):
     return record["level"].name != "DEBUG"
-    
+
+
 logger.add("debug.log", filter=_debug_only, rotation="10000 MB")
 logger.add(".log", filter=_not_debug, rotation="10000 MB")
 
-import time
 init_ts = time.perf_counter()
+
+__all__ = ["bot", "dp", "PPT", "Dispatcher", "cur", "conn"]

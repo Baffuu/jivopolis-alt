@@ -5,9 +5,8 @@ from ..filters import  RequireBetaFilter
 from .. import bot, dp, Dispatcher, logger
 
 from ..database import cur, conn
-from ..database.functions import get_link
 
-from ..misc import OfficialChats, ITEMS, get_embedded_link, tglog
+from ..misc import OfficialChats, ITEMS, get_embedded_link, tglog, get_link
 from ..utils import check_user
 from aiogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup, Update
 from aiogram.dispatcher.filters import Text

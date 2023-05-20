@@ -1,3 +1,7 @@
+# type: ignore
+# flake8: noqa
+
+# ! I ignored the whole file because i'm not currently supporting it
 import random
 
 from datetime import datetime
@@ -7,35 +11,47 @@ from typing import Union, Optional
 from . import cur, conn
 from .. import bot, logger, get_embedded_link, get_link, get_mask, tglog, utils
 from ..misc import current_time, ITEMS, constants
-from ..misc.config import limeteds, leveldesc, levelrange, ach, ADMINS, clanitems
+from ..misc.config import (
+    limeteds, leveldesc,
+    levelrange, ach, ADMINS,
+    clanitems
+)
 
 from aiogram.types import (
     InlineKeyboardButton,
-    InlineKeyboardMarkup, 
-    CallbackQuery, 
-    User, 
+    InlineKeyboardMarkup,
+    CallbackQuery,
+    User,
     Message
 )
 from aiogram.utils.text_decorations import HtmlDecoration
 
+
 async def check(user_id: int | str, chat_id: int | str) -> None | Message:
     '''
-    checks everything 
+    checks everything
     '''
     try:
-        cur.execute(f"UPDATE userdata SET lastseen={current_time()} WHERE user_id={user_id}")
+        cur.execute(
+            "UPDATE userdata SET "
+            f"lastseen={current_time()} WHERE user_id={user_id}"
+        )
         conn.commit()
 
-        xp = cur.execute(f"SELECT xp FROM userdata WHERE user_id={user_id}").fetchone()[0]
+        xp = cur.execute(
+            f"SELECT xp FROM userdata WHERE user_id={user_id}"
+        ).fetchone()[0]
 
-        rank = cur.execute(f"SELECT rank FROM userdata WHERE user_id={user_id}").fetchone()[0]
+        rank = cur.execute(
+            f"SELECT rank FROM userdata WHERE user_id={user_id}"
+        ).fetchone()[0]
 
         if user_id in ADMINS and rank < 2:
             cur.execute(f"UPDATE userdata SET rank=3 WHERE user_id={user_id}")
             conn.commit()
 
         '''
-        lastelec = current_time() - cur.execute(f"SELECT lastelec FROM userdata WHERE user_id={user_id}").fetchone()[0]
+        lastelec = current_time() - cur.execute(f"SELECT lastelec FROM userdata WHERE user_id={user_id}").fetchone()[0] # noqa: E501
 
         if lastelec > 86400:
             cur.execute(f"UPDATE userdata set electimes=0 WHERE user_id={user_id}")
@@ -43,18 +59,26 @@ async def check(user_id: int | str, chat_id: int | str) -> None | Message:
             cur.execute(f"UPDATE userdata set lastelec={current_time()} WHERE user_id={user_id}")
             conn.commit()'''
 
-        lvl = cur.execute(f"SELECT level FROM userdata WHERE user_id={user_id}").fetchone()[0]
+        lvl = cur.execute(
+            f"SELECT level FROM userdata WHERE user_id={user_id}"
+        ).fetchone()[0]
 
-        if lvl >= len(levelrange)-1: 
+        if lvl >= len(levelrange)-1:
             return
         elif xp >= levelrange[lvl] and xp < levelrange[lvl+1]:
             return
-        for i in levelrange: 
-            if xp >= i and levelrange.index(i) >= len(levelrange) - 1 and lvl != levelrange.index(i):
+        for i in levelrange:
+            if (
+                xp >= i 
+                and levelrange.index(i) >= len(levelrange) - 1 
+                and lvl != levelrange.index(i)
+            ):
                 cur.execute(f"UPDATE userdata SET level={levelrange.index(i)} WHERE user_id={user_id}")
                 conn.commit()
                 try:
-                    return await bot.send_message(user_id, f"<i>&#128305; Теперь ваш уровень в Живополисе: <b>{levelrange.index(i)}</b>\nПоздравляем!\n{leveldesc[levelrange.index(i)]}</i>")
+                    return await bot.send_message(
+                        user_id, 
+                        f"<i>&#128305; Теперь ваш уровень в Живополисе: <b>{levelrange.index(i)}</b>\nПоздравляем!\n{leveldesc[levelrange.index(i)]}</i>")
                 except Exception:
                     return await bot.send_message(chat_id, f"<i>&#128305; Теперь ваш уровень в Живополисе: <b>{levelrange.index(i)}</b>\nПоздравляем!\n{leveldesc[levelrange.index(i)]}</i>")
 
@@ -70,37 +94,39 @@ async def check(user_id: int | str, chat_id: int | str) -> None | Message:
         logger.exception(e)
 
 
-async def itemdata(user_id: int, item: str) -> Union[str, None, InlineKeyboardButton]:
+async def itemdata(
+    user_id: int, item: str
+) -> Union[str, None, InlineKeyboardButton]:
     """
     :param user_id - telegram user ID
     :param item - item slot name
 
     :returns aiogram.types.InlineKeyboardButton - button with item icon && itemcount
     """
-    try: 
+    try:
         items = cur.execute(f"SELECT {item} FROM userdata WHERE user_id={user_id}").fetchone()[0]
 
-        if items > 0:      
+        if items > 0:
             return InlineKeyboardButton(text=f"{ITEMS[item].emoji} {items}", callback_data=item)
-                
-        else:      
-            return "emptyslot"           
-    except Exception as e:         
+
+        else:
+            return "emptyslot"
+    except Exception as e:
         return logger.exception(e)
 
 
 def buybutton(
-    item: str, 
-    status: str | None = None, 
+    item: str,
+    status: str | None = None,
     tip: int = 0
 ) -> Union[InlineKeyboardButton, None]:
     '''
     You can get special button for buying something
-    
+
     :param item (str) - item index that will be bought
     :param status (str) - (Optional) special index for buying category
     :param tip (int) - (Optional) additional money to price
-    
+
     :returns: None if item does not exists or an error occured; aiogram.types.InlineKeyboardButton
     '''
     if item not in ITEMS:

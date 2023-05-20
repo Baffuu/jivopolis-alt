@@ -1,3 +1,5 @@
+# flake8: noqa 
+# type: ignore
 """
 Async variant of python `sched` module
 """
@@ -11,11 +13,13 @@ from time import monotonic as _time
 
 __all__ = ["AsyncScheduler"]
 
-Event = namedtuple('Event', 'time, priority, sequence, action, argument, kwargs')
+Event = namedtuple(
+    'Event', 'time, priority, sequence, action, argument, kwargs'
+)
 Event.time.__doc__ = ('''Numeric type compatible with the return value of the
 timefunc function passed to the constructor.''')
-Event.priority.__doc__ = ('''Events scheduled for the same time will be executed
-in the order of their priority.''')
+Event.priority.__doc__ = ('''Events scheduled for the same time will be
+executed in the order of their priority.''')
 Event.sequence.__doc__ = ('''A continually increasing sequence number that
     separates events if time and priority are equal.''')
 Event.action.__doc__ = ('''Executing the event means executing
@@ -26,6 +30,7 @@ Event.kwargs.__doc__ = ('''kwargs is a dictionary holding the keyword
 arguments for the action.''')
 
 _sentinel = object()
+
 
 class AsyncScheduler:
 
@@ -52,7 +57,7 @@ class AsyncScheduler:
             event = Event(time, priority, next(self._sequence_generator),
                           action, argument, kwargs)
             heapq.heappush(self._queue, event)
-        return event # The ID
+        return event  # The ID
 
     def enter(self, delay, priority, action, argument=(), kwargs=_sentinel):
         """A variant that specifies the time as a relative time.

@@ -9,11 +9,11 @@ from aiogram.utils.exceptions import ValidationError
 
 
 def _colored_input(prompt: str = "", hide: bool = False) -> str:
-    frame = sys._getframe(1)
+    frame = sys._getframe(1)  # type: ignore
     return (getpass if hide else input)(
         "\x1b[32m{time:%Y-%m-%d %H:%M:%S}.000\x1b[0m | "
         "\x1b[1m{level: <8}\x1b[0m | "
-        "\x1b[36m{name}\x1b[0m:\x1b[36m{function}\x1b[0m:\x1b[36m{line}\x1b[0m - \x1b[1m{prompt}\x1b[0m".format(
+        "\x1b[36m{name}\x1b[0m:\x1b[36m{function}\x1b[0m:\x1b[36m{line}\x1b[0m - \x1b[1m{prompt}\x1b[0m".format(  # noqa: E501
             time=datetime.now(),
             level="INPUT",
             name=frame.f_globals["__name__"],
@@ -22,6 +22,7 @@ def _colored_input(prompt: str = "", hide: bool = False) -> str:
             prompt=prompt,
         )
     )
+
 
 config = ConfigParser(allow_no_value=False)
 
@@ -33,18 +34,18 @@ if not config.read("./.config"):
     with open('./.config', 'w') as file:
         config.write(file)
 
-config.__setattr__("token", config.get("core", "token"))
-config.__setattr__("PPT", config.get("core", "payments"))
-config.__setattr__("altToken", config.get("alt", "token"))
-config.__setattr__("altPPT", config.get("alt", "payments"))
+TOKEN = config.get("core", "token")
+PPT = config.get("core", "payments")
+altToken = config.get("alt", "token")
+altPPT = config.get("alt", "payments")
 
-is_alt = True #_colored_input("Do you want to start alt bot? (y/n): ")
-is_alt = is_alt #== "y"
+is_alt = True  # _colored_input("Do you want to start alt bot? (y/n): ")
+is_alt = is_alt  # == "y"
 
 try:
     bot = Bot(
-        token=config.altToken if is_alt else config.token, #type: ignore
-        parse_mode='html', 
+        token=config.altToken if is_alt else config.token,  # type: ignore
+        parse_mode='html',
         disable_web_page_preview=True
     )
     dp = Dispatcher(bot)
@@ -53,4 +54,4 @@ except ValidationError:
     logger.critical("Your bot token is invalid!")
     sys.exit(1)
 
-PPT = config.altPPT if is_alt else config.PPT  # type: ignore # Payments Provider Token 
+PPT = altPPT if is_alt else PPT  # type: ignore # Payments Provider Token

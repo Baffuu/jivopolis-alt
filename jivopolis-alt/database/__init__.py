@@ -1,5 +1,5 @@
-from .sqlitedb import connect_database
+from .sqlitedb import connect_database  # pyright: ignore
+from .sqlitedb import insert_clan, insert_user  # noqa: F401, E402
 conn, cur = connect_database()
-from ..fyCursor import fyCursor 
-cur: fyCursor
-from .sqlitedb import insert_clan, insert_user
+
+__all__ = ["cur", "conn", "insert_clan", "insert_user"]

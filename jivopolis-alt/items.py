@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import Literal, Union, Optional
 
+
 @dataclass
 class Item():
     name: str
@@ -11,10 +12,10 @@ class Item():
     type_param: Union[str, int, list] = None
     description: Optional[str] = None
 
-    @property 
+    @property
     def price(self) -> Union[int, Literal['no cost']]:
         '''
-        You can get cost (or price) of the item 
+        You can get cost (or price) of the item
         '''
 
         return 'no cost' if self.cost < 0 or not self.cost else self.cost
@@ -22,22 +23,22 @@ class Item():
 
 ITEMS = {
     'walrus': Item(
-                name='seal', 
-                ru_name='Тюлень', 
-                emoji='🦭', 
-                cost=1000, 
+                name='seal',
+                ru_name='Тюлень',
+                emoji='🦭',
+                cost=1000,
                 type='mask',
                 description='очень любят баны'
     ),
-    
+
     'lootbox': Item(
-                name='lootbox', 
+                name='lootbox',
                 ru_name='Лутбокс',
                 emoji='📦',
                 type='lootbox',
                 description='в нём может быть что-то интересное'
     ),
-    
+
     'cow': Item(
                 name='cow',
                 ru_name='Корова',
@@ -53,7 +54,8 @@ ITEMS = {
             ru_name='Ключ',
             emoji='🗝️',
             type='key',
-            description='Очень старый ключ. Кто знает, может быть однажды он пригодится…'
+            description='Очень старый ключ. Кто знает,'
+            ' может быть однажды он пригодится…'
     ),
 
     'gun': Item(
@@ -62,7 +64,8 @@ ITEMS = {
             emoji='🔫',
             type='robber',
             cost=1000,
-            description='Водный пистолет. Кажется, его потерял какой-то ребёнок.',
+            description='Водный пистолет. Кажется, его потерял '
+            'какой-то ребёнок.',
     ),
 
     'wolf': Item(
@@ -98,7 +101,8 @@ ITEMS = {
         cost=2000,
         emoji='🥷',
         type='robber',
-        description='древний китайский ниндзя, которому уже много-много лет…\n\n**китайская партия одобряет'
+        description='древний китайский ниндзя, которому уже много-много лет…\n'
+        '\n**китайская партия одобряет'
     ),
 
     'bomb': Item(
@@ -115,7 +119,7 @@ ITEMS = {
         ru_name='Конфетти',
         emoji='🎊',
         cost=50,
-        type='mask',      
+        type='mask',
     ),
 
     'pill': Item(
@@ -181,33 +185,33 @@ ITEMS = {
     ),
 
     'baguette': Item(
-        name='baguette', 
-        ru_name='Багет', 
+        name='baguette',
+        ru_name='Багет',
         emoji='🥖',
-        cost=25, 
+        cost=25,
         type='food'
     ),
 
     'apple': Item(
-        name='apple', 
-        ru_name='Яблоко', 
-        cost=50, 
+        name='apple',
+        ru_name='Яблоко',
+        cost=50,
         type='food',
     ),
 
     'doughnut': Item(
-        name='doughnut', 
-        ru_name='Пончик', 
+        name='doughnut',
+        ru_name='Пончик',
         emoji='🍩',
-        cost=10, 
+        cost=10,
         type='food',
     ),
 
     'fries': Item(
-        name='fries', 
-        ru_name='Картофель Фри', 
-        emoji='🍟', 
-        cost=10, 
+        name='fries',
+        ru_name='Картофель Фри',
+        emoji='🍟',
+        cost=10,
         type='food'
     ),
 
@@ -215,39 +219,39 @@ ITEMS = {
         name='ice_cream',
         ru_name='Мороженое',
         emoji='🍨',
-        cost=250, 
+        cost=250,
         type='food'
     ),
 
     'shaved_ice': Item(
-        name='shaved_ice', 
-        ru_name='Фруктовый лед', 
-        emoji='🍧', 
-        cost=41, 
+        name='shaved_ice',
+        ru_name='Фруктовый лед',
+        emoji='🍧',
+        cost=41,
         type='food'
     ),
 
     'fairy': Item(
-        name='fairy', 
-        ru_name='Фея', 
-        emoji='🧚', 
-        cost=-1, 
+        name='fairy',
+        ru_name='Фея',
+        emoji='🧚',
+        cost=-1,
         type='mask'
     ),
 
     'kiwi': Item(
-        name='kiwi', 
-        ru_name='Kиви', 
-        emoji='🥝', 
-        cost=10, 
+        name='kiwi',
+        ru_name='Kиви',
+        emoji='🥝',
+        cost=10,
         type='food'
     ),
 
     'ramen': Item(
-        name='ramen', 
-        ru_name='Рамен', 
-        emoji='🍜', 
-        cost=25, 
+        name='ramen',
+        ru_name='Рамен',
+        emoji='🍜',
+        cost=25,
         type='food'
     ),
 
@@ -260,18 +264,18 @@ ITEMS = {
     ),
 
     'silver_medal': Item(
-        name='silver_medal', 
-        ru_name='Серебренная медаль', 
-        emoji='🥈', 
-        cost=-1, 
+        name='silver_medal',
+        ru_name='Серебренная медаль',
+        emoji='🥈',
+        cost=-1,
         type='mask'
     ),
 
     'bronze_medal': Item(
-        name='bronze_medal', 
-        ru_name='Бронзовая медаль', 
-        emoji='🥉', 
-        cost=-1, 
+        name='bronze_medal',
+        ru_name='Бронзовая медаль',
+        emoji='🥉',
+        cost=-1,
         type='mask'
     ),
 

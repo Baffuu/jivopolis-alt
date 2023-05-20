@@ -1,5 +1,7 @@
 import contextlib
-from ..database.functions import cur, conn, check, get_embedded_link, get_link, get_mask
+from ..database import cur, conn
+from ..database.functions import check
+from ..misc import get_embedded_link, get_link, get_mask
 from aiogram.types import InlineQuery, InlineQueryResultArticle, InputTextMessageContent, InlineKeyboardButton, InlineKeyboardMarkup, ChosenInlineResult
 from .. import logger, bot, Dispatcher, tglog
 from ..misc import OfficialChats

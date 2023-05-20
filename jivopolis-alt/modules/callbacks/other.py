@@ -265,7 +265,7 @@ async def exchange_center(call: CallbackQuery) -> None:
     await call.message.answer(
         "📊 Добро пожаловать в нашу биржу! Выберите криптовалюту, которую вы бы хотели обменять.", 
         reply_markup=InlineKeyboardMarkup(row_width=2).\
-            add(buttons)
+            add(*buttons)
     )
 
 async def exchange_menu_(call: CallbackQuery):
@@ -273,20 +273,22 @@ async def exchange_menu_(call: CallbackQuery):
     crypto_value = cur.select("value", from_="cryptodata").where(crypto=crypto).one()
     crypto = ITEMS[crypto]
     buttons = [
-        InlineKeyboardButton("📊 Купить ", callback_data=f"exchange_{crypto}:1"),
-        InlineKeyboardButton("🔻 Продать ", callback_data=f"exchange_{crypto}:-1")
+        InlineKeyboardButton("📊 Купить ", callback_data=f"exchange_{crypto.name}:1"),
+        InlineKeyboardButton("🔻 Продать ", callback_data=f"exchange_{crypto.name}:-1")
     ]
+    print(buttons)
     await call.message.answer(
         f"{crypto.emoji} {crypto.ru_name}\nТекущее значение: {crypto_value}",
-        reply_markup=InlineKeyboardMarkup().add(buttons)
+        reply_markup=InlineKeyboardMarkup(row_width=1).add(*buttons)
     )
 
 
 async def exchange_(call: CallbackQuery):
     amount = call.data.split("_")[1]
     crypto = amount.split(":")[0]
-    amount = amount.split(":")[1]
-    balance = "to-be-defined"
+    amount = int(amount.split(":")[1])
+    user_id = call.from_user.id
+    balance = cur.select("balance", "userdata").where(user_id=user_id).one()
 
     cur.update("cryptodata")
 
