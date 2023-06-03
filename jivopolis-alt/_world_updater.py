@@ -2,6 +2,8 @@
 # flake8: noqa
 import time
 import random
+import sqlite3
+import contextlib
 
 from .misc import tglog, ITEMS
 from .database import cur
@@ -80,10 +82,12 @@ def _change_values(c, current_value, change):
         crypto=c
     ).commit()
     cur.update("cryptodata").set(hours_8=prev_value).where(crypto=c).commit()
-    cur.update("cryptodata").set(hours_12=hours_8).where(crypto=c).commit()
-    cur.update("cryptodata").set(hours_16=hours_12).where(crypto=c).commit()
-    cur.update("cryptodata").set(hours_20=hours_16).where(crypto=c).commit()
-    cur.update("cryptodata").set(hours_24=hours_20).where(crypto=c).commit()
+    
+    with contextlib.suppress(sqlite3.OperationalError):
+        cur.update("cryptodata").set(hours_12=hours_8).where(crypto=c).commit()
+        cur.update("cryptodata").set(hours_16=hours_12).where(crypto=c).commit()
+        cur.update("cryptodata").set(hours_20=hours_16).where(crypto=c).commit()
+        cur.update("cryptodata").set(hours_24=hours_20).where(crypto=c).commit()
 
 
 async def get_crypto() -> list:
