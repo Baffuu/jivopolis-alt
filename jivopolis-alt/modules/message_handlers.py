@@ -3,6 +3,7 @@ import time
 from .. import utils
 from typing import Iterable
 from datetime import timedelta
+from ..filters import RequireBetaFilter
 from .emoji_handler import slot_machine
 from .. import dp, init_ts, cur, bot, tglog, get_embedded_link
 from ..utils import is_allowed_nonick
@@ -12,6 +13,7 @@ from .callbacks.inventory import lootbox_button
 from aiogram.types import Message, ChatType
 from aiogram.dispatcher.filters import Text
 
+
 def contains(text: str | Iterable, content: str) -> bool:
     if type(text) is str:
         items = [content.__contains__(text)]
@@ -20,12 +22,18 @@ def contains(text: str | Iterable, content: str) -> bool:
     else:
         return False
     return True in items
-    
-@dp.message_handler(Text(startswith="живополис", ignore_case=True))
+
+
+@dp.message_handler(
+    Text(startswith="живополис", ignore_case=True),
+    RequireBetaFilter()
+)
 async def chatbot_functions(message: Message):
     text = message.text[9:].lower()
-    if text.startswith(', '): text = text[1:]
-    if text.startswith(" "): text = text[1:]
+    if text.startswith(', '):
+        text = text[1:]
+    if text.startswith(" "):
+        text = text[1:]
     match (text):
         case t if 'привет' in t:
             await message.reply(f'<i>{random.choice(hellos)}</i>')
@@ -55,8 +63,9 @@ async def chatbot_functions(message: Message):
         await lootbox_text(message, False)
     else:
         await message.reply(f"<i>{random.choice(['А?', 'Что надо?', 'Чё звал?', 'Ещё раз позовёшь - получишь бан!', 'И тебе привет', 'Да?'])}</i>")
-        
-@dp.message_handler(Text(startswith="профиль", ignore_case=True))
+
+
+@dp.message_handler(Text(startswith="профиль", ignore_case=True), RequireBetaFilter())
 async def profile_alias_text(message: Message, nonick = True):
     if not await is_allowed_nonick(message.from_user.id) and nonick:
         return
@@ -65,7 +74,7 @@ async def profile_alias_text(message: Message, nonick = True):
     else:
         await profile(message.from_user.id, message)
 
-@dp.message_handler(Text(equals='мой баланс', ignore_case=True))
+@dp.message_handler(Text(equals='мой баланс', ignore_case=True), RequireBetaFilter())
 async def my_balance_text(message: Message, nonick = True):
     if not await is_allowed_nonick(message.from_user.id) and nonick:
         return
@@ -73,7 +82,7 @@ async def my_balance_text(message: Message, nonick = True):
     money = cur.execute(f'SELECT balance FROM userdata WHERE user_id={user_id}').fetchone()[0]
     await message.answer(f'<i><b>{await get_embedded_link(user_id)}</b> размахивает перед всеми своими накоплениями в количестве <b>${money}</b></i>')
     
-@dp.message_handler(Text(equals=['ид', 'id'], ignore_case=True))
+@dp.message_handler(Text(equals=['ид', 'id'], ignore_case=True), RequireBetaFilter())
 async def user_id_text(message: Message, nonick = True):
     if not await is_allowed_nonick(message.from_user.id) and nonick:
         return
@@ -83,7 +92,7 @@ async def user_id_text(message: Message, nonick = True):
         else f"<code>{message.from_user.id}</code>"
     )
 
-@dp.message_handler(Text(startswith=["ping", "пинг"], ignore_case=True))
+@dp.message_handler(Text(startswith=["ping", "пинг"], ignore_case=True), RequireBetaFilter())
 async def ping_text(message: Message):
     start = time.perf_counter_ns()
     message = await message.reply("🌘")
@@ -95,7 +104,7 @@ async def ping_text(message: Message):
         )
     )
 
-@dp.message_handler(Text(startswith=["ящик"], ignore_case=True))
+@dp.message_handler(Text(startswith=["ящик"], ignore_case=True), RequireBetaFilter())
 async def lootbox_text(message: Message, nonick = True):
     if not await is_allowed_nonick(message.from_user.id) and nonick:
         return
@@ -139,7 +148,7 @@ async def give_money(message: Message, nonick=True):
             f'<b>{await get_embedded_link(user_id)}</b> перекладывает из кармана в карман <b>${amount}</b>',
             italise=True
         )
-                    
+
     cur.update("userdata").add(balance=-amount).where(user_id = user_id).commit()
     cur.update("userdata").add(balance=amount).where(user_id = other_id).commit()
 
@@ -150,5 +159,3 @@ async def give_money(message: Message, nonick=True):
         reply=True
     )
     await tglog(f"{await get_embedded_link(user_id)} передал {await get_embedded_link(other_id)} ${amount}", "#moneyshare")
-
-
