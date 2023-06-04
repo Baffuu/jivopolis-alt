@@ -5,6 +5,7 @@ from datetime import datetime
 from configparser import ConfigParser
 
 from aiogram import Bot, Dispatcher
+from aiogram.dispatcher.filters import FiltersFactory as _FiltersFactory
 from aiogram.utils.exceptions import ValidationError
 
 
@@ -44,14 +45,15 @@ is_alt = is_alt  # == "y"
 
 try:
     bot = Bot(
-        token=config.altToken if is_alt else config.token,  # type: ignore
+        token=altToken if is_alt else TOKEN,
         parse_mode='html',
         disable_web_page_preview=True
     )
     dp = Dispatcher(bot)
+    FiltersFactory = _FiltersFactory(dp)
 except ValidationError:
     from loguru import logger
     logger.critical("Your bot token is invalid!")
     sys.exit(1)
 
-PPT = altPPT if is_alt else PPT  # type: ignore # Payments Provider Token
+PPT = altPPT if is_alt else PPT  # Payments Provider Token
