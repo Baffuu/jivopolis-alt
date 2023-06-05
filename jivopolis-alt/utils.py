@@ -1,10 +1,12 @@
 import os
 import re
+import time
 import asyncio
 import contextlib
 import traceback
 
-from . import cur, bot
+from datetime import timedelta
+from . import cur, bot, init_ts
 from .misc.constants import OfficialChats
 from aiogram.types import Message, CallbackQuery, Update
 from aiogram.utils.exceptions import RetryAfter
@@ -201,3 +203,14 @@ def run_async(
 ):
     loop = loop or asyncio.get_running_loop()
     return asyncio.run_coroutine_threadsafe(coro, loop).result()
+
+
+def uptime() -> timedelta:
+    """
+    You can get bot uptime in seconds
+    """
+    return timedelta(seconds=round(time.perf_counter() - init_ts))
+
+
+def ping(start: int) -> float:
+    return round((time.perf_counter_ns() - start) / 10**6, 3)

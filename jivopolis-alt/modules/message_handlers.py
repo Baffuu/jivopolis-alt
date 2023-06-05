@@ -2,10 +2,9 @@ import random
 import time
 from .. import utils
 from typing import Iterable
-from datetime import timedelta
 from ..filters import RequireBetaFilter
 from .emoji_handler import slot_machine
-from .. import dp, init_ts, cur, bot, tglog, get_embedded_link
+from .. import dp, cur, bot, tglog, get_embedded_link
 from ..utils import is_allowed_nonick
 from ..database.functions import profile
 from ..misc.config import hellos
@@ -29,6 +28,8 @@ def contains(text: str | Iterable, content: str) -> bool:
     RequireBetaFilter()
 )
 async def chatbot_functions(message: Message):
+    if not await RequireBetaFilter().check(message, False):
+        return
     text = message.text[9:].lower()
     if text.startswith(', '):
         text = text[1:]
@@ -42,13 +43,15 @@ async def chatbot_functions(message: Message):
             await slot_machine(_message, message.from_user.id)
             del _message
         case t if t.startswith('выйди'):
-            await message.reply("😭 Мне следует уйти? Очень жаль, прощайте, друзья…")
+            await message.reply(
+                "😭 Мне следует уйти? Очень жаль, прощайте, друзья…"
+            )
             await bot.leave_chat(message.chat.id)
         case t if t.startswith(('передать ', 'пожертвовать ')):
             message.text = text
             await give_money(message, False)
     if text.__contains__('как дела'):
-        await message.reply(f"<i>{random.choice(['Нормально', 'Нормально. А у тебя?', 'Типа того', 'Норм', 'Ну, нормас типа'])}</i>")
+        await message.reply(f"<i>{choice_how()}</i>")
     elif text.__contains__('или'):
         await message.reply(f'<i>{random.choice(text.split(" или "))}</i>')
     elif text.__contains__('профиль'):
@@ -62,11 +65,17 @@ async def chatbot_functions(message: Message):
     elif text.__contains__("ящик"):
         await lootbox_text(message, False)
     else:
-        await message.reply(f"<i>{random.choice(['А?', 'Что надо?', 'Чё звал?', 'Ещё раз позовёшь - получишь бан!', 'И тебе привет', 'Да?'])}</i>")
+        await message.reply(f"<i>{choice_else()}</i>")
 
 
-@dp.message_handler(Text(startswith="профиль", ignore_case=True), RequireBetaFilter())
-async def profile_alias_text(message: Message, nonick = True):
+@dp.message_handler(
+    Text(
+        startswith="профиль",
+        ignore_case=True
+    ),
+    RequireBetaFilter()
+)
+async def profile_alias_text(message: Message, nonick=True):
     if not await is_allowed_nonick(message.from_user.id) and nonick:
         return
     if message.reply_to_message:
@@ -74,16 +83,34 @@ async def profile_alias_text(message: Message, nonick = True):
     else:
         await profile(message.from_user.id, message)
 
-@dp.message_handler(Text(equals='мой баланс', ignore_case=True), RequireBetaFilter())
-async def my_balance_text(message: Message, nonick = True):
+
+@dp.message_handler(
+    Text(
+        equals='мой баланс',
+        ignore_case=True
+    ),
+    RequireBetaFilter()
+)
+async def my_balance_text(message: Message, nonick: bool = True):
     if not await is_allowed_nonick(message.from_user.id) and nonick:
         return
     user_id = message.from_user.id
-    money = cur.execute(f'SELECT balance FROM userdata WHERE user_id={user_id}').fetchone()[0]
-    await message.answer(f'<i><b>{await get_embedded_link(user_id)}</b> размахивает перед всеми своими накоплениями в количестве <b>${money}</b></i>')
-    
-@dp.message_handler(Text(equals=['ид', 'id'], ignore_case=True), RequireBetaFilter())
-async def user_id_text(message: Message, nonick = True):
+    money = cur.select("balance", "userdata").where(user_id=user_id).one()
+
+    await message.answer(
+        f'<i><b>{await get_embedded_link(user_id)}</b> размахивает перед всеми'
+        f' своими накоплениями в количестве <b>${money}</b></i>'
+    )
+
+
+@dp.message_handler(
+    Text(
+        equals=['ид', 'id'],
+        ignore_case=True
+    ),
+    RequireBetaFilter()
+)
+async def user_id_text(message: Message, nonick: bool = True):
     if not await is_allowed_nonick(message.from_user.id) and nonick:
         return
     await message.reply(
@@ -92,23 +119,38 @@ async def user_id_text(message: Message, nonick = True):
         else f"<code>{message.from_user.id}</code>"
     )
 
-@dp.message_handler(Text(startswith=["ping", "пинг"], ignore_case=True), RequireBetaFilter())
+
+@dp.message_handler(
+    Text(
+        startswith=["ping", "пинг"],
+        ignore_case=True
+    ),
+    RequireBetaFilter()
+)
 async def ping_text(message: Message):
     start = time.perf_counter_ns()
     message = await message.reply("🌘")
 
     await message.edit_text(
         (
-            f"<b>PONG ⚡️ </b><code>{round((time.perf_counter_ns() - start) / 10**6, 3)}</code><b> ms.</b>"
-            f"<b>\n🚀 UPTIME: </b><code>{str(timedelta(seconds=round(time.perf_counter() - init_ts)))}</code>"
+            f"<b>PONG ⚡️ </b><code>{utils.ping(start)}</code><b> ms.</b>"
+            f"<b>\n🚀 UPTIME: </b><code>{str(utils.uptime())}</code>"
         )
     )
 
-@dp.message_handler(Text(startswith=["ящик"], ignore_case=True), RequireBetaFilter())
-async def lootbox_text(message: Message, nonick = True):
+
+@dp.message_handler(
+    Text(
+        startswith=["ящик"],
+        ignore_case=True
+    ),
+    RequireBetaFilter()
+)
+async def lootbox_text(message: Message, nonick: bool = True):
     if not await is_allowed_nonick(message.from_user.id) and nonick:
         return
     await lootbox_button(message.from_user.id, message)
+
 
 async def give_money(message: Message, nonick=True):
     if not await is_allowed_nonick(message.from_user.id) and nonick:
@@ -117,45 +159,77 @@ async def give_money(message: Message, nonick=True):
     amount = int(message.text.split(" ")[1])
 
     user_id = message.from_user.id
-    chat_id = message.chat.id
+    # chat_id = message.chat.id
 
     if message.chat.type == ChatType.PRIVATE:
         return
-                
+
     if not message.reply_to_message:
         return
 
-    money = cur.select("balance", _from="userdata").where(user_id=user_id).one()
+    money = cur.select("balance", from_="userdata").where(
+        user_id=user_id).one()
     other_id = message.reply_to_message.from_user.id
 
     if money < amount:
         return await utils.answer(
-            message, 
+            message,
             "💨 Недостаточно денег.",
-            italise=True, 
+            italise=True,
             reply=True
         )
     elif money < 0:
         return await utils.answer(
-            message, 
-            "😧 Нельзя передать отрицательное количество денег!", 
+            message,
+            "😧 Нельзя передать отрицательное количество денег!",
             italise=True,
-            reply=True 
+            reply=True
         )
     elif user_id == other_id:
         return await utils.answer(
-            message, 
-            f'<b>{await get_embedded_link(user_id)}</b> перекладывает из кармана в карман <b>${amount}</b>',
+            message,
+            f'<b>{await get_embedded_link(user_id)}</b> перекладывает из'
+            f' кармана в карман <b>${amount}</b>',
             italise=True
         )
 
-    cur.update("userdata").add(balance=-amount).where(user_id = user_id).commit()
-    cur.update("userdata").add(balance=amount).where(user_id = other_id).commit()
+    cur.update("userdata").add(balance=-amount).where(user_id=user_id).commit()
+    cur.update("userdata").add(balance=amount).where(user_id=other_id).commit()
 
     await utils.answer(
         message,
-        f'<b>{await get_embedded_link(user_id)}</b> передал <b>{await get_embedded_link(other_id)}</b> ${amount}',
+        f'<b>{await get_embedded_link(user_id)}</b> передал <b'
+        f'>{await get_embedded_link(other_id)}</b> ${amount}',
         italise=True,
         reply=True
     )
-    await tglog(f"{await get_embedded_link(user_id)} передал {await get_embedded_link(other_id)} ${amount}", "#moneyshare")
+    await tglog(
+        f"{await get_embedded_link(user_id)} передал "
+        f"{await get_embedded_link(other_id)} ${amount}",
+        "#moneyshare"
+    )
+
+
+def choice_how() -> str:
+    return random.choice(
+        [
+            'Нормально',
+            'Нормально. А у тебя?',
+            'Типа того',
+            'Норм',
+            'Ну, нормас типа'
+        ]
+    )
+
+
+def choice_else() -> str:
+    return random.choice(
+        [
+            'А?',
+            'Что надо?',
+            'Чё звал?',
+            'Ещё раз позовёшь - получишь бан!',
+            'И тебе привет',
+            'Да?'
+        ]
+    )
