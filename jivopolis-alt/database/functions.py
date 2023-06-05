@@ -3,6 +3,7 @@
 
 # ! I ignored the whole file because i'm not currently supporting it
 import random
+import asyncio
 
 from datetime import datetime
 from math import floor
@@ -422,7 +423,8 @@ class profile_():
             or not message
         ):
             return
-        utils.run_async(self.init_(user_id, message, called))
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(self.init_(user_id, message, called))
 
     async def init_(self, user_id: int, message: Message, called: bool = False):
         # sourcery skip: remove-unreachable-code

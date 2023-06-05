@@ -58,7 +58,7 @@ async def my_reflink(call: CallbackQuery) -> None:
     bgcolor = '255-255-255'
 
     reflink = await get_start_link(
-        payload=call.from_user.id,
+        payload=str(call.from_user.id),
         encode=True
     )
 
@@ -67,7 +67,7 @@ async def my_reflink(call: CallbackQuery) -> None:
         photo=(
             f"https://api.qrserver.com/v1/create-qr-code/?data={reflink}&size=512x512&charset-source=UTF-8&charset-target=UTF-8"
             f"&ecc=L&color={color}&bgcolor={bgcolor}&margin=1&qzone=1&format=png"
-        ), 
+        ),
         caption=(
             f"<i>Ваша реферальная ссылка: <b>{reflink}</b>\n\n"
             "За каждого приглашённого пользователя вы получаете 1 <b>📦 Лутбокс</b></i>"

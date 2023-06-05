@@ -13,16 +13,27 @@ from aiogram.dispatcher.filters import Text
 from aiogram.utils.deep_linking import encode_payload
 from aiogram.utils.exceptions import MessageIsTooLong
 
+
 async def sqlrun_cmd(message: Message) -> None:
     try:
         if not await check_user(message.from_user.id, True):
-             return
+            return
         args = message.text[8:]
         if args.startswith("SELECT"):
             logger.info(f"someone catch data with SELECT: {args}")
-            return await message.reply(cur.execute(args).fetchone())
+            await message.reply(cur.execute(args).fetchone())
+            return
 
-        approve_cmds = ["select", "update", "set", "delete", "alter", "drop", "insert", "replace"] #команды, которые запрашивают одобрение мега-администрации
+        approve_cmds = [
+            "select",
+            "update",
+            "set",
+            "delete",
+            "alter",
+            "drop",
+            "insert",
+            "replace"
+        ]  # команды, которые запрашивают одобрение мега-администрации
 
         for request in args.split(' '):
             approve_request = request.lower() in approve_cmds

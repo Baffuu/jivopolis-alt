@@ -10,10 +10,11 @@ from ..filters import RequireBetaFilter
 
 from aiogram.types import CallbackQuery
 
+
 async def callback_handler(call: CallbackQuery):
     '''
-    handler for all callbacks 
-    
+    handler for all callbacks
+   
     :param call - callback:
     '''
     try:
@@ -306,7 +307,6 @@ async def callback_handler(call: CallbackQuery):
                 await exchange_(call)
             case _:
                 return await call.answer('♿️ 404: команда не найдена.', show_alert=True)
-        raise RuntimeError
     except TypeError as e:
         logger.exception(e)
         return await call.answer("🧑‍🎨 Сэр, у вас нет аккаунта в живополисе. Прежде чем использовать любые комманды вам нужно зарегистрироваться.", show_alert=True)

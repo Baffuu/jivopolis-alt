@@ -2,15 +2,13 @@
 import asyncio
 import time
 
-from typing import Optional, List
-
-from . import dp, Dispatcher, logger
+from . import dp, Dispatcher, logger, FiltersFactory
 from .misc import tglog
 from ._async_sched import AsyncScheduler
 from ._world_updater import update as _update
 from .filters import RequireBetaFilter
 
-from ._executor import Executor, _setup_callbacks, start_polling
+from aiogram.utils.executor import Executor
 from aiogram.utils.exceptions import ChatNotFound
 
 
@@ -18,6 +16,13 @@ async def update():
     await _update()
     scheduler.enter(60, 1, update)
     logger.debug("World was updated")
+
+
+def _setup_callbacks(executor: 'Executor', on_startup=None, on_shutdown=None):
+    if on_startup is not None:
+        executor.on_startup(on_startup)
+    if on_shutdown is not None:
+        executor.on_shutdown(on_shutdown)
 
 
 async def on_startup(dp: Dispatcher):
@@ -48,12 +53,39 @@ async def on_shutdown(_: Dispatcher):
     await tglog('❗️ Выключаюсь…', '#shutdown')
 
 
-if __name__ == '__main__':
-    dp.filters_factory.bind(
+def main():
+    """main entrypoint"""
+    FiltersFactory.bind(
         RequireBetaFilter,
-        event_handlers=[dp.message_handlers]
+        event_handlers=[
+            dp.message_handlers,
+            dp.callback_query_handlers
+        ]
     )
+    global scheduler
     scheduler = AsyncScheduler(time.time, asyncio.sleep)
-    executor = Executor(dp)
+    scheduler.enter(10, 1, update)
+
+    loop = asyncio.new_event_loop()
+    loop.create_task(scheduler.run())
+
+    executor = Executor(dp, loop=loop)
     _setup_callbacks(executor, on_startup, on_shutdown)
-    executor.start_polling()
+
+    try:
+        loop.run_until_complete(executor._startup_polling())
+        loop.create_task(dp.start_polling(
+            reset_webhook=None, timeout=20,
+            relax=0.1, fast=True, allowed_updates=None)
+        )
+        loop.run_forever()
+    except (KeyboardInterrupt, SystemExit):
+        # loop.stop()
+        pass
+    finally:
+        loop.run_until_complete(executor._shutdown_polling())
+        logger.warning("Goodbye!")
+
+
+if __name__ == '__main__':
+    main()

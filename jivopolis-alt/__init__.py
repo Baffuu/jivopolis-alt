@@ -1,8 +1,8 @@
 import sys
 import time
 
-from loguru import logger, Record
-from .bot import bot, dp, PPT
+from loguru import logger
+from .bot import bot, dp, PPT, FiltersFactory
 from aiogram import Dispatcher
 
 if sys.version_info < (3, 10, 0):
@@ -20,11 +20,11 @@ from .database import cur, conn
 from .misc import *  # noqa: F401, F403 # * todo: remove it
 
 
-def _debug_only(record: Record):
+def _debug_only(record):  # type: ignore
     return record["level"].name == "DEBUG"
 
 
-def _not_debug(record: Record):
+def _not_debug(record):  # type: ignore
     return record["level"].name != "DEBUG"
 
 
@@ -33,4 +33,4 @@ logger.add(".log", filter=_not_debug, rotation="10000 MB")
 
 init_ts = time.perf_counter()
 
-__all__ = ["bot", "dp", "PPT", "Dispatcher", "cur", "conn"]
+__all__ = ["bot", "dp", "PPT", "Dispatcher", "cur", "conn", "FiltersFactory"]

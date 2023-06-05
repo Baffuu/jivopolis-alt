@@ -6,6 +6,7 @@ from aiogram.types import InlineQuery, InlineQueryResultArticle, InputTextMessag
 from .. import logger, bot, Dispatcher, tglog
 from ..misc import OfficialChats
 
+
 async def inline_mode(query: InlineQuery):
     try:
         user_id = query.from_user.id
@@ -15,48 +16,67 @@ async def inline_mode(query: InlineQuery):
             health: int = cur.execute(f"SELECT health FROM userdata WHERE user_id={query.from_user.id}").fetchone()[0]
             is_banned = bool(cur.execute(f"SELECT is_banned FROM userdata WHERE user_id={query.from_user.id}").fetchone()[0])
         except TypeError:
-            return 
+            return
 
         if is_banned:
             return await bot.answer_inline_query(
-                query.id, 
+                query.id,
                 [
                     InlineQueryResultArticle(
-                        id = 'banned',
-                        title = '🧛🏻‍♂️ Вы были забаненны в боте.',
-                        description = 'Если вы считаете, что это - ошибка, обратитесь в поддержку.',
-                        input_message_content = 
+                        id = 'banned',  # noqa: E251
+                        title = '🧛🏻‍♂️ Вы были забаненны в боте.',  # noqa: E251, E501
+                        description = 'Если вы считаете, что это - ошибка, обратитесь в поддержку.',  # noqa: E251, E501
+                        input_message_content =   # noqa: E251
                         InputTextMessageContent(
-                            f'🧛🏻‍♂️ Вы были забаненны в боте. Если вы считаете, что это - ошибка, обратитесь в <a href="{OfficialChats.SUPPORTCHATLINK}">поддержку</a>.'
+                            "🧛🏻‍♂️ Вы были забаненны в боте. Если вы считаете"
+                            ", что это - ошибка, обратитесь в <a href = "
+                            f"'{OfficialChats.SUPPORTCHATLINK}'>поддержку</a>."
                         )
                     )
                 ]
             )
 
         if health < 0:
-            return await bot.answer_inline_query(query.id, [InlineQueryResultArticle(
-                id = 'dead',
-                title = '☠️ Вы умерли',
-                description = 'Попросите кого-нибудь вас воскресить',
-                input_message_content = InputTextMessageContent('<i>☠️ Вы умерли. Попросите кого-нибудь вас воскресить</i>')
-            )])
+            return await bot.answer_inline_query(
+                query.id,
+                [
+                    InlineQueryResultArticle(
+                        id = 'dead',  # noqa: E251
+                        title = '☠️ Вы умерли',  # noqa: E251
+                        description = 'Попросите кого-нибудь вас воскресить',  # noqa: E251, E501
+                        input_message_content = InputTextMessageContent(  # noqa: E251, E501
+                            '<i>☠️ Вы умерли. Попросите кого-нибудь вас воскресить</i>'  # noqa: E501
+                            )
+                    )
+                ]
+            )
 
-        data = query.query 
+        data = query.query
 
         try:
             nick = cur.execute(f"SELECT nickname FROM userdata WHERE user_id={user_id}").fetchone()[0]
             mask = get_mask(user_id)
             balance = cur.execute(f"SELECT balance FROM userdata WHERE user_id={user_id}").fetchone()[0] 
         except TypeError:
-            results.append(InlineQueryResultArticle(
-                id = 'account_not_found',
-                title = '👤 Аккаунт не найден',
-                description = 'Попробуйте зайти в бота и создать новый!',
-                input_message_content = InputTextMessageContent('🐸 Ваш аккаунт не найден. Нажмите на кнопку ниже чтобы его создать.'),
-                reply_markup = InlineKeyboardButton("Создать аккаунт", callback_data="sign_up")
-            ))
+            results.append(
+                InlineQueryResultArticle(
+                    id='account_not_found',
+                    title='👤 Аккаунт не найден',
+                    description='Попробуйте зайти в бота и создать новый!',
+                    input_message_content=InputTextMessageContent(
+                        '🐸 Ваш аккаунт не найден. Нажмите на кнопку ниже '
+                        'чтобы его создать.'
+                    ),
+                    reply_markup=InlineKeyboardMarkup().add(
+                            InlineKeyboardButton(
+                                "Создать аккаунт",
+                                callback_data="sign_up"
+                            )
+                        )
+                    )
+                )
             data = None
-        
+
         match(data):
             case None:
                 pass
