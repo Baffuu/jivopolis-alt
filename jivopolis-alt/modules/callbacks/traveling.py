@@ -31,6 +31,7 @@ METRO_MORE = 30
 AIRPLANE_LESS = 90
 AIRPLANE_MORE = 120
 
+
 async def city(message: Message, user_id: str):
     # sourcery skip: low-code-quality
     '''
@@ -118,7 +119,7 @@ async def city(message: Message, user_id: str):
 async def buycall(call: CallbackQuery):
     '''
     Callback for buying an item
-    
+
     :param call - callback:
     '''
     user_id = call.from_user.id
@@ -181,6 +182,7 @@ async def car_menu(call: CallbackQuery) -> None:
     )
     await message.answer('<i>👨‍✈️ Выберите место для поездки.</i>', reply_markup=markup)
 
+
 async def car_menu_next(call: CallbackQuery, menu: int):
     user_id = call.from_user.id
     message = call.message
@@ -212,6 +214,7 @@ async def car_menu_next(call: CallbackQuery, menu: int):
     await message.answer('<i>👨‍✈️ Выберите место для поездки.</i>', reply_markup=markup)
     with contextlib.suppress(MessageToDeleteNotFound, MessageCantBeDeleted):
         await message.delete()
+
 
 async def car_menu_previous(call: CallbackQuery, menu: int):
     user_id = call.from_user.id
@@ -246,6 +249,7 @@ async def car_menu_previous(call: CallbackQuery, menu: int):
     await message.answer('<i>👨‍✈️ Выберите место для поездки.</i>', reply_markup=markup)
     with contextlib.suppress(MessageToDeleteNotFound, MessageCantBeDeleted):
         await message.delete()
+
 
 async def goto_on_car(call: CallbackQuery) -> None:
     user_id = call.from_user.id
@@ -730,6 +734,7 @@ async def bus(call: CallbackQuery) -> None:
 
     await call.message.answer('<i>Пора уже валить отсюда...</i>', reply_markup=markup)
 
+
 async def metro(call: CallbackQuery):
     user_id = call.from_user.id
     token = cur.execute(f'SELECT metrotoken FROM userdata WHERE user_id={user_id}').fetchone()[0]
@@ -742,6 +747,7 @@ async def metro(call: CallbackQuery):
         markup.add(InlineKeyboardButton(text='🚉 Пройти на платформу', callback_data='proceed_metro'))
     markup.add(InlineKeyboardButton(text='🎫 Покупка жетонов', callback_data='metro_tickets'))
     await call.message.answer(f'<i>У вас <b>{token}</b> жетонов</i>', reply_markup=markup)
+
 
 async def proceed_metro(call: CallbackQuery):
     user_id = call.from_user.id
@@ -761,6 +767,7 @@ async def proceed_metro(call: CallbackQuery):
     conn.commit()
     await metrocall(call)
 
+
 def _transfer(user_id) -> None | str:
     line = cur.execute(f"SELECT line FROM userdata WHERE user_id={user_id}").fetchone()[0]
     place = cur.execute(f'SELECT current_place FROM userdata WHERE user_id={user_id}').fetchone()[0]
@@ -768,6 +775,7 @@ def _transfer(user_id) -> None | str:
         if i != line and place in METRO[i]:
             return i
     return
+
 
 async def metrocall(call: CallbackQuery):
     user_id = call.from_user.id
@@ -805,7 +813,8 @@ async def metrocall(call: CallbackQuery):
 
     with contextlib.suppress(Exception):
         await message.delete()
-        
+
+
 async def tostation(user_id: int | str, station: str, line: int = None):
     lines = (
         line
@@ -817,6 +826,7 @@ async def tostation(user_id: int | str, station: str, line: int = None):
     conn.commit()
     cur.execute(f'UPDATE userdata SET line = {lines} WHERE user_id={user_id}')
     conn.commit()
+
 
 async def metro_forward(call: CallbackQuery):
     user_id = call.from_user.id
@@ -849,6 +859,7 @@ async def metro_forward(call: CallbackQuery):
     await asyncio.sleep(random.randint(METRO_LESS, METRO_MORE))
     await tostation(user_id, station=METRO[line][index+1])
     await metrocall(call)
+
 
 async def metro_back(call: CallbackQuery):            
     user_id = call.from_user.id
@@ -885,6 +896,7 @@ async def metro_back(call: CallbackQuery):
     await tostation(user_id, station=METRO[line][index-1])
     await metrocall(call)
 
+
 async def transfer_metro(call: CallbackQuery):
     user_id = call.from_user.id
 
@@ -895,6 +907,7 @@ async def transfer_metro(call: CallbackQuery):
 
     with contextlib.suppress(Exception):
         await call.message.delete()
+
 
 async def airport(call: CallbackQuery):
     user_id = call.from_user.id
@@ -913,6 +926,7 @@ async def airport(call: CallbackQuery):
 
     markup.add(InlineKeyboardButton(text='🏛 Выйти в город', callback_data='city'))
     await call.message.answer(f'✈ <i>Вы находитесь в аэропорту <b>{airport}</b></i>', reply_markup = markup)
+
 
 async def flight(call: CallbackQuery):
     if not isinterval('plane'):
