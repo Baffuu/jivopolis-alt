@@ -1,8 +1,15 @@
 import contextlib
-from ..database import cur, conn
+from ..database import cur
 from ..database.functions import check
 from ..misc import get_embedded_link, get_link, get_mask
-from aiogram.types import InlineQuery, InlineQueryResultArticle, InputTextMessageContent, InlineKeyboardButton, InlineKeyboardMarkup, ChosenInlineResult
+from aiogram.types import (
+    InlineQuery,
+    InlineQueryResultArticle,
+    InputTextMessageContent,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    ChosenInlineResult
+)
 from .. import logger, bot, Dispatcher, tglog
 from ..misc import OfficialChats
 
@@ -13,9 +20,12 @@ async def inline_mode(query: InlineQuery):
         await check(user_id, user_id)
         results = []
         try:
-            health: int = cur.execute(f"SELECT health FROM userdata WHERE user_id={query.from_user.id}").fetchone()[0]
-            is_banned = bool(cur.execute(f"SELECT is_banned FROM userdata WHERE user_id={query.from_user.id}").fetchone()[0])
-        except TypeError:
+            health: int = cur.select("health", "userdata").where(
+                user_id=query.from_user.id).one()
+            is_banned = bool(cur.select("is_banned", "userdata").where(
+                user_id=query.from_user.id).one())
+            assert health is not None
+        except AssertionError:
             return
 
         if is_banned:
@@ -54,10 +64,13 @@ async def inline_mode(query: InlineQuery):
         data = query.query
 
         try:
-            nick = cur.execute(f"SELECT nickname FROM userdata WHERE user_id={user_id}").fetchone()[0]
+            nick = cur.select("nickname", "userdata").where(
+                user_id=user_id).one()
             mask = get_mask(user_id)
-            balance = cur.execute(f"SELECT balance FROM userdata WHERE user_id={user_id}").fetchone()[0] 
-        except TypeError:
+            balance = cur.select("balance", "userdata").where(
+                user_id=user_id).one()
+            assert nick is not None
+        except AssertionError:
             results.append(
                 InlineQueryResultArticle(
                     id='account_not_found',
@@ -75,45 +88,19 @@ async def inline_mode(query: InlineQuery):
                         )
                     )
                 )
+            mask = None
+            nick = None
+            balance = 0
             data = None
 
         match(data):
             case None:
                 pass
             case give if give.startswith('$'):
-                try:
-                    money = int(data[1:])
-                except:
-                    money = None
-                    
-                markup = InlineKeyboardMarkup()
-                try:
-                    if money > 0:
-                        if balance >= money:
-                            markup.add(InlineKeyboardButton(text='💲 Забрать деньги', callback_data=f'check_{money}'))
-                            results.append(InlineQueryResultArticle(
-                                id = f'check_{money}',
-                                title = f'💲 Отправить чек на сумму ${money}',
-                                description = f'Баланс: ${balance}',
-                                input_message_content=InputTextMessageContent(f'<i>&#128178; <b><a href="tg://user?id={user_id}">{mask}{nick}</a></b> предлагает вам <b>${money}</b></i>'),
-                                reply_markup = markup,
-                            ))
-                        else:
-                            markup.add(InlineKeyboardButton(text='💲 Забрать деньги', callback_data=f'check_{balance}'))
-                            results.append(InlineQueryResultArticle(
-                                id = f'check_{balance}',
-                                title = f'💲 Отправить чек на сумму ${balance}',
-                                description = f'Баланс: ${balance}',
-                                input_message_content=InputTextMessageContent(f'<i>&#128178; <b><a href="{await get_link(user_id)}">{mask}{nick}</a></b> предлагает вам <b>${balance}</b></i>'),
-                                reply_markup = markup,
-                            ))
-                except TypeError:
-                    results.append(InlineQueryResultArticle(
-                        id = 'check_error',
-                        title = '🚫 Введите правильное число',
-                        description = 'это должно быть целое число, не текст и не десятичное.',
-                        input_message_content = InputTextMessageContent('🚫 Введите правильное число'),
-                    ))
+                results = await givemoney_query(
+                    data, balance, results,
+                    user_id, mask, nick  # type: ignore
+                )
         return await bot.answer_inline_query(query.id, results, 1)
     except Exception as e:
         logger.exception(e)
@@ -122,21 +109,95 @@ async def inline_mode(query: InlineQuery):
 async def on_pressed_inline_query(inline: ChosenInlineResult):
     with contextlib.suppress(Exception):
         user_id = inline.from_user.id
-        nick = cur.execute(f"SELECT nickname FROM userdata WHERE user_id={user_id}").fetchone()[0]
+        # nick = cur.execute(f"SELECT nickname FROM userdata WHERE user_id={user_id}").fetchone()[0] # noqa
         data = inline.query
 
         if data.startswith('$'):
             money = int(data[1:])
             if money > 0:
-                cur.execute(f"UPDATE userdata SET balance = balance - {money} WHERE user_id={user_id}"); conn.commit()
+                cur.update("userdata").add(balance=-money).where(
+                    user_id=user_id).commit()
                 await tglog(
-                    f'<i>&#128178; <b>{await get_embedded_link(user_id)}</b> выписал чек на <b>${money}</b>', '#user_check</i>'
+                    f'<i>&#128178; <b>{await get_embedded_link(user_id)}</b> '
+                    f'выписал чек на <b>${money}</b>', '#user_check</i>'
                 )
             if money < 0:
                 await tglog(
-                    f'<i>&#128178; <b>{await get_embedded_link(user_id)}</b> выставил счёт на <b>${money}</b>', '#user_bill</i>'
+                    f'<i>&#128178; <b>{await get_embedded_link(user_id)}</b> '
+                    f'выставил счёт на <b>${money}</b>', '#user_bill</i>'
                 )
-    
+
+
+async def givemoney_query(
+    data: str,
+    balance: int,
+    results: list,
+    user_id: int,
+    mask: str,
+    nick: str
+):
+    try:
+        money = int(data[1:])
+    except Exception:
+        money = 0
+
+    markup = InlineKeyboardMarkup()
+
+    try:
+        if money > 0:
+            if balance >= money:
+                markup.add(
+                    InlineKeyboardButton(
+                        text='💲 Забрать деньги',
+                        callback_data=f'check_{money}'
+                    )
+                )
+
+                results.append(
+                    InlineQueryResultArticle(
+                        id=f'check_{money}',
+                        title=f'💲 Отправить чек на сумму ${money}',
+                        description=f'Баланс: ${balance}',
+                        input_message_content=InputTextMessageContent(
+                            f'<i>&#128178; <b><a href="tg://user?id={user_id}"'
+                            f'>{mask}{nick}</a></b> предлагает вам <b>${money}'
+                            '</b></i>'
+                        ),
+                        reply_markup=markup,
+                    )
+                )
+            else:
+                markup.add(
+                    InlineKeyboardButton(
+                        text='💲 Забрать деньги',
+                        callback_data=f'check_{balance}'
+                    )
+                )
+
+                results.append(InlineQueryResultArticle(
+                    id=f'check_{balance}',
+                    title=f'💲 Отправить чек на сумму ${balance}',
+                    description=f'Баланс: ${balance}',
+                    input_message_content=InputTextMessageContent(
+                        f'<i>&#128178; <b><a href="{await get_link(user_id)}"'
+                        f'>{mask}{nick}</a></b> предлагает вам <b>${balance}<'
+                        '/b></i>'
+                    ),
+                    reply_markup=markup,
+                ))
+    except TypeError:
+        results.append(InlineQueryResultArticle(
+            id='check_error',
+            title='🚫 Введите правильное число',
+            description=(
+                'это должно быть целое число, не текст и не десятичное.'
+            ),
+            input_message_content=InputTextMessageContent(
+                '🚫 Введите правильное число'),
+        ))
+
+    return results
+
 
 def register(dp: Dispatcher):
     dp.register_inline_handler(inline_mode)
