@@ -1,3 +1,5 @@
+
+# flake8: noqa
 import contextlib
 
 from .callbacks import *
@@ -14,32 +16,41 @@ from aiogram.types import CallbackQuery
 async def callback_handler(call: CallbackQuery):
     '''
     handler for all callbacks
-   
+
     :param call - callback:
     '''
     try:
         with contextlib.suppress(AttributeError):
             await check(call.from_user.id, call.message.chat.id)
-        health = cur.execute(f"SELECT health FROM userdata WHERE user_id={call.from_user.id}").fetchone()[0]
-        is_banned = bool(cur.execute(f"SELECT is_banned FROM userdata WHERE user_id={call.from_user.id}").fetchone()[0])
+        health = cur.select("health", "userdata").where(
+            user_id=call.from_user.id).one()
+        is_banned = bool(
+            cur.select("is_banned", "userdata").where(
+                user_id={call.from_user.id}
+            ).one()
+        )
 
         if is_banned:
             await call.answer(
-                '🧛🏻‍♂️ Вы были забаненны в боте. Если вы считаете, что это - ошибка, обратитесь в поддержку.',
+                '🧛🏻‍♂️ Вы были забаненны в боте. Если вы считаете, что это '
+                '- ошибка, обратитесь в поддержку.',
                 show_alert=True,
             )
             return await bot.send_message(
-                call.from_user.id, 
+                call.from_user.id,
                 (
-                    "🧛🏻‍♂️ Вы были забаненны в боте. Если вы считаете, что это - ошибка, "
-                    f"обратитесь в <a href='{SUPPORT_LINK}'>поддержку</a>."
+                    "🧛🏻‍♂️ Вы были забаненны в боте. Если вы считаете, что "
+                    f"это - ошибка, обратитесь в <a href='{SUPPORT_LINK}'"
+                    ">поддержку</a>."
                 ),
             )
 
         if health < 0:
             await call.answer(text='☠️ Вы умерли')
             if call.message.chat.type == 'private':
-                return await call.message.answer('<i>☠️ Вы умерли. Попросите кого-нибудь вас воскресить</i>' )
+                return await call.message.answer(
+                    '<i>☠️ Вы умерли. Попросите кого-нибудь вас воскресить</i>'
+                )
 
         match (call.data):
             case 'chats':
@@ -86,7 +97,7 @@ async def callback_handler(call: CallbackQuery):
             case 'adminchats':
                 await adminchats(call)
             case 'city':
-                await city(call.message, call.from_user.id) #todo refactoring
+                await city(call.message, str(call.from_user.id))  # todo refactoring
             case 'car_menu':
                 await car_menu(call)
             case car if car.startswith('goto_on_car'):
@@ -95,7 +106,7 @@ async def callback_handler(call: CallbackQuery):
                 await local_people(call)
             case cheque if cheque.startswith('check_'):
                 await get_cheque(call, call.from_user.id)
-            
+
             case 'phone_shop':
                 await shop(
                     call,
@@ -127,7 +138,7 @@ async def callback_handler(call: CallbackQuery):
                     call,
                     place='',
                     items=[
-                        'snowman',  'snowflake', 'xmastree',  'fairy', 
+                        'snowman',  'snowflake', 'xmastree',  'fairy',
                         'santa_claus',  'mrs_claus', 'firework',
                         'fireworks', 'confetti'
                     ],
@@ -135,7 +146,7 @@ async def callback_handler(call: CallbackQuery):
                 )
             case 'fruit_shop':
                 await shop(
-                    call, 
+                    call,
                     place='',
                     items=[
                         'apple', 'cucumber', 'tomato', 'kiwi', 'coconut'
@@ -147,7 +158,7 @@ async def callback_handler(call: CallbackQuery):
                     call,
                     place='Зоопарк',
                     items=[
-                        'seal', 'cow', 'hedgehog', 
+                        'seal', 'cow', 'hedgehog',
                         'wolf', 'fox', 'hamster'
                     ],
                     text=(
@@ -172,7 +183,7 @@ async def callback_handler(call: CallbackQuery):
                 )
             case 'botan_garden_shop':
                 await shop(
-                    call, 
+                    call,
                     place='Ботаническая',
                     items=[
                         'clover', 'palm', 'rose', 'tulip',
@@ -185,7 +196,7 @@ async def callback_handler(call: CallbackQuery):
                 )
             case 'car_shop':
                 await shop(
-                    call, 
+                    call,
                     place='Автопарк им. Кота',
                     items=[
                         'red_car', 'blue_car'
@@ -199,12 +210,12 @@ async def callback_handler(call: CallbackQuery):
                 await shop(
                     call,
                     place=['Райбольница', 'Старокотайский ФАП'],
-                    items= ['pill x1', 'pill x2', 'pill x3'],
+                    items=['pill x1', 'pill x2', 'pill x3'],
                     text="🏥 Добро не пожаловать в нашу замечательную больницу! Располагаетесь на койке и не умрите до прихода доктора."
                 )
             case 'building_shop':
                 await shop(
-                    call, 
+                    call,
                     place='Максименка',
                     items=['window', 'brick', 'door'],
                     text='🧱 Добро пожаловать в строительный магазин - дом любого мужчины!'
@@ -257,7 +268,7 @@ async def callback_handler(call: CallbackQuery):
                 await create_clan(call)
             case buyclan if buyclan.startswith('buyclan_'):
                 await buyclan_(call, call.data.replace('buyclan_', ''))
-                
+
             case taxi if taxi.startswith("taxi_next:"):
                 await taxi_next(call, int(call.data.replace("taxi_next:", "")))
             case taxi if taxi.startswith("taxi_previous:"):
@@ -270,16 +281,16 @@ async def callback_handler(call: CallbackQuery):
 
             case "toggle_nonick":
                 await toggle_nonick(call)
-            case "user_settings": 
+            case "user_settings":
                 await user_settings(call)
-            
+
             case "help":
                 await call.message.answer(
                     (
                         "<i><b>&#10067; Справка по игре в Живополис</b>\n"
                         "Команды бота: https://telegra.ph/Komandy-ZHivopol"
                         "isa-11-21\nКак играть: https://telegra.ph/Kak-igra"
-                        "t-v-ZHivopolis-11-21</i>" 
+                        "t-v-ZHivopolis-11-21</i>"
                     )
                 )
             case "metro":
@@ -314,7 +325,7 @@ async def callback_handler(call: CallbackQuery):
         await tglog(f"<b>☣️ TRACEBACK:</b> \n\n{utils.get_trace(e)}", "#traceback")
         logger.exception(e)
     return await call.answer('...')
- 
-        
+
+
 def register(dp: Dispatcher):
     dp.register_callback_query_handler(callback_handler, RequireBetaFilter())
