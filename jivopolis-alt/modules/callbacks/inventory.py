@@ -240,7 +240,9 @@ async def lootbox_button(user_id: int, message: Message) -> None:
             LOOTBOX[price_type].format(f"{item.emoji} {item.ru_name}")
         )
         return
-
+    elif price_type == "money_steal":
+        cur.update("userdata").add(balance=-price).where(
+            user_id=user_id).commit()
     elif callable(price):
         return await price(message.chat.id)
     elif isinstance(price, int):
