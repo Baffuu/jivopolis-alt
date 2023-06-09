@@ -169,4 +169,5 @@ notes.py
 run.sh
 main.py
 .DS_Store
-
+*.yaml
+*.db

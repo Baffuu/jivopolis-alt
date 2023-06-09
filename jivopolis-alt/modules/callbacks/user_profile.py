@@ -1,6 +1,6 @@
 from ... import bot
 from ...misc import ITEMS
-
+import sqlite3
 from ...database import cur
 
 from aiogram.utils.deep_linking import get_start_link
@@ -39,13 +39,15 @@ async def put_mask_off(
             return
 
         for item in ITEMS:
-            if ITEMS[item].emoji == mask:
+            if ITEMS[item].emoji == mask and ITEMS[item].type == "mask":
                 mask = item
 
         cur.update("userdata").set(mask="NULL").where(user_id=user_id).commit()
-
-        cur.update("userdata").add(**{mask: 1}).where(user_id=user_id).commit()
-
+        try:
+            cur.update("userdata").add(**{mask: 1}).where(
+                user_id=user_id).commit()
+        except sqlite3.OperationalError:
+            await call.message.answer("‼️ Your mask does not exist")
         if not anon:
             return await call.answer("🦹🏼 Ваша маска снята.", show_alert=True)
 

@@ -131,7 +131,7 @@ async def itemdesc(call: CallbackQuery, user_id: int):
 
     return await call.message.answer(
         f'<i><b>{item.emoji} {item.ru_name}</b> - {description}{itemsleft}\n'
-        '\nУ вас <b>{count}</b> единиц этого предмета</i>',
+        f'\nУ вас <b>{count}</b> единиц этого предмета</i>',
         reply_markup=markup
     )
 

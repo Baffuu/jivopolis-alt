@@ -13,13 +13,14 @@ async def dice_handler(message: Message):
     try:
         with contextlib.suppress(AttributeError):
             await check(message.from_user.id, message.chat.id)
-        health = cur.execute(f"SELECT health FROM userdata WHERE user_id={message.from_user.id}").fetchone()[0]
-        is_banned = bool(cur.execute(f"SELECT is_banned FROM userdata WHERE user_id={message.from_user.id}").fetchone()[0])
+        health = cur.select("health", "userdata").where(user_id=message.from_user.id).one()
+        is_banned = bool(
+            cur.execute(
+                f"SELECT is_banned FROM userdata WHERE user_id={message.from_user.id}").one())
 
         if is_banned:
             await message.answer(
-                '🧛🏻‍♂️ Вы были забаненны в боте. Если вы считаете, что это - ошибка, обратитесь в поддержку.',
-                show_alert=True,
+                '🧛🏻‍♂️ Вы были забаненны в боте. Если вы считаете, что это - ошибка, обратитесь в поддержку.'
             )
             return await bot.send_message(
                 message.from_user.id, 
@@ -58,13 +59,14 @@ async def dice_handler(message: Message):
         logger.exception(e)
         await message.answer(ERROR_MESSAGE.format(e))
 
+
 async def slot_machine(message: Message, user_id: int | None = None):
-    if message.forward_date: #to avoid dupe with forward
+    if message.forward_date:  # to avoid dupe with forward
         return
     user_id = user_id or message.from_user.id
-    chat_id = message.chat.id 
+    chat_id = message.chat.id
 
-    balance = cur.execute(f"SELECT balance FROM userdata WHERE user_id={user_id}").fetchone()[0]
+    balance = cur.execute(f"SELECT balance FROM userdata WHERE user_id={user_id}").one()
 
     if balance < SLOTMACHINE_TOKEN_COST:
         return await message.answer("<i>У вас недостаточно денег. Стоимость одной попытки: <b>$10</b></i>")

@@ -271,7 +271,7 @@ async def update_cmd(message: Message):
         return await message.answer('&#10060; <i>СЛЫШЬ, ЭТО МЕНЯТЬ НЕЛЬЗЯ!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!</i>') # noqa
 
     _old_value = cur.select(column, "userdata").where(user_id=_user_id).one()
-    cur.update("userdata").set(**{column: {new_value}}).where(
+    cur.update("userdata").set(**{column: new_value}).where(
         user_id=_user_id).commit()
     _new_value = cur.select(column, "userdata").where(user_id=_user_id).one()
 
@@ -280,9 +280,9 @@ async def update_cmd(message: Message):
             f"<i>🚀 Вы обновляете столбец <code>{column}</code> игрока "
             f"{await get_embedded_link(_user_id)}</i>"
             "\n>>> ☁️ старое значение: <code>"
-            f"{_old_value[0] if _old_value else 'NULL'}</code>"
+            f"{_old_value or 'NULL'}</code>"
             "\n>>> ✨ новое значение: <code>"
-            f"{_new_value[0] if _new_value else 'NULL'}</code>"
+            f"{_new_value or 'NULL'}</code>"
         )
     )
 

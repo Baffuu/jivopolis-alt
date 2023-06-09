@@ -52,7 +52,7 @@ async def check(user_id: int | str, chat_id: int | str) -> None | Message:
             conn.commit()
 
         '''
-        lastelec = current_time() - cur.execute(f"SELECT lastelec FROM userdata WHERE user_id={user_id}").fetchone()[0] # noqa: E501
+        lastelec = current_time() - cur.execute(f"SELECT lastelec FROM userdata WHERE user_id={user_id}.one()501
 
         if lastelec > 86400:
             cur.execute(f"UPDATE userdata set electimes=0 WHERE user_id={user_id}")
@@ -105,7 +105,7 @@ async def itemdata(
     :returns aiogram.types.InlineKeyboardButton - button with item icon && itemcount
     """
     try:
-        items = cur.execute(f"SELECT {item} FROM userdata WHERE user_id={user_id}").fetchone()[0]
+        items = cur.execute(f"SELECT {item} FROM userdata WHERE user_id={user_id}").one()
 
         if items > 0:
             return InlineKeyboardButton(text=f"{ITEMS[item].emoji} {items}", callback_data=item)
@@ -179,7 +179,7 @@ async def eat(call: CallbackQuery, food: str) -> None | bool | Message:
     else:
         raise ValueError('no such food')
 
-    health = cur.execute(f"SELECT health FROM userdata WHERE user_id={user_id}").fetchone()[0]
+    health = cur.execute(f"SELECT health FROM userdata WHERE user_id={user_id}").one()
     
     if heal == 1000:
         heal = random.randint(-100,10)
@@ -189,8 +189,8 @@ async def eat(call: CallbackQuery, food: str) -> None | bool | Message:
     if health + heal > 100:
         return await call.answer('🧘 Вы недостаточно голодны для такой пищи', show_alert = True)
             
-    health = cur.execute(f"SELECT health FROM userdata WHERE user_id={user_id}").fetchone()[0]
-    food_amount = cur.execute(f"SELECT {food} FROM userdata WHERE user_id={user_id}").fetchone()[0]
+    health = cur.execute(f"SELECT health FROM userdata WHERE user_id={user_id}").one()
+    food_amount = cur.execute(f"SELECT {food} FROM userdata WHERE user_id={user_id}").one()
 
     if food_amount < 1:
         return await call.answer(text="🚫 У вас нет такой еды", show_alert = True)
@@ -205,7 +205,7 @@ async def eat(call: CallbackQuery, food: str) -> None | bool | Message:
         await call.answer(f"❤ +{heal} HP на здоровье!", show_alert = True)
     else:
         await call.answer("🤢 Зачем я это съел? Теперь мне нехорошо", show_alert = True)
-        health = cur.execute(f"SELECT health FROM userdata WHERE user_id={user_id}").fetchone()[0]
+        health = cur.execute(f"SELECT health FROM userdata WHERE user_id={user_id}").one()
 
         if health < 1:
             return await bot.send_message(chat_id, "<i>&#9760; Вы умерли</i>")
@@ -221,12 +221,12 @@ async def poison(user: User, target_id: int | str, chat_id: int| str) -> None | 
     '''
 
     try:
-        my_health = cur.execute(f"SELECT health FROM userdata WHERE user_id={user.id}").fetchone()[0]
+        my_health = cur.select("health", "userdata").where(user_id=user.id).one()
 
         if my_health < 0:
             return await bot.send_message(chat_id, "<i>&#9760; Вы умерли. Попросите кого-нибудь вас воскресить</i>")
 
-        poison = cur.execute(f"SELECT poison FROM userdata WHERE user_id={user.id}").fetchone()[0]
+        poison = cur.execute(f"SELECT poison FROM userdata WHERE user_id={user.id}").one()
 
         if poison < 1:
             return await bot.send_message(chat_id, "<i>&#10060; У вас нет яда. Возможно, это к лучшему</i>")
@@ -428,15 +428,16 @@ class profile_():
 
     async def init_(self, user_id: int, message: Message, called: bool = False):
         # sourcery skip: remove-unreachable-code
-        profile_type = cur.execute(f"SELECT profile_type FROM userdata WHERE user_id = {user_id}").fetchone()[0]
+        profile_type = cur.select("profile_type", "userdata").where(user_id=user_id).one()
 
         if profile_type == "private" and user_id != message.from_user.id and not called:
             return await message.answer(f"🚫 <i><b>{await get_embedded_link(user_id)}</b> скрыл свой профиль</i>")
 
-        clan_id = cur.execute(f"SELECT clan_id FROM userdata WHERE user_id={user_id}").fetchone()[0]
+        clan_id = cur.select("clan_id", "userdata").where(user_id=user_id).one()
         
         balance, inviter, description, xp, rank, health, level, lastseen, photo, register_date,\
         clan_id, clan_type, clan_link, clan_name = await self._get_everything(user_id, clan_id)
+        
 
         if health < 0:
             health = "<b>мёртв</b>"
@@ -483,16 +484,16 @@ class profile_():
 
 
     async def _get_everything(self, user_id, clan_id):
-        balance = cur.execute(f"SELECT balance FROM userdata WHERE user_id={user_id}").fetchone()[0]
-        invited_by = cur.execute(f"SELECT inviter_id FROM userdata WHERE user_id={user_id}").fetchone()[0]
+        balance = cur.select("balance", "userdata").where(user_id=user_id).one()
+        invited_by = cur.select("inviter_id", "userdata").where(user_id=user_id).one()
         inviter = f"\n📎 Пригласивший пользователь: <b>{await get_embedded_link(invited_by)}</b>" if invited_by != 0 else ''
-        description = cur.execute(f"SELECT description FROM userdata WHERE user_id={user_id}").fetchone()[0]
-        xp = cur.execute(f"SELECT xp FROM userdata WHERE user_id={user_id}").fetchone()[0]
-        rank = cur.execute(f"SELECT rank FROM userdata WHERE user_id={user_id}").fetchone()[0]
-        health = cur.execute(f"SELECT health FROM userdata WHERE user_id={user_id}").fetchone()[0]
-        level = cur.execute(f"SELECT level FROM userdata WHERE user_id={user_id}").fetchone()[0]
-        lastseen = cur.execute(f"SELECT lastseen FROM userdata WHERE user_id={user_id}").fetchone()[0]
-        photo = cur.execute(f"SELECT photo_id FROM userdata WHERE user_id={user_id}").fetchone()[0]
+        description = cur.select("description", "userdata").where(user_id=user_id).one()
+        xp = cur.select("xp", "userdata").where(user_id=user_id).one()
+        rank = cur.select("rank", "userdata").where(user_id=user_id).one()
+        health = cur.select("health", "userdata").where(user_id=user_id).one()
+        level = cur.select("level", "userdata").where(user_id=user_id).one()
+        lastseen = cur.select("lastseen", "userdata").where(user_id=user_id).one()
+        photo = cur.select("photo_id", "userdata").where(user_id=user_id).one()
         rank = self._get_rank_name(rank)
         seconds = current_time() - lastseen
         lastseen = self._get_lastseen(seconds)
@@ -509,7 +510,7 @@ class profile_():
 
     def _get_register_date(self, user_id):
         try:
-            register_date = datetime.fromtimestamp(cur.execute(f"SELECT register_date FROM userdata WHERE user_id={user_id}").fetchone()[0])
+            register_date = datetime.fromtimestamp(cur.select("register_date", "userdata").where(user_id=user_id).one())
             reg_year = register_date.year
             reg_month = register_date.month
             reg_day = register_date.day
@@ -597,9 +598,9 @@ class profile_():
                 == 0
             ):
                 return None, None, None, None
-            clan_type = cur.execute(f"SElECT clan_type FROM clandata WHERE clan_id={clan_id}").fetchone()[0]
-            clan_link = cur.execute(f"SELECT link FROM clandata WHERE clan_id={clan_id}").fetchone()[0]
-            clan_name = cur.execute(f"SELECT clan_name FROM clandata WHERE clan_id={clan_id}").fetchone()[0]
+            clan_type = cur.select("clan_type", "clandata").where(clan_id=clan_id).one()
+            clan_link = cur.select("link", 'clandata').where(clan_id=clan_id).one()
+            clan_name = cur.select("clan_name", "clandata").where(clan_id=clan_id).one()
             return clan_id, clan_type, clan_link, clan_name
         return None, None, None, None
 
@@ -656,7 +657,7 @@ async def buy(call: CallbackQuery, item: str, user_id: int, cost: Optional[int] 
         if not cost or cost < 0:
             return
 
-    balance = cur.execute(f"SELECT balance FROM userdata WHERE user_id = {user_id}").fetchone()[0]
+    balance = cur.execute(f"SELECT balance FROM userdata WHERE user_id = {user_id}).one()
 
     if balance >= cost*amount:
         cur.execute(f"UPDATE userdata SET {item} = {item} + {amount} WHERE user_id = {user_id}"); conn.commit()

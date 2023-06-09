@@ -50,6 +50,7 @@ RASES = {
     )
 }
 
+
 class StartCommand():
 
     async def start_cmd(self, message: Message):
@@ -94,8 +95,7 @@ class StartCommand():
         except Exception as e:
             logger.exception(e)
             return await bot.send_message(chat_id, constants.ERROR_MESSAGE.format(e))
-    
-    
+
     async def _private_start(self, user_id: str | int, give_text = False) -> str | None:
         nick = cur.execute(f"SELECT nickname FROM userdata WHERE user_id = {user_id}").fetchone()[0]
 
@@ -141,7 +141,6 @@ class StartCommand():
             reply_markup=InlineKeyboardMarkup(row_width=2).add(*buttons)
         )
 
-
     def _start_buttons(self, user_id) -> list[InlineKeyboardButton]:
         rank = cur.execute(f"SELECT rank FROM userdata WHERE user_id = {user_id}").fetchone()[0]
         phone = cur.execute(f"SELECT phone FROM userdata WHERE user_id = {user_id}").fetchone()[0]
@@ -171,7 +170,6 @@ class StartCommand():
             buttons.append(InlineKeyboardButton(text="👑 Админская панель", callback_data="adminpanel"))
 
         return buttons
-
 
     async def sign_up_refferal(
         self,

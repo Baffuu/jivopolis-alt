@@ -38,18 +38,14 @@ class RequireBetaFilter(BoundFilter):
             return not self.is_beta
 
     async def _check_user(self, id, rank, send, reply: Optional[int] = None):
-        if self.is_beta:
-            if rank >= BETATEST_MINIMUM_RANK:
-                return True
-            else:
-                if send:
-                    await bot.send_message(
-                        id,
-                        "🤵 Доброго дня, сударь. Увы, на данный момент идёт бет"
-                        "а-тест, и вы не можете использовать данного бота так "
-                        "как не являете бета-тестером.",
-                        reply_to_message_id=reply
-                    )
-                return False
-        else:
+        if self.is_beta and rank >= BETATEST_MINIMUM_RANK or not self.is_beta:
             return True
+        if send:
+            await bot.send_message(
+                id,
+                "🤵 Доброго дня, сударь. Увы, на данный момент идёт бет"
+                "а-тест, и вы не можете использовать данного бота так "
+                "как не являете бета-тестером.",
+                reply_to_message_id=reply
+            )
+        return False

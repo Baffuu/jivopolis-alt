@@ -1,5 +1,6 @@
 import random
 import time
+import contextlib
 from .. import utils
 from typing import Iterable
 from ..filters import RequireBetaFilter
@@ -149,7 +150,8 @@ async def ping_text(message: Message):
 async def lootbox_text(message: Message, nonick: bool = True):
     if not await is_allowed_nonick(message.from_user.id) and nonick:
         return
-    await lootbox_button(message.from_user.id, message)
+    with contextlib.suppress(Exception):
+        await lootbox_button(message.from_user.id, message)
 
 
 async def give_money(message: Message, nonick=True):
