@@ -1173,10 +1173,12 @@ def _transfer(user_id) -> None | str | int:
 async def metrocall(call: CallbackQuery):
     user_id = call.from_user.id
     line = cur.select("line", "userdata").where(user_id=user_id).one()
-    place = cur.execute(f'SELECT current_place FROM userdata WHERE user_id={user_id}').fetchone()[0]
+    place = cur.select("current_place", "userdata").where(
+        user_id=user_id).one()
     index = METRO[line].index(place)
     markup = InlineKeyboardMarkup()
     desc = str()
+
     if trans := _transfer(user_id):
         desc += f'Переход к поездам {linez[trans]}\n'  # type: ignore
 
@@ -1195,7 +1197,10 @@ async def metrocall(call: CallbackQuery):
             and line == 0
         )
     ):
-        desc += '<b>Конечная.</b> Поезд дальше не идёт, просьба пассажиров выйти из вагонов'
+        desc += (
+            '<b>Конечная.</b> Поезд дальше не идёт, просьба пассажиров'
+            ' выйти из вагонов'
+        )
     if index > 0:
         previous_station = METRO[line][index-1]
         markup.add(
@@ -1244,36 +1249,48 @@ async def tostation(user_id: int | str, station: str, line: int | None = None):
             f'SELECT line FROM userdata WHERE user_id={user_id}'
         ).fetchone()[0]
     )
-    cur.execute(f'UPDATE userdata SET current_place = \"{station}\" WHERE user_id={user_id}')
-    conn.commit()
-    cur.execute(f'UPDATE userdata SET line = {lines} WHERE user_id={user_id}')
-    conn.commit()
+    cur.update("userdata").set(current_place=station).where(
+        user_id=user_id).commit()
+    cur.update("userdata").set(line=lines).where(user_id=user_id).commit()
 
 
 async def metro_forward(call: CallbackQuery):
     user_id = call.from_user.id
-    line = cur.execute(f'SELECT line FROM userdata WHERE user_id={user_id}').fetchone()[0]
+    line = cur.select("line", "userdata").where(user_id=user_id).one()
 
     if line in [0, 2]:
         if not isinterval('citylines'):
-            return await call.answer(f"Посадка ещё не началась. Поезд приедет через {remaining('citylines')}", show_alert=True)
+            return await call.answer(
+                (
+                    "Посадка ещё не началась. Поезд приедет через "
+                    f"{remaining('citylines')}"
+                ),
+                show_alert=True
+            )
 
     elif not isinterval('metro'):
-        return await call.answer(f"Посадка ещё не началась. Поезд приедет через {remaining('metro')}", show_alert=True)
+        return await call.answer(
+            "Посадка ещё не началась. Поезд приедет через "
+            f"{remaining('metro')}",
+            show_alert=True
+        )
 
-    place = cur.execute(f'SELECT current_place FROM userdata WHERE user_id={user_id}').fetchone()[0]
+    place = cur.select("current_place", "userdata").where(
+        user_id=user_id).one()
     index = METRO[line].index(place)
 
     if line not in [0, 2]:
         await call.message.answer_photo(
             'https://te.legra.ph/file/5104458f4a5bab9259a18.jpg',
-            f'<i>Следующая станция: <b>{METRO[line][index+1]}</b>. Осторожно, двери закрываются!</i>'
+            f'<i>Следующая станция: <b>{METRO[line][index+1]}</b>. Осторожно,'
+            ' двери закрываются!</i>'
         )
 
     else:
         await call.message.answer_photo(
             'https://telegra.ph/file/06103228e0d120bacf852.jpg',
-            f'<i>Посадка завершена. Следующий остановочный пункт: <b>{METRO[line][index+1]}</b></i>'
+            '<i>Посадка завершена. Следующий остановочный пункт: <b>'
+            f'{METRO[line][index+1]}</b></i>'
         )
 
     with contextlib.suppress(Exception):
@@ -1285,32 +1302,37 @@ async def metro_forward(call: CallbackQuery):
 
 async def metro_back(call: CallbackQuery):
     user_id = call.from_user.id
-    line = cur.execute(f"SELECT line FROM userdata WHERE user_id={user_id}").fetchone()[0]
+    line = cur.select("line", "userdata").where(user_id=user_id).one()
 
     if line in [0, 2] and not isinterval('citylines'):
         return await call.answer(
-            f"Посадка ещё не началась. Поезд приедет через {remaining('citylines')}",
+            "Посадка ещё не началась. Поезд приедет через "
+            f"{remaining('citylines')}",
             show_alert=True
         )
 
     elif not isinterval('metro'):
         return await call.answer(
-            f"Посадка ещё не началась. Поезд приедет через {remaining('metro')}",
+            "Посадка ещё не началась. Поезд приедет через"
+            f" {remaining('metro')}",
             show_alert=True
         )
 
-    place = cur.execute(f'SELECT current_place FROM userdata WHERE user_id={user_id}').fetchone()[0]
+    place = cur.select("current_place", "userdata").where(
+        user_id=user_id).one()
     index = METRO[line].index(place)
 
     if line not in [2, 0]:
         await call.message.answer_photo(
             'https://te.legra.ph/file/5104458f4a5bab9259a18.jpg',
-            caption=f'<i>Следующая станция: <b>{METRO[line][index-1]}</b>. Осторожно, двери закрываются!</i>'
+            caption=f'<i>Следующая станция: <b>{METRO[line][index-1]}</b>.'
+            ' Осторожно, двери закрываются!</i>'
         )
     else:
         await call.message.answer_photo(
             'https://telegra.ph/file/06103228e0d120bacf852.jpg',
-            caption=f'<i>Посадка завершена. Следующий остановочный пункт: <b>{METRO[line][index-1]}</b></i>'
+            caption=f'<i>Посадка завершена. Следующий остановочный пункт: '
+            f'<b>{METRO[line][index-1]}</b></i>'
         )
 
     await call.message.delete()
@@ -1322,8 +1344,8 @@ async def metro_back(call: CallbackQuery):
 async def transfer_metro(call: CallbackQuery):
     user_id = call.from_user.id
 
-    cur.execute(f'UPDATE userdata SET line={_transfer(user_id)} WHERE user_id={user_id}')
-    conn.commit()
+    cur.update("userdata").set(line=_transfer(user_id)).where(
+        user_id=user_id).commit()
 
     await metrocall(call)
 
@@ -1333,27 +1355,47 @@ async def transfer_metro(call: CallbackQuery):
 
 async def airport(call: CallbackQuery):
     user_id = call.from_user.id
-    place = cur.execute(f'SELECT current_place FROM userdata WHERE user_id={user_id}').fetchone()[0]
+    place = cur.select("current_place", "userdata").where(
+        user_id=user_id).one()
     markup = InlineKeyboardMarkup()
 
     match (place):
         case 'Аэропорт Котай':
             airport = 'Котай'
-            markup.add(InlineKeyboardButton(text='🛫 До Национального аэропорта', callback_data='flight'))
+            markup.add(
+                InlineKeyboardButton(
+                    text='🛫 До Национального аэропорта',
+                    callback_data='flight'
+                )
+            )
         case 'Национальный аэропорт':
             airport = 'Национальный аэропорт Живополис'
-            markup.add(InlineKeyboardButton(text='🛫 До Котая', callback_data='flight'))
+            markup.add(
+                InlineKeyboardButton(
+                    text='🛫 До Котая',
+                    callback_data='flight'
+                )
+            )
         case _:
             return
 
-    markup.add(InlineKeyboardButton(text='🏛 Выйти в город', callback_data='city'))
-    await call.message.answer(f'✈ <i>Вы находитесь в аэропорту <b>{airport}</b></i>', reply_markup=markup)
+    markup.add(
+        InlineKeyboardButton(
+            text='🏛 Выйти в город',
+            callback_data='city'
+        )
+    )
+    await call.message.answer(
+        f'✈ <i>Вы находитесь в аэропорту <b>{airport}</b></i>',
+        reply_markup=markup
+    )
 
 
 async def flight(call: CallbackQuery):
     if not isinterval('plane'):
         return await call.answer(
-            f'Посадка ещё не началась. Самолёт прилетит через {remaining("plane")}',
+            'Посадка ещё не началась. Самолёт прилетит через'
+            f' {remaining("plane")}',
             show_alert=True
         )
 
@@ -1364,11 +1406,14 @@ async def flight(call: CallbackQuery):
         ).fetchone()[0]
 
         if balance <= aircost:
-            return await call.message.answer('<i>У вас недостаточно средств :(</i>')
+            return await call.message.answer(
+                '<i>У вас недостаточно средств :(</i>'
+            )
 
-        place = cur.execute(f'SELECT current_place FROM userdata WHERE user_id={user_id}').fetchone()[0]
-        cur.execute(f'UPDATE userdata SET balance=balance-{aircost} WHERE user_id={user_id}')
-        conn.commit()
+        place = cur.select("current_place", "userdata").where(
+            user_id=user_id).one()
+        cur.update("userdata").add(balance=-aircost).where(
+            user_id=user_id).commit()
 
         sleep_time = random.randint(AIRPLANE_LESS, AIRPLANE_MORE)
 
@@ -1376,7 +1421,9 @@ async def flight(call: CallbackQuery):
             await bot.send_photo(
                 call.message.chat.id,
                 'https://telegra.ph/file/d34459cedf14cb4b4a19a.jpg',
-                '<i>Наш самолёт направляется к <b>Национальному аэропорту Живополис</b>. Путешествие займёт не более 2 минут. Удачного полёта!</i>'
+                '<i>Наш самолёт направляется к <b>Национальному аэропорту '
+                'Живополис</b>. Путешествие займёт не более 2 минут. Удачного '
+                'полёта!</i>'
             )
             destination = 'Национальный аэропорт'
             destline = 2
@@ -1385,7 +1432,8 @@ async def flight(call: CallbackQuery):
             await bot.send_photo(
                 call.message.chat.id,
                 'https://telegra.ph/file/d34459cedf14cb4b4a19a.jpg',
-                '<i>Наш самолёт направляется к <b>Аэропорту Котай</b>. Путешествие займёт не более 2 минут. Удачного полёта!</i>'
+                '<i>Наш самолёт направляется к <b>Аэропорту Котай</b>. Путешес'
+                'твие займёт не более 2 минут. Удачного полёта!</i>'
             )
             destination = 'Аэропорт Котай'
             destline = 1
@@ -1402,4 +1450,8 @@ async def flight(call: CallbackQuery):
         InlineKeyboardButton(text='🛫 Лететь', callback_data='flight_confirm'),
         InlineKeyboardButton(text='🚫 Отмена', callback_data='cancel_action')
     )
-    await call.message.answer(f'<i>🛩 Полёт на самолёте стоит <b>${aircost}</b>. Вы уверены, что хотите продолжить?</i>', reply_markup=markup)
+    await call.message.answer(
+        f'<i>🛩 Полёт на самолёте стоит <b>${aircost}</b>. Вы уверены, что '
+        'хотите продолжить?</i>',
+        reply_markup=markup
+    )

@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Literal, Union, Optional
+from typing import Literal, Union, Optional, Any
 
 
 @dataclass
@@ -7,9 +7,9 @@ class Item():
     name: str
     ru_name: str
     emoji: Optional[str] = '🌀'
-    cost: Optional[int] = None
+    cost: int = -1
     type: Optional[str] = None
-    type_param: Union[str, int, list] = None
+    type_param: Optional[Union[str, int, list[Any]]] = None
     description: Optional[str] = None
 
     @property
@@ -17,8 +17,12 @@ class Item():
         '''
         You can get cost (or price) of the item
         '''
-
-        return 'no cost' if self.cost < 0 or not self.cost else self.cost
+        return (
+            'no cost'
+            if self.cost < 0
+            or not self.cost
+            else self.cost
+        )
 
 
 ITEMS = {
