@@ -151,7 +151,7 @@ async def inventory(call: CallbackQuery) -> None:
     for item in ITEMS:
         if (
             await itemdata(user_id, item) != 'emptyslot'
-            and await itemdata(user_id, item)
+            and await itemdata(user_id, item) is not None
         ):
             itemlist.append(await itemdata(user_id, item))
 

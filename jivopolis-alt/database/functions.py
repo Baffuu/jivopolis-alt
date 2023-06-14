@@ -7,6 +7,7 @@ import asyncio
 
 from datetime import datetime
 from math import floor
+import sqlite3
 from typing import Union, Optional
 
 from . import cur, conn
@@ -105,13 +106,18 @@ async def itemdata(
     :returns aiogram.types.InlineKeyboardButton - button with item icon && itemcount
     """
     try:
-        items = cur.execute(f"SELECT {item} FROM userdata WHERE user_id={user_id}").one()
+        items = cur.select(item, "userdata").where(user_id=user_id).one()
+
+        if not isinstance(items, int):
+            items = 0
 
         if items > 0:
             return InlineKeyboardButton(text=f"{ITEMS[item].emoji} {items}", callback_data=item)
 
         else:
             return "emptyslot"
+    except sqlite3.OperationalError:
+        return None
     except Exception as e:
         return logger.exception(e)
 
@@ -657,7 +663,7 @@ async def buy(call: CallbackQuery, item: str, user_id: int, cost: Optional[int] 
         if not cost or cost < 0:
             return
 
-    balance = cur.execute(f"SELECT balance FROM userdata WHERE user_id = {user_id}).one()
+    balance = cur.execute(f"SELECT balance FROM userdata WHERE user_id = {user_id}").one()
 
     if balance >= cost*amount:
         cur.execute(f"UPDATE userdata SET {item} = {item} + {amount} WHERE user_id = {user_id}"); conn.commit()
