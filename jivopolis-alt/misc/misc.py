@@ -54,7 +54,7 @@ def get_mask(user_id: int | str) -> Union[str, None]:
 
     :param user_id:
 
-    :returns - the mask currently worn by the user, or the user's race (emoji) if no mask is worn:
+    :returns - the mask worn by the user or their race:
     '''
     try:
         return (
@@ -80,14 +80,16 @@ def current_time() -> float:
 
 
 def isinterval(type: str) -> bool:
-    '''returns True if boarding given type of transport is available at the moment; else False'''
+    '''returns True if boarding given type of transport
+    is available; else False'''
     now = current_time()
     interval = intervals[type]
     return now // 1 % interval[0] <= interval[1]
 
 
 def remaining(type) -> str:
-    '''returns time remaining until boarding given type of transport becomes available, in minutes and seconds'''
+    '''returns time remaining until boarding given type of transport
+    becomes available, in minutes and seconds'''
     now = current_time()
     interval = intervals[type][0]
     seconds = int(interval - now // 1 % interval)
