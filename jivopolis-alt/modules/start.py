@@ -3,13 +3,16 @@ import contextlib
 from time import time
 from collections import namedtuple
 
-from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardRemove, User, ChatType, Chat, CallbackQuery
+from aiogram.types import (Message, InlineKeyboardMarkup, InlineKeyboardButton,
+                           ReplyKeyboardRemove, User, ChatType, Chat,
+                           CallbackQuery)
 from aiogram.dispatcher.filters import Text
-from aiogram.utils.exceptions import ChatNotFound, BotBlocked, CantInitiateConversation
+from aiogram.utils.exceptions import (ChatNotFound,
+                                      BotBlocked, CantInitiateConversation)
 from aiogram.utils.deep_linking import decode_payload
 
 from .. import bot, Dispatcher, logger, tglog
-from ..filters import  RequireBetaFilter
+from ..filters import RequireBetaFilter
 from ..misc import get_mask, get_link, current_time, OfficialChats, constants
 from ..database import cur, conn, insert_user
 from ..database.functions import check, profile
@@ -55,7 +58,7 @@ class StartCommand():
 
     async def start_cmd(self, message: Message):
         '''
-        handler for start command 
+        handler for start command
 
         :param message:
         '''
@@ -63,28 +66,36 @@ class StartCommand():
         chat_id = message.chat.id
         try:
 
-            usercount = cur.execute(f"SELECT count(*) FROM userdata WHERE user_id = {user_id}").fetchone()[0]
+            usercount = cur.execute("SELECT count(*) FROM userdata"
+                                    f"WHERE user_id = {user_id}").fetchone()[0]
             if usercount < 1:
                 return await self._user_register_message(message, user_id)
 
             await check(user_id, chat_id)
 
             if args := message.get_args():
-                usercount = cur.execute(f"SELECT COUNT(*) FROM userdata WHERE user_id={args}").fetchone()[0]
+                usercount = cur.execute("SELECT COUNT(*) FROM userdata"
+                                        f" WHERE user_id={args}").fetchone()[0]
                 if usercount == 0:
                     pass
                 elif usercount == 1:
                     return await profile(int(args), message)
 
-            is_banned = bool(cur.execute(f"SELECT is_banned FROM userdata WHERE user_id = {message.from_user.id}").fetchone()[0])
+            is_banned = bool(cur.execute("SELECT is_banned FROM userdata WHERE"
+                                         f" user_id = {message.from_user.id}"
+                                         ).fetchone()[0])
             if is_banned:
                 return await message.answer(
-                    f'🧛🏻‍♂️ Вы были забаненны в боте. Если вы считаете, что это - ошибка, обратитесь в <a href="{SUPPORT_LINK}">поддержку</a>.'
+                    '🧛🏻‍♂️ <i>Вы были забанены в боте. Если вы считаете, '
+                    'что это ошибка, обратитесь в '
+                    f'<a href="{SUPPORT_LINK}">поддержку</a></i>'
                 )
 
-            health = cur.execute(f"SELECT health FROM userdata WHERE user_id = {user_id}").fetchone()[0]
+            health = cur.execute("SELECT health FROM userdata WHERE "
+                                 f"user_id = {user_id}").fetchone()[0]
             if health < constants.MINIMUM_HEALTH:
-                return await message.reply("<i> Вы умерли. Попросите кого-нибудь вас воскресить</i>")                
+                return await message.reply("<i> Вы умерли. Попросите"
+                                           "кого-нибудь вас воскресить</i>")
 
             if message.chat.type == ChatType.PRIVATE:
                 await self._private_start(user_id)
@@ -94,16 +105,18 @@ class StartCommand():
                 await self._clan_start(message.chat)
         except Exception as e:
             logger.exception(e)
-            return await bot.send_message(chat_id, constants.ERROR_MESSAGE.format(e))
+            return await bot.send_message(chat_id,
+                                          constants.ERROR_MESSAGE.format(e))
 
-    async def _private_start(self, user_id: str | int, give_text = False) -> str | None:
-        nick = cur.execute(f"SELECT nickname FROM userdata WHERE user_id = {user_id}").fetchone()[0]
-
+    async def _private_start(self, user_id: str | int,
+                             give_text=False) -> str | None:
+        nick = cur.execute("SELECT nickname FROM userdata WHERE"
+                           f" user_id = {user_id}").fetchone()[0]
 
         cur.execute("""
-            SELECT * FROM userdata 
-            WHERE profile_type=\"public\" AND rank=0 
-            ORDER BY balance 
+            SELECT * FROM userdata
+            WHERE profile_type=\"public\" AND rank=0
+            ORDER BY balance
             DESC LIMIT 10
         """)
 
@@ -115,10 +128,14 @@ class StartCommand():
         buttons = self._start_buttons(user_id)
         mask = get_mask(user_id)
 
-        balance = cur.execute(f"SELECT balance FROM userdata WHERE user_id = {user_id}").fetchone()[0]
-        xp = cur.execute(f"SELECT xp FROM userdata WHERE user_id = {user_id}").fetchone()[0]
-        health = cur.execute(f"SELECT health FROM userdata WHERE user_id = {user_id}").fetchone()[0]
-        level = cur.execute(f"SELECT level FROM userdata WHERE user_id={user_id}").fetchone()[0]
+        balance = cur.execute("SELECT balance FROM userdata"
+                              f" WHERE user_id = {user_id}").fetchone()[0]
+        xp = cur.execute("SELECT xp FROM userdata"
+                         f" WHERE user_id = {user_id}").fetchone()[0]
+        health = cur.execute("SELECT health FROM userdata"
+                             f" WHERE user_id = {user_id}").fetchone()[0]
+        level = cur.execute("SELECT level FROM userdata"
+                            f" WHERE user_id={user_id}").fetchone()[0]
 
         if level < len(levelrange)-1:
             xp_left = f"{xp} XP из {levelrange[level+1]}"
@@ -127,58 +144,71 @@ class StartCommand():
 
         hello = random.choice(hellos)
         text = (
-            f"<i>{hello}, <b><a href=\"tg://user?id={user_id}\">{mask}{nick}</a></b>"
+            f"<i>{hello}, <b><a href=\"tg://user?id={user_id}\">"
+            f"{mask}{nick}</a></b>"
             f"\n💲 Баланс: <b>${balance}</b>"
             f"\n 💡 Уровень: <b>{level}</b> ({xp_left})"
             f"\n❤️ Здоровье: <b>{health}</b>"
             f"\n{leaders}</i>"
         )
-        if give_text: return text
+        if give_text:
+            return text
         await bot.send_message(user_id, f"<i>{random.choice(randomtext)}</i>")
         await bot.send_message(
-            user_id, 
-            text, 
+            user_id,
+            text,
             reply_markup=InlineKeyboardMarkup(row_width=2).add(*buttons)
         )
 
     def _start_buttons(self, user_id) -> list[InlineKeyboardButton]:
-        rank = cur.execute(f"SELECT rank FROM userdata WHERE user_id = {user_id}").fetchone()[0]
-        phone = cur.execute(f"SELECT phone FROM userdata WHERE user_id = {user_id}").fetchone()[0]
-        mailbox = cur.select("last_box", from_="userdata").where(user_id=user_id).one()
-        box = cur.select("lootbox", from_="userdata").where(user_id=user_id).one()
-        
+        rank = cur.execute("SELECT rank FROM userdata WHERE"
+                           f" user_id = {user_id}").fetchone()[0]
+        phone = cur.execute("SELECT phone FROM userdata WHERE"
+                            f" user_id = {user_id}").fetchone()[0]
+        mailbox = cur.select("last_box",
+                             from_="userdata").where(user_id=user_id).one()
+        box = cur.select("lootbox",
+                         from_="userdata").where(user_id=user_id).one()
         mailbox = mailbox - time() > 60 * 60 * 24
         box = mailbox or box > 0
         box = random.choice(["📬", "📫"]) if box else random.choice(["📪", "📭"])
 
         buttons = [
-                InlineKeyboardButton(text="💼 Инвентарь", callback_data="inventory"), 
+                InlineKeyboardButton(text="💼 Инвентарь",
+                                     callback_data="inventory"),
                 InlineKeyboardButton(text="🏛 Город", callback_data="city"),
-                InlineKeyboardButton(text=f"{box} Почтовый ящик", callback_data="mailbox"), 
+                InlineKeyboardButton(text=f"{box} Почтовый ящик",
+                                     callback_data="mailbox"),
                 InlineKeyboardButton(text="💬 Чаты", callback_data="chats"),
                 InlineKeyboardButton(text="🤵 Работать", callback_data="work"),
-                InlineKeyboardButton(text="🃏 Профиль", callback_data="profile"),
-                InlineKeyboardButton(text="⚙ Настройки", callback_data="user_settings"),
-                InlineKeyboardButton(text="📊 Экономика", callback_data="economics"),
+                InlineKeyboardButton(text="🃏 Профиль",
+                                     callback_data="profile"),
+                InlineKeyboardButton(text="⚙ Настройки",
+                                     callback_data="user_settings"),
+                InlineKeyboardButton(text="📊 Экономика",
+                                     callback_data="economics"),
                 InlineKeyboardButton(text="❓ Помощь", callback_data="help")
             ]
 
         if phone > 0:
-            buttons.append(InlineKeyboardButton(text="📱 Телефон", callback_data="cellphone_menu"))
+            buttons.append(InlineKeyboardButton(text="📱 Телефон",
+                                                callback_data="cellphone_menu")
+                           )
 
         if rank >= constants.ADMINPANEL_MINIMUM_RANK:
-            buttons.append(InlineKeyboardButton(text="👑 Админская панель", callback_data="adminpanel"))
+            buttons.append(InlineKeyboardButton(text="👑 Админская панель",
+                                                callback_data="adminpanel"))
 
         return buttons
 
     async def sign_up_refferal(
         self,
-        message: Message, 
-        user: User, 
+        message: Message,
+        user: User,
         refferal_id: int | str
     ):
         '''
-        Creates account for a user that sign up using refferal code 
+        Creates account for a user that sign up using refferal code
 
         :param message:
         :param user:
@@ -189,39 +219,48 @@ class StartCommand():
         ).fetchone():
             insert_user(user)
         else:
-            return message.answer("<i>😨 Вы уже создавали аккаунт</i>", reply_markup = ReplyKeyboardRemove())
-        refferal_nick = cur.execute(f"SELECT nickname FROM userdata WHERE user_id=\"{refferal_id}\"").fetchone()[0]
+            return message.answer("<i>😨 Вы уже создавали аккаунт</i>",
+                                  reply_markup=ReplyKeyboardRemove())
+        refferal_nick = cur.execute("SELECT nickname FROM userdata WHERE "
+                                    f"user_id=\"{refferal_id}\"").fetchone()[0]
         refferal_mask = get_mask(refferal_id)
 
         await message.edit_text(
-            f"{message.text}\n\n>>> 🤵‍♂️Вы были приглашены пользователем <a href='{await get_link(refferal_id)}'>{refferal_mask}{refferal_nick}</a>",
+            f"{message.text}\n\n>>> 🤵‍♂️Вы были приглашены пользователем "
+            f"<a href='{await get_link(refferal_id)}'>{refferal_mask}"
+            f"{refferal_nick}</a>",
         )
 
-        cur.execute(f"UPDATE userdata SET inviter_id={refferal_id} WHERE user_id={user.id}")
+        cur.execute(f"UPDATE userdata SET inviter_id={refferal_id}"
+                    f" WHERE user_id={user.id}")
         conn.commit()
 
-        cur.execute(f"UPDATE userdata SET lootbox = lootbox + 1 WHERE user_id='{refferal_id}'")
+        cur.execute("UPDATE userdata SET lootbox = lootbox + 1"
+                    f" WHERE user_id='{refferal_id}'")
         conn.commit()
 
-        cur.execute(f"UPDATE userdata SET balance = balance + 100 WHERE user_id='{user.id}'")
+        cur.execute("UPDATE userdata SET balance = balance + 100"
+                    f" WHERE user_id='{user.id}'")
         conn.commit()
 
-        with contextlib.suppress(ChatNotFound, BotBlocked, CantInitiateConversation):
+        with contextlib.suppress(ChatNotFound, BotBlocked,
+                                 CantInitiateConversation):
             await bot.send_message(
                 refferal_id,
                 (
-                    f"👼 Юзер <a href = '{await get_link(user.id)}'>{user.full_name}</a> зарегистрировался по вашей реферальной ссылке, "
-                    "спасибо за приглашение новых участников в игру!\n\n"
-                    ">>> 🤵‍♂️Получен <b>📦 Лутбокс</b>"
+                    f"👼<i> Юзер <a href = '{await get_link(user.id)}'>"
+                    f"{user.full_name}</a> зарегистрировался по вашей "
+                    "реферальной ссылке. Спасибо за приглашение новых"
+                    " участников в игру!\n\n>>> 🤵‍♂️Получен "
+                    "<b>📦 Лутбокс</b></i>"
                 ),
             )
 
         await self._continue_registration(user.id)
 
-
     async def _register_refferal(self, message: Message, ref_id: int | str):
         '''
-        Send message for refferal registration 
+        Send message for refferal registration
 
         :param message:
         :param red_id - refferal user ID:
@@ -229,21 +268,23 @@ class StartCommand():
 
         await message.answer(
             (
-                f"🦎 Привет, {message.from_user.full_name}! Добро пожаловать в Живополис, лучший игровой бот во всея телеграмме! "
-                "\n\n⚙️ Нажмите на кнопку ниже для того, чтобы создать аккаунт и начать играть…"
+                f"🦎 <i>Привет, <b>{message.from_user.full_name}</b>!"
+                "Добро пожаловать в Живополис - лучший игровой бот во всём "
+                "телеграме!\n\n⚙️ Нажмите на кнопку ниже для того, чтобы "
+                "создать аккаунт и начать играть…</i>"
             ),
-            reply_markup=InlineKeyboardMarkup(row_width=1).\
-                add(
-                    InlineKeyboardButton("👼 Создать аккаунт", callback_data=f'sign_up_{ref_id}')
+            reply_markup=InlineKeyboardMarkup(row_width=1).add(
+                    InlineKeyboardButton("👼 Создать аккаунт",
+                                         callback_data=f'sign_up_{ref_id}')
                 )
         )
 
-
-    async def _user_register_message(self, message: Message, user_id: int | str):
+    async def _user_register_message(self, message: Message,
+                                     user_id: int | str):
         '''
         Preparing user for signing up
 
-        :param message: 
+        :param message:
         :param user_id:
         '''
         markup = InlineKeyboardMarkup(row_width=1).\
@@ -262,40 +303,44 @@ class StartCommand():
 
         if not refferal_link:
             await bot.send_message(
-                user_id, 
-                text=(   
-                    f"🦎 Привет, {message.from_user.full_name}! Добро пожаловать в Живополис, лучший игровой бот во всея телеграмме! "
-                    "\n\n⚙️ Нажмите на кнопку ниже для того, чтобы создать аккаунт и начать играть…"
+                user_id,
+                text=(
+                    f"🦎 <i>Привет, <b>{message.from_user.full_name}</b>! "
+                    "Добро пожаловать в Живополис, лучший игровой бот "
+                    "во всём телеграме! \n\n⚙️ Нажмите на кнопку ниже для "
+                    "того, чтобы создать аккаунт и начать играть…</i>"
                 ),
                 reply_markup=markup
             )
-            return 
-
+            return
 
         try:
-            inviter = cur.execute(f"SELECT COUNT(*) FROM userdata WHERE login_id = \"{refferal_link}\"").fetchone()[0]
+            inviter = cur.execute("SELECT COUNT(*) FROM userdata WHERE "
+                                  f"login_id = \"{refferal_link}\""
+                                  ).fetchone()[0]
         except TypeError:
             inviter = 0
 
-
         if inviter < 1:
             await bot.send_message(
-                user_id, 
-                text=(   
-                    f"🦎 Привет, {message.from_user.full_name}! Добро пожаловать в Живополис, лучший игровой бот во всея телеграмме! "
-                    "\n\n⚙️ Нажмите на кнопку ниже для того, чтобы создать аккаунт и начать играть…"
+                user_id,
+                text=(
+                    f"🦎 <i>Привет, <b>{message.from_user.full_name}</b>!"
+                    " Добро пожаловать в Живополис, лучший игровой бот во всём"
+                    " телеграме! \n\n⚙️ Нажмите на кнопку ниже для того, "
+                    "чтобы создать аккаунт и начать играть…</i>"
                 ),
                 reply_markup=markup
             )
         elif inviter > 1:
             raise ValueError("more than one inviter with this referal ID")
         elif inviter == 1:
-            await self._register_refferal(message, int(decode_payload(refferal_link)))
-
+            await self._register_refferal(message,
+                                          int(decode_payload(refferal_link)))
 
     async def _clan_start(self, chat: Chat):
         '''
-        start command in clan 
+        start command in clan
 
         :param chat:
         '''
@@ -303,19 +348,23 @@ class StartCommand():
 
         if count == 0:
             return await bot.send_message(chat.id,
-                f"<i>Создать клан <b>{chat.title}</b></i>", 
-                reply_markup = InlineKeyboardMarkup().add(
-                    InlineKeyboardButton(text="➕ Создать", callback_data="create_clan")
-                )
-            )
+                                          "<i>Создать клан "
+                                          f"<b>{chat.title}</b></i>",
+                                          reply_markup=InlineKeyboardMarkup().add(
+                                                                                  InlineKeyboardButton(text="➕ Создать", callback_data="create_clan")
+                                                                                 )
+                                          )
 
-        description = cur.execute(f"SELECT description FROM clandata WHERE clan_id={chat.id}").fetchone()[0]
+        description = cur.execute("SELECT description FROM clandata WHERE"
+                                  f" clan_id={chat.id}").fetchone()[0]
 
         markup = InlineKeyboardMarkup().add(
-            InlineKeyboardButton('🤵‍♂️ Присоединяться', callback_data="join_clan"),
+            InlineKeyboardButton('🤵‍♂️ Присоединяться',
+                                 callback_data="join_clan"),
             InlineKeyboardButton("🥾 Покинуть", callback_data="leave_clan")
         ).add(
-            InlineKeyboardButton("🏗 Постройки", callback_data="clan_buildings"),
+            InlineKeyboardButton("🏗 Постройки",
+                                 callback_data="clan_buildings"),
             InlineKeyboardButton("👥 Участники", callback_data="clan_members")
         ).add(
             InlineKeyboardButton("🔝", callback_data="clan_top"),
@@ -324,7 +373,8 @@ class StartCommand():
         )
 
         clan_name = cur.execute(f"SELECT clan_name FROM clandata WHERE clan_id = {chat.id}").fetchone()[0]
-        clan_balance = cur.execute(f"SELECT clan_balance FROM clandata WHERE clan_id = {chat.id}").fetchone()[0]
+        clan_balance = cur.execute("SELECT clan_balance FROM clandata WHERE"
+                                   f" clan_id = {chat.id}").fetchone()[0]
         top = cur.execute("SELECT clan_id FROM clandata ORDER BY clan_balance").fetchall()
 
         top_num = 0
@@ -333,11 +383,15 @@ class StartCommand():
             if i == chat.id:
                 break
 
-        HQplace = cur.execute(f"SELECT HQ_place FROM clandata WHERE clan_id = {chat.id}").fetchone()[0]
-        address = cur.execute(f"SELECT address FROM clandata WHERE clan_id = {chat.id}").fetchone()[0]
-        clanphoto = cur.execute(f"SELECT photo_id FROM clandata WHERE clan_id = {chat.id}").fetchone()[0]
+        HQplace = cur.execute("SELECT HQ_place FROM clandata"
+                              f" WHERE clan_id = {chat.id}").fetchone()[0]
+        address = cur.execute("SELECT address FROM clandata "
+                              f"WHERE clan_id = {chat.id}").fetchone()[0]
+        clanphoto = cur.execute("SELECT photo_id FROM clandata WHERE "
+                                f"clan_id = {chat.id}").fetchone()[0]
 
-        members_count = cur.execute(f"SELECT count(*) FROM userdata WHERE clan_id={chat.id}").fetchone()[0]
+        members_count = cur.execute("SELECT count(*) FROM userdata"
+                                    f" WHERE clan_id={chat.id}").fetchone()[0]
 
         text = f"""
             🏯 Клан {clan_name}{description or ''}
@@ -353,10 +407,10 @@ class StartCommand():
             else await bot.send_message(chat.id, text, reply_markup=markup)
         )
 
-
     async def _casino_start(self, message: Message):
         balance = cur.execute(
-            f"SELECT clan_balance FROM clandata WHERE clan_id = {OfficialChats.CASINOCHAT}"
+            "SELECT clan_balance FROM clandata WHERE clan_id = "
+            f"{OfficialChats.CASINOCHAT}"
         ).fetchone()[0]
         treasury = cur.execute(
             "SELECT treasury FROM globaldata"
@@ -364,11 +418,13 @@ class StartCommand():
 
         await message.answer(
             (
-                "🎮 Добро пожаловать в игровой клуб! Здесь вы можете повеселиться и попробовать"
-                " заработать немного денег. Но будьте осторожны, иначе казино заберёт у вас последние гроши…"
-                "\n\n‼️ Мы крайне не рекомендуем играть в казино в реальной жизни, особенно на большие деньги."
-                f"\n\n💲Баланс Казино: {balance}"
-                f"\n\n🏦 Казна Живополиса: {treasury}"
+                "<i>🎮 Добро пожаловать в игровой клуб! Здесь вы можете "
+                "повеселиться и попробовать заработать немного денег. "
+                "Но будьте осторожны, иначе казино заберёт у вас последние "
+                "гроши…\n\n‼️ Мы крайне не рекомендуем играть в казино в "
+                "реальной жизни, особенно на большие деньги."
+                f"\n\n💲Баланс Казино: <b>{balance}</b>"
+                f"\n\n🏦 Казна Живополиса: <b>{treasury}</b></i>"
             ),
             reply_markup=InlineKeyboardMarkup().add(
                 InlineKeyboardButton(
@@ -377,7 +433,6 @@ class StartCommand():
                 )
             )
         )
-    
 
     async def on_sign_up(self, call: CallbackQuery):
         if call.data == 'sign_up':
@@ -385,20 +440,19 @@ class StartCommand():
         else:
             await self.sign_up_refferal(call.message, call.from_user, call.data[8:])
 
-
     async def _rase_selection_menu(self, user_id: int):
         markup = InlineKeyboardMarkup(row_width=2)
         values = list(RASES.values())
 
         markup.add(
-            InlineKeyboardButton(text='🐱 Кот', callback_data='set_rase_🐱'), 
+            InlineKeyboardButton(text='🐱 Кот', callback_data='set_rase_🐱'),
             InlineKeyboardButton(text='🐶 Собака', callback_data='set_rase_🐶'),
             InlineKeyboardButton(text='🦝 Енот', callback_data='set_rase_🦝'),
             InlineKeyboardButton(text='🐸 Жаба', callback_data='set_rase_🐸'),
             InlineKeyboardButton(text='🦉 Сова', callback_data='set_rase_🦉')
         )
-        await bot.send_message(user_id, '<i>Выберите расу</i>', reply_markup = markup)
-        
+        await bot.send_message(user_id, '<i>Выберите '
+                               'расу</i>', reply_markup=markup)
 
     async def set_rase(self, call: CallbackQuery):
         user_id = call.from_user.id
@@ -407,47 +461,56 @@ class StartCommand():
         rase = RASES[rase]
         await call.answer('Отличный выбор!')
 
-        cur.execute(f'UPDATE userdata SET rase = \"{rase.emoji}\" WHERE user_id = {user_id}')
+        cur.execute(f'UPDATE userdata SET rase = \"{rase.emoji}\" '
+                    f'WHERE user_id = {user_id}')
         conn.commit()
 
-        await bot.send_photo(user_id, rase.image_url, f"Ты: {rase.emoji} {rase.ru_name}")
+        await bot.send_photo(user_id, rase.image_url, f"Ты: {rase.emoji}"
+                             f" {rase.ru_name}")
         await call.message.delete()
         await self._continue_registration(user_id)
-        
 
     async def _continue_registration(self, user_id: int):
-        rase = cur.execute(f"SELECT rase FROM userdata WHERE user_id={user_id}").fetchone()[0]
+        rase = cur.execute("SELECT rase FROM userdata"
+                           f"WHERE user_id={user_id}").fetchone()[0]
         if not rase or rase == "🤔":
             return await self._rase_selection_menu(user_id)
-        await bot.send_message(user_id, "<i>👾 Вы успешно зарегистрировались в живополисе! Добро пожаловать :3</i>", reply_markup = ReplyKeyboardRemove())
+        await bot.send_message(user_id, "<i>👾 Вы успешно зарегистрировались "
+                               "в Живополисе! Добро пожаловать :3</i>",
+                               reply_markup=ReplyKeyboardRemove())
         await self._private_start(user_id)
-
 
     async def sign_up(self, user: User):
         '''
-        Shell for inserting user into database 
+        Shell for inserting user into database
 
         :param user (aiogram.types.User) - user that will be inserted
-        :param chat_id (int) - chat id in which messages will be sent 
-        ''' 
-        count = cur.execute(f"SELECT COUNT(*) FROM userdata WHERE user_id={user.id}").fetchone()[0]
+        :param chat_id (int) - chat id in which messages will be sent
+        '''
+        count = cur.execute("SELECT COUNT(*) FROM userdata WHERE"
+                            f" user_id={user.id}").fetchone()[0]
 
         if count > 0:
-            return await bot.send_message(user.id, "<i>😨 Вы уже создавали аккаунт</i>", reply_markup = ReplyKeyboardRemove())
+            return await bot.send_message(user.id, "<i>😨 Вы уже создавали аккаунт</i>", reply_markup=ReplyKeyboardRemove())
 
         insert_user(user)
         await tglog(
-            f"<b><a href=\"{await get_link(user.id)}\">{user.full_name}</a></b> присоединился(-ась) к Живополису", 
+            f"<b><a href=\"{await get_link(user.id)}\">{user.full_name}</a>"
+            "</b> присоединился(-ась) к Живополису",
             "#user_signup"
         )
 
         cur.execute(f"UPDATE userdata SET register_date = {current_time()} WHERE user_id={user.id}")
         conn.commit()
-    
+
         await self._continue_registration(user.id)
 
 
 def register(dp: Dispatcher):
     dp.register_message_handler(StartCommand().start_cmd,  RequireBetaFilter(), commands=['start'])
-    dp.register_callback_query_handler(StartCommand().on_sign_up, RequireBetaFilter(), Text(startswith="sign_up"))
-    dp.register_callback_query_handler(StartCommand().set_rase, RequireBetaFilter(), Text(startswith="set_rase_"))
+    dp.register_callback_query_handler(StartCommand().on_sign_up,
+                                       RequireBetaFilter(),
+                                       Text(startswith="sign_up"))
+    dp.register_callback_query_handler(StartCommand().set_rase,
+                                       RequireBetaFilter(),
+                                       Text(startswith="set_rase_"))
