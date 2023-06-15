@@ -6,6 +6,8 @@ from . import base
 from .location import Location
 from .user import User
 
+# flake8: noqa
+
 class ChosenInlineResult(base.TelegramObject):
     """
     Represents a result of an inline query that was chosen by the user and sent to their chat partner.
@@ -22,5 +24,3 @@ class ChosenInlineResult(base.TelegramObject):
     location: Location = ...
     inline_message_id: base.String = ...
     query: base.String = ...
-
-

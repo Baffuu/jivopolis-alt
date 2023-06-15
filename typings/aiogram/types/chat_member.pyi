@@ -7,8 +7,10 @@ import typing
 from . import base
 from .user import User
 from ..utils import helper
-
+# flake8: noqa
 T = typing.TypeVar('T')
+
+
 class ChatMemberStatus(helper.Helper):
     """
     Chat member status
@@ -22,23 +24,26 @@ class ChatMemberStatus(helper.Helper):
     LEFT = ...
     KICKED = ...
     BANNED = ...
+
     @classmethod
     def is_chat_creator(cls, role: str) -> bool:
         ...
-    
+
     is_chat_owner = ...
+
     @classmethod
     def is_chat_admin(cls, role: str) -> bool:
         ...
-    
+
     @classmethod
     def is_chat_member(cls, role: str) -> bool:
         ...
-    
+
     @classmethod
-    def get_class_by_status(cls, status: str) -> typing.Optional[typing.Type[ChatMember]]:
+    def get_class_by_status(cls, status: str) -> typing.Optional[
+        typing.Type["ChatMember"]
+    ]:
         ...
-    
 
 
 class ChatMember(base.TelegramObject):
@@ -56,9 +61,10 @@ class ChatMember(base.TelegramObject):
     """
     status: base.String = ...
     user: User = ...
+
     def __int__(self) -> int:
         ...
-    
+
     @classmethod
     def resolve(cls, **kwargs) -> typing.Union[ChatMemberOwner, ChatMemberAdministrator, ChatMemberMember, ChatMemberRestricted, ChatMemberLeft, ChatMemberBanned]:
         ...

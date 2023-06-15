@@ -6,9 +6,11 @@ import typing
 from . import base
 from .passport_file import PassportFile
 
+
 class EncryptedPassportElement(base.TelegramObject):
     """
-    Contains information about documents or other Telegram Passport elements shared with the bot by the user.
+    Contains information about documents or other Telegram Passport elements \
+        shared with the bot by the user.
 
     https://core.telegram.org/bots/api#encryptedpassportelement
     """
@@ -20,5 +22,3 @@ class EncryptedPassportElement(base.TelegramObject):
     front_side: PassportFile = ...
     reverse_side: PassportFile = ...
     selfie: PassportFile = ...
-
-

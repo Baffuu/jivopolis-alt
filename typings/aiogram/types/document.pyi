@@ -6,9 +6,11 @@ from . import base, mixins
 from .photo_size import PhotoSize
 from ..utils import helper
 
+
 class Document(base.TelegramObject, mixins.Downloadable):
     """
-    This object represents a general file (as opposed to photos, voice messages and audio files).
+    This object represents a general file (as opposed to photos, voice \
+        messages and audio files).
 
     https://core.telegram.org/bots/api#document
     """
@@ -18,14 +20,14 @@ class Document(base.TelegramObject, mixins.Downloadable):
     file_name: base.String = ...
     mime_type: base.String = ...
     file_size: base.Integer = ...
+
     @property
     def mime_base(self) -> str:
         ...
-    
+
     @property
     def mime_subtype(self) -> str:
         ...
-    
 
 
 class MimeBase(helper.Helper):
@@ -45,5 +47,3 @@ class MimeBase(helper.Helper):
     MULTIPART = ...
     TEXT = ...
     VIDEO = ...
-
-

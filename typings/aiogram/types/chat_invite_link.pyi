@@ -6,6 +6,7 @@ from datetime import datetime
 from . import base
 from .user import User
 
+
 class ChatInviteLink(base.TelegramObject):
     """
     Represents an invite link for a chat.
@@ -21,5 +22,3 @@ class ChatInviteLink(base.TelegramObject):
     member_limit: base.Integer = ...
     creates_join_request: datetime = ...
     pending_join_request_count: base.Integer = ...
-
-

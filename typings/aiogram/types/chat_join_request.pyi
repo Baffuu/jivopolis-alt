@@ -8,6 +8,7 @@ from .chat import Chat
 from .chat_invite_link import ChatInviteLink
 from .user import User
 
+
 class ChatJoinRequest(base.TelegramObject):
     """
     Represents a join request sent to a chat.
@@ -20,11 +21,9 @@ class ChatJoinRequest(base.TelegramObject):
     date: datetime = ...
     bio: base.String = ...
     invite_link: ChatInviteLink = ...
+
     async def approve(self) -> base.Boolean:
         ...
-    
+
     async def decline(self) -> base.Boolean:
         ...
-    
-
-

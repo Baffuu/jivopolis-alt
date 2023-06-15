@@ -9,6 +9,7 @@ from .chat_invite_link import ChatInviteLink
 from .chat_member import ChatMember
 from .user import User
 
+
 class ChatMemberUpdated(base.TelegramObject):
     """
     This object represents changes in the status of a chat member.
@@ -21,5 +22,3 @@ class ChatMemberUpdated(base.TelegramObject):
     old_chat_member: ChatMember = ...
     new_chat_member: ChatMember = ...
     invite_link: ChatInviteLink = ...
-
-
