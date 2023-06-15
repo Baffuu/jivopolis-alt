@@ -123,7 +123,8 @@ class StartCommand():
         leaders = "&#127942; Лидеры Живополиса на данный момент:"
 
         for row in cur:
-            leaders += f"\n<b><a href=\"{await get_link(row[1])}\">{get_mask(row[1])}{row[2]}</a> - ${row[4]}</b>"
+            leaders += f"\n<b><a href=\"{await get_link(row[1])}\">" +\
+                       f"{get_mask(row[1])}{row[2]}</a> - ${row[4]}</b>"
 
         buttons = self._start_buttons(user_id)
         mask = get_mask(user_id)
@@ -344,15 +345,18 @@ class StartCommand():
 
         :param chat:
         '''
-        count = cur.execute(f"SELECT count(*) FROM clandata WHERE clan_id = {chat.id}").fetchone()[0]
+        count = cur.execute("SELECT count(*) FROM clandata WHERE clan_id"
+                            f" = {chat.id}").fetchone()[0]
 
         if count == 0:
-            return await bot.send_message(chat.id,
-                                          "<i>Создать клан "
+            return await bot.send_message(chat.id, "<i>Создать клан "
                                           f"<b>{chat.title}</b></i>",
-                                          reply_markup=InlineKeyboardMarkup().add(
-                                                                                  InlineKeyboardButton(text="➕ Создать", callback_data="create_clan")
-                                                                                 )
+                                          reply_markup=InlineKeyboardMarkup()
+                                          .add(
+                                               InlineKeyboardButton(
+                                                text="➕ Создать",
+                                                callback_data="create_clan")
+                                                )
                                           )
 
         description = cur.execute("SELECT description FROM clandata WHERE"
@@ -372,10 +376,12 @@ class StartCommand():
             InlineKeyboardButton("📣", callback_data="call_clan")
         )
 
-        clan_name = cur.execute(f"SELECT clan_name FROM clandata WHERE clan_id = {chat.id}").fetchone()[0]
+        clan_name = cur.execute("SELECT clan_name FROM clandata WHERE "
+                                f"clan_id = {chat.id}").fetchone()[0]
         clan_balance = cur.execute("SELECT clan_balance FROM clandata WHERE"
                                    f" clan_id = {chat.id}").fetchone()[0]
-        top = cur.execute("SELECT clan_id FROM clandata ORDER BY clan_balance").fetchall()
+        top = cur.execute("SELECT clan_id FROM clandata "
+                          "ORDER BY clan_balance").fetchall()
 
         top_num = 0
         for i in top:
@@ -438,7 +444,8 @@ class StartCommand():
         if call.data == 'sign_up':
             await self.sign_up(call.from_user)
         else:
-            await self.sign_up_refferal(call.message, call.from_user, call.data[8:])
+            await self.sign_up_refferal(call.message, call.from_user,
+                                        call.data[8:])
 
     async def _rase_selection_menu(self, user_id: int):
         markup = InlineKeyboardMarkup(row_width=2)
@@ -491,7 +498,9 @@ class StartCommand():
                             f" user_id={user.id}").fetchone()[0]
 
         if count > 0:
-            return await bot.send_message(user.id, "<i>😨 Вы уже создавали аккаунт</i>", reply_markup=ReplyKeyboardRemove())
+            return await bot.send_message(user.id, "<i>😨 Вы уже "
+                                          "создавали аккаунт</i>",
+                                          reply_markup=ReplyKeyboardRemove())
 
         insert_user(user)
         await tglog(
@@ -500,14 +509,16 @@ class StartCommand():
             "#user_signup"
         )
 
-        cur.execute(f"UPDATE userdata SET register_date = {current_time()} WHERE user_id={user.id}")
+        cur.execute("UPDATE userdata SET register_date = "
+                    f"{current_time()} WHERE user_id={user.id}")
         conn.commit()
 
         await self._continue_registration(user.id)
 
 
 def register(dp: Dispatcher):
-    dp.register_message_handler(StartCommand().start_cmd,  RequireBetaFilter(), commands=['start'])
+    dp.register_message_handler(StartCommand().start_cmd,
+                                RequireBetaFilter(), commands=['start'])
     dp.register_callback_query_handler(StartCommand().on_sign_up,
                                        RequireBetaFilter(),
                                        Text(startswith="sign_up"))
