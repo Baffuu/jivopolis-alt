@@ -58,8 +58,7 @@ ITEMS = {
             ru_name='Ключ',
             emoji='🗝️',
             type='key',
-            description='Очень старый ключ. Кто знает,'
-            ' может быть однажды он пригодится…'
+            description='очень старый ключ. Кто знает, может быть, однажды он пригодится…' #united
     ),
 
     'gun': Item(
@@ -68,8 +67,7 @@ ITEMS = {
             emoji='🔫',
             type='robber',
             cost=1000,
-            description='Водный пистолет. Кажется, его потерял '
-            'какой-то ребёнок.',
+            description='водный пистолет. Кажется, его потерял какой-то ребёнок' #united
     ),
 
     'wolf': Item(
@@ -105,8 +103,7 @@ ITEMS = {
         cost=2000,
         emoji='🥷',
         type='robber',
-        description='древний китайский ниндзя, которому уже много-много лет…\n'
-        '\n**китайская партия одобряет'
+        description='древний китайский ниндзя, которому уже много-много лет…\n\n**китайский Партия одобряет' #united
     ),
 
     'bomb': Item(
@@ -123,7 +120,7 @@ ITEMS = {
         ru_name='Конфетти',
         emoji='🎊',
         cost=50,
-        type='mask',
+        type='mask'
     ),
 
     'pill': Item(
@@ -132,6 +129,7 @@ ITEMS = {
         emoji='💊',
         cost=500,
         type='medicine',
+        description='принимайте, только если у вас есть рецепт от врача'
     ),
 
     'fireworks': Item(
@@ -155,7 +153,7 @@ ITEMS = {
         ru_name='Окно',
         emoji='🪟',
         cost=400,
-        type='building_material',
+        type='building_material'
     ),
 
     'brick': Item(
@@ -193,14 +191,17 @@ ITEMS = {
         ru_name='Багет',
         emoji='🥖',
         cost=25,
-        type='food'
+        type='food',
+        description='ah, tu viens de France?'
     ),
 
     'apple': Item(
         name='apple',
         ru_name='Яблоко',
+        emoji='🍎',
         cost=50,
         type='food',
+        description='и доктор не нужен'
     ),
 
     'doughnut': Item(
@@ -209,6 +210,7 @@ ITEMS = {
         emoji='🍩',
         cost=10,
         type='food',
+        description='любимая еда американских полицейских'
     ),
 
     'fries': Item(
@@ -224,7 +226,8 @@ ITEMS = {
         ru_name='Мороженое',
         emoji='🍨',
         cost=250,
-        type='food'
+        type='food',
+        description='мозг замёрз...'
     ),
 
     'shaved_ice': Item(
@@ -232,7 +235,8 @@ ITEMS = {
         ru_name='Фруктовый лед',
         emoji='🍧',
         cost=41,
-        type='food'
+        type='food',
+        description='когда не хватает денег на обычное мороженое'
     ),
 
     'fairy': Item(
@@ -248,7 +252,8 @@ ITEMS = {
         ru_name='Kиви',
         emoji='🥝',
         cost=10,
-        type='food'
+        type='food',
+        description='птица или платёжный сервис?'
     ),
 
     'ramen': Item(
@@ -269,7 +274,7 @@ ITEMS = {
 
     'silver_medal': Item(
         name='silver_medal',
-        ru_name='Серебренная медаль',
+        ru_name='Серебряная медаль',
         emoji='🥈',
         cost=-1,
         type='mask'
@@ -320,7 +325,7 @@ ITEMS = {
     'hedgehog': Item(
         emoji='🦔',
         name='hedgehog',
-        ru_name='Еж',
+        ru_name='Ёж',
         cost=100,
         type='mask'
     ),
@@ -331,7 +336,7 @@ ITEMS = {
         name='truck',
         ru_name='Грузовик',
         cost=3000,
-        type='mask'
+        type='robber'
     ),
 
 
@@ -349,7 +354,8 @@ ITEMS = {
         name='milk',
         ru_name='Молоко',
         cost=25,
-        type='food'
+        type='food',
+        description='натуральное, без ГМО'
     ),
 
 
@@ -358,7 +364,8 @@ ITEMS = {
         name='pelmeni',
         ru_name='Пельмени',
         cost=50,
-        type='food'
+        type='food',
+        description='много мяса, мало теста'
     ),
 
 
@@ -367,7 +374,8 @@ ITEMS = {
         name='shawarma',
         ru_name='Шаурма',
         cost=25,
-        type='food'
+        type='food',
+        description='ешьте осторожнее...'
     ),
 
 
@@ -385,7 +393,8 @@ ITEMS = {
         name='pizza',
         ru_name='Пицца',
         cost=200,
-        type='food'
+        type='food',
+        description='она же без ананасов, верно?'
     ),
 
 
@@ -421,7 +430,8 @@ ITEMS = {
         name='spaghetti',
         ru_name='Спагетти',
         cost=10,
-        type='food'
+        type='food',
+        description='buonissimo!'
     ),
 
 
@@ -439,7 +449,8 @@ ITEMS = {
         name='beer',
         ru_name='Пиво',
         cost=200,
-        type='food'
+        type='food',
+        description='сегодня пятница, а завтра выходной'
     ),
 
 
@@ -448,7 +459,8 @@ ITEMS = {
         name='meat_on_bone',
         ru_name='Мясо на кости',
         cost=200,
-        type='food'
+        type='food',
+        description='немного обглодано собаками, но в Живополисе кризис, так что выбирать не приходится'
     ),
 
 
@@ -619,7 +631,8 @@ ITEMS = {
         name='cactus',
         ru_name='Кактус',
         cost=-1,
-        type='mask'
+        type='mask',
+        description='колется'
     ),
 
 
@@ -628,7 +641,8 @@ ITEMS = {
         name='palm',
         ru_name='Пальма',
         cost=345,
-        type='mask'
+        type='mask',
+        description='представьте, что вы на Мальдивах'
     ),
 
 
@@ -646,7 +660,8 @@ ITEMS = {
         name='clover',
         ru_name='Клевер',
         cost=55,
-        type='mask'
+        type='mask',
+        description='вам сегодня везёт!'
     ),
 
 
@@ -709,23 +724,25 @@ ITEMS = {
         name='metrotoken',
         ru_name='Метро',
         cost=10,
-        type='token'
+        type='token',
+        description='лучший способ избежать пробок'
     ),
 
 
     'traintoken': Item(
         emoji='🎫',
         name='traintoken',
-        ru_name='Train',
+        ru_name='Билет на поезд',
         cost=10,
-        type='token'
+        type='token',
+        description='чтобы уехать из Живополиса в поисках лучшей жизни'
     ),
 
 
     'phone': Item(
         emoji='📱',
         name='phone',
-        ru_name='Phone',
+        ru_name='Смартфон',
         cost=1000000,
         type='phone'
     ),
@@ -734,18 +751,20 @@ ITEMS = {
     'trolleytoken': Item(
         emoji='🧾',
         name='trolleytoken',
-        ru_name='Trolley',
+        ru_name='Билет на троллейбус',
         cost=10,
-        type='token'
+        type='token',
+        description='зато экологично'
     ),
 
 
     'hamster': Item(
         emoji='🐹',
         name='hamster',
-        ru_name='Hamster',
+        ru_name='Хомяк',
         cost=100,
-        type='mask'
+        type='mask',
+        description='милота... Надеюсь, он проживёт больше недели'
     ),
 
     "fyCoin": Item(
