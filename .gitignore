@@ -165,7 +165,9 @@ cython_debug/
 **.log
 
 # my own files, do not care about them
+
 notes.py
+
 run.sh
 main.py
 .DS_Store
