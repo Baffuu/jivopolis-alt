@@ -17,12 +17,12 @@ async def get_link(
     encoded_id: Optional[str] = None
 ) -> str:
     '''
-    get link to user profile in bot
+    get link to user profile in the bot
 
     :param user_id:
     :param encoded_id - encoded user id:
 
-    :returns - bot link of user:
+    :returns - bot link of the user:
 
     :raise ValueError if no arguments will be provided.
     '''
@@ -50,9 +50,11 @@ async def get_embedded_link(
 
 def get_mask(user_id: int | str) -> Union[str, None]:
     '''
-    get mask or rase of user
+    get mask or race of user
 
     :param user_id:
+
+    :returns - the mask worn by the user or their race:
     '''
     try:
         return (
@@ -73,24 +75,27 @@ def get_mask(user_id: int | str) -> Union[str, None]:
 
 
 def current_time() -> float:
-    """returns current time in seconds"""
+    '''returns current Unix time in seconds'''
     return (datetime.now()-datetime.fromtimestamp(0)).total_seconds()
 
 
 def isinterval(type: str) -> bool:
+    '''returns True if boarding given type of transport
+    is available; else False'''
     now = current_time()
     interval = intervals[type]
     return now // 1 % interval[0] <= interval[1]
 
 
 def remaining(type) -> str:
-    '''remaining time due {something} happends, in minutes and seconds.'''
+    '''returns time remaining until boarding given type of transport
+    becomes available, in minutes and seconds'''
     now = current_time()
     interval = intervals[type][0]
     seconds = int(interval - now // 1 % interval)
     min, sec = divmod(seconds, 60)
-    sec = sec if sec != 0 else ''
-    return f'{min if min != 0 else ""}{f"{sec} секунд"}'
+    sec = f"{sec} секунд" if sec != 0 else ""
+    return f'{f"{min} минут " if min != 0 else ""}{sec}'
 
 
 def get_time_units(time: float) -> Tuple[int, int, int]:
