@@ -544,7 +544,8 @@ ITEMS = {
         name='red_car',
         ru_name='Красная машина',
         cost=10000,
-        type='car'
+        type='car',
+        description='врум-врум'
     ),
 
 
@@ -553,7 +554,8 @@ ITEMS = {
         name='blue_car',
         ru_name='Синяя машина',
         cost=15000,
-        type='car'
+        type='car',
+        description='отличается от красной только ценой'
     ),
 
 
@@ -562,7 +564,9 @@ ITEMS = {
         name='racing_car',
         ru_name='Гоночный автомобиль',
         cost=40000,
-        type='car'
+        type='car',
+        description='стоит дороже, чем 1000 годовых зарплат типичного'
+                    ' жителя Живополиса'
     ),
 
 
@@ -571,7 +575,8 @@ ITEMS = {
         name='clown',
         ru_name='Клоун',
         cost=100,
-        type='mask'
+        type='mask',
+        description='кто как обзывается, тот сам так называется'
     ),
 
 
@@ -580,7 +585,8 @@ ITEMS = {
         name='ghost',
         ru_name='Призрак',
         cost=100,
-        type='mask'
+        type='mask',
+        description='говорят, что их не существует'
     ),
 
 
@@ -589,7 +595,9 @@ ITEMS = {
         name='alien',
         ru_name='Пришелец',
         cost=100,
-        type='mask'
+        type='mask',
+        description='очевидно ему на своей планете живётся лучше,'
+                    ' чем типичному жителю Живополиса'
     ),
 
 
@@ -598,7 +606,10 @@ ITEMS = {
         name='robot',
         ru_name='Робот',
         cost=100,
-        type='mask'
+        type='mask',
+        description='говорят, что они когда-нибудь заменят людей. Но вам '
+                    'волноваться нечего, поскольку ни один робот не'
+                    ' согласится работать за такую маленькую зарплату'
     ),
 
 
@@ -607,7 +618,9 @@ ITEMS = {
         name='shit',
         ru_name='Какашка',
         cost=100,
-        type='mask'
+        type='mask',
+        description='кто вообще мог додуматься купить такую маску? '
+                    'Вместе с ней нужно купить хороший освежитель воздуха'
     ),
 
 
@@ -654,7 +667,8 @@ ITEMS = {
         name='potted_plant',
         ru_name='Комнатное растение',
         cost=55,
-        type='mask'
+        type='mask',
+        description='вкусно пахнет...'
     ),
 
 
@@ -673,7 +687,9 @@ ITEMS = {
         name='tulip',
         ru_name='Тюльпан',
         cost=99,
-        type='mask'
+        type='mask',
+        description='прямиком из Амстердама. Жаль, что это не столица '
+                    'Нидерландов, а село в Живополисе'
     ),
 
 
@@ -700,7 +716,8 @@ ITEMS = {
         name='moyai',
         ru_name='Моаи',
         cost=123,
-        type='mask'
+        type='mask',
+        description='...'
     ),
 
 
@@ -709,7 +726,9 @@ ITEMS = {
         name='chocolate',
         ru_name='Плитка шоколада',
         cost=321,
-        type='food'
+        type='food',
+        description='много не ешьте, пожалуйста, а то у нас дефицит шоколада '
+                    'и врачей'
     ),
 
 
@@ -747,7 +766,8 @@ ITEMS = {
         name='phone',
         ru_name='Смартфон',
         cost=1000000,
-        type='phone'
+        type='phone',
+        description='go touch some grass'
     ),
 
 
