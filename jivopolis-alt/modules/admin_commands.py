@@ -70,6 +70,7 @@ class sqlrun():
 
             else:
                 await message.reply('🧑‍🔧 sql cmd executed')
+                cur.execute(args).commit()
                 return logger.success(
                     (
                         f"🐦‍⬛ SQLQ was executed: {args}\n"
@@ -247,7 +248,11 @@ async def update_cmd(message: Message):
 
     if _user_id == "self":
         _user_id = message.from_user.id
+    elif _user_id == "reply":
+        if not message.reply_to_message:
+            raise ValueError("No reply message.")
 
+        _user_id = message.reply_to_message.from_user.id
     try:
         int(_user_id)
     except ValueError:
@@ -257,7 +262,7 @@ async def update_cmd(message: Message):
         _user_id = cur.select("user_id", "userdata").where(
             **{_adv_args[0]: _adv_args[1]}).one()
 
-        _user_id = _user_id[0] if _user_id is not None else _raise(
+        _user_id = _user_id if _user_id is not None else _raise(
             ValueError("user with this param's does not exists."))
 
     column = args[2]
@@ -292,9 +297,9 @@ async def update_cmd(message: Message):
             f" <code>{column}</code> игрока "
             f"{await get_embedded_link(_user_id)}</i>"
             "\n>>> ☁️ старое значение: <code>"
-            f"{_old_value[0] if _old_value else 'NULL'}</code>"
+            f"{_old_value or 'NULL'}</code>"
             "\n>>> ✨ новое значение: <code>"
-            f"{_new_value[0] if _new_value else 'NULL'}</code>"
+            f"{_new_value or 'NULL'}</code>"
             f"\n\n<code>{message.text.lower()}</code>"
         ),
         "#update_cmd"
@@ -329,14 +334,13 @@ async def select_cmd(message: Message):
     if not await check_user(user_id, True):
         return
 
-    result = cur.select(column, "userdata").where(user_id=_user_id).fetchone()
-
+    result = cur.select(column, "userdata").where(user_id=_user_id).one()
     await message.answer(
         (
             "🌪 Вы захватываете данные пользователя "
             f"{await get_embedded_link(user_id)}"
             f"\n>>> <code>{column}</code>: <code>"
-            f"{result[0] if result else 'NULL'}</code>"
+            f"{result if result is not None else 'NULL'}</code>"
         )
     )
 
