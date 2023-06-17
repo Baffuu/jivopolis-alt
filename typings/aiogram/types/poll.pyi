@@ -8,6 +8,7 @@ from . import base
 from .user import User
 from ..utils import helper
 
+
 class PollOption(base.TelegramObject):
     """
     This object contains information about one answer option in a poll.
@@ -21,7 +22,7 @@ class PollOption(base.TelegramObject):
 class PollAnswer(base.TelegramObject):
     """
     This object represents an answer of a user in a non-anonymous poll.
-    
+
     https://core.telegram.org/bots/api#pollanswer
     """
     poll_id: base.String = ...
@@ -32,7 +33,7 @@ class PollAnswer(base.TelegramObject):
 class Poll(base.TelegramObject):
     """
     This object contains information about a poll.
-    
+
     https://core.telegram.org/bots/api#poll
     """
     id: base.String = ...
@@ -48,9 +49,10 @@ class Poll(base.TelegramObject):
     explanation_entities: base.String = ...
     open_period: base.Integer = ...
     close_date: datetime.datetime = ...
-    def parse_entities(self, as_html=...): # -> str:
+
+    def parse_entities(self, as_html=...) -> str:
         ...
-    
+
     @property
     def md_explanation(self) -> str:
         """
@@ -59,7 +61,7 @@ class Poll(base.TelegramObject):
         :return: str
         """
         ...
-    
+
     @property
     def html_explanation(self) -> str:
         """
@@ -68,12 +70,9 @@ class Poll(base.TelegramObject):
         :return: str
         """
         ...
-    
 
 
 class PollType(helper.Helper):
     mode = ...
     REGULAR = ...
     QUIZ = ...
-
-

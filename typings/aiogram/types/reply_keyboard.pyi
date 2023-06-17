@@ -6,17 +6,19 @@ import typing
 from . import base
 from .chat_administrator_rights import ChatAdministratorRights
 from .web_app_info import WebAppInfo
+# flake8: noqa
 
 class KeyboardButtonPollType(base.TelegramObject):
     """
-    This object represents type of a poll, which is allowed to be created and sent when the corresponding button is pressed.
+    This object represents type of a poll, which is allowed to be created and \
+        sent when the corresponding button is pressed.
 
     https://core.telegram.org/bots/api#keyboardbuttonpolltype
     """
     type: base.String = ...
+
     def __init__(self, type: typing.Optional[base.String] = ...) -> None:
         ...
-    
 
 
 class ReplyKeyboardMarkup(base.TelegramObject):
@@ -37,14 +39,14 @@ class ReplyKeyboardMarkup(base.TelegramObject):
         ...
     
     @property
-    def row_width(self): # -> Any | int:
+    def row_width(self) -> typing.Any | int:
         ...
     
     @row_width.setter
-    def row_width(self, value): # -> None:
+    def row_width(self, value) -> None:
         ...
     
-    def add(self, *args): # -> Self@ReplyKeyboardMarkup:
+    def add(self, *args) -> "ReplyKeyboardMarkup":
         """
         Add buttons
 
@@ -54,7 +56,7 @@ class ReplyKeyboardMarkup(base.TelegramObject):
         """
         ...
     
-    def row(self, *args): # -> Self@ReplyKeyboardMarkup:
+    def row(self, *args) -> "ReplyKeyboardMarkup":
         """
         Add row
 

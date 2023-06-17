@@ -7,6 +7,7 @@ from . import base
 from .inline_keyboard import InlineKeyboardMarkup
 from .input_message_content import InputMessageContent
 from .message_entity import MessageEntity
+# flake8: noqa
 
 class InlineQueryResult(base.TelegramObject):
     """
@@ -18,12 +19,12 @@ class InlineQueryResult(base.TelegramObject):
     """
     id: base.String = ...
     reply_markup: InlineKeyboardMarkup = ...
-    def safe_get_parse_mode(self): # -> Any | None:
+
+    def safe_get_parse_mode(self) -> typing.Any | None:
         ...
-    
+
     def __init__(self, **kwargs) -> None:
         ...
-    
 
 
 class InlineQueryResultArticle(InlineQueryResult):
@@ -41,9 +42,22 @@ class InlineQueryResultArticle(InlineQueryResult):
     thumb_url: base.String = ...
     thumb_width: base.Integer = ...
     thumb_height: base.Integer = ...
-    def __init__(self, *, id: base.String, title: base.String, input_message_content: InputMessageContent, reply_markup: typing.Optional[InlineKeyboardMarkup] = ..., url: typing.Optional[base.String] = ..., hide_url: typing.Optional[base.Boolean] = ..., description: typing.Optional[base.String] = ..., thumb_url: typing.Optional[base.String] = ..., thumb_width: typing.Optional[base.Integer] = ..., thumb_height: typing.Optional[base.Integer] = ...) -> None:
+
+    def __init__(
+        self, 
+        *,
+        id: base.String,
+        title: base.String,
+        input_message_content: InputMessageContent,
+        reply_markup: typing.Optional[InlineKeyboardMarkup] = ...,
+        url: typing.Optional[base.String] = ...,
+        hide_url: typing.Optional[base.Boolean] = ...,
+        description: typing.Optional[base.String] = ...,
+        thumb_url: typing.Optional[base.String] = ...,
+        thumb_width: typing.Optional[base.Integer] = ...,
+        thumb_height: typing.Optional[base.Integer] = ...
+    ) -> None:
         ...
-    
 
 
 class InlineQueryResultPhoto(InlineQueryResult):
@@ -51,7 +65,8 @@ class InlineQueryResultPhoto(InlineQueryResult):
     Represents a link to a photo.
 
     By default, this photo will be sent by the user with optional caption.
-    Alternatively, you can use input_message_content to send a message with the specified content
+    Alternatively, you can use input_message_content to send a message with\
+         the specified content
     instead of the photo.
 
     https://core.telegram.org/bots/api#inlinequeryresultphoto
@@ -65,17 +80,19 @@ class InlineQueryResultPhoto(InlineQueryResult):
     description: base.String = ...
     caption: base.String = ...
     input_message_content: InputMessageContent = ...
-    def __init__(self, *, id: base.String, photo_url: base.String, thumb_url: base.String, photo_width: typing.Optional[base.Integer] = ..., photo_height: typing.Optional[base.Integer] = ..., title: typing.Optional[base.String] = ..., description: typing.Optional[base.String] = ..., caption: typing.Optional[base.String] = ..., parse_mode: typing.Optional[base.String] = ..., caption_entities: typing.Optional[typing.List[MessageEntity]] = ..., reply_markup: typing.Optional[InlineKeyboardMarkup] = ..., input_message_content: typing.Optional[InputMessageContent] = ...) -> None:
+
+    def __init__(self, *, id: base.String, photo_url: base.String, thumb_url: base.String, photo_width: typing.Optional[base.Integer] = ..., photo_height: typing.Optional[base.Integer] = ..., title: typing.Optional[base.String] = ..., description: typing.Optional[base.String] = ..., caption: typing.Optional[base.String] = ..., parse_mode: typing.Optional[base.String] = ..., caption_entities: typing.Optional[typing.List[MessageEntity]] = ..., reply_markup: typing.Optional[InlineKeyboardMarkup] = ..., input_message_content: typing.Optional[InputMessageContent] = ...) -> None: # noqa
         ...
-    
 
 
 class InlineQueryResultGif(InlineQueryResult):
     """
     Represents a link to an animated GIF file.
 
-    By default, this animated GIF file will be sent by the user with optional caption.
-    Alternatively, you can use input_message_content to send a message with the specified content
+    By default, this animated GIF file will be sent by the user with optional \
+        caption.
+    Alternatively, you can use input_message_content to send a message with \
+        the specified content
     instead of the animation.
 
     https://core.telegram.org/bots/api#inlinequeryresultgif
@@ -90,17 +107,20 @@ class InlineQueryResultGif(InlineQueryResult):
     title: base.String = ...
     caption: base.String = ...
     input_message_content: InputMessageContent = ...
-    def __init__(self, *, id: base.String, gif_url: base.String, gif_width: typing.Optional[base.Integer] = ..., gif_height: typing.Optional[base.Integer] = ..., gif_duration: typing.Optional[base.Integer] = ..., thumb_url: typing.Optional[base.String] = ..., title: typing.Optional[base.String] = ..., caption: typing.Optional[base.String] = ..., parse_mode: typing.Optional[base.String] = ..., reply_markup: typing.Optional[InlineKeyboardMarkup] = ..., caption_entities: typing.Optional[typing.List[MessageEntity]] = ..., input_message_content: typing.Optional[InputMessageContent] = ...) -> None:
+
+    def __init__(self, *, id: base.String, gif_url: base.String, gif_width: typing.Optional[base.Integer] = ..., gif_height: typing.Optional[base.Integer] = ..., gif_duration: typing.Optional[base.Integer] = ..., thumb_url: typing.Optional[base.String] = ..., title: typing.Optional[base.String] = ..., caption: typing.Optional[base.String] = ..., parse_mode: typing.Optional[base.String] = ..., reply_markup: typing.Optional[InlineKeyboardMarkup] = ..., caption_entities: typing.Optional[typing.List[MessageEntity]] = ..., input_message_content: typing.Optional[InputMessageContent] = ...) -> None: # noqa
         ...
-    
 
 
 class InlineQueryResultMpeg4Gif(InlineQueryResult):
     """
-    Represents a link to a video animation (H.264/MPEG-4 AVC video without sound).
+    Represents a link to a video animation (H.264/MPEG-4 AVC video without \
+        sound).
 
-    By default, this animated MPEG-4 file will be sent by the user with optional caption.
-    Alternatively, you can use input_message_content to send a message with the specified content
+    By default, this animated MPEG-4 file will be sent by the user with\
+         optional caption.
+    Alternatively, you can use input_message_content to send a message with\
+         the specified content
     instead of the animation.
 
     https://core.telegram.org/bots/api#inlinequeryresultmpeg4gif
@@ -115,20 +135,20 @@ class InlineQueryResultMpeg4Gif(InlineQueryResult):
     title: base.String = ...
     caption: base.String = ...
     input_message_content: InputMessageContent = ...
-    def __init__(self, *, id: base.String, mpeg4_url: base.String, thumb_url: base.String, mpeg4_width: typing.Optional[base.Integer] = ..., mpeg4_height: typing.Optional[base.Integer] = ..., mpeg4_duration: typing.Optional[base.Integer] = ..., title: typing.Optional[base.String] = ..., caption: typing.Optional[base.String] = ..., parse_mode: typing.Optional[base.String] = ..., reply_markup: typing.Optional[InlineKeyboardMarkup] = ..., caption_entities: typing.Optional[typing.List[MessageEntity]] = ..., input_message_content: typing.Optional[InputMessageContent] = ...) -> None:
+    def __init__(self, *, id: base.String, mpeg4_url: base.String, thumb_url: base.String, mpeg4_width: typing.Optional[base.Integer] = ..., mpeg4_height: typing.Optional[base.Integer] = ..., mpeg4_duration: typing.Optional[base.Integer] = ..., title: typing.Optional[base.String] = ..., caption: typing.Optional[base.String] = ..., parse_mode: typing.Optional[base.String] = ..., reply_markup: typing.Optional[InlineKeyboardMarkup] = ..., caption_entities: typing.Optional[typing.List[MessageEntity]] = ..., input_message_content: typing.Optional[InputMessageContent] = ...) -> None: # noqa
         ...
-    
 
 
 class InlineQueryResultVideo(InlineQueryResult):
     """
-    Represents a link to a page containing an embedded video player or a video file.
-
-    By default, this video file will be sent by the user with an optional caption.
-    Alternatively, you can use input_message_content to send a message with the specified content
+    Represents a link to a page containing an embedded video player or a video file.\
+         caption.
+    Alternatively, you can use input_message_content to send a message with \
+        the specified content
     instead of the video.
 
-    If an InlineQueryResultVideo message contains an embedded video (e.g., YouTube),
+    If an InlineQueryResultVideo message contains an embedded video (e.g.,\
+         YouTube),
     you must replace its content using input_message_content.
 
     https://core.telegram.org/bots/api#inlinequeryresultvideo
@@ -144,10 +164,9 @@ class InlineQueryResultVideo(InlineQueryResult):
     video_duration: base.Integer = ...
     description: base.String = ...
     input_message_content: InputMessageContent = ...
-    def __init__(self, *, id: base.String, video_url: base.String, mime_type: base.String, thumb_url: base.String, title: base.String, caption: typing.Optional[base.String] = ..., parse_mode: typing.Optional[base.String] = ..., video_width: typing.Optional[base.Integer] = ..., video_height: typing.Optional[base.Integer] = ..., video_duration: typing.Optional[base.Integer] = ..., description: typing.Optional[base.String] = ..., reply_markup: typing.Optional[InlineKeyboardMarkup] = ..., caption_entities: typing.Optional[typing.List[MessageEntity]] = ..., input_message_content: typing.Optional[InputMessageContent] = ...) -> None:
-        ...
-    
 
+    def __init__(self, *, id: base.String, video_url: base.String, mime_type: base.String, thumb_url: base.String, title: base.String, caption: typing.Optional[base.String] = ..., parse_mode: typing.Optional[base.String] = ..., video_width: typing.Optional[base.Integer] = ..., video_height: typing.Optional[base.Integer] = ..., video_duration: typing.Optional[base.Integer] = ..., description: typing.Optional[base.String] = ..., reply_markup: typing.Optional[InlineKeyboardMarkup] = ..., caption_entities: typing.Optional[typing.List[MessageEntity]] = ..., input_message_content: typing.Optional[InputMessageContent] = ...) -> None: # noqa
+        ...
 
 class InlineQueryResultAudio(InlineQueryResult):
     """
@@ -167,10 +186,9 @@ class InlineQueryResultAudio(InlineQueryResult):
     performer: base.String = ...
     audio_duration: base.Integer = ...
     input_message_content: InputMessageContent = ...
+
     def __init__(self, *, id: base.String, audio_url: base.String, title: base.String, caption: typing.Optional[base.String] = ..., parse_mode: typing.Optional[base.String] = ..., performer: typing.Optional[base.String] = ..., audio_duration: typing.Optional[base.Integer] = ..., reply_markup: typing.Optional[InlineKeyboardMarkup] = ..., caption_entities: typing.Optional[typing.List[MessageEntity]] = ..., input_message_content: typing.Optional[InputMessageContent] = ...) -> None:
         ...
-    
-
 
 class InlineQueryResultVoice(InlineQueryResult):
     """

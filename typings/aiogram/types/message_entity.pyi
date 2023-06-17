@@ -7,9 +7,11 @@ from .user import User
 from ..utils import helper
 from ..utils.deprecated import deprecated
 
+
 class MessageEntity(base.TelegramObject):
     """
-    This object represents one special entity in a text message. For example, hashtags, usernames, URLs, etc.
+    This object represents one special entity in a text message. For example,\
+         hashtags, usernames, URLs, etc.
 
     https://core.telegram.org/bots/api#messageentity
     """
@@ -20,10 +22,10 @@ class MessageEntity(base.TelegramObject):
     user: User = ...
     language: base.String = ...
     custom_emoji_id: base.String = ...
-    def __init__(self, type: base.String, offset: base.Integer, length: base.Integer, url: base.String = ..., user: User = ..., language: base.String = ..., custom_emoji_id: base.String = ..., **kwargs) -> None:
+    def __init__(self, type: base.String, offset: base.Integer, length: base.Integer, url: base.String = ..., user: User = ..., language: base.String = ..., custom_emoji_id: base.String = ..., **kwargs) -> None: # noqa
         ...
-    
-    def get_text(self, text): # -> str:
+
+    def get_text(self, text) -> str:
         """
         Get value of entity
 
@@ -31,9 +33,12 @@ class MessageEntity(base.TelegramObject):
         :return: part of text
         """
         ...
-    
-    @deprecated("This method doesn't work with nested entities and will be removed in aiogram 3.0")
-    def parse(self, text, as_html=...): # -> str:
+
+    @deprecated(
+        "This method doesn't work with nested entities and will be removed in "
+        "aiogram 3.0"
+    )
+    def parse(self, text, as_html=...) -> str:
         """
         Get entity value with markup
 
@@ -42,7 +47,6 @@ class MessageEntity(base.TelegramObject):
         :return: entity text with markup
         """
         ...
-    
 
 
 class MessageEntityType(helper.Helper):
@@ -85,5 +89,3 @@ class MessageEntityType(helper.Helper):
     TEXT_LINK = ...
     TEXT_MENTION = ...
     CUSTOM_EMOJI = ...
-
-

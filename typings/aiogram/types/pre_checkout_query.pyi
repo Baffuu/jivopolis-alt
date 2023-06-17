@@ -6,6 +6,7 @@ from . import base
 from .order_info import OrderInfo
 from .user import User
 
+
 class PreCheckoutQuery(base.TelegramObject):
     """
     This object contains information about an incoming pre-checkout query.
@@ -15,7 +16,8 @@ class PreCheckoutQuery(base.TelegramObject):
     Create games via @BotFather using the /newgame command.
 
     Please note that this kind of power requires responsibility:
-    you will need to accept the terms for each game that your bots will be offering.
+    you will need to accept the terms for each game that your bots will be \
+        offering.
 
     https://core.telegram.org/bots/api#precheckoutquery
     """
@@ -26,11 +28,9 @@ class PreCheckoutQuery(base.TelegramObject):
     invoice_payload: base.String = ...
     shipping_option_id: base.String = ...
     order_info: OrderInfo = ...
+
     def __hash__(self) -> int:
         ...
-    
+
     def __eq__(self, other) -> bool:
         ...
-    
-
-
