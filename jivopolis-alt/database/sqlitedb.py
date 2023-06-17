@@ -15,6 +15,7 @@ def connect_database() -> Tuple[sqlite3.Connection, fyCursor] | NoReturn:
     connects database, creates tables if they does not exists, etc.
     """
     cur = connect('database.db')
+    cur.logger(logger)
     if conn := cur.connection:
         _connect_tables(cur)
         return conn, cur
