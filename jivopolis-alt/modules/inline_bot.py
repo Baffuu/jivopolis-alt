@@ -34,13 +34,14 @@ async def inline_mode(query: InlineQuery):
                 [
                     InlineQueryResultArticle(
                         id = 'banned',  # noqa: E251
-                        title = '🧛🏻‍♂️ Вы были забаненны в боте.',  # noqa: E251, E501
-                        description = 'Если вы считаете, что это - ошибка, обратитесь в поддержку.',  # noqa: E251, E501
+                        title = '🧛🏻‍♂️ Вы были забанены в боте.',  # noqa: E251, E501
+                        description = 'Если вы считаете, что это ошибка, обратитесь в поддержку',  # noqa: E251, E501
                         input_message_content =   # noqa: E251
                         InputTextMessageContent(
-                            "🧛🏻‍♂️ Вы были забаненны в боте. Если вы считаете"
-                            ", что это - ошибка, обратитесь в <a href = "
-                            f"'{OfficialChats.SUPPORTCHATLINK}'>поддержку</a>."
+                            "<i>🧛🏻‍♂️ Вы были забанены в боте. Если вы считает"
+                            "е, что это ошибка, обратитесь в <a href = "
+                            f"'{OfficialChats.SUPPORTCHATLINK}'>"
+                            "поддержку</a></i>"
                         )
                     )
                 ]
@@ -77,8 +78,8 @@ async def inline_mode(query: InlineQuery):
                     title='👤 Аккаунт не найден',
                     description='Попробуйте зайти в бота и создать новый!',
                     input_message_content=InputTextMessageContent(
-                        '🐸 Ваш аккаунт не найден. Нажмите на кнопку ниже '
-                        'чтобы его создать.'
+                        '<i>🐸 Ваш аккаунт не найден. Нажмите на кнопку ниже '
+                        'чтобы его создать</i>'
                     ),
                     reply_markup=InlineKeyboardMarkup().add(
                             InlineKeyboardButton(
@@ -118,12 +119,12 @@ async def on_pressed_inline_query(inline: ChosenInlineResult):
                 cur.update("userdata").add(balance=-money).where(
                     user_id=user_id).commit()
                 await tglog(
-                    f'<i>&#128178; <b>{await get_embedded_link(user_id)}</b> '
+                    f'<i>💲 <b>{await get_embedded_link(user_id)}</b> '
                     f'выписал чек на <b>${money}</b>', '#user_check</i>'
                 )
             if money < 0:
                 await tglog(
-                    f'<i>&#128178; <b>{await get_embedded_link(user_id)}</b> '
+                    f'<i>💲 <b>{await get_embedded_link(user_id)}</b> '
                     f'выставил счёт на <b>${money}</b>', '#user_bill</i>'
                 )
 
@@ -159,7 +160,7 @@ async def givemoney_query(
                         title=f'💲 Отправить чек на сумму ${money}',
                         description=f'Баланс: ${balance}',
                         input_message_content=InputTextMessageContent(
-                            f'<i>&#128178; <b><a href="tg://user?id={user_id}"'
+                            f'<i>💲 <b><a href="tg://user?id={user_id}"'
                             f'>{mask}{nick}</a></b> предлагает вам <b>${money}'
                             '</b></i>'
                         ),
@@ -179,7 +180,7 @@ async def givemoney_query(
                     title=f'💲 Отправить чек на сумму ${balance}',
                     description=f'Баланс: ${balance}',
                     input_message_content=InputTextMessageContent(
-                        f'<i>&#128178; <b><a href="{await get_link(user_id)}"'
+                        f'<i>💲 <b><a href="{await get_link(user_id)}"'
                         f'>{mask}{nick}</a></b> предлагает вам <b>${balance}<'
                         '/b></i>'
                     ),
@@ -190,7 +191,7 @@ async def givemoney_query(
             id='check_error',
             title='🚫 Введите правильное число',
             description=(
-                'это должно быть целое число, не текст и не десятичное.'
+                'Это должно быть целое число, не текст и не десятичная дробь'
             ),
             input_message_content=InputTextMessageContent(
                 '🚫 Введите правильное число'),

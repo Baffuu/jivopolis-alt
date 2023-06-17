@@ -123,7 +123,8 @@ ITEMS = {
         ru_name='Конфетти',
         emoji='🎊',
         cost=50,
-        type='mask'
+        type='mask',
+        description='поздравляем!'
     ),
 
     'pill': Item(
@@ -140,7 +141,8 @@ ITEMS = {
         ru_name="Фейерверки",
         emoji='🎆',
         cost=100,
-        type='mask'
+        type='mask',
+        description='удовольствие на пять минут, а стоят, как целый город'
     ),
 
     'party_pooper': Item(
@@ -148,7 +150,8 @@ ITEMS = {
         ru_name='Хлопушка',
         emoji='🎉',
         cost=50,
-        type='mask'
+        type='mask',
+        description='будьте аккуратны при использовании!'
     ),
 
     'window': Item(
@@ -156,14 +159,17 @@ ITEMS = {
         ru_name='Окно',
         emoji='🪟',
         cost=400,
-        type='building_material'
+        type='building_material',
+        description='не выпрыгивать и не вылетать!'
     ),
 
     'brick': Item(
         name='brick',
         ru_name='Кирпич',
         emoji='🧱',
-        cost=100
+        cost=100,
+        type='building_material',
+        description='просто кирпич. Нужен для постройки дома'
     ),
 
     'door': Item(
@@ -171,6 +177,7 @@ ITEMS = {
         ru_name='Дверь',
         emoji='🚪',
         cost=500,
+        description='тук-тук'
     ),
 
     'fox': Item(
@@ -179,14 +186,7 @@ ITEMS = {
         emoji='🦊',
         cost=100,
         type='mask',
-    ),
-
-    'party_popper': Item(
-        name='party_popper',
-        ru_name='Хлопушка',
-        emoji='🎉',
-        cost=50,
-        type='mask',
+        description='лиса украла описание, поэтому тут ничего нет'
     ),
 
     'baguette': Item(
@@ -204,7 +204,7 @@ ITEMS = {
         emoji='🍎',
         cost=50,
         type='food',
-        description='и доктор не нужен'
+        description='одна из причин массового увольнения врачей в Живополисе'
     ),
 
     'doughnut': Item(
@@ -221,7 +221,8 @@ ITEMS = {
         ru_name='Картофель Фри',
         emoji='🍟',
         cost=10,
-        type='food'
+        type='food',
+        description='вопреки названию, к сожалению, платный'
     ),
 
     'ice_cream': Item(
@@ -247,7 +248,8 @@ ITEMS = {
         ru_name='Фея',
         emoji='🧚',
         cost=-1,
-        type='mask'
+        type='mask',
+        description='сворует все ваши зубы'
     ),
 
     'kiwi': Item(
@@ -264,7 +266,8 @@ ITEMS = {
         ru_name='Рамен',
         emoji='🍜',
         cost=25,
-        type='food'
+        type='food',
+        description='любимое блюдо живополисских студентов'
     ),
 
     'gold_medal': Item(
@@ -273,6 +276,7 @@ ITEMS = {
         emoji='🥇',
         cost=-1,
         type='mask',
+        description='она не золотая, а позолоченная :('
     ),
 
     'silver_medal': Item(
@@ -280,7 +284,8 @@ ITEMS = {
         ru_name='Серебряная медаль',
         emoji='🥈',
         cost=-1,
-        type='mask'
+        type='mask',
+        description='к сожалению, серебра в ней енот наплакал'
     ),
 
     'bronze_medal': Item(
@@ -288,7 +293,8 @@ ITEMS = {
         ru_name='Бронзовая медаль',
         emoji='🥉',
         cost=-1,
-        type='mask'
+        type='mask',
+        description='прямиком из бронзового века'
     ),
 
     'mrs_claus': Item(
@@ -296,7 +302,8 @@ ITEMS = {
         name='mrs_claus',
         ru_name='Миссис Клаус',
         cost=75,
-        type='mask'
+        type='mask',
+        description='любит есть печенье, которое сама и готовит'
     ),
 
     'santa_claus': Item(
@@ -304,7 +311,8 @@ ITEMS = {
         name='santa_claus',
         ru_name='Санта Клaус',
         cost=100,
-        type='mask'
+        type='mask',
+        description='ты хорошо себя вёл в этом году?'
     ),
 
     'snowflake': Item(
@@ -312,7 +320,9 @@ ITEMS = {
         name='snowflake',
         ru_name='Снежинка',
         cost=30,
-        type='mask'
+        type='mask',
+        description='тает на ладони, как и надежды на счастливую жизнь '
+                    'в Живополисе...'
     ),
 
 
@@ -321,7 +331,8 @@ ITEMS = {
         name='snowman',
         ru_name='Снеговик',
         cost=50,
-        type='mask'
+        type='mask',
+        description='главный враг детей на улице'
     ),
 
 
@@ -330,7 +341,8 @@ ITEMS = {
         name='hedgehog',
         ru_name='Ёж',
         cost=100,
-        type='mask'
+        type='mask',
+        description='ходячий кактус'
     ),
 
 
@@ -339,7 +351,8 @@ ITEMS = {
         name='truck',
         ru_name='Грузовик',
         cost=3000,
-        type='robber'
+        type='robber',
+        description='ездить на нём, к сожалению, нельзя'
     ),
 
 
@@ -348,7 +361,8 @@ ITEMS = {
         name='poison',
         ru_name='Яд',
         cost=4000,
-        type='robber'
+        type='robber',
+        description='содержится в любом блюде из Енот Кебаба. Ой'
     ),
 
 
@@ -387,7 +401,8 @@ ITEMS = {
         name='burger',
         ru_name='Бургер',
         cost=500,
-        type='food'
+        type='food',
+        description='деликатес для студентов Котайского университета'
     ),
 
 
@@ -406,7 +421,8 @@ ITEMS = {
         name='coconut',
         ru_name='Кокос',
         cost=25,
-        type='food'
+        type='food',
+        description='больно бьёт по голове и по карману'
     ),
 
 
@@ -415,7 +431,9 @@ ITEMS = {
         name='tomato',
         ru_name='Помидор',
         cost=10,
-        type='food'
+        type='food',
+        description='красный овощ... Или фрукт? Биологи из Котайского '
+                    'университета утверждают, что помидоры - это млекопитающие'
     ),
 
 
@@ -424,7 +442,8 @@ ITEMS = {
         name='cucumber',
         ru_name='Огурец',
         cost=10,
-        type='food'
+        type='food',
+        description='не солёный'
     ),
 
 
@@ -443,7 +462,8 @@ ITEMS = {
         name='bento',
         ru_name='Бенто',
         cost=500,
-        type='food'
+        type='food',
+        description='деликатес...'
     ),
 
 
@@ -472,7 +492,8 @@ ITEMS = {
         name='cheburek',
         ru_name='Чeбурек',
         cost=50,
-        type='food'
+        type='food',
+        description='я бы такое не пробовал...'
     ),
 
 
@@ -481,7 +502,9 @@ ITEMS = {
         name='tea',
         ru_name='Чай',
         cost=50,
-        type='food'
+        type='food',
+        description='по мнению британских учёных, лучшее лекарство ото '
+                    'всех болезней'
     ),
 
 
@@ -490,7 +513,8 @@ ITEMS = {
         name='coffee',
         ru_name='Кофе',
         cost=50,
-        type='food'
+        type='food',
+        description='не пейте перед сном!'
     ),
 
 
@@ -499,7 +523,8 @@ ITEMS = {
         name='rice',
         ru_name='Рис',
         cost=70,
-        type='food'
+        type='food',
+        description='при его сборе не использовалась никакая рабская сила'
     ),
 
 
@@ -508,7 +533,8 @@ ITEMS = {
         name='cookie',
         ru_name='Печенье',
         cost=20,
-        type='food'
+        type='food',
+        description='вкусно...'
     ),
 
 
@@ -517,7 +543,8 @@ ITEMS = {
         name='cake',
         ru_name='Торт',
         cost=500,
-        type='food'
+        type='food',
+        description='раз в год можно себе позволить'
     ),
 
 
@@ -526,7 +553,8 @@ ITEMS = {
         name='sake',
         ru_name='Саке',
         cost=100,
-        type='food'
+        type='food',
+        description='распивать алкогольные напитки плохо!'
     ),
 
 
@@ -535,7 +563,8 @@ ITEMS = {
         name='pita',
         ru_name='Пита Сэндвич',
         cost=200,
-        type='food'
+        type='food',
+        description='мало кто знает, что это такое, но вроде бы оно съедобное'
     ),
 
 
@@ -544,7 +573,8 @@ ITEMS = {
         name='red_car',
         ru_name='Красная машина',
         cost=10000,
-        type='car'
+        type='car',
+        description='врум-врум'
     ),
 
 
@@ -553,7 +583,8 @@ ITEMS = {
         name='blue_car',
         ru_name='Синяя машина',
         cost=15000,
-        type='car'
+        type='car',
+        description='отличается от красной только ценой'
     ),
 
 
@@ -562,7 +593,9 @@ ITEMS = {
         name='racing_car',
         ru_name='Гоночный автомобиль',
         cost=40000,
-        type='car'
+        type='car',
+        description='стоит дороже, чем 1000 годовых зарплат типичного'
+                    ' жителя Живополиса'
     ),
 
 
@@ -571,7 +604,8 @@ ITEMS = {
         name='clown',
         ru_name='Клоун',
         cost=100,
-        type='mask'
+        type='mask',
+        description='кто как обзывается, тот сам так называется'
     ),
 
 
@@ -580,7 +614,8 @@ ITEMS = {
         name='ghost',
         ru_name='Призрак',
         cost=100,
-        type='mask'
+        type='mask',
+        description='говорят, что их не существует'
     ),
 
 
@@ -589,7 +624,9 @@ ITEMS = {
         name='alien',
         ru_name='Пришелец',
         cost=100,
-        type='mask'
+        type='mask',
+        description='наверно, ему на своей планете живётся лучше,'
+                    ' чем типичному жителю Живополиса'
     ),
 
 
@@ -598,7 +635,10 @@ ITEMS = {
         name='robot',
         ru_name='Робот',
         cost=100,
-        type='mask'
+        type='mask',
+        description='говорят, что они когда-нибудь заменят людей. Но вам '
+                    'волноваться нечего, поскольку ни один робот не'
+                    ' согласится работать за такую маленькую зарплату'
     ),
 
 
@@ -607,7 +647,9 @@ ITEMS = {
         name='shit',
         ru_name='Какашка',
         cost=100,
-        type='mask'
+        type='mask',
+        description='кто вообще мог додуматься купить такую маску? '
+                    'Вместе с ней нужно купить хороший освежитель воздуха'
     ),
 
 
@@ -616,7 +658,8 @@ ITEMS = {
         name='fondue',
         ru_name='Фондю',
         cost=100,
-        type='food'
+        type='food',
+        description='оу, вы из Швейцарии?'
     ),
 
 
@@ -625,7 +668,8 @@ ITEMS = {
         name='juice',
         ru_name='Сок',
         cost=100,
-        type='food'
+        type='food',
+        description='не так дорого, но достаточно вкусно'
     ),
 
 
@@ -654,7 +698,8 @@ ITEMS = {
         name='potted_plant',
         ru_name='Комнатное растение',
         cost=55,
-        type='mask'
+        type='mask',
+        description='вкусно пахнет...'
     ),
 
 
@@ -673,7 +718,9 @@ ITEMS = {
         name='tulip',
         ru_name='Тюльпан',
         cost=99,
-        type='mask'
+        type='mask',
+        description='прямиком из Амстердама. Жаль, что это не столица '
+                    'Нидерландов, а село в Живополисе'
     ),
 
 
@@ -682,16 +729,18 @@ ITEMS = {
         name='rose',
         ru_name='Роза',
         cost=123,
-        type='mask'
+        type='mask',
+        description='романтично. Если только у вас нет на неё аллергии'
     ),
 
 
     'xmas_tree': Item(
         emoji='🎄',
         name='xmas_tree',
-        ru_name='Новогодняя елка',
+        ru_name='Новогодняя ёлка',
         cost=123,
-        type='mask'
+        type='mask',
+        description='раз, два, три, ёлочка, гори!'
     ),
 
 
@@ -700,7 +749,8 @@ ITEMS = {
         name='moyai',
         ru_name='Моаи',
         cost=123,
-        type='mask'
+        type='mask',
+        description='...'
     ),
 
 
@@ -709,7 +759,9 @@ ITEMS = {
         name='chocolate',
         ru_name='Плитка шоколада',
         cost=321,
-        type='food'
+        type='food',
+        description='много не ешьте, пожалуйста, а то у нас дефицит шоколада '
+                    'и врачей'
     ),
 
 
@@ -718,7 +770,8 @@ ITEMS = {
         name='stethoscope',
         ru_name='Стетоскоп',
         cost=444,
-        type='mask'
+        type='mask',
+        description='что-то на медицинском'
     ),
 
 
@@ -747,7 +800,8 @@ ITEMS = {
         name='phone',
         ru_name='Смартфон',
         cost=1000000,
-        type='phone'
+        type='phone',
+        description='go touch some grass'
     ),
 
 
@@ -775,7 +829,9 @@ ITEMS = {
         ru_name="fyCoin",
         emoji="💎",
         cost=-1,
-        type="crypto"
+        type="crypto",
+        description='видимо, единственный способ выжить на зарплату '
+                    'рабочего в Живополисе'
     ),
 
     "Mithereum": Item(
@@ -783,7 +839,8 @@ ITEMS = {
         ru_name="Mithereum",
         emoji="🧿",
         cost=-1,
-        type="crypto"
+        type="crypto",
+        description='возможно, это поможет вам разбогатеть'
     ),
 
     "Gather": Item(
@@ -791,7 +848,8 @@ ITEMS = {
         ru_name="Gather",
         emoji="🧬",
         cost=-1,
-        type="crypto"
+        type="crypto",
+        description='вкладывайтесь с умом!'
     ),
 
     "Recegon": Item(
@@ -799,7 +857,8 @@ ITEMS = {
         ru_name="Recegon",
         emoji="🪙",
         cost=-1,
-        type="crypto"
+        type="crypto",
+        description='как же хорошо жить в XXI веке...'
     ),
 
     "fan": Item(
@@ -807,7 +866,8 @@ ITEMS = {
         ru_name="Веep",
         emoji="🪭",
         cost=-1,
-        type="mask"
+        type="mask",
+        description='хорошая защита от жары. Наверное'
     )
 }
 '''Store all items in Jivopolis'''

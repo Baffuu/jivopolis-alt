@@ -36,7 +36,7 @@ class sqlrun():
                     user_id=message.from_user.id).commit()
 
                 await message.answer(
-                    "<i>🪐 Запрос отправлен мега-админам на проверку. Вам "
+                    "<i>🪐 Запрос отправлен мегаадминам на проверку. Вам "
                     "придётся подождать, пока кто-нибудь примет или отклон"
                     "ит запрос.\n\n❗️При повторной отправке любого другого"
                     " запроса текущий будет стёрт.</i>"
@@ -94,7 +94,7 @@ class sqlrun():
             "drop",
             "insert",
             "replace"
-        ]  # команды, которые запрашивают одобрение мега-администрации
+        ]  # команды, которые требуют одобрения мегаадминистрации
 
         approve_request = False
         request = None
@@ -327,7 +327,7 @@ async def select_cmd(message: Message):
             **{_adv_args[0]: _adv_args[1]}).one()
 
         _user_id = _user_id[0] if _user_id is not None else _raise(
-            ValueError("user with this param's does not exists."))
+            ValueError("user with this params does not exists."))
     user_id = message.from_user.id
     column = args[2]
 
@@ -346,7 +346,7 @@ async def select_cmd(message: Message):
 
     await tglog(
         (
-            f"🌪 {await get_embedded_link(user_id)} захватываете данные"
+            f"🌪 {await get_embedded_link(user_id)} захватывает данные"
             f" пользователя {await get_embedded_link(user_id)}"
             f"\n>>> <code>{column}</code>: <code>"
             f"{result[0] if result else 'NULL'}</code>"
