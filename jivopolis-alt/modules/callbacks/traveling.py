@@ -358,6 +358,7 @@ async def car_menu_previous(call: CallbackQuery, menu: int):
             MessageCantBeDeleted
         ):
             return await message.delete()
+
     markup.add(
         InlineKeyboardButton(
             "⬅️",
@@ -580,7 +581,7 @@ async def central_market_mask(call: CallbackQuery) -> None:
     markup = InlineKeyboardMarkup(row_width=3)
 
     itemlist = []
-    coef = 1.5  # todo cur.execute(f"SELECT coef FROM globaldata").fetchone()[0] # noqa
+    coef = 1.5  # todo cur.select("coef", "globaldata").one()
 
     for item in ITEMS:
         if (

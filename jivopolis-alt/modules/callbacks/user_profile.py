@@ -100,3 +100,32 @@ async def my_reflink(call: CallbackQuery) -> None:
             "<b>📦 Лутбокс</b></i>"
         ),
     )
+
+
+async def privacy_settings(call: CallbackQuery):
+    markup = InlineKeyboardMarkup()
+    user_id = call.from_user.id
+    profile_type = cur.select("profile_type", "userdata").where(
+        user_id=user_id).one()
+    markup.add(
+        InlineKeyboardButton(
+            f"🔐 Тип профиля: {'Открытый' if profile_type == 'public' else 'Закрытый'}",  # noqa
+            callback_data="toggle_profile_type"
+        ),
+        InlineKeyboardButton(
+            "🔑 Ключ доступа",
+            callback_data="access-key"
+        ),
+        InlineKeyboardButton(
+            "🔙 Выйти из аккаунта",
+            callback_data="log-out"
+        ),
+        InlineKeyboardButton(
+            "🗑 Удалить аккаунт",
+            callback_data="delete-account",
+        )
+    )
+    await call.message.answer(
+        '🔏<i><b>Настройки конфиденциальности</b></i>',
+        reply_markup=markup
+    )

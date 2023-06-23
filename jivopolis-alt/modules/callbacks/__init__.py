@@ -20,7 +20,9 @@ from .inventory import (
 
 from .user_profile import (
     set_user_bio, put_mask_off,
-    put_mask_on, my_reflink)
+    put_mask_on, my_reflink,
+    privacy_settings
+)
 
 from .traveling import (
     buycall, city, car_menu,
