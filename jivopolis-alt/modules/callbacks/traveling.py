@@ -22,7 +22,7 @@ from aiogram.types import (
     Message,
     InlineKeyboardButton,
     InlineKeyboardMarkup,
-    CallbackQuery
+    CallbackQuery,
 )
 from aiogram.utils.exceptions import (
     MessageCantBeDeleted,
@@ -257,8 +257,9 @@ async def car_menu(call: CallbackQuery) -> None:
 async def car_menu_next(call: CallbackQuery, menu: int):
     user_id = call.from_user.id
     message = call.message
-    car = cur.select("red_car+blue_car", "userdata").where(
-        user_id={user_id}).one()  # todo more cars
+    car = cur.select("red_car", "userdata").where(
+        user_id=user_id).one()
+    car = 0 if car is None else car
 
     if car < 1:
         return await call.answer('❌ У вас нет машины', show_alert=True)
@@ -342,14 +343,15 @@ async def car_menu_previous(call: CallbackQuery, menu: int):
         )
 
     for index, place in enumerate(places):
-        if index > MAXIMUM_DRIVE_MENU_SLOTS * menu:
-            continue
-        elif index > MAXIMUM_DRIVE_MENU_SLOTS * (menu-1):
+        if (
+            index > MAXIMUM_DRIVE_MENU_SLOTS * (menu-1)
+            and index < MAXIMUM_DRIVE_MENU_SLOTS * menu
+        ):
             markup.add(place)
         else:
-            break
+            continue
 
-    if markup.values is None:
+    if markup.values["inline_keyboard"] == []:
         await call.answer("dead end", True)
         with contextlib.suppress(
             MessageToDeleteNotFound,
@@ -579,7 +581,7 @@ async def central_market_mask(call: CallbackQuery) -> None:
     markup = InlineKeyboardMarkup(row_width=3)
 
     itemlist = []
-    coef = 1.5  # todo cur.execute(f"SELECT coef FROM globaldata").fetchone()[0] # noqa
+    coef = 1.5  # todo cur.select("coef", "globaldata").one()
 
     for item in ITEMS:
         if (

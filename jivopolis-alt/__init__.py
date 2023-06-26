@@ -17,7 +17,8 @@ except Exception as e:
     raise ImportError("Please, install uvloop.") from e
 
 from .database import cur, conn
-from .misc import *  # noqa: F401, F403 # * todo: remove it
+from .misc import *  # noqa: F401, F403
+# * todo: remove star import above
 
 
 def _debug_only(record):  # type: ignore

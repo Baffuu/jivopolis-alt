@@ -304,6 +304,8 @@ async def callback_handler(call: CallbackQuery):
             case "transfer":
                 await transfer_metro(call)
 
+            case "privacy_settings":
+                await privacy_settings(call)
             case "work":
                 await call.answer("🏗 Ведутся строительные работы. Ожидайте открытия вашей работы в ближайших обновлениях.", True)
             case "airport":

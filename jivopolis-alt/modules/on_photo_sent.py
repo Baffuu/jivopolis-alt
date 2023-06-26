@@ -8,7 +8,6 @@ from ..misc import OfficialChats
 from ..utils import check_user
 from aiogram.types import (
     ChatMemberAdministrator, ChatMemberOwner,
-    InlineKeyboardMarkup, InlineKeyboardButton,
     Message
 )
 
@@ -21,18 +20,20 @@ async def get_photo_messages(message: Message):
     await check(message.from_user.id, message.chat.id)
 
     try:
-        process = cur.execute("SELECT process FROM userdata WHERE"
-                              f" user_id={user_id}").fetchone()[0]
-        is_banned = bool(cur.execute("SELECT is_banned FROM userdata WHERE "
-                                     f"user_id = {message.from_user.id}"
-                                     ).fetchone()[0])
+        process = cur.select("process", "userdata").where(
+            user_id=user_id).one()
+
+        is_banned = bool(
+            cur.select("is_banned", "userdata").where(
+                user_id=message.from_user.id).one()
+        )
         if is_banned:
-            return await bot.send_message(message.from_user.id,
-                                          '🧛🏻‍♂️ <i>Вы были забанены в боте. '
-                                          'Если вы считаете, что это ошибка, '
-                                          'обратитесь в <a href="'
-                                          f'{OfficialChats.SUPPORTCHATLINK}">'
-                                          'поддержку</a></i>')
+            return await bot.send_message(
+                message.from_user.id,
+                f'🧛🏻‍♂️ <i>Вы были забанены в боте. Если вы считаете, что эт'
+                'о ошибка, обратитесь в <a href="'
+                f'{OfficialChats.SUPPORTCHATLINK}">поддержку</a></i>'
+            )
 
     except TypeError:
         if (
@@ -64,26 +65,34 @@ async def get_photo_messages(message: Message):
         if count == 0:
             return
 
-        if not isinstance(await bot.get_chat_member(chat_id, user_id),
-                          ChatMemberAdministrator) and not isinstance(
+        if (
+            not isinstance(
                 await bot.get_chat_member(chat_id, user_id),
-                ChatMemberOwner):
-            return await bot.send_message(chat_id,
-                                          "<i>&#10060; У вас недостаточно "
-                                          "прав</i>")
+                ChatMemberAdministrator
+            )
+            and not isinstance(
+                await bot.get_chat_member(chat_id, user_id),
+                ChatMemberOwner
+            )
+        ):
+            return await bot.send_message(
+                chat_id,
+                "<i>&#10060; У вас недостаточно прав</i>"
+            )
 
-        cur.execute("UPDATE clandata SET photo="
-                    f"{message.photo[0].file_id, chat_id} WHERE"
-                    f" group_id={chat_id}")
-        conn.commit()
+        cur.update("clandata").set(photo=message.photo[0].file_id).where(
+            group_id=chat_id).commit()
 
-        photo = cur.execute("SELECT photo FROM clandata WHERE"
-                            f" group_id={chat_id}").fetchone()[0]
-        await bot.send_photo(message.chat.id, photo,
-                             caption="<i>Фото клана</i>")
+        photo = cur.select("photo", "clandata").where(group_id=chat_id).one()
 
-        cur.execute(f"UPDATE userdata SET process='' WHERE user_id={user_id}")
-        conn.commit()
+        await bot.send_photo(
+            message.chat.id,
+            photo,
+            caption="<i>Фото клана</i>"
+        )
+
+        cur.update("userdata").set(process="NULL").where(
+            user_id=user_id).commit()
 
 
 def register(dp: Dispatcher):
