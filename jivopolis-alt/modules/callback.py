@@ -32,16 +32,16 @@ async def callback_handler(call: CallbackQuery):
 
         if is_banned:
             await call.answer(
-                '🧛🏻‍♂️ Вы были забаненны в боте. Если вы считаете, что это '
-                '- ошибка, обратитесь в поддержку.',
+                '🧛🏻‍♂️ Вы были забанены в боте. Если вы считаете, что это '
+                'ошибка, обратитесь в поддержку',
                 show_alert=True,
             )
             return await bot.send_message(
                 call.from_user.id,
                 (
-                    "🧛🏻‍♂️ Вы были забаненны в боте. Если вы считаете, что "
-                    f"это - ошибка, обратитесь в <a href='{SUPPORT_LINK}'"
-                    ">поддержку</a>."
+                    "🧛🏻‍♂️ <i>Вы были забанены в боте. Если вы считаете, что "
+                    f"это ошибка, обратитесь в <a href='{SUPPORT_LINK}'"
+                    ">поддержку</a></i>"
                 ),
             )
 
@@ -68,7 +68,7 @@ async def callback_handler(call: CallbackQuery):
             case 'cancel_action':
                 await bot.delete_message(call.message.chat.id, call.message.message_id)
             case 'no_items_in_inventory':
-                await call.answer('🙉  У вас в инвентаре нет предметов. Но вы всегда можете их купить.', show_alert=True)
+                await call.answer('🙉  У вас в инвентаре нет предметов. Но вы всегда можете их купить', show_alert=True)
             case 'put_mask_off':
                 await put_mask_off(call, call.from_user.id)
             case mask if mask.startswith('put_mask_on_'):
@@ -301,6 +301,10 @@ async def callback_handler(call: CallbackQuery):
                 await metro_forward(call)
             case "metro_back":
                 await metro_back(call)
+            case "regtrain_forward":
+                await regtrain_forward(call)
+            case "regtrain_back":
+                await regtrain_back(call)
             case "transfer":
                 await transfer_metro(call)
 
@@ -322,7 +326,7 @@ async def callback_handler(call: CallbackQuery):
                 return await call.answer('♿️ 404: команда не найдена.', show_alert=True)
     except TypeError as e:
         logger.exception(e)
-        return await call.answer("🧑‍🎨 Сэр, у вас нет аккаунта в живополисе. Прежде чем использовать любые комманды вам нужно зарегистрироваться.", show_alert=True)
+        return await call.answer("🧑‍🎨 Сэр, у вас нет аккаунта в живополисе. Прежде чем использовать любые команды вам нужно зарегистрироваться", show_alert=True)
     except Exception as e:
         await tglog(f"<b>☣️ TRACEBACK:</b> \n\n{utils.get_trace(e)}", "#traceback")
         logger.exception(e)

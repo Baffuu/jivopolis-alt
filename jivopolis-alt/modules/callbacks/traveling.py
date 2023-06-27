@@ -5,8 +5,8 @@ import asyncio
 from ... import logger, bot
 from ...misc import get_building, get_embedded_link, ITEMS
 from ...misc.misc import remaining, isinterval
-from ...misc.config import LINES, linez, ticket_time, aircost
-from ...misc.constants import MINIMUM_CAR_LEVEL, MAXIMUM_DRIVE_MENU_SLOTS, MAP
+from ...misc.constants import (MINIMUM_CAR_LEVEL, MAXIMUM_DRIVE_MENU_SLOTS,
+                               MAP, REGIONAL_MAP)
 from ...database import cur, conn
 from ...database.functions import buy, buybutton, itemdata
 
@@ -14,8 +14,8 @@ from ...misc.config import (
     METRO, WALK, CITY,
     trains, villages, walks,
     limeteds,
-    lvlcab, cabcost, locations,
-    clanitems
+    lvlcab, cabcost, locations, REGTRAIN,
+    clanitems, LINES, LINES_GENITIVE, ticket_time, aircost
 )
 
 from aiogram.types import (
@@ -29,10 +29,11 @@ from aiogram.utils.exceptions import (
     MessageToDeleteNotFound
 )
 
-METRO_LESS = 15
-METRO_MORE = 30
-AIRPLANE_LESS = 90
-AIRPLANE_MORE = 120
+# time required for specific type of transport to reach the next station
+# the arrays contain minimum and maximum time
+METRO_TIME = [15, 30]
+AIRPLANE_TIME = [90, 120]
+REGTRAIN_TIME = [30, 45]
 
 
 async def city(message: Message, user_id: str | int):
@@ -52,14 +53,14 @@ async def city(message: Message, user_id: str | int):
     markup = InlineKeyboardMarkup(row_width=6)
 
     if place not in METRO[line]:
-        for thisline in METRO:
-            if place not in thisline:
+        for metro_line in METRO:
+            if place not in metro_line:
                 continue
 
-            cur.update("userdata").set(line=METRO.index(thisline)).where(
+            cur.update("userdata").set(line=METRO.index(metro_line)).where(
                 user_id=user_id).commit()
 
-            line = METRO.index(thisline)
+            line = METRO.index(metro_line)
 
             break
 
@@ -69,29 +70,30 @@ async def city(message: Message, user_id: str | int):
         metro = InlineKeyboardButton(text="🚇", callback_data="metro")
 
     caritem = InlineKeyboardButton(text="🚗", callback_data="car_menu")
-    trbusitem = InlineKeyboardButton(text="🚎", callback_data="trolleybus")
-    trainitem = InlineKeyboardButton(text="🚆", callback_data="railway_station")
-    trlounge = InlineKeyboardButton(text="🚆", callback_data="lounge")
+    trolleybus = InlineKeyboardButton(text="🚎", callback_data="trolleybus")
+    train_station = InlineKeyboardButton(text="🚆",
+                                         callback_data="railway_station")
+    train_lounge = InlineKeyboardButton(text="🚆", callback_data="lounge")
     taxi = InlineKeyboardButton(text="🚕", callback_data="taxi_menu")
-    busitem = InlineKeyboardButton(text="🚌", callback_data="bus")
-    lounge = InlineKeyboardButton(text="🚌", callback_data="bus_lounge")
+    bus_station = InlineKeyboardButton(text="🚌", callback_data="bus")
+    bus_lounge = InlineKeyboardButton(text="🚌", callback_data="bus_lounge")
     trans = []
-    for thisline in METRO:
-        if place in thisline:
+    for metro_line in METRO:
+        if place in metro_line:
             trans.append(metro)
             break
     if place in CITY:
-        trans.append(trbusitem)
-    if place in trains[0]:
-        if place in ["Вокзальная", "Александровская", "Станция Котай"]:
-            trans.append(trainitem)
+        trans.append(trolleybus)
+    if place in REGTRAIN[1]:
+        if place in trains[0]:
+            trans.append(train_station)
         else:
-            trans.append(trlounge)
+            trans.append(train_lounge)
     if place in villages:
         if place in ["Автовокзал Живополис", "АС Александрово"]:
-            trans.append(busitem)
+            trans.append(bus_station)
         else:
-            trans.append(lounge)
+            trans.append(bus_lounge)
     if place in CITY:
         trans.append(taxi)
         if car >= 1:
@@ -104,13 +106,14 @@ async def city(message: Message, user_id: str | int):
         markup.add(location_button)
 
     index = -1
-    iswalk = next((WALK.index(wlk) for wlk in WALK if place in wlk), -1)
-    for wnk in WALK:
-        walkindex = WALK.index(wnk)
+    iswalk = next((WALK.index(walk_line) for walk_line in WALK
+                   if place in walk_line), -1)
+    for walkline in WALK:
+        walkindex = WALK.index(walkline)
         if (
             iswalk == -1
             or walkindex == iswalk
-            or wnk[WALK[iswalk].index(place)] == ""
+            or walkline[WALK[iswalk].index(place)] == ""
         ):
             continue
 
@@ -118,8 +121,8 @@ async def city(message: Message, user_id: str | int):
 
         markup.add(
             InlineKeyboardButton(
-                text=f"🚶 {wnk[index]} - {walks[index]} секунд ходьбы",
-                callback_data=f"walk_{wnk[index]}"
+                text=f"🚶 {walkline[index]} - {walks[index]} секунд ходьбы",
+                callback_data=f"walk_{walkline[index]}"
             )
         )
 
@@ -371,7 +374,7 @@ async def car_menu_previous(call: CallbackQuery, menu: int):
     )
 
     await message.answer(
-        '<i>👨‍✈️ Выберите место для поездки.</i>',
+        '<i>👨‍✈️ Выберите место для поездки</i>',
         reply_markup=markup
     )
     with contextlib.suppress(MessageToDeleteNotFound, MessageCantBeDeleted):
@@ -412,8 +415,9 @@ async def local_people(call: CallbackQuery):
 
     if usercount <= 1:
         return await call.message.answer(
-            "<i>👤 Вы стоите один, оглядываясь по сторонам…</i>\n"
-            "\n😓 В вашей местности не найдено людей. Помимо вас, само собой."
+            "<i>👤 Вы стоите один, оглядываясь по сторонам…\n"
+            "\n😓 В вашей местности не найдено людей. Помимо вас, "
+            "само собой</i>"
         )
 
     cur.execute(f"SELECT * FROM userdata WHERE current_place = '{place}'")
@@ -515,7 +519,7 @@ async def central_market_menu(call: CallbackQuery) -> None:
 
 async def central_market_food(call: CallbackQuery) -> None:
     '''
-    Callback for central market food part
+    Callback for food section of the central market
 
     :param call - callback:
     '''
@@ -567,7 +571,7 @@ async def central_market_food(call: CallbackQuery) -> None:
 
 async def central_market_mask(call: CallbackQuery) -> None:
     '''
-    Callback for mask section of central market
+    Callback for mask section of the central market
 
     :param call - callback:
     '''
@@ -655,13 +659,13 @@ async def bank(call: CallbackQuery) -> None:
 
 async def state_balance(call: CallbackQuery) -> None:
     '''
-    Callback for state balance
+    Callback for state treasury
 
     :param call - callback:
     '''
     place = cur.select("current_place", 'userdata').where(
         user_id=call.from_user.id).one()
-    treasury = cur.execute("SELECT treasury FROM globaldata").fetchone()[0]
+    treasury = cur.select("treasury", "globaldata").one()
 
     if place != 'Живбанк':
         return  # todo answer
@@ -992,7 +996,7 @@ async def buy24_(call: CallbackQuery, item: str) -> None:
     '''
     if item not in ITEMS or item not in limeteds:
         raise ValueError("no such item")
-    items_left = cur.execute(f"SELECT {item} FROM globaldata").fetchone()[0]
+    items_left = cur.select(item, "globaldata").one()
 
     if items_left < 1:
         return await call.answer(
@@ -1002,8 +1006,7 @@ async def buy24_(call: CallbackQuery, item: str) -> None:
             show_alert=True
         )
 
-    cur.execute(f"UPDATE globaldata SET {item}={item}-1")
-    conn.commit()
+    cur.update("globaldata").add(item=1).commit()
     cost = ITEMS[item].price
     assert isinstance(cost, int)
     await buy(call, item, call.from_user.id, cost)
@@ -1011,7 +1014,7 @@ async def buy24_(call: CallbackQuery, item: str) -> None:
 
 async def buyclan_(call: CallbackQuery, item: str) -> None:
     '''
-    Callback for buying clanitem
+    Callback for buying item in a clan using clan buildings
 
     :param call - callback:
     :param item:
@@ -1037,8 +1040,7 @@ async def buyclan_(call: CallbackQuery, item: str) -> None:
             show_alert=True)
 
     cur.update("userdata").add(balance=-cost).where(user_id=user_id).commit()
-    cur.execute(f"UPDATE userdata SET {item}={item}+1 WHERE user_id={user_id}")
-    conn.commit()
+    cur.update("userdata").add(item=1).where(user_id=user_id).commit()
 
     clan_bonus_devider = random.randint(1, 5)
 
@@ -1109,6 +1111,11 @@ async def bus(call: CallbackQuery) -> None:
 
 
 async def metro(call: CallbackQuery):
+    '''
+    Callback for subway station vestibule menu
+
+    :param call - callback:
+    '''
     user_id = call.from_user.id
     token = cur.select("metrotoken", "userdata").where(user_id=user_id).one()
     line = cur.select("line", "userdata").where(user_id=user_id).one()
@@ -1141,6 +1148,11 @@ async def metro(call: CallbackQuery):
 
 
 async def proceed_metro(call: CallbackQuery):
+    '''
+    Callback for entering a subway station
+
+    :param call - callback:
+    '''
     user_id = call.from_user.id
     token = cur.select("metrotoken", "userdata").where(user_id=user_id).one()
 
@@ -1173,6 +1185,11 @@ def _transfer(user_id) -> None | str | int:
 
 
 async def metrocall(call: CallbackQuery):
+    '''
+    Callback for subway station
+
+    :param call - callback:
+    '''
     user_id = call.from_user.id
     line = cur.select("line", "userdata").where(user_id=user_id).one()
     place = cur.select("current_place", "userdata").where(
@@ -1182,7 +1199,7 @@ async def metrocall(call: CallbackQuery):
     desc = str()
 
     if trans := _transfer(user_id):
-        desc += f'Переход к поездам {linez[trans]}\n'  # type: ignore
+        desc += f'Переход к поездам {LINES_GENITIVE[trans]}\n'  # type: ignore
 
         markup.add(
             InlineKeyboardButton(
@@ -1245,11 +1262,16 @@ async def metrocall(call: CallbackQuery):
 
 
 async def tostation(user_id: int | str, station: str, line: int | None = None):
+    '''
+    Callback for a user to instantly go to some place
+
+    :param user_id - ID of the user to go to the place:
+    :param station - the place for the user to go:
+    :param line - the line where the place is located:
+    '''
     lines = (
         line
-        or cur.execute(
-            f'SELECT line FROM userdata WHERE user_id={user_id}'
-        ).fetchone()[0]
+        or cur.select("line", "userdata").where(user_id=user_id).one()
     )
     cur.update("userdata").set(current_place=station).where(
         user_id=user_id).commit()
@@ -1297,7 +1319,7 @@ async def metro_forward(call: CallbackQuery):
 
     with contextlib.suppress(Exception):
         await call.message.delete()
-    await asyncio.sleep(random.randint(METRO_LESS, METRO_MORE))
+    await asyncio.sleep(random.randint(METRO_TIME[0], METRO_TIME[1]))
     await tostation(user_id, station=METRO[line][index+1])
     await metrocall(call)
 
@@ -1338,12 +1360,17 @@ async def metro_back(call: CallbackQuery):
         )
 
     await call.message.delete()
-    await asyncio.sleep(random.randint(METRO_LESS, METRO_MORE))
+    await asyncio.sleep(random.randint(METRO_TIME[0], METRO_TIME[1]))
     await tostation(user_id, station=METRO[line][index-1])
     await metrocall(call)
 
 
 async def transfer_metro(call: CallbackQuery):
+    '''
+    Callback for a user to transfer to another line
+
+    :param call - callback:
+    '''
     user_id = call.from_user.id
 
     cur.update("userdata").set(line=_transfer(user_id)).where(
@@ -1356,6 +1383,11 @@ async def transfer_metro(call: CallbackQuery):
 
 
 async def airport(call: CallbackQuery):
+    '''
+    Callback for airport menu
+
+    :param call - callback:
+    '''
     user_id = call.from_user.id
     place = cur.select("current_place", "userdata").where(
         user_id=user_id).one()
@@ -1394,6 +1426,11 @@ async def airport(call: CallbackQuery):
 
 
 async def flight(call: CallbackQuery):
+    '''
+    Callback for an airplane flight
+
+    :param call - callback:
+    '''
     if not isinterval('plane'):
         return await call.answer(
             'Посадка ещё не началась. Самолёт прилетит через'
@@ -1403,9 +1440,8 @@ async def flight(call: CallbackQuery):
 
     if call.data == "flight_confirm":
         user_id = call.from_user.id
-        balance = cur.execute(
-            f'SELECT balance FROM userdata WHERE user_id={user_id}'
-        ).fetchone()[0]
+        balance = cur.select("balance", "userdata").where(
+            user_id=user_id).one()
 
         if balance <= aircost:
             return await call.message.answer(
@@ -1417,7 +1453,7 @@ async def flight(call: CallbackQuery):
         cur.update("userdata").add(balance=-aircost).where(
             user_id=user_id).commit()
 
-        sleep_time = random.randint(AIRPLANE_LESS, AIRPLANE_MORE)
+        sleep_time = random.randint(AIRPLANE_TIME[0], AIRPLANE_TIME[1])
 
         if place == 'Аэропорт Котай':
             await bot.send_photo(
@@ -1457,3 +1493,105 @@ async def flight(call: CallbackQuery):
         'хотите продолжить?</i>',
         reply_markup=markup
     )
+
+
+async def regtraincall(call: CallbackQuery):
+    '''
+    Callback for regional economy class station
+
+    :param call - callback:
+    '''
+    user_id = call.from_user.id
+    place = cur.select("current_place", "userdata").where(
+        user_id=user_id).one()
+    index = REGTRAIN[1].index(place)
+    markup = InlineKeyboardMarkup()
+    desc = str()
+    if index in [0, len(REGTRAIN[1] - 1)]:
+        desc += (
+            '<b>Конечная.</b> Поезд дальше не идёт, просьба пассажиров'
+            ' выйти из вагонов'
+        )
+    if index > 0:
+        markup.add(
+            InlineKeyboardButton(
+                text=f'⬅ До ст. {REGTRAIN[0][0]}',
+                callback_data='regtrain_back'
+            )
+        )
+    if index < len(REGTRAIN[1])-1:
+        markup.add(
+            InlineKeyboardButton(
+                text=f'➡ До ст. {REGTRAIN[0][len(REGTRAIN[0])-1]}',
+                callback_data='regtrain_forward'
+            )
+        )
+    markup.add(
+        InlineKeyboardButton(
+            text='🏛 Выйти в город',
+            callback_data='city'
+        )
+    )
+    message = await call.message.answer_photo(
+        REGIONAL_MAP,
+        caption=f'<i>Остановочный пункт <b>{place}</b>\n{desc}</i>',
+        reply_markup=markup
+    )
+    await asyncio.sleep(ticket_time)
+
+    with contextlib.suppress(Exception):
+        await message.delete()
+
+
+async def regtrain_forward(call: CallbackQuery):
+    user_id = call.from_user.id
+
+    if not isinterval('electrictrain'):
+        return await call.answer(
+            "Посадка ещё не началась. Поезд приедет через "
+            f"{remaining('electrictrain')}",
+            show_alert=True
+        )
+
+    place = cur.select("current_place", "userdata").where(
+        user_id=user_id).one()
+    index = REGTRAIN[1].index(place)
+
+    await call.message.answer_photo(
+        'https://telegra.ph/file/71edfc6f9d47e6ea68b3f.jpg',
+        f'<i>Следующая остановка: <b>{REGTRAIN[0][index+1]}</b>. Осторожно,'
+        ' двери закрываются!</i>'
+    )
+
+    with contextlib.suppress(Exception):
+        await call.message.delete()
+    await asyncio.sleep(random.randint(REGTRAIN_TIME[0], REGTRAIN_TIME[1]))
+    await tostation(user_id, station=REGTRAIN[1][index+1])
+    await regtraincall(call)
+
+
+async def regtrain_back(call: CallbackQuery):
+    user_id = call.from_user.id
+
+    if not isinterval('electrictrain'):
+        return await call.answer(
+            "Посадка ещё не началась. Поезд приедет через "
+            f"{remaining('electrictrain')}",
+            show_alert=True
+        )
+
+    place = cur.select("current_place", "userdata").where(
+        user_id=user_id).one()
+    index = REGTRAIN[1].index(place)
+
+    await call.message.answer_photo(
+        'https://telegra.ph/file/71edfc6f9d47e6ea68b3f.jpg',
+        f'<i>Следующая остановка: <b>{REGTRAIN[0][index-1]}</b>. Осторожно,'
+        ' двери закрываются!</i>'
+    )
+
+    with contextlib.suppress(Exception):
+        await call.message.delete()
+    await asyncio.sleep(random.randint(REGTRAIN_TIME[0], REGTRAIN_TIME[1]))
+    await tostation(user_id, station=REGTRAIN[1][index-1])
+    await regtraincall(call)
