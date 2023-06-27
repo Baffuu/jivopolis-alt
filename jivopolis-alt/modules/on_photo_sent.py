@@ -48,7 +48,6 @@ async def get_photo_messages(message: Message):
     if process == "setphoto":
         cur.update("userdata").set(photo=message.photo[0].file_id).where(
             user_id=user_id).commit()
-        conn.commit()
         photo = cur.select("photo", "userdata").where(user_id=user_id).one()
         await bot.send_photo(message.chat.id,
                              photo, caption="<i>Ваше фото</i>")
