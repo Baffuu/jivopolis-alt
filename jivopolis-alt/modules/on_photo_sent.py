@@ -40,27 +40,24 @@ async def get_photo_messages(message: Message):
             message.chat.type == "private"
             and message.text.lower() != 'создать персонажа'
         ):
-            cur.execute("UPDATE userdata SET process=\"login\" WHERE"
-                        f" user_id = {user_id}")
+            cur.update("userdata").set(process="login").where(
+                user_id=user_id).commit()
         else:
             process = ""
 
     if process == "setphoto":
-        cur.execute(f"UPDATE userdata SET photo = {message.photo[0].file_id}"
-                    f" WHERE user_id = {user_id}")
+        cur.update("userdata").set(photo=message.photo[0].file_id).where(
+            user_id=user_id).commit()
         conn.commit()
-
-        photo = cur.execute("SELECT photo FROM userdata WHERE"
-                            f" user_id = {user_id}").fetchone()[0]
+        photo = cur.select("photo", "userdata").where(user_id=user_id).one()
         await bot.send_photo(message.chat.id,
                              photo, caption="<i>Ваше фото</i>")
-
-        cur.execute(f"UPDATE userdata SET process='' WHERE user_id={user_id}")
-        conn.commit()
+        cur.update("userdata").set(process="").where(
+                user_id=user_id).commit()
 
     if process == "clanphoto":
-        count = cur.execute("SELECT count(*) FROM clandata WHERE"
-                            f" group_id = {chat_id}").fetchone()[0]
+        count = cur.select("count(*)", "clandata").where(
+            group_id=chat_id).one()
 
         if count == 0:
             return
