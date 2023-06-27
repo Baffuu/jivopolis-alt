@@ -65,6 +65,7 @@ def create_userdata(cur: fyCursor) -> None:
 
     current_place   TEXT            DEFAULT \"Вокзальная\"  NOT NULL,
     line            INTEGER         DEFAULT 2               NOT NULL,
+    left_transport  INTEGER         DEFAULT 0               NOT NULL,
 
     sql             TEXT,
     rank            INTEGER         DEFAULT 0               NOT NULL,
@@ -158,6 +159,7 @@ def create_userdata(cur: fyCursor) -> None:
     traintoken      INTEGER         DEFAULT 0               NOT NULL,
     phone           INTEGER         DEFAULT 0               NOT NULL,
     troleytoken     INTEGER         DEFAULT 0               NOT NULL,
+    regtraintoken   INTEGER         DEFAULT 0               NOT NULL,
     hamster         INTEGER         DEFAULT 0               NOT NULL,
     fan             INTEGER         DEFAULT 0               NOT NULL
 )

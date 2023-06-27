@@ -301,6 +301,10 @@ async def callback_handler(call: CallbackQuery):
                 await metro_forward(call)
             case "metro_back":
                 await metro_back(call)
+            case "lounge":
+                await regtrain_lounge(call)
+            case "proceed_regtrain":
+                await proceed_regtrain(call)
             case "regtrain_forward":
                 await regtrain_forward(call)
             case "regtrain_back":
@@ -326,7 +330,7 @@ async def callback_handler(call: CallbackQuery):
                 return await call.answer('♿️ 404: команда не найдена', show_alert=True)
     except TypeError as e:
         logger.exception(e)
-        return await call.answer("🧑‍🎨 Сэр, у вас нет аккаунта в живополисе. Прежде чем использовать любые команды, вам нужно зарегистрироваться", show_alert=True)
+        return await call.answer("🧑‍🎨 Сэр, у вас нет аккаунта в Живополисе. Прежде чем использовать любые команды, вам нужно зарегистрироваться", show_alert=True)
     except Exception as e:
         await tglog(f"<b>☣️ TRACEBACK:</b> \n\n{utils.get_trace(e)}", "#traceback")
         logger.exception(e)

@@ -7,7 +7,7 @@ from ...misc import get_building, get_embedded_link, ITEMS
 from ...misc.misc import remaining, isinterval
 from ...misc.constants import (MINIMUM_CAR_LEVEL, MAXIMUM_DRIVE_MENU_SLOTS,
                                MAP, REGIONAL_MAP)
-from ...database import cur, conn
+from ...database import cur
 from ...database.functions import buy, buybutton, itemdata
 
 from ...misc.config import (
@@ -1495,6 +1495,62 @@ async def flight(call: CallbackQuery):
     )
 
 
+async def regtrain_lounge(call: CallbackQuery):
+    '''
+    Callback for railway platform vestibule menu
+
+    :param call - callback:
+    '''
+    user_id = call.from_user.id
+    token = cur.select("regtraintoken", "userdata").where(
+        user_id=user_id).one()
+
+    markup = InlineKeyboardMarkup()
+    markup.add(
+        InlineKeyboardButton(
+            text='🚆 Пройти на платформу',
+            callback_data='proceed_regtrain'
+        )
+    )
+    markup.add(
+        InlineKeyboardButton(
+            text='🎫 Покупка билетов',
+            callback_data='regtrain_tickets'
+        )
+    )
+    await call.message.answer(
+        f'<i>У вас <b>{token}</b> билетов</i>',
+        reply_markup=markup
+    )
+
+
+async def proceed_regtrain(call: CallbackQuery):
+    '''
+    Callback for entering a railway stop
+
+    :param call - callback:
+    '''
+    user_id = call.from_user.id
+    token = cur.select("metrotoken", "userdata").where(user_id=user_id).one()
+
+    if token < 1:
+        markup = InlineKeyboardMarkup()
+        markup.add()
+        return await call.message.answer(
+            '<i>🚫 У вас недостаточно билетов</i>',
+            reply_markup=InlineKeyboardMarkup().add(
+                    InlineKeyboardButton(
+                        text='🎫 Покупка билетов',
+                        callback_data='regtrain_tickets'
+                    )
+                )
+            )
+
+    cur.update("userdata").add(regtraintoken=-1).where(
+        user_id=user_id).commit()
+    await regtraincall(call)
+
+
 async def regtraincall(call: CallbackQuery):
     '''
     Callback for regional economy class station
@@ -1546,10 +1602,10 @@ async def regtraincall(call: CallbackQuery):
 async def regtrain_forward(call: CallbackQuery):
     user_id = call.from_user.id
 
-    if not isinterval('electrictrain'):
+    if not isinterval('regtrain'):
         return await call.answer(
             "Посадка ещё не началась. Поезд приедет через "
-            f"{remaining('electrictrain')}",
+            f"{remaining('regtrain')}",
             show_alert=True
         )
 
@@ -1573,10 +1629,10 @@ async def regtrain_forward(call: CallbackQuery):
 async def regtrain_back(call: CallbackQuery):
     user_id = call.from_user.id
 
-    if not isinterval('electrictrain'):
+    if not isinterval('regtrain'):
         return await call.answer(
             "Посадка ещё не началась. Поезд приедет через "
-            f"{remaining('electrictrain')}",
+            f"{remaining('regtrain')}",
             show_alert=True
         )
 
