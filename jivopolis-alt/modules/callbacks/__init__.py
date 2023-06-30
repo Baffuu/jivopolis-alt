@@ -41,7 +41,10 @@ from .traveling import (
     metro, proceed_metro,
     metrocall, metro_forward,
     metro_back, transfer_metro,
-    airport, flight
+    airport, flight, regtrain_lounge,
+    regtraincall, regtrain_back, regtrain_forward,
+    proceed_regtrain, trolleybuscall, trolleybus_lounge,
+    proceed_trolleybus, trolleybus_back, trolleybus_forward
 )
 
 from .clans import (

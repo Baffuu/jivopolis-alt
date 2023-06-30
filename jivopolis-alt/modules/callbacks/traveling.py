@@ -31,9 +31,10 @@ from aiogram.utils.exceptions import (
 
 # time required for specific type of transport to reach the next station
 # the arrays contain minimum and maximum time
-METRO_TIME = [15, 30]
-AIRPLANE_TIME = [90, 120]
-REGTRAIN_TIME = [30, 45]
+METRO_TIME = [1, 2]  # 15, 30
+AIRPLANE_TIME = [90, 120]  # 90, 120
+REGTRAIN_TIME = [1, 2]  # 30, 45
+TROLLEYBUS_TIME = [1, 2]  # 10, 25
 
 
 async def city(message: Message, user_id: str | int):
@@ -1261,7 +1262,8 @@ async def metrocall(call: CallbackQuery):
         await message.delete()
 
 
-async def tostation(user_id: int | str, station: str, line: int | None = None):
+async def tostation(user_id: int | str, target_station: str,
+                    line: int | None = None):
     '''
     Callback for a user to instantly go to some place
 
@@ -1273,17 +1275,17 @@ async def tostation(user_id: int | str, station: str, line: int | None = None):
         line
         or cur.select("line", "userdata").where(user_id=user_id).one()
     )
-    cur.update("userdata").set(current_place=station).where(
+    cur.update("userdata").set(current_place=target_station).where(
         user_id=user_id).commit()
     cur.update("userdata").set(line=lines).where(user_id=user_id).commit()
 
 
-async def metro_forward(call: CallbackQuery):
+async def metro_forward(call: CallbackQuery, already_onboard: bool = False):
     user_id = call.from_user.id
     line = cur.select("line", "userdata").where(user_id=user_id).one()
 
     if line in [0, 2]:
-        if not isinterval('citylines'):
+        if not isinterval('citylines') and not already_onboard:
             return await call.answer(
                 (
                     "Посадка ещё не началась. Поезд приедет через "
@@ -1292,7 +1294,7 @@ async def metro_forward(call: CallbackQuery):
                 show_alert=True
             )
 
-    elif not isinterval('metro'):
+    elif not isinterval('metro') and not already_onboard:
         return await call.answer(
             "Посадка ещё не началась. Поезд приедет через "
             f"{remaining('metro')}",
@@ -1320,22 +1322,43 @@ async def metro_forward(call: CallbackQuery):
     with contextlib.suppress(Exception):
         await call.message.delete()
     await asyncio.sleep(random.randint(METRO_TIME[0], METRO_TIME[1]))
-    await tostation(user_id, station=METRO[line][index+1])
-    await metrocall(call)
+    await tostation(user_id, target_station=METRO[line][index+1])
+    if index+2 == len(METRO[line]):
+        await metrocall(call)
+    else:
+        markup = InlineKeyboardMarkup()
+        markup.add(
+            InlineKeyboardButton(
+                                 text='🚶 Выйти из поезда',
+                                 callback_data='exit_metro'
+                                )
+                            )
+        if line in [0, 2]:
+            announcement = f'Остановка <b>{METRO[line][index+1]}</b>. Сле' +\
+                           f'дующая остановка: <b>{METRO[line][index+2]}</b>'
+        else:
+            announcement = f'Станция <b>{METRO[line][index+1]}</b>. ' +\
+                           f'Следующая станция: <b>{METRO[line][index+2]}</b>'
+        message = await call.message.answer(f'<i>{announcement}</i>',
+                                            reply_markup=markup)
+        await asyncio.sleep(25)
+        if not cur.select("left_transport", "userdata").\
+                where(user_id=user_id).one() == message['message_id']:
+            await metro_forward(call, True)
 
 
-async def metro_back(call: CallbackQuery):
+async def metro_back(call: CallbackQuery, already_onboard: bool = False):
     user_id = call.from_user.id
     line = cur.select("line", "userdata").where(user_id=user_id).one()
 
-    if line in [0, 2] and not isinterval('citylines'):
+    if line in [0, 2] and not isinterval('citylines') and not already_onboard:
         return await call.answer(
             "Посадка ещё не началась. Поезд приедет через "
             f"{remaining('citylines')}",
             show_alert=True
         )
 
-    elif not isinterval('metro'):
+    elif not isinterval('metro') and not already_onboard:
         return await call.answer(
             "Посадка ещё не началась. Поезд приедет через"
             f" {remaining('metro')}",
@@ -1359,10 +1382,32 @@ async def metro_back(call: CallbackQuery):
             f'<b>{METRO[line][index-1]}</b></i>'
         )
 
-    await call.message.delete()
+    with contextlib.suppress(Exception):
+        await call.message.delete()
     await asyncio.sleep(random.randint(METRO_TIME[0], METRO_TIME[1]))
-    await tostation(user_id, station=METRO[line][index-1])
-    await metrocall(call)
+    await tostation(user_id, target_station=METRO[line][index-1])
+    if index == 1:
+        await metrocall(call)
+    else:
+        markup = InlineKeyboardMarkup()
+        markup.add(
+            InlineKeyboardButton(
+                                 text='🚶 Выйти из поезда',
+                                 callback_data='exit_metro'
+                                )
+                            )
+        if line in [0, 2]:
+            announcement = f'Остановка <b>{METRO[line][index-1]}</b>. Сле' +\
+                           f'дующая остановка: <b>{METRO[line][index-2]}</b>'
+        else:
+            announcement = f'Станция <b>{METRO[line][index-1]}</b>. ' +\
+                           f'Следующая станция: <b>{METRO[line][index-2]}</b>'
+        message = await call.message.answer(f'<i>{announcement}</i>',
+                                            reply_markup=markup)
+        await asyncio.sleep(25)
+        if not cur.select("left_transport", "userdata").\
+                where(user_id=user_id).one() == message['message_id']:
+            await metro_back(call, True)
 
 
 async def transfer_metro(call: CallbackQuery):
@@ -1373,7 +1418,8 @@ async def transfer_metro(call: CallbackQuery):
     '''
     user_id = call.from_user.id
 
-    cur.update("userdata").set(line=_transfer(user_id)).where(
+    transfer_line = _transfer(user_id)
+    cur.update("userdata").set(line=transfer_line).where(
         user_id=user_id).commit()
 
     await metrocall(call)
@@ -1394,7 +1440,7 @@ async def airport(call: CallbackQuery):
     markup = InlineKeyboardMarkup()
 
     match (place):
-        case 'Аэропорт Котай':
+        case 'Аэропорт Ридиполь':
             airport = 'Котай'
             markup.add(
                 InlineKeyboardButton(
@@ -1406,7 +1452,7 @@ async def airport(call: CallbackQuery):
             airport = 'Национальный аэропорт Живополис'
             markup.add(
                 InlineKeyboardButton(
-                    text='🛫 До Котая',
+                    text='🛫 До Ридиполя',
                     callback_data='flight'
                 )
             )
@@ -1455,7 +1501,7 @@ async def flight(call: CallbackQuery):
 
         sleep_time = random.randint(AIRPLANE_TIME[0], AIRPLANE_TIME[1])
 
-        if place == 'Аэропорт Котай':
+        if place == 'Аэропорт Ридиполь':
             await bot.send_photo(
                 call.message.chat.id,
                 'https://telegra.ph/file/d34459cedf14cb4b4a19a.jpg',
@@ -1470,17 +1516,17 @@ async def flight(call: CallbackQuery):
             await bot.send_photo(
                 call.message.chat.id,
                 'https://telegra.ph/file/d34459cedf14cb4b4a19a.jpg',
-                '<i>Наш самолёт направляется к <b>Аэропорту Котай</b>. Путешес'
-                'твие займёт не более 2 минут. Удачного полёта!</i>'
+                '<i>Наш самолёт направляется к <b>Аэропорту Ридиполь</b>. Путе'
+                'шествие займёт не более 2 минут. Удачного полёта!</i>'
             )
-            destination = 'Аэропорт Котай'
+            destination = 'Аэропорт Ридиполь'
             destline = 1
         else:
             return
 
         # await achieve(a, call.message.chat.id, 'flightach')
         await asyncio.sleep(sleep_time)
-        await tostation(user_id, station=destination, line=destline)
+        await tostation(user_id, target_station=destination, line=destline)
 
         return await airport(call)
 
@@ -1531,7 +1577,8 @@ async def proceed_regtrain(call: CallbackQuery):
     :param call - callback:
     '''
     user_id = call.from_user.id
-    token = cur.select("metrotoken", "userdata").where(user_id=user_id).one()
+    token = cur.select("regtraintoken", "userdata").where(
+        user_id=user_id).one()
 
     if token < 1:
         markup = InlineKeyboardMarkup()
@@ -1563,7 +1610,7 @@ async def regtraincall(call: CallbackQuery):
     index = REGTRAIN[1].index(place)
     markup = InlineKeyboardMarkup()
     desc = str()
-    if index in [0, len(REGTRAIN[1] - 1)]:
+    if index in [0, len(REGTRAIN[1]) - 1]:
         desc += (
             '<b>Конечная.</b> Поезд дальше не идёт, просьба пассажиров'
             ' выйти из вагонов'
@@ -1599,10 +1646,10 @@ async def regtraincall(call: CallbackQuery):
         await message.delete()
 
 
-async def regtrain_forward(call: CallbackQuery):
+async def regtrain_forward(call: CallbackQuery, already_onboard: bool = False):
     user_id = call.from_user.id
 
-    if not isinterval('regtrain'):
+    if not isinterval('regtrain') and not already_onboard:
         return await call.answer(
             "Посадка ещё не началась. Поезд приедет через "
             f"{remaining('regtrain')}",
@@ -1622,14 +1669,31 @@ async def regtrain_forward(call: CallbackQuery):
     with contextlib.suppress(Exception):
         await call.message.delete()
     await asyncio.sleep(random.randint(REGTRAIN_TIME[0], REGTRAIN_TIME[1]))
-    await tostation(user_id, station=REGTRAIN[1][index+1])
-    await regtraincall(call)
+    await tostation(user_id, target_station=REGTRAIN[1][index+1])
+    if index+2 == len(REGTRAIN[1]):
+        await regtraincall(call)
+    else:
+        markup = InlineKeyboardMarkup()
+        markup.add(
+            InlineKeyboardButton(
+                                 text='🚶 Выйти из поезда',
+                                 callback_data='exit_regtrain'
+                                )
+                            )
+        message = await call.message.answer(
+                f'<i>Остановка <b>{REGTRAIN[1][index+1]}</b>. '
+                f'Следующая остановка: <b>{REGTRAIN[1][index+2]}</b></i>',
+                reply_markup=markup)
+        await asyncio.sleep(25)
+        if not cur.select("left_transport", "userdata").\
+                where(user_id=user_id).one() == message['message_id']:
+            await regtrain_forward(call, True)
 
 
-async def regtrain_back(call: CallbackQuery):
+async def regtrain_back(call: CallbackQuery, already_onboard: bool = False):
     user_id = call.from_user.id
 
-    if not isinterval('regtrain'):
+    if not isinterval('regtrain') and not already_onboard:
         return await call.answer(
             "Посадка ещё не началась. Поезд приедет через "
             f"{remaining('regtrain')}",
@@ -1649,5 +1713,221 @@ async def regtrain_back(call: CallbackQuery):
     with contextlib.suppress(Exception):
         await call.message.delete()
     await asyncio.sleep(random.randint(REGTRAIN_TIME[0], REGTRAIN_TIME[1]))
-    await tostation(user_id, station=REGTRAIN[1][index-1])
-    await regtraincall(call)
+    await tostation(user_id, target_station=REGTRAIN[1][index-1])
+    if index == 1:
+        await regtraincall(call)
+    else:
+        markup = InlineKeyboardMarkup()
+        markup.add(
+            InlineKeyboardButton(
+                                 text='🚶 Выйти из поезда',
+                                 callback_data='exit_regtrain'
+                                )
+                            )
+        message = await call.message.answer(
+                f'<i>Остановка <b>{REGTRAIN[0][index-1]}</b>. '
+                f'Следующая остановка: <b>{REGTRAIN[0][index-2]}</b></i>',
+                reply_markup=markup)
+        await asyncio.sleep(25)
+        if not cur.select("left_transport", "userdata").\
+                where(user_id=user_id).one() == message['message_id']:
+            await regtrain_back(call, True)
+
+
+async def trolleybus_lounge(call: CallbackQuery):
+    '''
+    Callback for trolleybus stop vestibule menu
+
+    :param call - callback:
+    '''
+    user_id = call.from_user.id
+    token = cur.select("troleytoken", "userdata").where(
+        user_id=user_id).one()
+
+    markup = InlineKeyboardMarkup()
+    markup.add(
+        InlineKeyboardButton(
+            text='🚏 Пройти на остановку',
+            callback_data='proceed_trolleybus'
+        )
+    )
+    markup.add(
+        InlineKeyboardButton(
+            text='🎫 Покупка билетов',
+            callback_data='trolleybus_tickets'
+        )
+    )
+    await call.message.answer(
+        f'<i>У вас <b>{token}</b> билетов</i>',
+        reply_markup=markup
+    )
+
+
+async def proceed_trolleybus(call: CallbackQuery):
+    '''
+    Callback for entering a trolleybus stop
+
+    :param call - callback:
+    '''
+    user_id = call.from_user.id
+    token = cur.select("troleytoken", "userdata").where(
+        user_id=user_id).one()
+
+    if token < 1:
+        markup = InlineKeyboardMarkup()
+        markup.add()
+        return await call.message.answer(
+            '<i>🚫 У вас недостаточно билетов</i>',
+            reply_markup=InlineKeyboardMarkup().add(
+                    InlineKeyboardButton(
+                        text='🎫 Покупка билетов',
+                        callback_data='trolleybus_tickets'
+                    )
+                )
+            )
+
+    cur.update("userdata").add(troleytoken=-1).where(
+        user_id=user_id).commit()
+    await trolleybuscall(call)
+
+
+async def trolleybuscall(call: CallbackQuery):
+    '''
+    Callback for trolleybus stop
+
+    :param call - callback:
+    '''
+    user_id = call.from_user.id
+    place = cur.select("current_place", "userdata").where(
+        user_id=user_id).one()
+    index = CITY.index(place)
+    markup = InlineKeyboardMarkup()
+    desc = str()
+    if index in [0, len(CITY) - 1]:
+        desc += (
+            '<b>Конечная.</b> Троллейбус дальше не идёт, просьба пассажиров'
+            ' покинуть транспортное средство'
+        )
+    if index > 0:
+        markup.add(
+            InlineKeyboardButton(
+                text=f'⬅ {CITY[index - 1]}',
+                callback_data='trolleybus_back'
+            )
+        )
+    if index < len(CITY)-1:
+        markup.add(
+            InlineKeyboardButton(
+                text=f'➡ {CITY[index + 1]}',
+                callback_data='trolleybus_forward'
+            )
+        )
+    markup.add(
+        InlineKeyboardButton(
+            text='🚏 Список остановочных пунктов',
+            callback_data='trolley_stops'
+        )
+    )
+    markup.add(
+        InlineKeyboardButton(
+            text='🏛 Выйти в город',
+            callback_data='city'
+        )
+    )
+    message = await call.message.answer(
+        f'<i>Остановочный пункт <b>{place}</b>\n{desc}</i>',
+        reply_markup=markup
+    )
+    await asyncio.sleep(ticket_time)
+
+    with contextlib.suppress(Exception):
+        await message.delete()
+
+
+async def trolleybus_forward(call: CallbackQuery,
+                             already_onboard: bool = False):
+    user_id = call.from_user.id
+
+    if not isinterval('trolleybus') and not already_onboard:
+        return await call.answer(
+            "Посадка ещё не началась. Троллейбус приедет через "
+            f"{remaining('trolleybus')}",
+            show_alert=True
+        )
+
+    place = cur.select("current_place", "userdata").where(
+        user_id=user_id).one()
+    index = CITY.index(place)
+
+    await call.message.answer_photo(
+        'https://telegra.ph/file/411dad335dac249f8b1aa.jpg',
+        f'<i>Следующая остановка: <b>{CITY[index+1]}</b>. Осторожно,'
+        ' двери закрываются!</i>'
+    )
+
+    with contextlib.suppress(Exception):
+        await call.message.delete()
+    await asyncio.sleep(random.randint(TROLLEYBUS_TIME[0], TROLLEYBUS_TIME[1]))
+    await tostation(user_id, target_station=CITY[index+1])
+    if index+2 == len(CITY):
+        await trolleybuscall(call)
+    else:
+        markup = InlineKeyboardMarkup()
+        markup.add(
+            InlineKeyboardButton(
+                                 text='🚶 Выйти из троллейбуса',
+                                 callback_data='exit_trolleybus'
+                                )
+                            )
+        message = await call.message.answer(
+                f'<i>Остановка <b>{CITY[index+1]}</b>. '
+                f'Следующая остановка: <b>{CITY[index+2]}</b></i>',
+                reply_markup=markup)
+        await asyncio.sleep(25)
+        if not cur.select("left_transport", "userdata").\
+                where(user_id=user_id).one() == message['message_id']:
+            await trolleybus_forward(call, True)
+
+
+async def trolleybus_back(call: CallbackQuery, already_onboard: bool = False):
+    user_id = call.from_user.id
+
+    if not isinterval('trolleybus') and not already_onboard:
+        return await call.answer(
+            "Посадка ещё не началась. Троллейбус приедет через "
+            f"{remaining('trolleybus')}",
+            show_alert=True
+        )
+
+    place = cur.select("current_place", "userdata").where(
+        user_id=user_id).one()
+    index = CITY.index(place)
+
+    await call.message.answer_photo(
+        'https://telegra.ph/file/411dad335dac249f8b1aa.jpg',
+        f'<i>Следующая остановка: <b>{CITY[index-1]}</b>. Осторожно,'
+        ' двери закрываются!</i>'
+    )
+
+    with contextlib.suppress(Exception):
+        await call.message.delete()
+    await asyncio.sleep(random.randint(TROLLEYBUS_TIME[0], TROLLEYBUS_TIME[1]))
+    await tostation(user_id, target_station=CITY[index-1])
+    if index == 1:
+        await trolleybuscall(call)
+    else:
+        markup = InlineKeyboardMarkup()
+        markup.add(
+            InlineKeyboardButton(
+                                 text='🚶 Выйти из троллейбуса',
+                                 callback_data='exit_trolleybus'
+                                )
+                            )
+        message = await call.message.answer(
+                f'<i>Остановка <b>{CITY[index-1]}</b>. '
+                f'Следующая остановка: <b>{CITY[index-2]}</b></i>',
+                reply_markup=markup)
+        await asyncio.sleep(25)
+        if not cur.select("left_transport", "userdata").\
+                where(user_id=user_id).one() == message['message_id']:
+            await trolleybus_back(call, True)
