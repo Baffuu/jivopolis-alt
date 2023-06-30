@@ -8,10 +8,11 @@ from ..start import StartCommand
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.exceptions import BadRequest
 
+
 async def create_clan(call: CallbackQuery) -> None:
     '''
     Callback for clan creating. 
-    
+
     :param call - callback:
     '''
     user_id = call.from_user.id
@@ -19,7 +20,7 @@ async def create_clan(call: CallbackQuery) -> None:
     member = await bot.get_chat_member(chat_id, user_id)
 
     if (
-        not member.is_chat_admin() 
+        not member.is_chat_admin()
         and not member.is_chat_creator()
     ):
         return await bot.send_message(chat_id, '👀 <i>Создать клан может только администратор чата</i>')
