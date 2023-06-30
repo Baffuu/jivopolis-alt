@@ -9,12 +9,17 @@ from ...misc import OfficialChats, ITEMS
 
 from ...database import cur, conn
 
-from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.types import (
+    CallbackQuery,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup
+)
+
 
 async def adminpanel(call: CallbackQuery, user_id: int) -> None:
     '''
     Callback for admin panel
-    
+
     :param call - callback:
     :param user_id:
     '''
@@ -22,12 +27,16 @@ async def adminpanel(call: CallbackQuery, user_id: int) -> None:
 
     if rank < 2:
         return await call.answer("❌ Эта команда доступна только администраторам Живополиса", show_alert = True)
-        
-    markup = InlineKeyboardMarkup(row_width = 1)
-    markup.add(InlineKeyboardButton(text = '❓ Помощь', callback_data='adminhelp'), 
-               InlineKeyboardButton(text = '💼 Информация по предметам', callback_data='itemsinfo_table'), 
-               InlineKeyboardButton(text = '📁 Файлы Живополиса', callback_data='backup'), 
-               InlineKeyboardButton(text = '💬 Админские чаты', callback_data='adminchats'))
+
+    markup = InlineKeyboardMarkup(row_width=1)
+    markup.add(
+        InlineKeyboardButton(
+            text='❓ Помощь',
+            callback_data='adminhelp'
+        ),
+        InlineKeyboardButton(text='💼 Информация по предметам', callback_data='itemsinfo_table'), 
+               InlineKeyboardButton(text='📁 Файлы Живополиса', callback_data='backup'), 
+               InlineKeyboardButton(text='💬 Админские чаты', callback_data='adminchats'))
 
     if rank > 2:
         markup.add(InlineKeyboardButton(text='♻️ Перезапустить бота', callback_data='restart_bot'))

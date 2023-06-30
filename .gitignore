@@ -173,3 +173,4 @@ main.py
 .DS_Store
 *.yaml
 *.db
+*.db-journal
