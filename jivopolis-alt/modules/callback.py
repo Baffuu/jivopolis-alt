@@ -5,12 +5,16 @@ import contextlib
 from .callbacks import *
 from .. import bot, logger, Dispatcher, tglog, utils
 from ..misc import ITEMS
-from ..misc.config import SUPPORT_LINK, villages, trains
+from ..misc.config import SUPPORT_LINK, villages, trains, CITY
 from ..database import cur
 from ..database.functions import check, profile, eat
 from ..filters import RequireBetaFilter
+from aiogram.utils.exceptions import (
+    MessageCantBeDeleted,
+    MessageToDeleteNotFound
+)
 
-from aiogram.types import CallbackQuery
+from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
 
 
 async def callback_handler(call: CallbackQuery):
@@ -311,6 +315,42 @@ async def callback_handler(call: CallbackQuery):
                 await regtrain_back(call)
             case "transfer":
                 await transfer_metro(call)
+            case "trolleybus":
+                await trolleybus_lounge(call)
+            case "proceed_trolleybus":
+                await proceed_trolleybus(call)
+            case "trolleybus_forward":
+                await trolleybus_forward(call)
+            case "trolleybus_back":
+                await trolleybus_back(call)
+            case "trolley_stops":
+                place = cur.select("current_place", "userdata").where(user_id=call.from_user.id).one()
+                answer = "<b>Список остановочных пунктов:</b>\n\n🚏 - Вы находитесь здесь.\n\n"
+                for stop in CITY:
+                    answer += f"<b>🚏 {stop}</b>\n" if stop == place else f"{stop}\n"
+                markup = InlineKeyboardMarkup()
+                markup.add(
+                            InlineKeyboardButton(
+                            text='❌ Закрыть',
+                            callback_data='cancel_action'
+                          )
+                )
+                await call.message.answer(f"<i>{answer}</i>", reply_markup = markup)
+            case "exit_metro":
+                cur.update("userdata").set(left_transport=call.message.message_id).where(user_id=call.from_user.id).commit()
+                with contextlib.suppress(MessageToDeleteNotFound, MessageCantBeDeleted):
+                    await call.message.delete()
+                await metrocall(call)
+            case "exit_regtrain":
+                cur.update("userdata").set(left_transport=call.message.message_id).where(user_id=call.from_user.id).commit()
+                with contextlib.suppress(MessageToDeleteNotFound, MessageCantBeDeleted):
+                    await call.message.delete()
+                await regtraincall(call)
+            case "exit_trolleybus":
+                cur.update("userdata").set(left_transport=call.message.message_id).where(user_id=call.from_user.id).commit()
+                with contextlib.suppress(MessageToDeleteNotFound, MessageCantBeDeleted):
+                    await call.message.delete()
+                await trolleybuscall(call)
 
             case "privacy_settings":
                 await privacy_settings(call)
