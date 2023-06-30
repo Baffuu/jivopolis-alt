@@ -1,6 +1,6 @@
 from .. import bot, Dispatcher
 
-from ..database import cur, conn
+from ..database import cur
 from ..database.functions import check
 
 from ..misc import OfficialChats

@@ -107,13 +107,10 @@ async def itemdesc(call: CallbackQuery, user_id: int):
                 )
             )
 
-    description = item.description
-
-    if not description:
-        description = (
-            '〰 описание предмета отсутствует. Обратитесь в приёмную,'
-            ' если считаете, что это ошибка.'
-        )
+    description = item.description or (
+                '〰 описание предмета отсутствует. Обратитесь в приёмную,'
+                ' если считаете, что это ошибка.'
+            )
 
     if call.data in limeteds:
         itemsleft = cur.execute(f"SELECT {item} FROM globaldata").fetchone()[0]
@@ -165,12 +162,12 @@ async def inventory(call: CallbackQuery) -> None:
             )
         )
 
-    mask = cur.select("mask", "userdata").where(user_id=user_id).one()
-
-    if not mask:
-        mask = ''
-
-    if mask != '':
+    if (
+        cur.select("mask", "userdata").where(
+            user_id=user_id
+        ).one()
+        not in ["", None]
+    ):
         markup.add(
             InlineKeyboardButton(
                 text='❎ Снять маску',
