@@ -47,3 +47,4 @@ TIME_EMOJIS = [
     "🕞", "🕟", "🕠", "🕡", "🕢", "🕣", "🕤", "🕥", "🕦", "🕧"]
 
 MAP = 'https://telegra.ph/file/d8e0fbd1a975625a86713.jpg'
+REGIONAL_MAP = 'https://telegra.ph/file/9abf3585649a32ce341be.jpg'

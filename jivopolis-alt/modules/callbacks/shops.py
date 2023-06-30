@@ -19,7 +19,7 @@ async def shop(
 
     :param call - callback:
     :param place:
-    :param items - items that will be selling in shop
+    :param items - items that will be sold in shop
     :param text - text that will be sent
     '''
     place_ = cur.select("current_place", "userdata").where(
@@ -28,8 +28,8 @@ async def shop(
     if place_ not in place and place_ != place:
         await call.answer(
             text=(
-                '🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
-                'местности'
+                '<i>🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
+                'местности</i>'
             ),
             show_alert=True
         )
