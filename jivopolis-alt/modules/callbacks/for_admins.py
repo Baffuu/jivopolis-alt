@@ -34,19 +34,34 @@ async def adminpanel(call: CallbackQuery, user_id: int) -> None:
             text='❓ Помощь',
             callback_data='adminhelp'
         ),
-        InlineKeyboardButton(text='💼 Информация по предметам', callback_data='itemsinfo_table'), 
-               InlineKeyboardButton(text='📁 Файлы Живополиса', callback_data='backup'), 
-               InlineKeyboardButton(text='💬 Админские чаты', callback_data='adminchats'))
+        InlineKeyboardButton(
+            text='💼 Информация по предметам',
+            callback_data='itemsinfo_table'
+        ),
+        InlineKeyboardButton(
+            text='📁 Файлы Живополиса',
+            callback_data='backup'
+        ),
+        InlineKeyboardButton(
+            text='💬 Админские чаты',
+            callback_data='adminchats'
+        )
+    )
 
     if rank > 2:
-        markup.add(InlineKeyboardButton(text='♻️ Перезапустить бота', callback_data='restart_bot'))
+        markup.add(
+            InlineKeyboardButton(
+                text='♻️ Перезапустить бота',
+                callback_data='restart_bot'
+            )
+        )
     await call.message.answer("<i>Эти функции доступны админам. Только тсс</i>", reply_markup=markup)
 
 
 async def itemsinfo_table(call: CallbackQuery, user_id: int) -> None:
     '''
     Callback for table with buttons, which contains info about all items
-    
+
     :param call - callback:
     :param user_id:
     '''

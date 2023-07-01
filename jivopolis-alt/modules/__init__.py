@@ -13,12 +13,12 @@ from .. import Dispatcher
 async def register_all(dp: Dispatcher) -> None:
     """
     function to register all bot hadlers
-    
-    handlers: 
-        - callback 
-        - inline bot 
+
+    handlers:
+        - callback
+        - inline bot
         - photo handler
-        - start command 
+        - start command
         - stickers handler
         - commands for admins
     """
@@ -32,3 +32,4 @@ async def register_all(dp: Dispatcher) -> None:
     emoji_handler.register(dp)
     from . import new_member_handler
     from . import message_handlers
+    return (new_member_handler, message_handlers, payments)
