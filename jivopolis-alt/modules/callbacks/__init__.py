@@ -44,7 +44,8 @@ from .traveling import (
     airport, flight, regtrain_lounge,
     regtraincall, regtrain_back, regtrain_forward,
     proceed_regtrain, trolleybuscall, trolleybus_lounge,
-    proceed_trolleybus, trolleybus_back, trolleybus_forward
+    proceed_trolleybus, trolleybus_back, trolleybus_forward,
+    businessclass_lounge, go_bytrain
 )
 
 from .clans import (

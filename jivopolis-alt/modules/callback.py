@@ -378,8 +378,16 @@ async def callback_handler(call: CallbackQuery):
                 await trolleybuscall(call)
             case "railway_station":
                 await railway_station(call)
+            case "exit_to_railway_station":
+                with contextlib.suppress(MessageToDeleteNotFound, MessageCantBeDeleted):
+                    await call.message.delete()
+                await railway_station(call)
             case "tickets":
                 await ticket_shop(call)
+            case "businessclass_lounge":
+                await businessclass_lounge(call)
+            case train if train.startswith('go_bytrain_to_'):
+                await go_bytrain(call, destination=train[14:])
 
             case "privacy_settings":
                 await privacy_settings(call)
