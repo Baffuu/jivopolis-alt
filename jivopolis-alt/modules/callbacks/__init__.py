@@ -55,5 +55,6 @@ from .shops import (
     mall,
     shop_24,
     shop,
-    moda_menu
+    moda_menu,
+    ticket_shop
 )

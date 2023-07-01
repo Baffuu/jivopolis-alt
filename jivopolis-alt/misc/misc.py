@@ -168,9 +168,9 @@ def get_building(place: str) -> InlineKeyboardButton | None:
                 text="🦊 Живополисский зоопаcрк",
                 callback_data="zoo_shop"
             )
-        case "Аэропорт Котай":
+        case "Аэропорт Ридиполь":
             button = InlineKeyboardButton(
-                text="✈ Аэропорт Котай",
+                text="✈ Аэропорт Ридиполь",
                 callback_data="airport"
             )
         case "Национальный аэропорт":

@@ -1063,8 +1063,12 @@ async def railway_station(call: CallbackQuery) -> None:
     markup = InlineKeyboardMarkup(row_width=1).\
         add(
             InlineKeyboardButton(
-                text='💺 Зал ожидания',
+                text='🚆 Платформы экономкласса',
                 callback_data='lounge'
+            ),
+            InlineKeyboardButton(
+                text='🚄 Платформы скоростных поездов',
+                callback_data='businessclass_lounge'
             ),
             InlineKeyboardButton(
                 text='🎫 Билетные кассы',
@@ -1441,7 +1445,7 @@ async def airport(call: CallbackQuery):
 
     match (place):
         case 'Аэропорт Ридиполь':
-            airport = 'Котай'
+            airport = 'Ридиполь'
             markup.add(
                 InlineKeyboardButton(
                     text='🛫 До Национального аэропорта',

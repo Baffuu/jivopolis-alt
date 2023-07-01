@@ -778,7 +778,7 @@ ITEMS = {
     'metrotoken': Item(
         emoji='🚇',
         name='metrotoken',
-        ru_name='Метро',
+        ru_name='Метрожетон',
         cost=25,
         type='token',
         description='лучший способ избежать пробок'

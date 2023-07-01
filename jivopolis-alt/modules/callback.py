@@ -225,6 +225,31 @@ async def callback_handler(call: CallbackQuery):
                     text='🧱 Добро пожаловать в строительный магазин - дом любого мужчины!'
                 )
 
+            case 'metro_tickets':
+                await shop(
+                    call,
+                    items=['metrotoken x1', 'metrotoken x2', 'metrotoken x5', 'metrotoken x10'],
+                    text='Здесь вы можете купить жетоны для метро'
+                )
+            case 'trolleybus_tickets':
+                await shop(
+                    call,
+                    items=['trolleytoken x1', 'trolleytoken x2', 'trolleytoken x5', 'trolleytoken x10'],
+                    text='Здесь вы можете купить билеты на городской троллейбус'
+                )
+            case 'regtrain_tickets':
+                await shop(
+                    call,
+                    items=['regtraintoken x1', 'regtraintoken x2', 'regtraintoken x5', 'regtraintoken x10'],
+                    text='Здесь вы можете купить билеты на электричку'
+                )
+            case 'train_tickets':
+                await shop(
+                    call,
+                    items=['traintoken x1', 'traintoken x2', 'traintoken x5', 'traintoken x10'],
+                    text='Здесь вы можете купить билеты на поезд, чтобы свалить из Живополиса'
+                )
+
             case 'moda_menu':
                 await moda_menu(call)
             case 'mall':
@@ -351,6 +376,10 @@ async def callback_handler(call: CallbackQuery):
                 with contextlib.suppress(MessageToDeleteNotFound, MessageCantBeDeleted):
                     await call.message.delete()
                 await trolleybuscall(call)
+            case "railway_station":
+                await railway_station(call)
+            case "tickets":
+                await ticket_shop(call)
 
             case "privacy_settings":
                 await privacy_settings(call)
