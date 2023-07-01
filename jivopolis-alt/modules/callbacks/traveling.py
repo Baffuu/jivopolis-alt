@@ -1741,7 +1741,7 @@ async def trolleybus_lounge(call: CallbackQuery):
     :param call - callback:
     '''
     user_id = call.from_user.id
-    token = cur.select("troleytoken", "userdata").where(
+    token = cur.select("trolleytoken", "userdata").where(
         user_id=user_id).one()
 
     markup = InlineKeyboardMarkup()
@@ -1770,7 +1770,7 @@ async def proceed_trolleybus(call: CallbackQuery):
     :param call - callback:
     '''
     user_id = call.from_user.id
-    token = cur.select("troleytoken", "userdata").where(
+    token = cur.select("trolleytoken", "userdata").where(
         user_id=user_id).one()
 
     if token < 1:
@@ -1786,7 +1786,7 @@ async def proceed_trolleybus(call: CallbackQuery):
                 )
             )
 
-    cur.update("userdata").add(troleytoken=-1).where(
+    cur.update("userdata").add(trolleytoken=-1).where(
         user_id=user_id).commit()
     await trolleybuscall(call)
 
