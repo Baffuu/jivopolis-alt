@@ -25,11 +25,11 @@ async def shop(
     place_ = cur.select("current_place", "userdata").where(
         user_id=call.from_user.id).one()
 
-    if place_ not in place and place_ != place:
+    if place is not None and place_ not in place and place_ != place:
         await call.answer(
             text=(
-                '<i>🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
-                'местности</i>'
+                '🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
+                'местности'
             ),
             show_alert=True
         )
@@ -39,7 +39,13 @@ async def shop(
         buttons = [buybutton(item) for item in items]
 
         markup = InlineKeyboardMarkup(row_width=1).\
-            add(*list(filter(lambda item: item is not None, buttons)))
+            add(*list(filter(lambda item: item is not None, buttons))).\
+            add(
+                InlineKeyboardButton(
+                    text='◀ Назад',
+                    callback_data='cancel_action'
+                )
+               )
     else:
         markup = None
 
@@ -112,6 +118,40 @@ async def mall(call: CallbackQuery) -> None:
 
     await call.message.answer(
         '<i>&#127978; Добро пожаловать в торговый центр!</i>',
+        reply_markup=markup
+    )
+
+
+async def ticket_shop(call: CallbackQuery) -> None:
+    '''
+    Callback for ticket shop menu
+
+    :param call - callback:
+    :param user_id:
+    '''
+    markup = InlineKeyboardMarkup(row_width=1)
+    markup.add(
+        InlineKeyboardButton(
+            text='🚇 Метро',
+            callback_data='metro_tickets'
+        ),
+        InlineKeyboardButton(
+            text='🚎 Городской троллейбус',
+            callback_data='trolleybus_tickets'
+        ),
+        InlineKeyboardButton(
+            text='🚆 Электропоезд экономкласса',
+            callback_data='regtrain_tickets'
+        ),
+        InlineKeyboardButton(
+            text='🚅 Скоростной поезд',
+            callback_data='train_tickets'
+        )
+    )
+
+    await call.message.answer(
+        '<i>🎫 Добро пожаловать в кассу! Билеты на какой вид транспорта'
+        ' хотите купить?</i>',
         reply_markup=markup
     )
 

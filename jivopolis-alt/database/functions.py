@@ -136,6 +136,11 @@ def buybutton(
 
     :returns: None if item does not exists or an error occured; aiogram.types.InlineKeyboardButton
     '''
+    amount = ''
+    if len(item.split(" ")) > 1:
+        amount = item.split(" ")[1][1:]
+        item = item.split(" ")[0]
+    
     if item not in ITEMS:
         return None
     itemob = ITEMS[item]
@@ -156,8 +161,17 @@ def buybutton(
     ):
         return None
     elif not status:
-        if item.startswith('pill') and len(item) > 4:
-            return InlineKeyboardButton(f'{itemob.emoji} {itemob.ru_name} - ${cost}', callback_data=f"buy_{item}:0:{item[5:]}")
+        if amount != '':
+            if item.startswith('pill'):
+                return InlineKeyboardButton(f'{itemob.emoji} {itemob.ru_name} x{amount} - ${cost * int(amount)}', callback_data=f"buy_{item}:0:{amount}")
+            if item.startswith('metrotoken'):
+                return InlineKeyboardButton(f'{itemob.emoji} {itemob.ru_name} x{amount} - ${cost * int(amount)}', callback_data=f"buy_{item}:0:{amount}")
+            if item.startswith('traintoken'):
+                return InlineKeyboardButton(f'{itemob.emoji} {itemob.ru_name} x{amount} - ${cost * int(amount)}', callback_data=f"buy_{item}:0:{amount}")
+            if item.startswith('regtraintoken'):
+                return InlineKeyboardButton(f'{itemob.emoji} {itemob.ru_name} x{amount} - ${cost * int(amount)}', callback_data=f"buy_{item}:0:{amount}")
+            if item.startswith('trolleytoken'):
+                return InlineKeyboardButton(f'{itemob.emoji} {itemob.ru_name} x{amount} - ${cost * int(amount)}', callback_data=f"buy_{item}:0:{amount}")
         return InlineKeyboardButton(f'{itemob.emoji} {itemob.ru_name} - ${cost}', callback_data=f'buy_{item}:{tip}')
     else:
         return (
@@ -663,7 +677,7 @@ async def buy(call: CallbackQuery, item: str, user_id: int, cost: Optional[int] 
         if not cost or cost < 0:
             return
 
-    balance = cur.execute(f"SELECT balance FROM userdata WHERE user_id = {user_id}").one()
+    balance = cur.select("balance", "userdata").where(user_id=user_id).one()
 
     if balance >= cost*amount:
         cur.execute(f"UPDATE userdata SET {item} = {item} + {amount} WHERE user_id = {user_id}"); conn.commit()

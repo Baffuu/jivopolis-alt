@@ -35,6 +35,7 @@ METRO_TIME = [1, 2]  # 15, 30
 AIRPLANE_TIME = [90, 120]  # 90, 120
 REGTRAIN_TIME = [1, 2]  # 30, 45
 TROLLEYBUS_TIME = [1, 2]  # 10, 25
+TRAIN_TIME = [1, 2]  # 45, 60
 
 
 async def city(message: Message, user_id: str | int):
@@ -1063,8 +1064,12 @@ async def railway_station(call: CallbackQuery) -> None:
     markup = InlineKeyboardMarkup(row_width=1).\
         add(
             InlineKeyboardButton(
-                text='💺 Зал ожидания',
+                text='🚆 Платформы экономкласса',
                 callback_data='lounge'
+            ),
+            InlineKeyboardButton(
+                text='🚄 Платформы скоростных поездов',
+                callback_data='businessclass_lounge'
             ),
             InlineKeyboardButton(
                 text='🎫 Билетные кассы',
@@ -1073,6 +1078,10 @@ async def railway_station(call: CallbackQuery) -> None:
             InlineKeyboardButton(
                 text='🍔 Кафетерий "Енот Кебаб"',
                 callback_data='enot_kebab_shop'
+            ),
+            InlineKeyboardButton(
+                text='🏛 Выйти в город',
+                callback_data='city'
             )
         )
 
@@ -1441,7 +1450,7 @@ async def airport(call: CallbackQuery):
 
     match (place):
         case 'Аэропорт Ридиполь':
-            airport = 'Котай'
+            airport = 'Ридиполь'
             markup.add(
                 InlineKeyboardButton(
                     text='🛫 До Национального аэропорта',
@@ -1741,7 +1750,7 @@ async def trolleybus_lounge(call: CallbackQuery):
     :param call - callback:
     '''
     user_id = call.from_user.id
-    token = cur.select("troleytoken", "userdata").where(
+    token = cur.select("trolleytoken", "userdata").where(
         user_id=user_id).one()
 
     markup = InlineKeyboardMarkup()
@@ -1770,7 +1779,7 @@ async def proceed_trolleybus(call: CallbackQuery):
     :param call - callback:
     '''
     user_id = call.from_user.id
-    token = cur.select("troleytoken", "userdata").where(
+    token = cur.select("trolleytoken", "userdata").where(
         user_id=user_id).one()
 
     if token < 1:
@@ -1786,7 +1795,7 @@ async def proceed_trolleybus(call: CallbackQuery):
                 )
             )
 
-    cur.update("userdata").add(troleytoken=-1).where(
+    cur.update("userdata").add(trolleytoken=-1).where(
         user_id=user_id).commit()
     await trolleybuscall(call)
 
@@ -1931,3 +1940,110 @@ async def trolleybus_back(call: CallbackQuery, already_onboard: bool = False):
         if not cur.select("left_transport", "userdata").\
                 where(user_id=user_id).one() == message['message_id']:
             await trolleybus_back(call, True)
+
+
+async def businessclass_lounge(call: CallbackQuery):
+    '''
+    Callback for high-speed train station
+
+    :param call - callback:
+    '''
+    user_id = call.from_user.id
+    place = cur.select("current_place", "userdata").where(
+        user_id=user_id).one()
+    token = cur.select("traintoken", "userdata").where(
+        user_id=user_id).one()
+
+    if place not in trains[0]:
+        await call.answer(
+            text=(
+                '🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
+                'местности'
+            ),
+            show_alert=True
+        )
+        return
+
+    markup = InlineKeyboardMarkup()
+    for index, station in enumerate(trains[0]):
+        if station != place:
+            markup.add(
+                InlineKeyboardButton(
+                    text=f'🚄 {trains[1][index]}',
+                    callback_data=f'go_bytrain_to_{station}'
+                )
+            )
+    markup.add(
+        InlineKeyboardButton(
+            text='🚉 Выйти на вокзал',
+            callback_data='exit_to_railway_station'
+        )
+    )
+
+    await call.message.answer(
+        f'<i>🚉 Станция <b>{trains[2][trains[0].index(place)]}</b>\n\n'
+        f'Куда путь держите?\n\nУ вас <b>{token}</b> билетов</i>',
+        reply_markup=markup
+    )
+
+
+async def go_bytrain(call: CallbackQuery, destination: str):
+    '''
+    Callback for high-speed train travel
+
+    :param call - callback:
+    :param destination - station to travel to'
+    '''
+    user_id = call.from_user.id
+    place = cur.select("current_place", "userdata").where(
+        user_id=user_id).one()
+
+    if place not in trains[0] or place == destination:
+        await call.answer(
+            text=(
+                '🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
+                'местности'
+            ),
+            show_alert=True
+        )
+        return
+
+    if not isinterval('train'):
+        return await call.answer(
+            "Посадка ещё не началась. Поезд приедет через "
+            f"{remaining('train')}",
+            show_alert=True
+        )
+
+    token = cur.select("traintoken", "userdata").where(
+        user_id=user_id).one()
+    if token < 1:
+        markup = InlineKeyboardMarkup()
+        markup.add()
+        return await call.message.answer(
+            '<i>🚫 У вас недостаточно билетов</i>',
+            reply_markup=InlineKeyboardMarkup().add(
+                    InlineKeyboardButton(
+                        text='🎫 Покупка билетов',
+                        callback_data='train_tickets'
+                    )
+                )
+            )
+
+    cur.update("userdata").add(traintoken=-1).where(
+        user_id=user_id).commit()
+
+    with contextlib.suppress(Exception):
+        await call.message.delete()
+
+    index = trains[0].index(destination)
+    await call.message.answer_photo(
+        'https://telegra.ph/file/ead2a4bfc5e78cf56ba1e.jpg',
+        caption='🚆 <i>Наш поезд отправляется на станцию <b>'
+                f'{trains[2][index]}</b>. Путешествие'
+        ' займёт не больше минуты. Удачной поездки!</i>'
+        )
+
+    await asyncio.sleep(random.randint(TRAIN_TIME[0], TRAIN_TIME[1]))
+    await tostation(user_id, target_station=destination)
+    await businessclass_lounge(call)

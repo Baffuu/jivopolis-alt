@@ -778,8 +778,8 @@ ITEMS = {
     'metrotoken': Item(
         emoji='🚇',
         name='metrotoken',
-        ru_name='Метро',
-        cost=10,
+        ru_name='Метрожетон',
+        cost=25,
         type='token',
         description='лучший способ избежать пробок'
     ),
@@ -789,9 +789,20 @@ ITEMS = {
         emoji='🎫',
         name='traintoken',
         ru_name='Билет на поезд',
-        cost=10,
+        cost=75,
         type='token',
         description='чтобы уехать из Живополиса в поисках лучшей жизни'
+    ),
+
+
+    'regtraintoken': Item(
+        emoji='🚆',
+        name='regtraintoken',
+        ru_name='Билет на электричку',
+        cost=35,
+        type='token',
+        description='менее комфортный, зато более дешёвый способ свалить '
+                    'навсегда из Живополиса'
     ),
 
 
@@ -799,7 +810,7 @@ ITEMS = {
         emoji='📱',
         name='phone',
         ru_name='Смартфон',
-        cost=1000000,
+        cost=800,
         type='phone',
         description='go touch some grass'
     ),
@@ -809,7 +820,7 @@ ITEMS = {
         emoji='🧾',
         name='trolleytoken',
         ru_name='Билет на троллейбус',
-        cost=10,
+        cost=30,
         type='token',
         description='зато экологично'
     ),
