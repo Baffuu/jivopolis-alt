@@ -138,6 +138,7 @@ def buybutton(
     '''
     amount = ''
     if len(item.split(" ")) > 1:
+        amount = item.split(" ")[1][1:]
         item = item.split(" ")[0]
     
     if item not in ITEMS:
