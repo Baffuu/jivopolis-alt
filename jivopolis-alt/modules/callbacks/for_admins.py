@@ -24,12 +24,13 @@ async def adminpanel(call: CallbackQuery, user_id: int) -> None:
     :param call - callback:
     :param user_id:
     '''
-    rank = cur.execute(f"SELECT rank FROM userdata WHERE user_id={user_id}").fetchone()[0]
+    rank = cur.select("rank", "userdata").where(user_id=user_id).one()
 
     if rank < 2:
-        return await call.answer("❌ Эта команда доступна только"
-                                 " администраторам Живополиса",
-                                 show_alert=True)
+        return await call.answer(
+            "❌ Эта команда доступна только администраторам Живополиса",
+            show_alert=True
+        )
 
     markup = InlineKeyboardMarkup(row_width=1)
     markup.add(
@@ -58,7 +59,10 @@ async def adminpanel(call: CallbackQuery, user_id: int) -> None:
                 callback_data='restart_bot'
             )
         )
-    await call.message.answer("<i>Эти функции доступны админам. Только тсс</i>", reply_markup=markup)
+    await call.message.answer(
+        "<i>Эти функции доступны админам. Только тсс</i>",
+        reply_markup=markup
+    )
 
 
 async def itemsinfo_table(call: CallbackQuery, user_id: int) -> None:
@@ -71,21 +75,27 @@ async def itemsinfo_table(call: CallbackQuery, user_id: int) -> None:
     rank = cur.select("rank", "userdata").where(user_id=user_id).one()
 
     if rank < 2:
-        return await call.answer("❌ Эта команда доступна только"
-                                 " администраторам Живополиса",
-                                 show_alert=True)
+        return await call.answer(
+            "❌ Эта команда доступна только администраторам Живополиса",
+            show_alert=True
+        )
 
     markup = InlineKeyboardMarkup(row_width=10)
+
     items = [
         InlineKeyboardButton(
             text=ITEMS[item].emoji, callback_data=f'iteminfo_{item}'
         )
         for item in ITEMS
     ]
+
     markup.add(*items)
-    await call.message.answer("<i>Здесь вы можете получить секретную "
-                              "информацию обо всех предметах в Живополисе</i>",
-                              reply_markup=markup)
+
+    await call.message.answer(
+        "<i>Здесь вы можете получить секретную информацию обо всех предметах в"
+        " Живополисе</i>",
+        reply_markup=markup
+    )
 
 
 async def itemsinfo_item(call: CallbackQuery, user_id: int) -> None:
@@ -100,12 +110,13 @@ async def itemsinfo_item(call: CallbackQuery, user_id: int) -> None:
     if item not in ITEMS:
         return
 
-    rank = cur.execute(f"SELECT rank FROM userdata WHERE user_id={user_id}").fetchone()[0]
+    rank = cur.select("rank", "userdata").where(user_id=user_id).one()
 
     if rank < 2:
-        return await call.answer("❌ Эта команда доступна только"
-                                 " администраторам Живополиса",
-                                 show_alert=True)
+        return await call.answer(
+            "❌ Эта команда доступна только администраторам Живополиса",
+            show_alert=True
+        )
 
     match (ITEMS[item].type):
         case 'food':
@@ -117,7 +128,11 @@ async def itemsinfo_item(call: CallbackQuery, user_id: int) -> None:
         case _:
             itemtype = 'undefined'
 
-    await call.answer(f'{ITEMS[item].emoji}{ITEMS[item].ru_name}\nКод: {item}\nТип: {itemtype}\nСтоимость: ${ITEMS[item].price}', show_alert=True)
+    await call.answer(
+        f'{ITEMS[item].emoji}{ITEMS[item].ru_name}\nКод: {item}\nТип:'
+        f' {itemtype}\nСтоимость: ${ITEMS[item].price}',
+        show_alert=True
+    )
 
 
 async def adminhelp(call: CallbackQuery, user_id: int) -> None:
@@ -127,16 +142,20 @@ async def adminhelp(call: CallbackQuery, user_id: int) -> None:
     :param call - callback:
     :param user_id:
     '''
-    rank = cur.execute(f"SELECT rank FROM userdata WHERE user_id={user_id}").fetchone()[0]
+    rank = cur.select("rank", "userdata").where(user_id=user_id).one()
 
     if rank < 2:
-        return await call.answer("👨‍⚖️ Сударь, эта команда доступна только администраторам. ", show_alert=True)
+        return await call.answer(
+            "👨‍⚖️ Сударь, эта команда доступна только администраторам. ",
+            show_alert=True
+        )
 
     return await call.message.answer(
         (
-            "<i><b>Статьи для админов</b>\nАдминская документация: https://telegra.ph/Administratorskaya-dokumen"
-            "taciya-ZHivopolisa-01-03\nПособие по использованию /sqlrun: https://telegra.ph/Administratorskaya-d"
-            "okumentaciya-ZHivopolisa-Komanda-sqlrun-07-25</i>",
+            "<i><b>Статьи для админов</b>\nАдминская документация: https://"
+            "telegra.ph/Administratorskaya-dokumentaciya-ZHivopolisa-01-03\n"
+            "Пособие по использованию /sqlrun: https://telegra.ph/Administra"
+            "torskaya-dokumentaciya-ZHivopolisa-Komanda-sqlrun-07-25</i>",
         )
     )
 
@@ -150,46 +169,75 @@ async def sqlapprove(call: CallbackQuery) -> None:
     try:
         request_user_id = call.data.split(':')[2]
         user_id = call.from_user.id
-        rank = cur.execute(f"SELECT rank FROM userdata WHERE user_id={user_id}").fetchone()[0]
+        rank = cur.select("rank", "userdata").where(user_id=user_id).one()
 
         if rank < 3:
-            return call.answer('👨‍⚖️ Сударь, эта команда доступна только администраторам.', show_alert=True)
+            return call.answer(
+                '👨‍⚖️ Сударь, эта команда доступна только администраторам.',
+                how_alert=True)
 
-        request: str = cur.execute(f"SELECT sql FROM userdata WHERE user_id={request_user_id}").fetchone()[0]
+        request: str = cur.select("sql", "userdata").where(
+            user_id=request_user_id).one()
 
         if not request:
             return call.answer("404: request not found")
 
-        cur.execute(f"UPDATE userdata SET sql=NULL WHERE user_id={request_user_id}")
-        conn.commit()
+        cur.update("userdata").set(sql=None).where(
+            user_id=request_user_id).commit()
 
-        await bot.send_message(user_id, f'✅ <i>Ваш запрос был подтверждёn:\n\n<code>{request}</code></i>')
+        await bot.send_message(
+            user_id,
+            f'✅ <i>Ваш запрос был подтверждёn:\n\n<code>{request}</code></i>'
+        )
 
         cur.execute(request)
-        if "select" in request.lower():
-            try:
-                rval = ''
-                for row in cur.fetchall():
-                    for slot in row:
-                        rval = f"{rval}\n{str(slot)}"
+        if "select" not in request.lower():
+            return conn.commit()
 
-                await call.message.answer(f'<i><b>Значения: \n</b>{rval}</i>')
+        try:
+            await _selection(call, request_user_id, user_id, cur.fetchall())
+        except Exception as e:
+            await call.message.answer(
+                '<i><b>Произошла незначительная ошибка при обработке '
+                f'запроса:</b> {e}</i>'
+            )
+            await call.message.answer('<i>Запрос обработан</i>')
 
-                if request_user_id != user_id:
-                    await bot.send_message(request_user_id, f'<i><b>Значения: \n</b>{rval}</i>')
-            except Exception as e:
-                await call.message.answer(f'<i><b>Произошла незначительная ошибка при обработке запроса:</b> {e}</i>')
-                await call.message.answer('<i>Запрос обработан</i>')
-                if request_user_id != user_id:
-                    await bot.send_message(request_user_id, '<i>Запрос обработан</i>')
-        else:
-            conn.commit()
+            if request_user_id != user_id:
+                await bot.send_message(
+                    request_user_id,
+                    '<i>Запрос обработан</i>'
+                )
 
     except Exception as e:
         await call.message.answer(f'<i><b>Запрос не обработан: \n</b>{e}</i>')
+
         if request_user_id != user_id:
-            await bot.send_message(request_user_id,
-                                   f'<i><b>Запрос не обработан: \n</b>{e}</i>')
+            await bot.send_message(
+                request_user_id,
+                f'<i><b>Запрос не обработан: \n</b>{e}</i>'
+            )
+
+
+async def _selection(
+    call: CallbackQuery,
+    request_user_id: str | int,
+    user_id: int | str,
+    values: list
+):
+    rval = ''
+
+    for row in values:
+        for slot in row:
+            rval = f"{rval}\n{str(slot)}"
+
+    await call.message.answer(f'<i><b>Значения: \n</b>{rval}</i>')
+
+    if request_user_id != user_id:
+        await bot.send_message(
+            request_user_id,
+            f'<i><b>Значения: \n</b>{rval}</i>'
+        )
 
 
 async def sqldecline(call: CallbackQuery) -> None:
@@ -202,11 +250,13 @@ async def sqldecline(call: CallbackQuery) -> None:
     try:
         request_user_id = call.data.split(':')[2]
         user_id = call.from_user.id
-        rank = cur.execute(f"SELECT rank FROM userdata WHERE user_id={user_id}").fetchone()[0]
+        rank = cur.select("rank", "userdata").where(user_id=user_id).one()
 
         if rank < 3:
-            return call.answer('👨‍⚖️ Сударь, эта команда доступна только'
-                               ' администраторам.', show_alert=True)
+            return call.answer(
+                '👨‍⚖️ Сударь, эта команда доступна только администраторам.',
+                show_alert=True
+            )
 
         request = cur.select("sql", "userdata").where(
             user_id=request_user_id).one()
@@ -247,7 +297,10 @@ async def adminchats(call: CallbackQuery) -> None:
     if rank > 2:
         markup.add(InlineKeyboardButton('🦹🏼 МегаЧат', MEGACHATLINK))
 
-    await call.message.answer_sticker('CAACAgIAAxkBAAIEN2QE3dP0FVb2HNOHw1QC2TMpUEpsAAK7IAACEkDwSZtWAAEk41obpC4E')
+    await call.message.answer_sticker(
+        'CAACAgIAAxkBAAIEN2QE3dP0FVb2HNOHw1QC2TMpUEpsAAK7IAACEkDwSZtWAAEk4'
+        '1obpC4E'
+    )
     await call.message.answer("<i><b>🧑‍💻 Админские чаты живополиса:</b>\n"
                               "💻 Разработка Живополиса: "
                               "https://t.me/+k2LZEIyZtpRiMjcy</i>",

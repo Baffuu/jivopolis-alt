@@ -1,3 +1,4 @@
+from types import ModuleType
 from . import (
     callback,
     admin_commands,
@@ -6,11 +7,14 @@ from . import (
     start,
     stickers_handler,
     emoji_handler,
+    payments,
+    new_member_handler,
+    message_handlers
 )
 from .. import Dispatcher
 
 
-async def register_all(dp: Dispatcher) -> None:
+async def register_all(dp: Dispatcher) -> tuple[ModuleType]:  # -> None:
     """
     function to register all bot hadlers
 
@@ -23,13 +27,22 @@ async def register_all(dp: Dispatcher) -> None:
         - commands for admins
     """
     start.register(dp)
-    from . import payments
     callback.register(dp)
     admin_commands.register(dp)
     inline_bot.register(dp)
     on_photo_sent.register(dp)
     stickers_handler.register(dp)
     emoji_handler.register(dp)
-    from . import new_member_handler
-    from . import message_handlers
-    return (new_member_handler, message_handlers, payments)
+
+    return (
+        start,
+        callback,
+        admin_commands,
+        inline_bot,
+        on_photo_sent,
+        stickers_handler,
+        emoji_handler,
+        new_member_handler,
+        message_handlers,
+        payments
+    )
