@@ -138,7 +138,6 @@ def buybutton(
     '''
     amount = ''
     if len(item.split(" ")) > 1:
-        amount = item.split(" ")[1][1:]
         item = item.split(" ")[0]
     
     if item not in ITEMS:
@@ -162,16 +161,7 @@ def buybutton(
         return None
     elif not status:
         if amount != '':
-            if item.startswith('pill'):
-                return InlineKeyboardButton(f'{itemob.emoji} {itemob.ru_name} x{amount} - ${cost * int(amount)}', callback_data=f"buy_{item}:0:{amount}")
-            if item.startswith('metrotoken'):
-                return InlineKeyboardButton(f'{itemob.emoji} {itemob.ru_name} x{amount} - ${cost * int(amount)}', callback_data=f"buy_{item}:0:{amount}")
-            if item.startswith('traintoken'):
-                return InlineKeyboardButton(f'{itemob.emoji} {itemob.ru_name} x{amount} - ${cost * int(amount)}', callback_data=f"buy_{item}:0:{amount}")
-            if item.startswith('regtraintoken'):
-                return InlineKeyboardButton(f'{itemob.emoji} {itemob.ru_name} x{amount} - ${cost * int(amount)}', callback_data=f"buy_{item}:0:{amount}")
-            if item.startswith('trolleytoken'):
-                return InlineKeyboardButton(f'{itemob.emoji} {itemob.ru_name} x{amount} - ${cost * int(amount)}', callback_data=f"buy_{item}:0:{amount}")
+            return InlineKeyboardButton(f'{itemob.emoji} {itemob.ru_name} x{amount} - ${cost * int(amount)}', callback_data=f"buy_{item}:0:{amount}")
         return InlineKeyboardButton(f'{itemob.emoji} {itemob.ru_name} - ${cost}', callback_data=f'buy_{item}:{tip}')
     else:
         return (
