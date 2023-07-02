@@ -6,6 +6,7 @@ from aiogram.types import (
     InlineKeyboardMarkup,
     InlineKeyboardButton
 )
+from ...misc.config import tramroute
 
 
 async def shop(
@@ -127,9 +128,10 @@ async def ticket_shop(call: CallbackQuery) -> None:
     Callback for ticket shop menu
 
     :param call - callback:
-    :param user_id:
     '''
-    markup = InlineKeyboardMarkup(row_width=1)
+    place = cur.select("current_place", "userdata").where(
+        user_id=call.from_user.id).one()
+    markup = InlineKeyboardMarkup()
     markup.add(
         InlineKeyboardButton(
             text='🚇 Метро',
@@ -148,6 +150,14 @@ async def ticket_shop(call: CallbackQuery) -> None:
             callback_data='train_tickets'
         )
     )
+
+    if place in tramroute:
+        markup.add(
+            InlineKeyboardButton(
+                text='🚋 Ридипольский трамвай',
+                callback_data='tram_tickets'
+            )
+        )
 
     await call.message.answer(
         '<i>🎫 Добро пожаловать в кассу! Билеты на какой вид транспорта'

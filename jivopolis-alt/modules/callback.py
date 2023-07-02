@@ -5,7 +5,7 @@ import contextlib
 from .callbacks import *
 from .. import bot, logger, Dispatcher, tglog, utils
 from ..misc import ITEMS
-from ..misc.config import SUPPORT_LINK, villages, trains, CITY
+from ..misc.config import SUPPORT_LINK, villages, trains, CITY, tramroute
 from ..database import cur
 from ..database.functions import check, profile, eat
 from ..filters import RequireBetaFilter
@@ -213,7 +213,7 @@ async def callback_handler(call: CallbackQuery):
             case 'hospital_shop':
                 await shop(
                     call,
-                    place=['Райбольница', 'Старокотайский ФАП'],
+                    place=['Райбольница', 'Старокотайский ФАП', 'Жабинка (больница)', 'Ридипольская райбольница'],
                     items=['pill x1', 'pill x2', 'pill x3'],
                     text="🏥 Добро не пожаловать в нашу замечательную больницу! Располагаетесь на койке и не умрите до прихода доктора"
                 )
@@ -248,6 +248,12 @@ async def callback_handler(call: CallbackQuery):
                     call,
                     items=['traintoken x1', 'traintoken x2', 'traintoken x5', 'traintoken x10'],
                     text='Здесь вы можете купить билеты на поезд, чтобы свалить из Живополиса'
+                )
+            case 'tram_tickets':
+                await shop(
+                    call,
+                    items=['tramtoken x1', 'tramtoken x2', 'tramtoken x5', 'tramtoken x10'],
+                    text='Здесь вы можете купить билеты на трамвай, чтобы путешествовать по Ридиполю'
                 )
 
             case 'moda_menu':
@@ -361,6 +367,19 @@ async def callback_handler(call: CallbackQuery):
                           )
                 )
                 await call.message.answer(f"<i>{answer}</i>", reply_markup = markup)
+            case "tram_stops":
+                place = cur.select("current_place", "userdata").where(user_id=call.from_user.id).one()
+                answer = "<b>Список остановочных пунктов трамвая:</b>\n\n🚏 - Вы находитесь здесь.\n\n"
+                for stop in tramroute:
+                    answer += f"<b>🚏 {stop}</b>\n" if stop == place else f"{stop}\n"
+                markup = InlineKeyboardMarkup()
+                markup.add(
+                            InlineKeyboardButton(
+                            text='❌ Закрыть',
+                            callback_data='cancel_action'
+                          )
+                )
+                await call.message.answer(f"<i>{answer}</i>", reply_markup = markup)
             case "exit_metro":
                 cur.update("userdata").set(left_transport=call.message.message_id).where(user_id=call.from_user.id).commit()
                 with contextlib.suppress(MessageToDeleteNotFound, MessageCantBeDeleted):
@@ -376,6 +395,11 @@ async def callback_handler(call: CallbackQuery):
                 with contextlib.suppress(MessageToDeleteNotFound, MessageCantBeDeleted):
                     await call.message.delete()
                 await trolleybuscall(call)
+            case "exit_tram":
+                cur.update("userdata").set(left_transport=call.message.message_id).where(user_id=call.from_user.id).commit()
+                with contextlib.suppress(MessageToDeleteNotFound, MessageCantBeDeleted):
+                    await call.message.delete()
+                await tramcall(call)
             case "railway_station":
                 await railway_station(call)
             case "exit_to_railway_station":
@@ -388,6 +412,28 @@ async def callback_handler(call: CallbackQuery):
                 await businessclass_lounge(call)
             case train if train.startswith('go_bytrain_to_'):
                 await go_bytrain(call, destination=train[14:])
+            case "bus":
+                await bus(call)
+            case "exit_to_busstation":
+                with contextlib.suppress(MessageToDeleteNotFound, MessageCantBeDeleted):
+                    await call.message.delete()
+                await bus(call)
+            case "shuttle_lounge":
+                await buscall(call)
+            case "bus_lounge":
+                await regbuscall(call)
+            case train if train.startswith('go_bybus_to_'):
+                await go_bybus(call, destination=train[12:])
+            case train if train.startswith('go_byshuttle_to_'):
+                await go_byshuttle(call, destination=train[16:])
+            case "tram":
+                await tram_lounge(call)
+            case "proceed_tram":
+                await proceed_tram(call)
+            case "tram_forward":
+                await tram_forward(call)
+            case "tram_back":
+                await tram_back(call)
 
             case "privacy_settings":
                 await privacy_settings(call)

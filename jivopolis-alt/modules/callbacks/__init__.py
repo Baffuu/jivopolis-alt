@@ -45,7 +45,9 @@ from .traveling import (
     regtraincall, regtrain_back, regtrain_forward,
     proceed_regtrain, trolleybuscall, trolleybus_lounge,
     proceed_trolleybus, trolleybus_back, trolleybus_forward,
-    businessclass_lounge, go_bytrain
+    businessclass_lounge, go_bytrain, buscall, regbuscall,
+    go_bybus, go_byshuttle, tramcall, tram_lounge, proceed_tram,
+    tram_forward, tram_back
 )
 
 from .clans import (

@@ -163,6 +163,16 @@ def get_building(place: str) -> InlineKeyboardButton | None:
                 text="🏥 Старокотайский фельдшерский пункт",
                 callback_data="hospital_shop"
             )
+        case "Жабинка (больница)":
+            button = InlineKeyboardButton(
+                text="🏥 Жабинская городская больница",
+                callback_data="hospital_shop"
+            )
+        case "Ридипольская райбольница":
+            button = InlineKeyboardButton(
+                text="🏥 Ридипольская районная больница",
+                callback_data="hospital_shop"
+            )
         case "Зоопарк":
             button = InlineKeyboardButton(
                 text="🦊 Живополисский зоопаcрк",
@@ -196,6 +206,11 @@ def get_building(place: str) -> InlineKeyboardButton | None:
         case "Котайский электрозавод":
             button = InlineKeyboardButton(
                 text="🏭 Котайский завод электрических деталей",
+                callback_data="factory"
+            )
+        case "Ридипольский завод":
+            button = InlineKeyboardButton(
+                text="🏭 Завод Transit Ридиполь",
                 callback_data="factory"
             )
         case "Стадион":

@@ -817,12 +817,23 @@ ITEMS = {
 
 
     'trolleytoken': Item(
-        emoji='🧾',
+        emoji='🚎',
         name='trolleytoken',
         ru_name='Билет на троллейбус',
         cost=30,
         type='token',
         description='зато экологично'
+    ),
+
+
+    'tramtoken': Item(
+        emoji='🚋',
+        name='trolleytoken',
+        ru_name='Билет на трамвай',
+        cost=45,
+        type='token',
+        description='я бы не советовал путешествовать на этом дряхлом '
+                    'трамвае...'
     ),
 
 

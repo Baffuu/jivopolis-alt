@@ -158,6 +158,7 @@ def create_userdata(cur: fyCursor) -> None:
     traintoken      INTEGER         DEFAULT 0               NOT NULL,
     phone           INTEGER         DEFAULT 0               NOT NULL,
     trolleytoken    INTEGER         DEFAULT 0               NOT NULL,
+    tramtoken       INTEGER         DEFAULT 0               NOT NULL,
     regtraintoken   INTEGER         DEFAULT 0               NOT NULL,
     hamster         INTEGER         DEFAULT 0               NOT NULL,
     fan             INTEGER         DEFAULT 0               NOT NULL
