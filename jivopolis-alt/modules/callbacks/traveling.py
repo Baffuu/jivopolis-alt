@@ -12,7 +12,7 @@ from ...database.functions import buy, buybutton, itemdata
 
 from ...misc.config import (
     METRO, WALK, CITY,
-    trains, villages, walks, autostations,
+    trains, villages, autostations,
     limeteds,
     lvlcab, cabcost, locations, REGTRAIN,
     clanitems, LINES, LINES_GENITIVE, ticket_time, aircost,
@@ -120,22 +120,24 @@ async def city(message: Message, user_id: str | int):
     iswalk = next((WALK.index(walk_line) for walk_line in WALK
                    if place in walk_line), -1)
     for walkline in WALK:
-        walkindex = WALK.index(walkline)
-        if (
-            iswalk == -1
-            or walkindex == iswalk
-            or walkline[WALK[iswalk].index(place)] == ""
-        ):
-            continue
+        if walkline != WALK[3]:
+            walkindex = WALK.index(walkline)
+            if (
+                iswalk == -1
+                or walkindex == iswalk
+                or walkline[WALK[iswalk].index(place)] == ""
+            ):
+                continue
 
-        index = WALK[iswalk].index(place)
+            index = WALK[iswalk].index(place)
 
-        markup.add(
-            InlineKeyboardButton(
-                text=f"🚶 {walkline[index]} - {walks[index]} секунд ходьбы",
-                callback_data=f"walk_{walkline[index]}"
+            markup.add(
+                InlineKeyboardButton(
+                    text=f"🚶 {walkline[index]} ({WALK[3][index]} "
+                         "секунд ходьбы)",
+                    callback_data=f"walk_{walkline[index]}"
+                )
             )
-        )
 
     '''
     cur.execute("SELECT * FROM clandata WHERE islocation=1 AND hqplace=? AND type=?", (place, "public",)) # noqa
@@ -487,7 +489,8 @@ async def delivery_menu(call: CallbackQuery) -> None:
     await call.message.answer(
         '<i>🚚 Здесь вы можете заказать себе любой товар из ТЦ МиГ из любого '
         'места, даже из самой глухой деревни. Это обойдётся дороже, чем в ТЦ,'
-        ' зато удобнее :)</i>'
+        ' зато удобнее :)</i>',
+        reply_markup=markup
     )
 
 
@@ -2488,7 +2491,6 @@ async def tram_crash(call: CallbackQuery):
 
     :param call - callback:
     '''
-
     markup = InlineKeyboardMarkup()
     markup.add(
         InlineKeyboardButton(
@@ -2502,3 +2504,56 @@ async def tram_crash(call: CallbackQuery):
         ' вернуться на остановку. Жаль, что деньги за билет никто не вернёт'
         '...</i>', reply_markup=markup
         )
+
+
+async def walk(call: CallbackQuery, destination: int):
+    '''
+    Callback for walking
+
+    :param call - callback:
+    :param destination - name of the place to go to:
+    '''
+    user_id = call.from_user.id
+    place = cur.select("current_place", "userdata").where(
+        user_id=user_id).one()
+
+    # following code checks whether current location of the user
+    # is in the walk list
+    index = -1
+    for walkline in WALK:
+        if place in walkline and walkline != WALK[3]:
+            index = walkline.index(place)
+    if index == -1:
+        return await call.answer(
+            text=(
+                '🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
+                'местности'
+            ),
+            show_alert=True
+        )
+
+    # following code checks whether the destination is accessible
+    # from current user's location by walking
+    exists = False
+    for walkline in WALK:
+        if walkline[index] == destination and walkline != WALK[3]:
+            exists = True
+    if not exists:
+        return await call.answer(
+            text=(
+                '🦥 Не пытайтесь обмануть Живополис. В эту местность нельзя '
+                'добраться пешком'
+            ),
+            show_alert=True
+        )
+    time_required = WALK[3][index]
+
+    await call.message.answer(
+        '<i>🚶 Как же хорошо пройтись пешочком... Путешествие до местности '
+        f'<b>{destination}</b> займёт <b>{time_required}</b> секунд</i>'
+    )
+
+    await asyncio.sleep(time_required)
+    await tostation(call.from_user.id, target_station=destination)
+
+    await city(call.message, call.from_user.id)

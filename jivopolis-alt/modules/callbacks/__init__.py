@@ -47,7 +47,7 @@ from .traveling import (
     proceed_trolleybus, trolleybus_back, trolleybus_forward,
     businessclass_lounge, go_bytrain, buscall, regbuscall,
     go_bybus, go_byshuttle, tramcall, tram_lounge, proceed_tram,
-    tram_forward, tram_back
+    tram_forward, tram_back, walk
 )
 
 from .clans import (

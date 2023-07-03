@@ -131,7 +131,7 @@ async def ticket_shop(call: CallbackQuery) -> None:
     '''
     place = cur.select("current_place", "userdata").where(
         user_id=call.from_user.id).one()
-    markup = InlineKeyboardMarkup()
+    markup = InlineKeyboardMarkup(row_width=1)
     markup.add(
         InlineKeyboardButton(
             text='🚇 Метро',
@@ -148,15 +148,15 @@ async def ticket_shop(call: CallbackQuery) -> None:
         InlineKeyboardButton(
             text='🚅 Скоростной поезд',
             callback_data='train_tickets'
+        ),
+        InlineKeyboardButton(
+            text='🚋 Ридипольский трамвай',
+            callback_data='tram_tickets'
+        ),
+        InlineKeyboardButton(
+            text='◀ Назад',
+            callback_data='cancel_action'
         )
-    )
-
-    if place in tramroute:
-        markup.add(
-            InlineKeyboardButton(
-                text='🚋 Ридипольский трамвай',
-                callback_data='tram_tickets'
-            )
         )
 
     await call.message.answer(

@@ -434,6 +434,8 @@ async def callback_handler(call: CallbackQuery):
                 await tram_forward(call)
             case "tram_back":
                 await tram_back(call)
+            case walkname if walkname.startswith("walk_"):
+                await walk(call, destination=walkname[5:])
 
             case "privacy_settings":
                 await privacy_settings(call)
