@@ -6,7 +6,6 @@ from aiogram.types import (
     InlineKeyboardMarkup,
     InlineKeyboardButton
 )
-from ...misc.config import tramroute
 
 
 async def shop(
@@ -129,8 +128,6 @@ async def ticket_shop(call: CallbackQuery) -> None:
 
     :param call - callback:
     '''
-    place = cur.select("current_place", "userdata").where(
-        user_id=call.from_user.id).one()
     markup = InlineKeyboardMarkup(row_width=1)
     markup.add(
         InlineKeyboardButton(
