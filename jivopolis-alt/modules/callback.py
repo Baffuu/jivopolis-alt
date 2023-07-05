@@ -437,6 +437,13 @@ async def callback_handler(call: CallbackQuery):
             case walkname if walkname.startswith("walk_"):
                 await walk(call, destination=walkname[5:])
 
+            case gpscat if gpscat.startswith("gps_category_"):
+                await gps_category(call, category=gpscat.replace("gps_category_", ""))
+            case gpsloc if gpsloc.startswith("gps_location_"):
+                await gps_location(call, index=int(gpsloc.replace("gps_location_", "")))
+            case access if access.startswith("gps_transport_"):
+                await gps_transport(call, place=access.replace("gps_transport_", ""))
+
             case "privacy_settings":
                 await privacy_settings(call)
             case "work":

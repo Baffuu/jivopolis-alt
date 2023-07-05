@@ -986,7 +986,7 @@ async def gps_menu(call: CallbackQuery) -> None:
             markup.add(
                 InlineKeyboardButton(
                     text=f'{category} ({count})',
-                    callback_data=f'gpsloc_{category}'
+                    callback_data=f'gps_category_{category}'
                 )
             )
 
@@ -997,6 +997,177 @@ async def gps_menu(call: CallbackQuery) -> None:
         )
     )
     await call.message.answer('<i>Выберите категорию</i>', reply_markup=markup)
+
+
+async def gps_category(call: CallbackQuery, category: str):
+    '''
+    Callback for list of locations for chosen category
+
+    :param call - callback:
+    :param category - category of locations:
+    '''
+    user_id = call.from_user.id
+    phone = cur.select("phone", "userdata").where(user_id=user_id).one()
+
+    if phone < 1:
+        return await call.answer(
+            'Чтобы пользоваться GPS, вам нужен телефон. Его можно купить в маг'
+            'азине на ул. Генерала Шелби и одноимённой станции метро',
+            show_alert=True
+        )
+
+    markup = InlineKeyboardMarkup(row_width=2)
+    locationlist = []
+
+    for index, location in enumerate(locations[0]):
+        if locations[3][index] == category:
+            locationlist.append(
+                InlineKeyboardButton(
+                        text=location,
+                        callback_data=f'gps_location_{index}'
+                    )
+            )
+
+    markup.add(*locationlist)
+    markup.add(
+        InlineKeyboardMarkup(
+            text='◀ Назад',
+            callback_data='cancel_action'
+        )
+    )
+    await call.message.answer('<i>Выберите локацию</i>', reply_markup=markup)
+
+
+async def gps_location(call: CallbackQuery, index: int):
+    '''
+    Callback for a GPS location
+
+    :param call - callback:
+    :param index - index of selected location:
+    '''
+    user_id = call.from_user.id
+    phone = cur.select("phone", "userdata").where(user_id=user_id).one()
+
+    if phone < 1:
+        return await call.answer(
+            'Чтобы пользоваться GPS, вам нужен телефон. Его можно купить в маг'
+            'азине на ул. Генерала Шелби и одноимённой станции метро',
+            show_alert=True
+        )
+
+    markup = InlineKeyboardMarkup(row_width=2)
+
+    name = locations[0][index]  # name of the location
+    description = locations[1][index]  # description of the location
+    place = locations[2][index]  # place where the location is
+
+    markup.add(
+        InlineKeyboardMarkup(
+            text='🚌 Транспорт рядом',
+            callback_data=f'gps_transport_{place}'
+        )
+    )
+    markup.add(
+        InlineKeyboardMarkup(
+            text='◀ Назад',
+            callback_data='cancel_action'
+        )
+    )
+
+    await call.message.answer(
+        f'<i><b>{name}</b>\n\n{description}\n\n'
+        f'🏛 Местоположение: <b>{place}</b></i>',
+        reply_markup=markup)
+
+
+async def gps_transport(call: CallbackQuery, place: str):
+    '''
+    Callback for list of transport stations at the location
+
+    :param call - callback:
+    :param place - selected location:
+    '''
+    user_id = call.from_user.id
+    current_place = cur.select("current_place", "userdata").\
+        where(user_id=user_id).one()
+    level = cur.select("level", "userdata").where(user_id=user_id).one()
+    markup = InlineKeyboardMarkup()
+
+    text = ''
+    if place in CITY:
+        text += f'\n🚎 Остановка троллейбуса <b>{place}</b>'
+    if place in tramroute:
+        text += f'\n🚋 Остановка Ридипольского трамвая <b>{place}</b>'
+    for index, line in enumerate(METRO):
+        if place in line:
+            if index in [0, 2]:
+                text += '\n🚊 Остановка городской электрички ' +\
+                        f'<b>{place}</b> ' +\
+                        f'({LINES[index].split(" городской электрички")[0]})'
+            else:
+                text += '\n🚇 Станция метро ' +\
+                        f'<b>{place}</b> ({LINES[index]})'
+    if place in REGTRAIN[1]:
+        text += '\n🚆 Остановка электрички ' +\
+                f'<b>{REGTRAIN[0][REGTRAIN[1].index(place)]}</b>'
+    if place in trains[0]:
+        text += '\n🚄 Станция высокоскоростных поездов ' +\
+                f'<b>{trains[2][trains[0].index(place)]}</b>'
+    if place in villages:
+        if place in autostations:
+            text += f'\n🚌 Автостанция <b>{place}</b>'
+        else:
+            text += f'\n🚐 Остановка маршрутных такси <b>{place}</b>'
+    if place in CITY and current_place in CITY and place != current_place \
+            and level >= lvlcab:
+        cost = (cabcost*abs(CITY.index(place)-CITY.index(current_place)))//1
+        text += '\n\n🚕 Вы можете доехать из местности ' +\
+                f'<b>{current_place}</b> до местности <b>{place}</b>' +\
+                f' за <b>${cost}</b>'
+        markup.add(
+            InlineKeyboardMarkup(
+                text='🚕 Заказать такси',
+                callback_data=f'taxicost_{place}'
+            )
+        )
+
+    index = -1
+    for n, walkline in enumerate(WALK):
+        if place in walkline and n != 3:
+            index = walkline.index(place)
+    if index != -1:
+        text += '\n\n🚶‍♂️ В некоторые местности вы можете добраться пешком' +\
+                '. Вы можете нажать на кнопки ниже, чтобы посмотреть, ' +\
+                'какие виды транспорта доступны в местностях, в которые' +\
+                f' можно добраться пешком из <b>{place}</b>'
+        for n, walkline in enumerate(WALK):
+            if n != 3 and not place in walkline and walkline[index] != '':
+                markup.add(
+                    InlineKeyboardMarkup(
+                        text=f'🚶‍♂️ {walkline[index]}',
+                        callback_data=f'gps_transport_{walkline[index]}'
+                    )
+                )
+
+    markup.add(
+        InlineKeyboardMarkup(
+            text='◀ Назад',
+            callback_data='cancel_action'
+        )
+    )
+
+    if text == '':
+        return await call.answer(
+            text='😨 Такой местности, видимо, не существует.\n'
+                 'Если вы считаете, что это ошибка, обратитесь '
+                 'в Приёмную',
+            show_alert=True
+        )
+    else:
+        await call.message.answer(
+            f'<i>🚌 Транспорт в локации <b>{place}</b>:\n{text}</i>',
+            reply_markup=markup
+        )
 
 
 async def buy24_(call: CallbackQuery, item: str) -> None:
