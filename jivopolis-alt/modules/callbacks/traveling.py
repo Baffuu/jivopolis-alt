@@ -1141,7 +1141,7 @@ async def gps_transport(call: CallbackQuery, place: str):
                 'какие виды транспорта доступны в местностях, в которые' +\
                 f' можно добраться пешком из <b>{place}</b>'
         for n, walkline in enumerate(WALK):
-            if n != 3 and not place in walkline and walkline[index] != '':
+            if n != 3 and place not in walkline and walkline[index] != '':
                 markup.add(
                     InlineKeyboardMarkup(
                         text=f'🚶‍♂️ {walkline[index]}',
