@@ -14,8 +14,7 @@ try:
     import uvloop
     asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 except Exception as e:
-    pass
-    # raise ImportError("Please, install uvloop.") from e
+    raise ImportError("Please, install uvloop.") from e
 
 from .database import cur, conn
 from .misc import *  # noqa: F401, F403
