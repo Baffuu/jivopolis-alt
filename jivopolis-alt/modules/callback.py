@@ -304,15 +304,11 @@ async def callback_handler(call: CallbackQuery):
             case buyclan if buyclan.startswith('buyclan_'):
                 await buyclan_(call, call.data.replace('buyclan_', ''))
 
-            case taxi if taxi.startswith("taxi_next:"):
-                await taxi_next(call, int(call.data.replace("taxi_next:", "")))
-            case taxi if taxi.startswith("taxi_previous:"):
-                await taxi_previous(call, int(call.data.replace("taxi_previous:", "")))
+            case taxi if taxi.startswith("taxi_page:"):
+                await taxi_page(call, int(call.data.replace("taxi_page:", "")))
 
-            case car if car.startswith("car_menu_next:"):
-                await car_menu_next(call, int(call.data.replace("car_menu_next:", "")))
-            case car if car.startswith("car_menu_previous:"):
-                await car_menu_previous(call, int(call.data.replace("car_menu_previous:", "")))
+            case car if car.startswith("car_menu_page:"):
+                await car_menu_page(call, int(call.data.replace("car_menu_page:", "")))
 
             case "toggle_nonick":
                 await toggle_nonick(call)
