@@ -1114,7 +1114,7 @@ async def buyclan_(call: CallbackQuery, item: str) -> None:
             show_alert=True)
 
     cur.update("userdata").add(balance=-cost).where(user_id=user_id).commit()
-    cur.update("userdata").add(item=1).where(user_id=user_id).commit()
+    # cur.update("userdata").add(item=1).where(user_id=user_id).commit()
     cur.execute("UPDATE userdata SET {item}={item}+1 WHERE user_id=?",
                 (user_id,)).commit()
 
