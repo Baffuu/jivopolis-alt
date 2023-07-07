@@ -1213,7 +1213,7 @@ async def metro(call: CallbackQuery):
     line = cur.select("line", "userdata").where(user_id=user_id).one()
 
     markup = InlineKeyboardMarkup()
-    if line not in [1, 2]:
+    if line not in [0, 2]:
         markup.add(
             InlineKeyboardButton(
                 text='🚇 Пройти на станцию',
