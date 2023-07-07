@@ -1290,7 +1290,7 @@ async def metrocall(call: CallbackQuery):
     markup = InlineKeyboardMarkup()
     desc = str()
 
-    if trans := _transfer(user_id):
+    if trans := _transfer(user_id) is not None:
         desc += f'Переход к поездам {LINES_GENITIVE[trans]}\n'  # type: ignore
 
         markup.add(
