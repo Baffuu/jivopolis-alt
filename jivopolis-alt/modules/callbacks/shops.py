@@ -127,7 +127,6 @@ async def ticket_shop(call: CallbackQuery) -> None:
     Callback for ticket shop menu
 
     :param call - callback:
-    :param user_id:
     '''
     markup = InlineKeyboardMarkup(row_width=1)
     markup.add(
@@ -146,8 +145,16 @@ async def ticket_shop(call: CallbackQuery) -> None:
         InlineKeyboardButton(
             text='🚅 Скоростной поезд',
             callback_data='train_tickets'
+        ),
+        InlineKeyboardButton(
+            text='🚋 Ридипольский трамвай',
+            callback_data='tram_tickets'
+        ),
+        InlineKeyboardButton(
+            text='◀ Назад',
+            callback_data='cancel_action'
         )
-    )
+        )
 
     await call.message.answer(
         '<i>🎫 Добро пожаловать в кассу! Билеты на какой вид транспорта'

@@ -36,8 +36,7 @@ from .traveling import (
     central_market_mask, buy24_,
     buyclan_,
     bus, railway_station,
-    taxi_next, taxi_previous,
-    car_menu_next, car_menu_previous,
+    taxi_page,
     metro, proceed_metro,
     metrocall, metro_forward,
     metro_back, transfer_metro,
@@ -45,7 +44,10 @@ from .traveling import (
     regtraincall, regtrain_back, regtrain_forward,
     proceed_regtrain, trolleybuscall, trolleybus_lounge,
     proceed_trolleybus, trolleybus_back, trolleybus_forward,
-    businessclass_lounge, go_bytrain
+    businessclass_lounge, go_bytrain, buscall, regbuscall,
+    go_bybus, go_byshuttle, tramcall, tram_lounge, proceed_tram,
+    tram_forward, tram_back, walk, gps_category, gps_location,
+    gps_transport, car_menu_page
 )
 
 from .clans import (

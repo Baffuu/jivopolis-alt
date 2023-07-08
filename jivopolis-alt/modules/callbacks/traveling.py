@@ -12,10 +12,11 @@ from ...database.functions import buy, buybutton, itemdata
 
 from ...misc.config import (
     METRO, WALK, CITY,
-    trains, villages, walks,
+    trains, villages, autostations,
     limeteds,
     lvlcab, cabcost, locations, REGTRAIN,
-    clanitems, LINES, LINES_GENITIVE, ticket_time, aircost
+    clanitems, LINES, LINES_GENITIVE, ticket_time, aircost,
+    buscost, regbuscost, tramroute
 )
 
 from aiogram.types import (
@@ -24,18 +25,37 @@ from aiogram.types import (
     InlineKeyboardMarkup,
     CallbackQuery,
 )
-from aiogram.utils.exceptions import (
-    MessageCantBeDeleted,
-    MessageToDeleteNotFound
-)
 
-# time required for specific type of transport to reach the next station
-# the arrays contain minimum and maximum time
-METRO_TIME = [1, 2]  # 15, 30
+# time required for specific type of transport to reach next station
+# the lists contain minimum and maximum time
+METRO_TIME = [15, 30]  # 15, 30
 AIRPLANE_TIME = [90, 120]  # 90, 120
-REGTRAIN_TIME = [1, 2]  # 30, 45
-TROLLEYBUS_TIME = [1, 2]  # 10, 25
-TRAIN_TIME = [1, 2]  # 45, 60
+REGTRAIN_TIME = [30, 45]  # 30, 45
+TROLLEYBUS_TIME = [10, 25]  # 10, 25
+TRAIN_TIME = [45, 60]  # 45, 60
+TRAM_TIME = [17, 32]  # 17, 32
+BUS_TIME = [20, 30]  # 20, 30
+
+# chance of a tram to crash during a random ride (per cent)
+TRAM_CRASH_CHANCE = 15
+
+
+def city_menu_page(index: int) -> list:
+    '''
+    A list of indices for a page in taxi or car
+
+    :param index - page number:
+    '''
+
+    index = 1 if index < 1 else index
+    min_index = (index - 1) * MAXIMUM_DRIVE_MENU_SLOTS
+    max_index = index * MAXIMUM_DRIVE_MENU_SLOTS - 1
+    if min_index > len(CITY):
+        min_index = len(CITY) - MAXIMUM_DRIVE_MENU_SLOTS
+    if max_index > len(CITY):
+        max_index = len(CITY) - 1
+
+    return [min_index, max_index]
 
 
 async def city(message: Message, user_id: str | int):
@@ -78,7 +98,8 @@ async def city(message: Message, user_id: str | int):
     train_lounge = InlineKeyboardButton(text="🚆", callback_data="lounge")
     taxi = InlineKeyboardButton(text="🚕", callback_data="taxi_menu")
     bus_station = InlineKeyboardButton(text="🚌", callback_data="bus")
-    bus_lounge = InlineKeyboardButton(text="🚌", callback_data="bus_lounge")
+    bus_lounge = InlineKeyboardButton(text="🚌", callback_data="shuttle_lounge")
+    tram = InlineKeyboardButton(text="🚋", callback_data="tram")
     trans = []
     for metro_line in METRO:
         if place in metro_line:
@@ -86,13 +107,15 @@ async def city(message: Message, user_id: str | int):
             break
     if place in CITY:
         trans.append(trolleybus)
+    if place in tramroute:
+        trans.append(tram)
     if place in REGTRAIN[1]:
         if place in trains[0]:
             trans.append(train_station)
         else:
             trans.append(train_lounge)
     if place in villages:
-        if place in ["Автовокзал Живополис", "АС Александрово"]:
+        if place in autostations:
             trans.append(bus_station)
         else:
             trans.append(bus_lounge)
@@ -111,22 +134,24 @@ async def city(message: Message, user_id: str | int):
     iswalk = next((WALK.index(walk_line) for walk_line in WALK
                    if place in walk_line), -1)
     for walkline in WALK:
-        walkindex = WALK.index(walkline)
-        if (
-            iswalk == -1
-            or walkindex == iswalk
-            or walkline[WALK[iswalk].index(place)] == ""
-        ):
-            continue
+        if walkline != WALK[3]:
+            walkindex = WALK.index(walkline)
+            if (
+                iswalk == -1
+                or walkindex == iswalk
+                or walkline[WALK[iswalk].index(place)] == ""
+            ):
+                continue
 
-        index = WALK[iswalk].index(place)
+            index = WALK[iswalk].index(place)
 
-        markup.add(
-            InlineKeyboardButton(
-                text=f"🚶 {walkline[index]} - {walks[index]} секунд ходьбы",
-                callback_data=f"walk_{walkline[index]}"
+            markup.add(
+                InlineKeyboardButton(
+                    text=f"🚶 {walkline[index]} ({WALK[3][index]} "
+                         "секунд ходьбы)",
+                    callback_data=f"walk_{walkline[index]}"
+                )
             )
-        )
 
     '''
     cur.execute("SELECT * FROM clandata WHERE islocation=1 AND hqplace=? AND type=?", (place, "public",)) # noqa
@@ -249,17 +274,16 @@ async def car_menu(call: CallbackQuery) -> None:
         return await call.answer("dead end", True)
 
     markup.add(
-        InlineKeyboardButton("⬅️", callback_data="car_menu_previous:1"),
-        InlineKeyboardButton(text="➡️", callback_data="car_menu_next:1"),
+        InlineKeyboardButton(text="➡️", callback_data="car_menu_page:2"),
     )
 
     await message.answer(
-        '<i>👨‍✈️ Выберите место для поездки.</i>',
+        '<i>👨‍✈️ Выберите место для поездки</i>',
         reply_markup=markup
     )
 
 
-async def car_menu_next(call: CallbackQuery, menu: int):
+async def car_menu_page(call: CallbackQuery, menu: int):
     user_id = call.from_user.id
     message = call.message
     car = cur.select("red_car", "userdata").where(
@@ -281,117 +305,59 @@ async def car_menu_next(call: CallbackQuery, menu: int):
                     callback_data=f'goto_on_car_{place}'
                 )
             )
-        places.append(
-            InlineKeyboardButton(
-                f"🏘️ {place}",
-                callback_data=f'goto_on_car_{place}'
+        else:
+            places.append(
+                InlineKeyboardButton(
+                    f"🏘️ {place}",
+                    callback_data=f'goto_on_car_{place}'
+                )
             )
-        )
 
     for index, place in enumerate(places):
-        if index < MAXIMUM_DRIVE_MENU_SLOTS * menu:
+        if index < city_menu_page(menu)[0]:
             continue
-        elif index < MAXIMUM_DRIVE_MENU_SLOTS * (menu+1):
+        elif index <= city_menu_page(menu)[1]:
             markup.add(place)
         else:
             break
 
-    if markup.values["inline_keyboard"] == []:
-        return await call.answer("dead end", True)
-
-    markup.add(
-        InlineKeyboardButton(
-            "⬅️",
-            callback_data=f"car_menu_previous:{menu+1}"
-        ),
-        InlineKeyboardButton(
-            text="➡️",
-            callback_data=f"car_menu_next:{menu+1}"
-        )
-    )
-    await message.answer(
-        '<i>👨‍✈️ Выберите место для поездки.</i>',
-        reply_markup=markup
-    )
-    with contextlib.suppress(MessageToDeleteNotFound, MessageCantBeDeleted):
-        await message.delete()
-
-
-async def car_menu_previous(call: CallbackQuery, menu: int):
-    user_id = call.from_user.id
-    message = call.message
-    car = cur.select("red_car+blue_car", 'userdata').where(
-        user_id=user_id).one()  # todo more cars
-
-    if car < 1:
-        return await call.answer('❌ У вас нет машины', show_alert=True)
-
-    current_place = cur.select("current_place", "userdata").where(
-        user_id=user_id).one()
-    markup = InlineKeyboardMarkup(row_width=2)
-    places = []
-
-    for place in CITY:
-        if place == current_place:
-            places.append(
-                InlineKeyboardButton(
-                    f"📍 {place}",
-                    callback_data=f'goto_on_car_{place}'
-                )
-            )
-            continue
-        places.append(
+    buttons = []
+    if city_menu_page(menu)[0] > 0:
+        buttons.append(
             InlineKeyboardButton(
-                f"🏘️ {place}",
-                callback_data=f'goto_on_car_{place}'
+                "⬅️",
+                callback_data=f"car_menu_page:{menu-1}"
+            )
+        )
+    if city_menu_page(menu)[1] < len(CITY) - 1:
+        buttons.append(
+            InlineKeyboardButton(
+                "➡",
+                callback_data=f"car_menu_page:{menu+1}"
             )
         )
 
-    for index, place in enumerate(places):
-        if (
-            index > MAXIMUM_DRIVE_MENU_SLOTS * (menu-1)
-            and index < MAXIMUM_DRIVE_MENU_SLOTS * menu
-        ):
-            markup.add(place)
-        else:
-            continue
-
-    if markup.values["inline_keyboard"] == []:
-        await call.answer("dead end", True)
-        with contextlib.suppress(
-            MessageToDeleteNotFound,
-            MessageCantBeDeleted
-        ):
-            return await message.delete()
-
-    markup.add(
-        InlineKeyboardButton(
-            "⬅️",
-            callback_data=f"car_menu_previous:{menu-1}"
-        ),
-        InlineKeyboardButton(
-            text="➡️",
-            callback_data=f"car_menu_next:{menu-1}"
-        )
-    )
-
-    await message.answer(
-        '<i>👨‍✈️ Выберите место для поездки</i>',
-        reply_markup=markup
-    )
-    with contextlib.suppress(MessageToDeleteNotFound, MessageCantBeDeleted):
-        await message.delete()
+    markup.add(*buttons)
+    await message.edit_reply_markup(markup)
 
 
 async def goto_on_car(call: CallbackQuery):
     user_id = call.from_user.id
     car = cur.select("red_car+blue_car", "userdata").where(
         user_id=user_id).one()
+    current_place = cur.select("current_place", "userdata").where(
+        user_id=user_id).one()
 
     if car < 1:
         return await call.message.answer('<i>🚗 У вас нет машины</i>')
 
     station = call.data[12:]
+    if station == current_place:
+        return await call.answer(
+            "⛔️ Вы и так в этой местности.",
+            show_alert=True
+        )
+
     await call.message.answer('<i>Скоро приедем!</i>')
 
     with contextlib.suppress(Exception):
@@ -478,7 +444,8 @@ async def delivery_menu(call: CallbackQuery) -> None:
     await call.message.answer(
         '<i>🚚 Здесь вы можете заказать себе любой товар из ТЦ МиГ из любого '
         'места, даже из самой глухой деревни. Это обойдётся дороже, чем в ТЦ,'
-        ' зато удобнее :)</i>'
+        ' зато удобнее :)</i>',
+        reply_markup=markup
     )
 
 
@@ -738,19 +705,18 @@ async def taxi_menu(message: Message, user_id: int):
         else:
             break
     markup.add(
-        InlineKeyboardButton("⬅️", callback_data="taxi_previous:1"),
-        InlineKeyboardButton(text="➡️", callback_data="taxi_next:1")
+        InlineKeyboardButton(text="➡️", callback_data="taxi_page:2")
     )
 
     await message.answer('<i>🚕 Куда поедем?</i>', reply_markup=markup)
     return await message.answer(
         '<i>Стоимость поездки зависит от отдалённости места, в которое вы'
-        ' едете.Чтобы посмотреть цену поездки до определённого места, наж'
+        ' едете. Чтобы посмотреть цену поездки до определённого места, наж'
         'мите на него в списке локаций в предыдущем сообщении</i>'
     )
 
 
-async def taxi_next(call: CallbackQuery, menu: int):
+async def taxi_page(call: CallbackQuery, menu: int):
     user_id = call.from_user.id
     level = cur.select("level", "userdata").where(user_id=user_id).one()
     message = call.message
@@ -774,105 +740,40 @@ async def taxi_next(call: CallbackQuery, menu: int):
                     callback_data=f'taxicost_{place}'
                 )
             )
-            continue
-        places.append(
-            InlineKeyboardButton(
-                f"🏘️ {place}",
-                callback_data=f'taxicost_{place}'
-            )
-        )
-
-    for index, place in enumerate(places):
-        if index < MAXIMUM_DRIVE_MENU_SLOTS * menu:
-            continue
-        elif index < MAXIMUM_DRIVE_MENU_SLOTS * (menu+1):
-            markup.add(place)
         else:
-            break
-
-    if markup.values["inline_keyboard"] == []:
-        await call.answer("dead end", True)
-        with contextlib.suppress(
-            MessageToDeleteNotFound,
-            MessageCantBeDeleted
-        ):
-            return await message.delete()
-
-    markup.add(
-        InlineKeyboardButton(
-            "⬅️",
-            callback_data=f"taxi_previous:{menu+1}"
-        ),
-        InlineKeyboardButton(
-            text="➡️",
-            callback_data=f"taxi_next:{menu+1}"
-        )
-    )
-    await message.answer('<i>🚕 Куда поедем?</i>', reply_markup=markup)
-    with contextlib.suppress(MessageToDeleteNotFound, MessageCantBeDeleted):
-        await message.delete()
-
-
-async def taxi_previous(call: CallbackQuery, menu: int):
-    user_id = call.from_user.id
-    level = cur.select("level", "userdata").where(
-        user_id=user_id).one()
-    message = call.message
-
-    if level < lvlcab:
-        return await message.answer(
-            f'🚫 Данная функция доступна только с уровня {lvlcab}'
-        )
-
-    current_place = cur.select("current_place", "userdata").where(
-        user_id=user_id).one()
-    markup = InlineKeyboardMarkup(row_width=2)
-    places = []
-    for place in CITY:
-        if place == current_place:
             places.append(
                 InlineKeyboardButton(
-                    f"📍 {place}",
+                    f"🏘️ {place}",
                     callback_data=f'taxicost_{place}'
                 )
             )
-            continue
-        places.append(
-            InlineKeyboardButton(
-                f"🏘️ {place}",
-                callback_data=f'taxicost_{place}'
-            )
-        )
 
     for index, place in enumerate(places):
-        if index > MAXIMUM_DRIVE_MENU_SLOTS * menu:
+        if index < city_menu_page(menu)[0]:
             continue
-        elif index > MAXIMUM_DRIVE_MENU_SLOTS * (menu-1):
+        elif index <= city_menu_page(menu)[1]:
             markup.add(place)
         else:
             break
 
-    if markup.values is None:
-        await call.answer("dead end", True)
-        with contextlib.suppress(
-            MessageToDeleteNotFound,
-            MessageCantBeDeleted
-        ):
-            return await message.delete()
-
-    markup.add(
-        InlineKeyboardButton(
-            "⬅️",
-            callback_data=f"taxi_previous:{menu-1}"
-        ),
-        InlineKeyboardButton(
-            text="➡️",
-            callback_data=f"taxi_next:{menu-1}"
+    buttons = []
+    if city_menu_page(menu)[0] > 0:
+        buttons.append(
+            InlineKeyboardButton(
+                "⬅️",
+                callback_data=f"taxi_page:{menu-1}"
+            )
         )
-    )
-    await message.answer('<i>🚕 Куда поедем?</i>', reply_markup=markup)
-    with contextlib.suppress(MessageToDeleteNotFound, MessageCantBeDeleted):
-        await message.delete()
+    if city_menu_page(menu)[1] < len(CITY) - 1:
+        buttons.append(
+            InlineKeyboardButton(
+                text="➡️",
+                callback_data=f"taxi_page:{menu+1}"
+            )
+        )
+
+    markup.add(*buttons)
+    await message.edit_reply_markup(markup)
 
 
 async def taxicost(call: CallbackQuery, place: str) -> None:
@@ -974,7 +875,7 @@ async def gps_menu(call: CallbackQuery) -> None:
             markup.add(
                 InlineKeyboardButton(
                     text=f'{category} ({count})',
-                    callback_data=f'gpsloc_{category}'
+                    callback_data=f'gps_category_{category}'
                 )
             )
 
@@ -985,6 +886,177 @@ async def gps_menu(call: CallbackQuery) -> None:
         )
     )
     await call.message.answer('<i>Выберите категорию</i>', reply_markup=markup)
+
+
+async def gps_category(call: CallbackQuery, category: str):
+    '''
+    Callback for list of locations for chosen category
+
+    :param call - callback:
+    :param category - category of locations:
+    '''
+    user_id = call.from_user.id
+    phone = cur.select("phone", "userdata").where(user_id=user_id).one()
+
+    if phone < 1:
+        return await call.answer(
+            'Чтобы пользоваться GPS, вам нужен телефон. Его можно купить в маг'
+            'азине на ул. Генерала Шелби и одноимённой станции метро',
+            show_alert=True
+        )
+
+    markup = InlineKeyboardMarkup(row_width=2)
+    locationlist = []
+
+    for index, location in enumerate(locations[0]):
+        if locations[3][index] == category:
+            locationlist.append(
+                InlineKeyboardButton(
+                        text=location,
+                        callback_data=f'gps_location_{index}'
+                    )
+            )
+
+    markup.add(*locationlist)
+    markup.add(
+        InlineKeyboardMarkup(
+            text='◀ Назад',
+            callback_data='cancel_action'
+        )
+    )
+    await call.message.answer('<i>Выберите локацию</i>', reply_markup=markup)
+
+
+async def gps_location(call: CallbackQuery, index: int):
+    '''
+    Callback for a GPS location
+
+    :param call - callback:
+    :param index - index of selected location:
+    '''
+    user_id = call.from_user.id
+    phone = cur.select("phone", "userdata").where(user_id=user_id).one()
+
+    if phone < 1:
+        return await call.answer(
+            'Чтобы пользоваться GPS, вам нужен телефон. Его можно купить в маг'
+            'азине на ул. Генерала Шелби и одноимённой станции метро',
+            show_alert=True
+        )
+
+    markup = InlineKeyboardMarkup(row_width=2)
+
+    name = locations[0][index]  # name of the location
+    description = locations[1][index]  # description of the location
+    place = locations[2][index]  # place where the location is
+
+    markup.add(
+        InlineKeyboardMarkup(
+            text='🚌 Транспорт рядом',
+            callback_data=f'gps_transport_{place}'
+        )
+    )
+    markup.add(
+        InlineKeyboardMarkup(
+            text='◀ Назад',
+            callback_data='cancel_action'
+        )
+    )
+
+    await call.message.answer(
+        f'<i><b>{name}</b>\n\n{description}\n\n'
+        f'🏛 Местоположение: <b>{place}</b></i>',
+        reply_markup=markup)
+
+
+async def gps_transport(call: CallbackQuery, place: str):
+    '''
+    Callback for list of transport stations at the location
+
+    :param call - callback:
+    :param place - selected location:
+    '''
+    user_id = call.from_user.id
+    current_place = cur.select("current_place", "userdata").\
+        where(user_id=user_id).one()
+    level = cur.select("level", "userdata").where(user_id=user_id).one()
+    markup = InlineKeyboardMarkup()
+
+    text = ''
+    if place in CITY:
+        text += f'\n🚎 Остановка троллейбуса <b>{place}</b>'
+    if place in tramroute:
+        text += f'\n🚋 Остановка Ридипольского трамвая <b>{place}</b>'
+    for index, line in enumerate(METRO):
+        if place in line:
+            if index in [0, 2]:
+                text += '\n🚊 Остановка городской электрички ' +\
+                        f'<b>{place}</b> ' +\
+                        f'({LINES[index].split(" городской электрички")[0]})'
+            else:
+                text += '\n🚇 Станция метро ' +\
+                        f'<b>{place}</b> ({LINES[index]})'
+    if place in REGTRAIN[1]:
+        text += '\n🚆 Остановка электрички ' +\
+                f'<b>{REGTRAIN[0][REGTRAIN[1].index(place)]}</b>'
+    if place in trains[0]:
+        text += '\n🚄 Станция высокоскоростных поездов ' +\
+                f'<b>{trains[2][trains[0].index(place)]}</b>'
+    if place in villages:
+        if place in autostations:
+            text += f'\n🚌 Автостанция <b>{place}</b>'
+        else:
+            text += f'\n🚐 Остановка маршрутных такси <b>{place}</b>'
+    if place in CITY and current_place in CITY and place != current_place \
+            and level >= lvlcab:
+        cost = (cabcost*abs(CITY.index(place)-CITY.index(current_place)))//1
+        text += '\n\n🚕 Вы можете доехать из местности ' +\
+                f'<b>{current_place}</b> до местности <b>{place}</b>' +\
+                f' за <b>${cost}</b>'
+        markup.add(
+            InlineKeyboardMarkup(
+                text='🚕 Заказать такси',
+                callback_data=f'taxicost_{place}'
+            )
+        )
+
+    index = -1
+    for n, walkline in enumerate(WALK):
+        if place in walkline and n != 3:
+            index = walkline.index(place)
+    if index != -1:
+        text += '\n\n🚶‍♂️ В некоторые местности вы можете добраться пешком' +\
+                '. Вы можете нажать на кнопки ниже, чтобы посмотреть, ' +\
+                'какие виды транспорта доступны в местностях, в которые' +\
+                f' можно добраться пешком из <b>{place}</b>'
+        for n, walkline in enumerate(WALK):
+            if n != 3 and place not in walkline and walkline[index] != '':
+                markup.add(
+                    InlineKeyboardMarkup(
+                        text=f'🚶‍♂️ {walkline[index]}',
+                        callback_data=f'gps_transport_{walkline[index]}'
+                    )
+                )
+
+    markup.add(
+        InlineKeyboardMarkup(
+            text='◀ Назад',
+            callback_data='cancel_action'
+        )
+    )
+
+    if text == '':
+        return await call.answer(
+            text='😨 Такой местности, видимо, не существует.\n'
+                 'Если вы считаете, что это ошибка, обратитесь '
+                 'в Приёмную',
+            show_alert=True
+        )
+    else:
+        await call.message.answer(
+            f'<i>🚌 Транспорт в локации <b>{place}</b>:\n{text}</i>',
+            reply_markup=markup
+        )
 
 
 async def buy24_(call: CallbackQuery, item: str) -> None:
@@ -1008,7 +1080,7 @@ async def buy24_(call: CallbackQuery, item: str) -> None:
             show_alert=True
         )
 
-    cur.update("globaldata").add(item=1).commit()
+    cur.update("globaldata").add(**{item: -1}).commit()
     cost = ITEMS[item].price
     assert isinstance(cost, int)
     await buy(call, item, call.from_user.id, cost)
@@ -1042,7 +1114,7 @@ async def buyclan_(call: CallbackQuery, item: str) -> None:
             show_alert=True)
 
     cur.update("userdata").add(balance=-cost).where(user_id=user_id).commit()
-    cur.update("userdata").add(item=1).where(user_id=user_id).commit()
+    cur.update("userdata").add(**{item: 1}).where(user_id=user_id).commit()
 
     clan_bonus_devider = random.randint(1, 5)
 
@@ -1101,8 +1173,12 @@ async def bus(call: CallbackQuery) -> None:
     markup = InlineKeyboardMarkup(row_width=1).\
         add(
             InlineKeyboardButton(
-                text='🚌 К платформам',
+                text='🚌 К автобусам',
                 callback_data='bus_lounge'
+            ),
+            InlineKeyboardButton(
+                text='🚐 К маршрутным такси',
+                callback_data='shuttle_lounge'
             ),
             InlineKeyboardButton(
                 text='🎫 Билетные кассы',
@@ -1110,7 +1186,11 @@ async def bus(call: CallbackQuery) -> None:
             ),
             InlineKeyboardButton(
                 text='🍔 Кафетерий "Енот Кебаб"',
-                callback_data='enot_kebab'
+                callback_data='enot_kebab_shop'
+            ),
+            InlineKeyboardButton(
+                text='🏛 Выйти в город',
+                callback_data='city'
             )
         )
 
@@ -1131,7 +1211,7 @@ async def metro(call: CallbackQuery):
     line = cur.select("line", "userdata").where(user_id=user_id).one()
 
     markup = InlineKeyboardMarkup()
-    if line not in [1, 2]:
+    if line not in [0, 2]:
         markup.add(
             InlineKeyboardButton(
                 text='🚇 Пройти на станцию',
@@ -1208,7 +1288,8 @@ async def metrocall(call: CallbackQuery):
     markup = InlineKeyboardMarkup()
     desc = str()
 
-    if trans := _transfer(user_id):
+    trans = _transfer(user_id)
+    if trans is not None:
         desc += f'Переход к поездам {LINES_GENITIVE[trans]}\n'  # type: ignore
 
         markup.add(
@@ -1955,14 +2036,13 @@ async def businessclass_lounge(call: CallbackQuery):
         user_id=user_id).one()
 
     if place not in trains[0]:
-        await call.answer(
+        return await call.answer(
             text=(
                 '🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
                 'местности'
             ),
             show_alert=True
         )
-        return
 
     markup = InlineKeyboardMarkup()
     for index, station in enumerate(trains[0]):
@@ -1999,14 +2079,13 @@ async def go_bytrain(call: CallbackQuery, destination: str):
         user_id=user_id).one()
 
     if place not in trains[0] or place == destination:
-        await call.answer(
+        return await call.answer(
             text=(
                 '🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
                 'местности'
             ),
             show_alert=True
         )
-        return
 
     if not isinterval('train'):
         return await call.answer(
@@ -2047,3 +2126,495 @@ async def go_bytrain(call: CallbackQuery, destination: str):
     await asyncio.sleep(random.randint(TRAIN_TIME[0], TRAIN_TIME[1]))
     await tostation(user_id, target_station=destination)
     await businessclass_lounge(call)
+
+
+async def buscall(call: CallbackQuery):
+    '''
+    Callback for regional shuttle station
+
+    :param call - callback:
+    '''
+    user_id = call.from_user.id
+    place = cur.select("current_place", "userdata").where(
+        user_id=user_id).one()
+    balance = cur.select("balance", "userdata").where(
+        user_id=user_id).one()
+
+    if place not in villages:
+        return await call.answer(
+            text=(
+                '🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
+                'местности'
+            ),
+            show_alert=True
+        )
+
+    markup = InlineKeyboardMarkup(row_width=2)
+    places = []
+    place_list = villages if place in autostations else autostations
+    for station in place_list:
+        if station != place and (place_list == autostations
+                                 or station not in autostations):
+            places.append(
+                InlineKeyboardButton(
+                    text=f'🚐 {station}',
+                    callback_data=f'go_byshuttle_to_{station}'
+                )
+            )
+
+    markup.add(*places)
+    if place in autostations:
+        markup.add(
+            InlineKeyboardButton(
+                text='◀ Выйти на автостанцию',
+                callback_data='exit_to_busstation'
+            )
+        )
+    else:
+        markup.add(
+            InlineKeyboardButton(
+                text='🏛 Выйти в город',
+                callback_data='city'
+            )
+        )
+
+    await call.message.answer(
+        f'<i>🚐 Остановочный пункт <b>{place}</b>\n\n'
+        f'Куда путь держите?\n\nСтоимость проезда - <b>${buscost}</b>\n'
+        f'Ваш баланс: <b>${balance}</b></i>',
+        reply_markup=markup
+    )
+
+
+async def regbuscall(call: CallbackQuery):
+    '''
+    Callback for regional bus station
+
+    :param call - callback:
+    '''
+    user_id = call.from_user.id
+    place = cur.select("current_place", "userdata").where(
+        user_id=user_id).one()
+    balance = cur.select("balance", "userdata").where(
+        user_id=user_id).one()
+
+    if place not in autostations:
+        return await call.answer(
+            text=(
+                '🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
+                'местности'
+            ),
+            show_alert=True
+        )
+
+    markup = InlineKeyboardMarkup()
+    for station in autostations:
+        if station != place:
+            markup.add(
+                InlineKeyboardButton(
+                    text=f'🚌 {station}',
+                    callback_data=f'go_bybus_to_{station}'
+                )
+            )
+
+    markup.add(
+        InlineKeyboardButton(
+            text='◀ Выйти на автостанцию',
+            callback_data='exit_to_busstation'
+        )
+    )
+
+    await call.message.answer(
+        f'<i>🚌 Автостанция <b>{place}</b>\n\n'
+        f'Куда путь держите?\n\nСтоимость проезда - <b>${regbuscost}</b>\n'
+        f'Ваш баланс: <b>${balance}</b></i>',
+        reply_markup=markup
+    )
+
+
+async def go_bybus(call: CallbackQuery, destination: str):
+    '''
+    Callback for regional bus travel
+
+    :param call - callback:
+    :param destination - station to travel to'
+    '''
+    user_id = call.from_user.id
+    place = cur.select("current_place", "userdata").where(
+        user_id=user_id).one()
+
+    if place not in autostations or place == destination:
+        return await call.answer(
+            text=(
+                '🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
+                'местности'
+            ),
+            show_alert=True
+        )
+
+    if not isinterval('bus'):
+        return await call.answer(
+            "Посадка ещё не началась. Автобус приедет через "
+            f"{remaining('bus')}",
+            show_alert=True
+        )
+
+    token = cur.select("balance", "userdata").where(
+        user_id=user_id).one()
+    if token < regbuscost:
+        markup = InlineKeyboardMarkup()
+        markup.add()
+        return await call.message.answer(
+            '<i>🚫 У вас недостаточно средств</i>'
+            )
+
+    cur.update("userdata").add(balance=-regbuscost).where(
+        user_id=user_id).commit()
+
+    with contextlib.suppress(Exception):
+        await call.message.delete()
+
+    await call.message.answer_photo(
+        'https://telegra.ph/file/34226b77d11cbd7e19b7b.jpg',
+        caption='🚌 <i>Посадка завершена. Следующая станция: <b>'
+                f'{destination}</b>. Удачной поездки!</i>'
+        )
+
+    await asyncio.sleep(random.randint(BUS_TIME[0], BUS_TIME[1]))
+    await tostation(user_id, target_station=destination)
+    await regbuscall(call)
+
+
+async def go_byshuttle(call: CallbackQuery, destination: str):
+    '''
+    Callback for regional shuttle travel
+
+    :param call - callback:
+    :param destination - station to travel to'
+    '''
+    user_id = call.from_user.id
+    place = cur.select("current_place", "userdata").where(
+        user_id=user_id).one()
+
+    if place not in villages or place == destination:
+        return await call.answer(
+            text=(
+                '🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
+                'местности'
+            ),
+            show_alert=True
+        )
+
+    if not isinterval('taxi'):
+        return await call.answer(
+            "Посадка ещё не началась. Маршрутка приедет через "
+            f"{remaining('taxi')}",
+            show_alert=True
+        )
+
+    token = cur.select("balance", "userdata").where(
+        user_id=user_id).one()
+    if token < buscost:
+        markup = InlineKeyboardMarkup()
+        markup.add()
+        return await call.message.answer(
+            '<i>🚫 У вас недостаточно средств</i>'
+            )
+
+    cur.update("userdata").add(balance=-buscost).where(
+        user_id=user_id).commit()
+
+    with contextlib.suppress(Exception):
+        await call.message.delete()
+
+    await call.message.answer_photo(
+        'https://telegra.ph/file/8da21dc03e8f266e0845a.jpg',
+        caption='🚐 <i>Посадка завершена. Следующая остановка: <b>'
+                f'{destination}</b>. Удачной поездки!</i>'
+        )
+
+    await asyncio.sleep(random.randint(BUS_TIME[0], BUS_TIME[1]))
+    await tostation(user_id, target_station=destination)
+    await buscall(call)
+
+
+async def tram_lounge(call: CallbackQuery):
+    '''
+    Callback for tram stop vestibule menu
+
+    :param call - callback:
+    '''
+    user_id = call.from_user.id
+    token = cur.select("tramtoken", "userdata").where(
+        user_id=user_id).one()
+
+    markup = InlineKeyboardMarkup()
+    markup.add(
+        InlineKeyboardButton(
+            text='🚏 Пройти на остановку',
+            callback_data='proceed_tram'
+        )
+    )
+    markup.add(
+        InlineKeyboardButton(
+            text='🎫 Покупка билетов',
+            callback_data='tram_tickets'
+        )
+    )
+    await call.message.answer(
+        f'<i>У вас <b>{token}</b> билетов</i>',
+        reply_markup=markup
+    )
+
+
+async def proceed_tram(call: CallbackQuery):
+    '''
+    Callback for entering a tram stop
+
+    :param call - callback:
+    '''
+    user_id = call.from_user.id
+    token = cur.select("tramtoken", "userdata").where(
+        user_id=user_id).one()
+
+    if token < 1:
+        markup = InlineKeyboardMarkup()
+        markup.add()
+        return await call.message.answer(
+            '<i>🚫 У вас недостаточно билетов</i>',
+            reply_markup=InlineKeyboardMarkup().add(
+                    InlineKeyboardButton(
+                        text='🎫 Покупка билетов',
+                        callback_data='tram_tickets'
+                    )
+                )
+            )
+
+    cur.update("userdata").add(tramtoken=-1).where(
+        user_id=user_id).commit()
+    await tramcall(call)
+
+
+async def tramcall(call: CallbackQuery):
+    '''
+    Callback for tram stop
+
+    :param call - callback:
+    '''
+    user_id = call.from_user.id
+    place = cur.select("current_place", "userdata").where(
+        user_id=user_id).one()
+    index = tramroute.index(place)
+    markup = InlineKeyboardMarkup()
+    desc = str()
+    if index in [0, len(tramroute) - 1]:
+        desc += (
+            '<b>Конечная.</b> Трамвай дальше не идёт, просьба пассажиров'
+            ' покинуть транспортное средство'
+        )
+    if index > 0:
+        markup.add(
+            InlineKeyboardButton(
+                text=f'⬅ {tramroute[index - 1]}',
+                callback_data='tram_back'
+            )
+        )
+    if index < len(tramroute)-1:
+        markup.add(
+            InlineKeyboardButton(
+                text=f'➡ {tramroute[index + 1]}',
+                callback_data='tram_forward'
+            )
+        )
+    markup.add(
+        InlineKeyboardButton(
+            text='🚏 Список остановочных пунктов',
+            callback_data='tram_stops'
+        )
+    )
+    markup.add(
+        InlineKeyboardButton(
+            text='🏛 Выйти в город',
+            callback_data='city'
+        )
+    )
+    message = await call.message.answer(
+        f'<i>Остановочный пункт <b>{place}</b>\n{desc}</i>',
+        reply_markup=markup
+    )
+    await asyncio.sleep(ticket_time)
+
+    with contextlib.suppress(Exception):
+        await message.delete()
+
+
+async def tram_forward(call: CallbackQuery,
+                       already_onboard: bool = False):
+    user_id = call.from_user.id
+
+    if not isinterval('tram') and not already_onboard:
+        return await call.answer(
+            "Посадка ещё не началась. Трамвай приедет через "
+            f"{remaining('tram')}",
+            show_alert=True
+        )
+
+    place = cur.select("current_place", "userdata").where(
+        user_id=user_id).one()
+    index = tramroute.index(place)
+
+    await call.message.answer_photo(
+        'https://telegra.ph/file/e1cafc19ba1fabec68b0b.jpg',
+        f'<i>Следующая остановка: <b>{tramroute[index+1]}</b>. Осторожно,'
+        ' двери закрываются!</i>'
+    )
+
+    with contextlib.suppress(Exception):
+        await call.message.delete()
+    await asyncio.sleep(random.randint(TRAM_TIME[0], TRAM_TIME[1])/2)
+    if random.uniform(0, 1) < TRAM_CRASH_CHANCE/100:
+        await tram_crash(call)
+        return await call.answer('😣')
+    await asyncio.sleep(random.randint(TRAM_TIME[0], TRAM_TIME[1])/2)
+    await tostation(user_id, target_station=tramroute[index+1])
+    if index+2 == len(tramroute):
+        await tramcall(call)
+    else:
+        markup = InlineKeyboardMarkup()
+        markup.add(
+            InlineKeyboardButton(
+                                 text='🚶 Выйти из трамвая',
+                                 callback_data='exit_tram'
+                                )
+                            )
+        message = await call.message.answer(
+                f'<i>Остановка <b>{tramroute[index+1]}</b>. '
+                f'Следующая остановка: <b>{tramroute[index+2]}</b></i>',
+                reply_markup=markup)
+        await asyncio.sleep(25)
+        if not cur.select("left_transport", "userdata").\
+                where(user_id=user_id).one() == message['message_id']:
+            await tram_forward(call, True)
+
+
+async def tram_back(call: CallbackQuery,
+                    already_onboard: bool = False):
+    user_id = call.from_user.id
+
+    if not isinterval('tram') and not already_onboard:
+        return await call.answer(
+            "Посадка ещё не началась. Трамвай приедет через "
+            f"{remaining('tram')}",
+            show_alert=True
+        )
+
+    place = cur.select("current_place", "userdata").where(
+        user_id=user_id).one()
+    index = tramroute.index(place)
+
+    await call.message.answer_photo(
+        'https://telegra.ph/file/e1cafc19ba1fabec68b0b.jpg',
+        f'<i>Следующая остановка: <b>{tramroute[index-1]}</b>. Осторожно,'
+        ' двери закрываются!</i>'
+    )
+
+    with contextlib.suppress(Exception):
+        await call.message.delete()
+    await asyncio.sleep(random.randint(TRAM_TIME[0], TRAM_TIME[1])/2)
+    if random.uniform(0, 1) < TRAM_CRASH_CHANCE/100:
+        await tram_crash(call)
+        return await call.answer('😣')
+    await asyncio.sleep(random.randint(TRAM_TIME[0], TRAM_TIME[1])/2)
+    await tostation(user_id, target_station=tramroute[index-1])
+    if index == 1:
+        await tramcall(call)
+    else:
+        markup = InlineKeyboardMarkup()
+        markup.add(
+            InlineKeyboardButton(
+                                 text='🚶 Выйти из трамвая',
+                                 callback_data='exit_tram'
+                                )
+                            )
+        message = await call.message.answer(
+                f'<i>Остановка <b>{tramroute[index-1]}</b>. '
+                f'Следующая остановка: <b>{tramroute[index-2]}</b></i>',
+                reply_markup=markup)
+        await asyncio.sleep(25)
+        if not cur.select("left_transport", "userdata").\
+                where(user_id=user_id).one() == message['message_id']:
+            await tram_forward(call, True)
+
+
+async def tram_crash(call: CallbackQuery):
+    '''
+    Callback for a tram accident
+
+    :param call - callback:
+    '''
+    markup = InlineKeyboardMarkup()
+    markup.add(
+        InlineKeyboardButton(
+            text='◀ Вернуться на остановку',
+            callback_data='tram'
+        )
+    )
+
+    await call.message.answer(
+        '<i><b>😣 Какая досада...</b>\nДряхлый трамвай сломался. Придётся'
+        ' вернуться на остановку. Жаль, что деньги за билет никто не вернёт'
+        '...</i>', reply_markup=markup
+        )
+
+
+async def walk(call: CallbackQuery, destination: int):
+    '''
+    Callback for walking
+
+    :param call - callback:
+    :param destination - name of the place to go to:
+    '''
+    user_id = call.from_user.id
+    place = cur.select("current_place", "userdata").where(
+        user_id=user_id).one()
+
+    # following code checks whether current location of the user
+    # is in the walk list
+    index = -1
+    for walkline in WALK:
+        if place in walkline and walkline != WALK[3]:
+            index = walkline.index(place)
+    if index == -1:
+        return await call.answer(
+            text=(
+                '🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
+                'местности'
+            ),
+            show_alert=True
+        )
+
+    # following code checks whether the destination is accessible
+    # from current user's location by walking
+    exists = False
+    for walkline in WALK:
+        if walkline[index] == destination and walkline != WALK[3]:
+            exists = True
+    if not exists:
+        return await call.answer(
+            text=(
+                '🦥 Не пытайтесь обмануть Живополис. В эту местность нельзя '
+                'добраться пешком'
+            ),
+            show_alert=True
+        )
+    time_required = WALK[3][index]
+
+    await call.message.answer(
+        '<i>🚶 Как же хорошо пройтись пешочком... Путешествие до местности '
+        f'<b>{destination}</b> займёт <b>{time_required}</b> секунд</i>'
+    )
+
+    await asyncio.sleep(time_required)
+    await tostation(call.from_user.id, target_station=destination)
+
+    await city(call.message, call.from_user.id)
