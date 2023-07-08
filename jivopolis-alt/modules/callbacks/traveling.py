@@ -28,13 +28,13 @@ from aiogram.types import (
 
 # time required for specific type of transport to reach next station
 # the lists contain minimum and maximum time
-METRO_TIME = [5, 10]  # 15, 30
-AIRPLANE_TIME = [5, 10]  # 90, 120
-REGTRAIN_TIME = [5, 10]  # 30, 45
-TROLLEYBUS_TIME = [5, 10]  # 10, 25
-TRAIN_TIME = [5, 10]  # 45, 60
-TRAM_TIME = [5, 10]  # 17, 32
-BUS_TIME = [5, 10]  # 20, 30
+METRO_TIME = [15, 30]  # 15, 30
+AIRPLANE_TIME = [90, 120]  # 90, 120
+REGTRAIN_TIME = [30, 45]  # 30, 45
+TROLLEYBUS_TIME = [10, 25]  # 10, 25
+TRAIN_TIME = [45, 60]  # 45, 60
+TRAM_TIME = [17, 32]  # 17, 32
+BUS_TIME = [20, 30]  # 20, 30
 
 # chance of a tram to crash during a random ride (per cent)
 TRAM_CRASH_CHANCE = 15
