@@ -1080,7 +1080,7 @@ async def buy24_(call: CallbackQuery, item: str) -> None:
             show_alert=True
         )
 
-    cur.execute(f"UPDATE globaldata SET {item}={item}-1").commit()
+    cur.update("globaldata").add(**{item: -1}).commit()
     cost = ITEMS[item].price
     assert isinstance(cost, int)
     await buy(call, item, call.from_user.id, cost)
@@ -1114,9 +1114,7 @@ async def buyclan_(call: CallbackQuery, item: str) -> None:
             show_alert=True)
 
     cur.update("userdata").add(balance=-cost).where(user_id=user_id).commit()
-    # cur.update("userdata").add(item=1).where(user_id=user_id).commit()
-    cur.execute("UPDATE userdata SET {item}={item}+1 WHERE user_id=?",
-                (user_id,)).commit()
+    cur.update("userdata").add(**{item: 1}).where(user_id=user_id).commit()
 
     clan_bonus_devider = random.randint(1, 5)
 
