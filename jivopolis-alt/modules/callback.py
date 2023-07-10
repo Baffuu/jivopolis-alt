@@ -100,8 +100,12 @@ async def callback_handler(call: CallbackQuery):
                 await buycall(call)
             case 'adminchats':
                 await adminchats(call)
+            case 'city_wo_deleting':
+                await city(call.message, str(call.from_user.id))
             case 'city':
                 await city(call.message, str(call.from_user.id))  # todo refactoring
+                with contextlib.suppress(MessageToDeleteNotFound, MessageCantBeDeleted):
+                    await call.message.delete()
             case 'car_menu':
                 await car_menu(call)
             case car if car.startswith('goto_on_car'):
@@ -260,6 +264,11 @@ async def callback_handler(call: CallbackQuery):
                 await moda_menu(call)
             case 'mall':
                 await mall(call)
+
+            case 'farm':
+                await farm(call)
+            case 'milk_cow':
+                await milk_cow(call)
 
             case 'my_reflink':
                 await my_reflink(call)

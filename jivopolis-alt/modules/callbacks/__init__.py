@@ -50,6 +50,10 @@ from .traveling import (
     gps_transport, car_menu_page
 )
 
+from .locations import (
+    farm, milk_cow
+)
+
 from .clans import (
     create_clan, joinclan, leaveclan
 )
