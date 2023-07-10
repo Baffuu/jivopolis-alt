@@ -65,6 +65,8 @@ async def callback_handler(call: CallbackQuery):
                 await itemsinfo_table(call, call.from_user.id)
             case 'inventory':
                 await inventory(call)
+            case 'resources':
+                await resources(call)
             case item if item.startswith('iteminfo_'):
                 await itemsinfo_item(call, call.from_user.id)
             case item if item in ITEMS:
@@ -227,6 +229,13 @@ async def callback_handler(call: CallbackQuery):
                     place='Максименка',
                     items=['window', 'brick', 'door'],
                     text='🧱 Добро пожаловать в строительный магазин - дом любого мужчины!'
+                )
+            case 'pickaxe_shop':
+                await shop(
+                    call,
+                    place='Агзамогорск',
+                    items=['pickaxe x1', 'pickaxe x2', 'pickaxe x5', 'pickaxe x10'],
+                    text='⛏ Добро пожаловать в магазин шахтёра! Здесь вы можете купить себе несколько кирок для шахты'
                 )
 
             case 'metro_tickets':

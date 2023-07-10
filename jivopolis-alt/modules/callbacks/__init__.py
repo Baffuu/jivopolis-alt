@@ -15,7 +15,8 @@ from .for_admins import (
 
 from .inventory import (
     itemdesc, inventory,
-    lootbox_button, sellitem
+    lootbox_button, sellitem,
+    resources
 )
 
 from .user_profile import (

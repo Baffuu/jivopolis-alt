@@ -161,7 +161,13 @@ def create_userdata(cur: fyCursor) -> None:
     tramtoken       INTEGER         DEFAULT 0               NOT NULL,
     regtraintoken   INTEGER         DEFAULT 0               NOT NULL,
     hamster         INTEGER         DEFAULT 0               NOT NULL,
-    fan             INTEGER         DEFAULT 0               NOT NULL
+    fan             INTEGER         DEFAULT 0               NOT NULL,
+    pickaxe         INTEGER         DEFAULT 0               NOT NULL,
+    cobble          INTEGER         DEFAULT 0               NOT NULL,
+    iron            INTEGER         DEFAULT 0               NOT NULL,
+    gold            INTEGER         DEFAULT 0               NOT NULL,
+    gem             INTEGER         DEFAULT 0               NOT NULL,
+    topaz           INTEGER         DEFAULT 0               NOT NULL
 )
 """)
 
