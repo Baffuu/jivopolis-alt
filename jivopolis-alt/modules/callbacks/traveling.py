@@ -459,7 +459,13 @@ async def central_market_menu(call: CallbackQuery) -> None:
         user_id=call.from_user.id).one()
 
     if place != 'Рынок':
-        return  # todo answer
+        return await call.answer(
+            text=(
+                '🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
+                'местности'
+            ),
+            show_alert=True
+        )
 
     markup = InlineKeyboardMarkup(row_width=2).\
         add(
@@ -497,7 +503,13 @@ async def central_market_food(call: CallbackQuery) -> None:
         user_id=user_id).one()
 
     if place != 'Рынок':
-        return  # todo answer
+        return await call.answer(
+            text=(
+                '🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
+                'местности'
+            ),
+            show_alert=True
+        )
 
     markup = InlineKeyboardMarkup(row_width=3)
     itemlist = []
@@ -549,7 +561,13 @@ async def central_market_mask(call: CallbackQuery) -> None:
         user_id=user_id).one()
 
     if place != 'Рынок':
-        return  # todo answer
+        return await call.answer(
+            text=(
+                '🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
+                'местности'
+            ),
+            show_alert=True
+        )
 
     markup = InlineKeyboardMarkup(row_width=3)
 
@@ -606,7 +624,13 @@ async def bank(call: CallbackQuery) -> None:
         user_id=call.from_user.id).one()
 
     if place != 'Живбанк':
-        return  # todo answer
+        return await call.answer(
+            text=(
+                '🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
+                'местности'
+            ),
+            show_alert=True
+        )
 
     markup = InlineKeyboardMarkup(row_width=1).\
         add(
@@ -637,7 +661,13 @@ async def state_balance(call: CallbackQuery) -> None:
     treasury = cur.select("treasury", "globaldata").one()
 
     if place != 'Живбанк':
-        return  # todo answer
+        return await call.answer(
+            text=(
+                '🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
+                'местности'
+            ),
+            show_alert=True
+        )
 
     markup = InlineKeyboardMarkup(row_width=1).add(
         InlineKeyboardButton(

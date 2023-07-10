@@ -26,14 +26,13 @@ async def shop(
         user_id=call.from_user.id).one()
 
     if place is not None and place_ not in place and place_ != place:
-        await call.answer(
+        return await call.answer(
             text=(
                 '🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
                 'местности'
             ),
             show_alert=True
         )
-        return
 
     if items is not None:
         buttons = [buybutton(item) for item in items]

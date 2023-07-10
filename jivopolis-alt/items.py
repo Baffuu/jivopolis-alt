@@ -145,8 +145,8 @@ ITEMS = {
         description='удовольствие на пять минут, а стоят, как целый город'
     ),
 
-    'party_pooper': Item(
-        name='party_pooper',
+    'party_popper': Item(
+        name='party_popper',
         ru_name='Хлопушка',
         emoji='🎉',
         cost=50,
@@ -890,6 +890,16 @@ ITEMS = {
         cost=-1,
         type="mask",
         description='хорошая защита от жары. Наверное'
+    ),
+
+    "pickaxe": Item(
+        name="pickaxe",
+        ru_name="Одноразовая кирка",
+        emoji="⛏",
+        cost=100,
+        type="tool",
+        description='отправляйтесь в шахту в Горном, чтобы получить '
+                    'ценные ресурсы и опыт!'
     )
 }
 '''Store all items in Jivopolis'''

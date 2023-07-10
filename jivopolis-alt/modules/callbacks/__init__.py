@@ -15,7 +15,8 @@ from .for_admins import (
 
 from .inventory import (
     itemdesc, inventory,
-    lootbox_button, sellitem
+    lootbox_button, sellitem,
+    resources, sellresource
 )
 
 from .user_profile import (
@@ -48,6 +49,10 @@ from .traveling import (
     go_bybus, go_byshuttle, tramcall, tram_lounge, proceed_tram,
     tram_forward, tram_back, walk, gps_category, gps_location,
     gps_transport, car_menu_page
+)
+
+from .locations import (
+    farm, milk_cow, mineshaft, go_mining, resource_market
 )
 
 from .clans import (

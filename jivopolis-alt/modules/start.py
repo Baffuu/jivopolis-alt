@@ -189,7 +189,7 @@ class StartCommand():
                 ),
                 InlineKeyboardButton(
                     text="🏛 Город",
-                    callback_data="city"
+                    callback_data="city_wo_deleting"
                 ),
                 InlineKeyboardButton(
                     text=f"{box} Почтовый ящик",

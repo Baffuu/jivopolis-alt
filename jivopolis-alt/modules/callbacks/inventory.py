@@ -3,7 +3,8 @@ import time
 from ...misc import (
     Item, ITEMS,
     lootbox_open, LOOTBOX,
-    get_time_units, current_time
+    get_time_units, current_time,
+    RESOURCES
 )
 from ...misc.config import limeteds
 from ..start import StartCommand
@@ -177,12 +178,51 @@ async def inventory(call: CallbackQuery) -> None:
 
     markup.add(
         InlineKeyboardButton(
+            text='⛰ Полезные ископаемые',
+            callback_data='resources'
+        )
+    )
+
+    markup.add(
+        InlineKeyboardButton(
             text='🏪 Круглосуточный магазин',
             callback_data='shop_24'
         )
     )
 
     await call.message.answer('<i>Ваш инвентарь</i>', reply_markup=markup)
+
+
+async def resources(call: CallbackQuery) -> None:
+    '''
+    Callback for mineral data
+
+    :param call - callback:
+    '''
+    user_id = call.from_user.id
+    markup = InlineKeyboardMarkup()
+    markup.add(
+        InlineKeyboardButton(
+            text='◀ Назад',
+            callback_data='cancel_action'
+        )
+    )
+
+    text = '<b>⛏ Ваши полезные ископамые</b>\n\n'
+    for resourceitem in RESOURCES:
+        resource = RESOURCES[resourceitem]
+        amount = cur.select(resource.name, "userdata").where(
+            user_id=user_id).one()
+        name = resource.ru_name
+        text += f'{name} - <b>{amount}</b> шт.\n'
+    text += '\nПолезные ископаемые можно добывать в шахте в посёлке Гор' +\
+            'ный. Для этого сначала нужно купить кирки в Агзамогорске' +\
+            ' (при каждом вскапывании забирается одна кирка). ' +\
+            'Затем вы можете продать выкопанные ископаемые в Глинянке'
+
+    await call.message.answer(
+        f'<i>{text}</i>', reply_markup=markup
+    )
 
 
 async def lootbox_button(user_id: int, message: Message) -> None:
@@ -273,8 +313,6 @@ async def sellitem(call: CallbackQuery, item: str) -> None:
     if item not in ITEMS:
         raise ValueError("no such item")
 
-    # markup = InlineKeyboardMarkup(row_width = 3)
-
     coef = 1.5  # todo cur.execute('SELECT coef FROM globaldata').fetchone()[0]
     item_count = cur.select(item, "userdata").where(user_id=user_id).one()
 
@@ -288,7 +326,7 @@ async def sellitem(call: CallbackQuery, item: str) -> None:
     assert cost is not None
     cost = cost // coef
 
-    cur.update("userdata").add(item=-1).where(user_id=user_id).commit()
+    cur.update("userdata").add(**{item: -1}).where(user_id=user_id).commit()
     cur.update("userdata").add(balance=cost).where(user_id=user_id).commit()
 
     balance = cur.select("balance", "userdata").where(user_id=user_id).one()
@@ -304,3 +342,38 @@ async def sellitem(call: CallbackQuery, item: str) -> None:
     sold = cursor.fetchone()[0]
     if sold>=10:
         await achieve(a, call.message.chat.id, 'soldach')'''
+
+
+async def sellresource(call: CallbackQuery, resource: str) -> None:
+    '''
+    Callback for selling a mineral in Glinyanka
+
+    :param call - callback:
+    :param user_id:
+    '''
+    user_id = call.from_user.id
+
+    if resource not in RESOURCES:
+        raise ValueError("no such resource")
+
+    res_count = cur.select(resource, "userdata").where(user_id=user_id).one()
+
+    if res_count < 1:
+        return await call.answer(
+            '❌ У вас недостаточно единиц этого ресурса',
+            show_alert=True
+        )
+
+    cost = RESOURCES[resource].cost
+    assert cost is not None
+
+    cur.update("userdata").add(**{resource: -1}).where(
+        user_id=user_id).commit()
+    cur.update("userdata").add(balance=cost).where(user_id=user_id).commit()
+
+    balance = cur.select("balance", "userdata").where(user_id=user_id).one()
+
+    await call.answer(
+        f'Продажа прошла успешно. Ваш баланс: ${balance}',
+        show_alert=True
+    )

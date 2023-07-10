@@ -65,6 +65,8 @@ async def callback_handler(call: CallbackQuery):
                 await itemsinfo_table(call, call.from_user.id)
             case 'inventory':
                 await inventory(call)
+            case 'resources':
+                await resources(call)
             case item if item.startswith('iteminfo_'):
                 await itemsinfo_item(call, call.from_user.id)
             case item if item in ITEMS:
@@ -100,8 +102,12 @@ async def callback_handler(call: CallbackQuery):
                 await buycall(call)
             case 'adminchats':
                 await adminchats(call)
+            case 'city_wo_deleting':
+                await city(call.message, str(call.from_user.id))
             case 'city':
                 await city(call.message, str(call.from_user.id))  # todo refactoring
+                with contextlib.suppress(MessageToDeleteNotFound, MessageCantBeDeleted):
+                    await call.message.delete()
             case 'car_menu':
                 await car_menu(call)
             case car if car.startswith('goto_on_car'):
@@ -224,6 +230,13 @@ async def callback_handler(call: CallbackQuery):
                     items=['window', 'brick', 'door'],
                     text='🧱 Добро пожаловать в строительный магазин - дом любого мужчины!'
                 )
+            case 'pickaxe_shop':
+                await shop(
+                    call,
+                    place='Агзамогорск',
+                    items=['pickaxe x1', 'pickaxe x2', 'pickaxe x5', 'pickaxe x10'],
+                    text='⛏ Добро пожаловать в магазин шахтёра! Здесь вы можете купить себе несколько кирок для шахты'
+                )
 
             case 'metro_tickets':
                 await shop(
@@ -261,6 +274,17 @@ async def callback_handler(call: CallbackQuery):
             case 'mall':
                 await mall(call)
 
+            case 'farm':
+                await farm(call)
+            case 'milk_cow':
+                await milk_cow(call)
+            case 'mineshaft':
+                await mineshaft(call)
+            case 'go_mining':
+                await go_mining(call)
+            case 'resource_market':
+                await resource_market(call)
+
             case 'my_reflink':
                 await my_reflink(call)
             case 'cellphone_menu':
@@ -275,6 +299,8 @@ async def callback_handler(call: CallbackQuery):
                 await central_market_mask(call)
             case sell if sell.startswith('sellitem_'):
                 await sellitem(call, call.data[9:])
+            case sellres if sell.startswith('sellresource_'):
+                await sellresource(call, call.data[13:])
             case 'bank':
                 await bank(call)
             case 'state_balance':
