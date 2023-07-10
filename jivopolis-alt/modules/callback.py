@@ -278,6 +278,12 @@ async def callback_handler(call: CallbackQuery):
                 await farm(call)
             case 'milk_cow':
                 await milk_cow(call)
+            case 'mineshaft':
+                await mineshaft(call)
+            case 'go_mining':
+                await go_mining(call)
+            case 'resource_market':
+                await resource_market(call)
 
             case 'my_reflink':
                 await my_reflink(call)
@@ -293,6 +299,8 @@ async def callback_handler(call: CallbackQuery):
                 await central_market_mask(call)
             case sell if sell.startswith('sellitem_'):
                 await sellitem(call, call.data[9:])
+            case sellres if sell.startswith('sellresource_'):
+                await sellresource(call, call.data[13:])
             case 'bank':
                 await bank(call)
             case 'state_balance':

@@ -360,7 +360,7 @@ async def sellresource(call: CallbackQuery, resource: str) -> None:
 
     if res_count < 1:
         return await call.answer(
-            '❌ У вас недостаточно единиц этого предмета',
+            '❌ У вас недостаточно единиц этого ресурса',
             show_alert=True
         )
 

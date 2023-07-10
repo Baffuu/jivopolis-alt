@@ -16,7 +16,7 @@ from .for_admins import (
 from .inventory import (
     itemdesc, inventory,
     lootbox_button, sellitem,
-    resources
+    resources, sellresource
 )
 
 from .user_profile import (
@@ -52,7 +52,7 @@ from .traveling import (
 )
 
 from .locations import (
-    farm, milk_cow
+    farm, milk_cow, mineshaft, go_mining, resource_market
 )
 
 from .clans import (
