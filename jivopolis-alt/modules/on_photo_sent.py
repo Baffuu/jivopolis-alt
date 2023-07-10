@@ -42,6 +42,7 @@ async def get_photo_messages(message: Message):
         ):
             cur.update("userdata").set(process="login").where(
                 user_id=user_id).commit()
+            process = "login"
         else:
             process = ""
 

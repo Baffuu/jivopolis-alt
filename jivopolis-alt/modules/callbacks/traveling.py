@@ -47,7 +47,7 @@ def city_menu_page(index: int) -> list:
     :param index - page number:
     '''
 
-    index = 1 if index < 1 else index
+    index = max(index, 1)
     min_index = (index - 1) * MAXIMUM_DRIVE_MENU_SLOTS
     max_index = index * MAXIMUM_DRIVE_MENU_SLOTS - 1
     if min_index > len(CITY):
@@ -936,17 +936,13 @@ async def gps_category(call: CallbackQuery, category: str):
         )
 
     markup = InlineKeyboardMarkup(row_width=2)
-    locationlist = []
-
-    for index, location in enumerate(locations[0]):
-        if locations[3][index] == category:
-            locationlist.append(
-                InlineKeyboardButton(
-                        text=location,
-                        callback_data=f'gps_location_{index}'
-                    )
-            )
-
+    locationlist = [
+        InlineKeyboardButton(
+            text=location, callback_data=f'gps_location_{index}'
+        )
+        for index, location in enumerate(locations[0])
+        if locations[3][index] == category
+    ]
     markup.add(*locationlist)
     markup.add(
         InlineKeyboardMarkup(
@@ -2180,18 +2176,15 @@ async def buscall(call: CallbackQuery):
         )
 
     markup = InlineKeyboardMarkup(row_width=2)
-    places = []
     place_list = villages if place in autostations else autostations
-    for station in place_list:
-        if station != place and (place_list == autostations
-                                 or station not in autostations):
-            places.append(
-                InlineKeyboardButton(
-                    text=f'🚐 {station}',
-                    callback_data=f'go_byshuttle_to_{station}'
-                )
-            )
-
+    places = [
+        InlineKeyboardButton(
+            text=f'🚐 {station}', callback_data=f'go_byshuttle_to_{station}'
+        )
+        for station in place_list
+        if station != place
+        and (place_list == autostations or station not in autostations)
+    ]
     markup.add(*places)
     if place in autostations:
         markup.add(
@@ -2625,10 +2618,10 @@ async def walk(call: CallbackQuery, destination: int):
 
     # following code checks whether the destination is accessible
     # from current user's location by walking
-    exists = False
-    for walkline in WALK:
-        if walkline[index] == destination and walkline != WALK[3]:
-            exists = True
+
+    exists = any(
+        walkline[index] == destination and walkline != WALK[3] for walkline in WALK # noqa
+    )
     if not exists:
         return await call.answer(
             text=(
