@@ -52,14 +52,13 @@ async def check(user_id: int | str, chat_id: int | str) -> None | Message:
             cur.execute(f"UPDATE userdata SET rank=3 WHERE user_id={user_id}")
             conn.commit()
 
-        '''
-        lastelec = current_time() - cur.execute(f"SELECT lastelec FROM userdata WHERE user_id={user_id}.one()501
+        lastgears = current_time() - cur.select("last_gears", "userdata").where(user_id=user_id).one()
 
-        if lastelec > 86400:
-            cur.execute(f"UPDATE userdata set electimes=0 WHERE user_id={user_id}")
+        if lastgears > 86400:
+            cur.update("userdata").set(gears_today=0).where(user_id=user_id).commit()
             conn.commit()
-            cur.execute(f"UPDATE userdata set lastelec={current_time()} WHERE user_id={user_id}")
-            conn.commit()'''
+            cur.update("userdata").set(last_gears=current_time()).where(user_id=user_id).commit()
+            conn.commit()
 
         lvl = cur.execute(
             f"SELECT level FROM userdata WHERE user_id={user_id}"

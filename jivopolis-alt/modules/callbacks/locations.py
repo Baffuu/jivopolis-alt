@@ -176,7 +176,7 @@ async def go_mining(call: CallbackQuery):
     )
 
     cur.update("userdata").add(pickaxe=-1).where(user_id=user_id).commit()
-    await asyncio.sleep(random.randint(1, 2))
+    await asyncio.sleep(random.randint(30, 60))
 
     text = ''
     luck = 0
@@ -285,3 +285,266 @@ async def resource_market(call: CallbackQuery) -> None:
         )
     )
     await call.message.answer(f'<i>{desc}</i>', reply_markup=markup)
+
+
+async def factory(call: CallbackQuery):
+    '''
+    Callback for factory menu
+
+    :param call - callback:
+    '''
+    user_id = call.from_user.id
+    times = cur.select("gears_today", "userdata").where(user_id=user_id).one()
+    current_place = cur.select("current_place", "userdata").where(
+        user_id=user_id).one()
+
+    if current_place not in ['Ридипольский завод', 'Котайский электрозавод']:
+        return await call.answer(
+                text=(
+                    '🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
+                    'местности'
+                ),
+                show_alert=True
+            )
+
+    markup = InlineKeyboardMarkup(row_width=1)
+    markup.add(
+        InlineKeyboardButton(
+            text='⚙ Шестерёнки',
+            callback_data='play_gears'
+        ),
+        InlineKeyboardButton(
+            text='◀ Вернуться в город',
+            callback_data='city'
+        )
+    )
+
+    await call.message.answer(
+        '<i>🏭 <b>Добро пожаловать на Завод</b>\nЗдесь вы можете заработать'
+        ' немного денег.\n\nВыберите мини-игру. Учтите, что у вас должно быть'
+        ' не менее $10 на балансе, чтобы играть.\n\nИграть можно не более '
+        f'10 раз в день. Сегодня вы уже играли <b>{times}</b> раз</i>',
+        reply_markup=markup
+    )
+
+
+async def play_gears(call: CallbackQuery):
+    '''
+    Callback for a gears game
+
+    :param call - callback:
+    '''
+    user_id = call.from_user.id
+    times = cur.select("gears_today", "userdata").where(user_id=user_id).one()
+    balance = cur.select("balance", "userdata").where(user_id=user_id).one()
+    current_place = cur.select("current_place", "userdata").where(
+        user_id=user_id).one()
+
+    if current_place not in ['Ридипольский завод', 'Котайский электрозавод']:
+        return await call.answer(
+                text=(
+                    '🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
+                    'местности'
+                ),
+                show_alert=True
+            )
+
+    if balance < 10:
+        return await call.answer(
+                text=(
+                    '❌ Вам нужно хотя бы $10, чтобы начать игру'
+                ),
+                show_alert=True
+            )
+
+    if times >= 10:
+        return await call.answer(
+                text=(
+                    '❌ В Шестерёнки можно играть не более 10 раз в день'
+                ),
+                show_alert=True
+            )
+    cur.update("userdata").add(gears_today=1).where(user_id=user_id).commit()
+
+    direction = random.choice(['left', 'right'])
+    arrow = '↩' if direction == 'left' else '↪'
+    amount = random.randint(2, 7)
+
+    markup = InlineKeyboardMarkup(row_width=2)
+    markup.add(
+        InlineKeyboardButton(
+            text='↩',
+            callback_data=f'answer_gears left {direction} {amount}'
+        ),
+        InlineKeyboardButton(
+            text='↪',
+            callback_data=f'answer_gears right {direction} {amount}'
+        )
+    )
+
+    question = (
+        '<b>В какую сторону будет вращаться белый круг?</b>\n\n'
+        f'{arrow}{"⚙"*amount}⚪'
+    )
+    task_message = await call.message.answer(
+        f'<i>{question}</i>',
+        reply_markup=markup
+    )
+
+    for seconds in range(0, 10):
+        if (
+            cur.select("task_message", "userdata").where(
+                user_id=user_id).one() != task_message['message_id']
+        ):
+            await task_message.edit_text(
+                f'<i>{question}\n\nОтветьте на вопрос, пока все квадратики не '
+                f'заполнятся:\n{"🔳"*seconds}{"⬜"*(9-seconds)}\n\n'
+                '💲 Награда за верный ответ: <b>$15</b></i>',
+                reply_markup=markup
+            )
+            await asyncio.sleep(1)
+        else:
+            return
+
+    if (
+        cur.select("task_message", "userdata").where(
+            user_id=user_id).one() != task_message['message_id']
+    ):
+        no_answer_markup = InlineKeyboardMarkup(row_width=2)
+        if (amount % 2 == 1 and dir == 'left') or (
+                amount % 2 == 0 and dir == 'right'):
+            correct_answer = '↩'
+            no_answer_markup.add(
+                InlineKeyboardButton(
+                    text='↩✅',
+                    callback_data='late_answer'
+                ),
+                InlineKeyboardButton(
+                    text='↪❌',
+                    callback_data='late_answer'
+                )
+            )
+        else:
+            correct_answer = '↩'
+            no_answer_markup.add(
+                InlineKeyboardButton(
+                    text='↩✅',
+                    callback_data='late_answer'
+                ),
+                InlineKeyboardButton(
+                    text='↪❌',
+                    callback_data='late_answer'
+                )
+            )
+        no_answer_markup.add(
+            InlineKeyboardButton(
+                text='🔄 Заново',
+                callback_data='play_gears'
+            )
+        )
+
+        cur.update("userdata").add(balance=-10).where(user_id=user_id).commit()
+
+        await task_message.edit_text(
+            f'<i>{question}\n\n<b>Правильный ответ: {correct_answer}</b>'
+            '\n\n<code>Вы не ответили на вопрос.\n💲 Штраф за отсутствие '
+            'ответа: $10</code></i>',
+            reply_markup=no_answer_markup
+        )
+        await call.answer('Раунд закончен')
+
+
+async def answer_gears(call: CallbackQuery,
+                       answer: str, direction: str, amount: int):
+    '''
+    Callback for a gears game answer
+
+    :param call - callback:
+    :param answer - user's answer:
+    :param direction - direction of the first arrow in the question:
+    :param amount - amount of gears in the question:
+    '''
+    user_id = call.from_user.id
+    times = cur.select("gears_today", "userdata").where(user_id=user_id).one()
+    balance = cur.select("balance", "userdata").where(user_id=user_id).one()
+    current_place = cur.select("current_place", "userdata").where(
+        user_id=user_id).one()
+
+    if current_place not in ['Ридипольский завод', 'Котайский электрозавод']:
+        return await call.answer(
+                text=(
+                    '🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
+                    'местности'
+                ),
+                show_alert=True
+            )
+
+    if balance < 10:
+        return await call.answer(
+                text=(
+                    '❌ Вам нужно хотя бы $10, чтобы начать игру'
+                ),
+                show_alert=True
+            )
+
+    if times >= 10:
+        return await call.answer(
+                text=(
+                    '❌ В Шестерёнки можно играть не более 10 раз в день'
+                ),
+                show_alert=True
+            )
+
+    cur.update("userdata").set(task_message=call.message.message_id).where(
+        user_id=user_id).commit()
+
+    if amount % 2 == 1:
+        correct_answer = direction
+    else:
+        correct_answer = 'left' if direction == 'right' else 'right'
+    correct_arrow = '↩' if correct_answer == 'left' else '↪'
+    direction_arrow = '↩' if direction == 'left' else '↪'
+
+    left_text = '↩'
+    right_text = '↪'
+
+    if correct_answer == answer:
+        if answer == 'left':
+            left_text = '↩✅'
+        else:
+            right_text = '↪✅'
+        reward = 15
+        reward_text = 'Вы ответили верно.\n💲 Награда: $15'
+    else:
+        if answer == 'left':
+            left_text = '↩❌'
+        else:
+            right_text = '↪❌'
+        reward = -10
+        reward_text = 'Вы ответили неверно.\n💲 Штраф: $10'
+
+    markup = InlineKeyboardMarkup(row_width=2)
+    markup.add(
+        InlineKeyboardButton(
+            text=left_text,
+            callback_data='late_answer'
+        ),
+        InlineKeyboardButton(
+            text=right_text,
+            callback_data='late_answer'
+        ),
+        InlineKeyboardButton(
+            text='🔄 Заново',
+            callback_data='play_gears'
+        )
+    )
+
+    cur.update("userdata").add(balance=reward).where(user_id=user_id).commit()
+
+    await call.message.edit_text(
+        '<i><b>В какую сторону будет вращаться белый круг?</b>\n\n'
+        f'{direction_arrow}{"⚙"*amount}⚪\n\n<b>Правильный ответ: </b>'
+        f'{correct_arrow}\n\n<code>{reward_text}</code></i>',
+        reply_markup=markup
+    )
+    await call.answer('Раунд закончен')

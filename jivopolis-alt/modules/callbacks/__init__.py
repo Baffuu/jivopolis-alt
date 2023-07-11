@@ -52,7 +52,8 @@ from .traveling import (
 )
 
 from .locations import (
-    farm, milk_cow, mineshaft, go_mining, resource_market
+    farm, milk_cow, mineshaft, go_mining, resource_market,
+    factory, play_gears, answer_gears
 )
 
 from .clans import (
