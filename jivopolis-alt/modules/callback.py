@@ -296,6 +296,17 @@ async def callback_handler(call: CallbackQuery):
                 )
             case 'late_answer':
                 await call.answer('А уже поздно, игра закончилась :(')
+            case 'university':
+                await university(call)
+            case 'play_math':
+                await play_math(call)
+            case ansmath if ansgears.startswith("answer_math "):
+                arguments = ansgears.split(' ')
+                await answer_math(
+                    call, answer=arguments[1], number_1=int(arguments[2]),
+                    operator=arguments[3], number_2=int(arguments[4]),
+                    suggestion=int(arguments[5])
+                )
 
             case 'my_reflink':
                 await my_reflink(call)
