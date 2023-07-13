@@ -995,7 +995,7 @@ async def play_geo(call: CallbackQuery):
 
 
 async def answer_geo(call: CallbackQuery,
-                    answer: str, country: int, capital: int):
+                     answer: str, country: int, capital: int):
     '''
     Callback for a math game answer
 

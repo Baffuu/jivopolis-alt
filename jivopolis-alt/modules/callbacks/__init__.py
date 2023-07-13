@@ -66,5 +66,6 @@ from .shops import (
     shop_24,
     shop,
     moda_menu,
-    ticket_shop
+    ticket_shop,
+    maximdom, maximdom_elevator
 )

@@ -65,7 +65,13 @@ async def moda_menu(call: CallbackQuery) -> None:
         user_id=call.from_user.id).one()
 
     if place != 'ТЦ МиГ':
-        return
+        return await call.answer(
+            text=(
+                '🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
+                'местности'
+            ),
+            show_alert=True
+        )
 
     markup = InlineKeyboardMarkup(row_width=1)
     markup.add(
@@ -97,7 +103,13 @@ async def mall(call: CallbackQuery) -> None:
         user_id=call.from_user.id).one()
 
     if place != 'ТЦ МиГ':
-        return
+        return await call.answer(
+            text=(
+                '🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
+                'местности'
+            ),
+            show_alert=True
+        )
 
     markup = InlineKeyboardMarkup(row_width=1)
     markup.add(
@@ -179,3 +191,99 @@ async def shop_24(call: CallbackQuery) -> None:
         add(*list(filter(lambda item: item is not None, buttons)))
 
     await call.message.answer('<i>Что хотите купить?</i>', reply_markup=markup)
+
+
+async def maximdom(call: CallbackQuery, floor: int) -> None:
+    '''
+    Callback for Maximdom mall
+
+    :param call - callback:
+    :param floor - floor of the mall:
+    '''
+    place = cur.select("current_place", "userdata").where(
+        user_id=call.from_user.id).one()
+
+    if place != 'Площадь Максима':
+        return await call.answer(
+            text=(
+                '🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
+                'местности'
+            ),
+            show_alert=True
+        )
+
+    markup = InlineKeyboardMarkup(row_width=1)
+    match (floor):
+        case 1:
+            markup.add(
+                InlineKeyboardButton(
+                    text='🧱 Строительный магазин',
+                    callback_data='building_shop'
+                ),
+                InlineKeyboardButton(
+                    text='📱 Магазин техники им. Шелби',
+                    callback_data='phone_shop'
+                )
+            )
+        case 3:
+            markup.add(
+                InlineKeyboardButton(
+                    text='🍔 Енот Кебаб',
+                    callback_data='enot_kebab_shop'
+                ),
+                InlineKeyboardButton(
+                    text='🍚 Ресторан Япон Енот',
+                    callback_data='japan_shop'
+                )
+            )
+    markup.add(
+        InlineKeyboardButton(
+            text='🛗 Лифт',
+            callback_data='maximdom_elevator'
+        )
+    )
+
+    await call.message.answer(
+        '<i>🏬 Добро пожаловать в торговый центр Максимдом!'
+        f'\n<b>{floor} этаж</b></i>',
+        reply_markup=markup
+    )
+
+
+async def maximdom_elevator(call: CallbackQuery) -> None:
+    '''
+    Callback for Maximdom elevator menu
+
+    :param call - callback:
+    '''
+    place = cur.select("current_place", "userdata").where(
+        user_id=call.from_user.id).one()
+
+    if place != 'Площадь Максима':
+        return await call.answer(
+            text=(
+                '🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
+                'местности'
+            ),
+            show_alert=True
+        )
+
+    markup = InlineKeyboardMarkup(row_width=1)
+    for floor in range(1, 4):
+        markup.add(
+            InlineKeyboardButton(
+                text=f'🛗 {floor} этаж',
+                callback_data=f'maximdom_floor_{floor}'
+            )
+        )
+    markup.add(
+        InlineKeyboardButton(
+            text='◀ Назад',
+            callback_data='cancel_action'
+        )
+    )
+
+    await call.message.answer(
+        '<i>🏬 Добро пожаловать в торговый центр Максимдом!</i>',
+        reply_markup=markup
+    )
