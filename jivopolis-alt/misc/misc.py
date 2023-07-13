@@ -138,6 +138,11 @@ def get_building(place: str) -> InlineKeyboardButton | None:
                 text="🏫 Ридипольская районная гимназия",
                 callback_data="university"
             )
+        case "Средняя школа Жабинки":
+            button = InlineKeyboardButton(
+                text="🏫 Средняя школа Жабинки",
+                callback_data="university"
+            )
         case "Котайский Мединститут":
             button = InlineKeyboardButton(
                 text="🏫 Котайский институт медицинских наук",
@@ -248,10 +253,10 @@ def get_building(place: str) -> InlineKeyboardButton | None:
                 text="🏬 Центр сбора полезных ископаемых",
                 callback_data="resource_market"
             )
-        case 'Максименка':
+        case 'Площадь Максима':
             button = InlineKeyboardButton(
-                text='🧱 Строительный магазин',
-                callback_data='building_shop'
+                text='🏬 ТЦ Максимдом',
+                callback_data='maximdom_floor_1'
             )
         case "Площадь Админов":
             button = InlineKeyboardButton(

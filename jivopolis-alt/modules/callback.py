@@ -120,7 +120,7 @@ async def callback_handler(call: CallbackQuery):
             case 'phone_shop':
                 await shop(
                     call,
-                    place='Генерала Шелби',
+                    place=['Генерала Шелби', 'Площадь Максима'],
                     items=['phone'],
                     text='📱 Добро пожаловать в магазин техники имени Шелби'
                 )
@@ -137,7 +137,7 @@ async def callback_handler(call: CallbackQuery):
             case 'japan_shop':
                 await shop(
                     call,
-                    place='ТЦ МиГ',
+                    place=['ТЦ МиГ', 'Площадь Максима'],
                     items=[
                         'bento', 'rice', 'pasta'
                     ],
@@ -180,15 +180,15 @@ async def callback_handler(call: CallbackQuery):
             case 'enot_kebab_shop':
                 await shop(
                     call,
-                    place=villages + trains[0],
+                    place=villages + trains[0]+ ['Площадь Максима'],
                     items=[
                         'burger', 'fries', 'shaurma', 'cheburek', 'beer'
                     ],
                     text=(
                         "🍔 Добро пожаловать в закусочную Енот-Кебаб! Здесь вы найдёте лучшую еду "
                         "по лучшим ценам и абсолютно точно не отравитесь! (надеемся)"
-                        "\n\n*вы замечаете надпись* ‼️ Енотов мы больше не продаём: "
-                        "нам запретили разработчики!"
+                        "\n\n*вы замечаете надпись*\n‼️ Енотов мы больше не продаём: "
+                        "нам запретили разработчики"
                     ),
                 )
             case 'botan_garden_shop':
@@ -226,7 +226,7 @@ async def callback_handler(call: CallbackQuery):
             case 'building_shop':
                 await shop(
                     call,
-                    place='Максименка',
+                    place='Площадь Максима',
                     items=['window', 'brick', 'door'],
                     text='🧱 Добро пожаловать в строительный магазин - дом любого мужчины!'
                 )
@@ -273,6 +273,10 @@ async def callback_handler(call: CallbackQuery):
                 await moda_menu(call)
             case 'mall':
                 await mall(call)
+            case maxdom if maxdom.startswith('maximdom_floor_'):
+                await maximdom(call, floor=int(maxdom[15:]))
+            case 'maximdom_elevator':
+                await maximdom_elevator(call)
 
             case 'farm':
                 await farm(call)
@@ -300,12 +304,20 @@ async def callback_handler(call: CallbackQuery):
                 await university(call)
             case 'play_math':
                 await play_math(call)
+            case 'play_geo':
+                await play_geo(call)
             case ansmath if ansgears.startswith("answer_math "):
                 arguments = ansgears.split(' ')
                 await answer_math(
                     call, answer=arguments[1], number_1=int(arguments[2]),
                     operator=arguments[3], number_2=int(arguments[4]),
                     suggestion=int(arguments[5])
+                )
+            case ansgeo if ansgeo.startswith("answer_geo "):
+                arguments = ansgeo.split(' ')
+                await answer_geo(
+                    call, answer=arguments[1], country=int(arguments[2]),
+                    capital=int(arguments[3])
                 )
 
             case 'my_reflink':

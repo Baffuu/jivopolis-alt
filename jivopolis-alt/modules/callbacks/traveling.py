@@ -2590,7 +2590,7 @@ async def tram_crash(call: CallbackQuery):
         )
 
 
-async def walk(call: CallbackQuery, destination: int):
+async def walk(call: CallbackQuery, destination: str):
     '''
     Callback for walking
 
@@ -2607,7 +2607,7 @@ async def walk(call: CallbackQuery, destination: int):
     for walkline in WALK:
         if place in walkline and walkline != WALK[3]:
             index = walkline.index(place)
-    if index == -1:
+    if index == -1 or place == destination:
         return await call.answer(
             text=(
                 '🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
@@ -2620,7 +2620,7 @@ async def walk(call: CallbackQuery, destination: int):
     # from current user's location by walking
 
     exists = any(
-        walkline[index] == destination and walkline != WALK[3] for walkline in WALK # noqa
+        (walkline[index] == destination and walkline != WALK[3]) for walkline in WALK # noqa
     )
     if not exists:
         return await call.answer(
