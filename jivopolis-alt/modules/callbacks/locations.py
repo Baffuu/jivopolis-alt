@@ -12,6 +12,8 @@ from aiogram.types import (
 
 from ...misc import current_time, get_time_units
 
+from ...misc.config import countries, capitals
+
 from ...resources import RESOURCES
 
 
@@ -562,7 +564,8 @@ async def university(call: CallbackQuery):
     current_place = cur.select("current_place", "userdata").where(
         user_id=user_id).one()
 
-    if current_place not in ['Университет', 'Ридипольская гимназия']:
+    if current_place not in ['Университет', 'Ридипольская гимназия',
+                             'Средняя школа Жабинки']:
         return await call.answer(
                 text=(
                     '🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
@@ -574,12 +577,12 @@ async def university(call: CallbackQuery):
     markup = InlineKeyboardMarkup(row_width=1)
     markup.add(
         InlineKeyboardButton(
-            text='➕ Математика',
-            callback_data='play_math'
-        ) if current_place == 'Ридипольская гимназия' else
-        InlineKeyboardButton(
             text='🗺 География',
             callback_data='play_geo'
+        ) if current_place == 'Университет' else
+        InlineKeyboardButton(
+            text='➕ Математика',
+            callback_data='play_math'
         ),
         InlineKeyboardButton(
             text='◀ Вернуться в город',
@@ -587,8 +590,13 @@ async def university(call: CallbackQuery):
         )
     )
 
-    school_name = 'Университет' if current_place == 'Университет' \
-        else 'Гимназию'
+    match(current_place):
+        case 'Университет':
+            school_name = 'Университет'
+        case 'Ридипольская гимназия':
+            school_name = 'Гимназию'
+        case 'Средняя школа Жабинки':
+            school_name = 'Школу'
 
     await call.message.answer(
         f'<i><b>🏫 Добро пожаловать в {school_name}</b>\nЗдесь вы можете'
@@ -611,7 +619,7 @@ async def play_math(call: CallbackQuery):
     current_place = cur.select("current_place", "userdata").where(
         user_id=user_id).one()
 
-    if current_place != 'Ридипольская гимназия':
+    if current_place not in ['Ридипольская гимназия', 'Средняя школа Жабинки']:
         return await call.answer(
                 text=(
                     '🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
@@ -712,11 +720,11 @@ async def play_math(call: CallbackQuery):
             answer = 'Нет'
             no_answer_markup.add(
                 InlineKeyboardButton(
-                    text='Да✅',
+                    text='Да❌',
                     callback_data='late_answer'
                 ),
                 InlineKeyboardButton(
-                    text='Нет❌',
+                    text='Нет✅',
                     callback_data='late_answer'
                 )
             )
@@ -744,7 +752,7 @@ async def answer_math(call: CallbackQuery,
                       answer: str, number_1: int, operator: str,
                       number_2: str, suggestion: int):
     '''
-    Callback for a gears game answer
+    Callback for a math game answer
 
     :param call - callback:
     :param answer - user's answer:
@@ -758,7 +766,7 @@ async def answer_math(call: CallbackQuery,
     current_place = cur.select("current_place", "userdata").where(
         user_id=user_id).one()
 
-    if current_place != 'Ридипольская гимназия':
+    if current_place not in ['Ридипольская гимназия', 'Средняя школа Жабинки']:
         return await call.answer(
                 text=(
                     '🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
@@ -827,6 +835,243 @@ async def answer_math(call: CallbackQuery,
         InlineKeyboardButton(
             text='🔄 Заново',
             callback_data='play_math'
+        )
+    )
+
+    await call.message.edit_text(
+        f'<i>{question}\n\nПравильный ответ: <b>{ru_answer}</b>'
+        f'\n\n<code>{reward_text}</code></i>',
+        reply_markup=markup
+    )
+    await call.answer('Раунд закончен')
+
+
+async def play_geo(call: CallbackQuery):
+    '''
+    Callback for a geography game
+
+    :param call - callback:
+    '''
+    user_id = call.from_user.id
+    last_geography = cur.select("last_geography", "userdata").where(
+        user_id=user_id).one()
+    balance = cur.select("balance", "userdata").where(user_id=user_id).one()
+    current_place = cur.select("current_place", "userdata").where(
+        user_id=user_id).one()
+
+    if current_place != 'Университет':
+        return await call.answer(
+                text=(
+                    '🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
+                    'местности'
+                ),
+                show_alert=True
+            )
+
+    if balance < 10:
+        return await call.answer(
+                text=(
+                    '❌ Вам нужно хотя бы $10, чтобы начать игру'
+                ),
+                show_alert=True
+            )
+
+    if current_time() - last_geography < 3600*4:
+        hours, minutes, seconds = get_time_units(
+            20 * 3600 + current_time() - last_geography)
+        return await call.answer(
+                text=(
+                    '❌ Вы были наказаны за неверный ответ. Вы сможете'
+                    f' играть только через {hours} часов {minutes} минут'
+                    f' {seconds} секунд'
+                ),
+                show_alert=True
+            )
+
+    country = random.randint(0, len(countries))
+    if random.uniform(0, 1) < 0.4:
+        capital = country
+    else:
+        capital = random.randint(0, len(capitals))
+
+    markup = InlineKeyboardMarkup(row_width=2)
+    markup.add(
+        InlineKeyboardButton(
+            text='Да',
+            callback_data=f'answer_geo yes {country} {capital}'
+        ),
+        InlineKeyboardButton(
+            text='Нет',
+            callback_data=f'answer_geo no {country} {capital}'
+        )
+    )
+
+    question = (
+        '<b>Верно ли утверждение?</b>\n\n'
+        f'Столица государства {countries[country]} - '
+        f'<b>{capitals[capital]}</b>'
+    )
+    task_message = await call.message.answer(
+        f'<i>{question}</i>',
+        reply_markup=markup
+    )
+
+    for seconds in range(0, 10):
+        if (
+            cur.select("task_message", "userdata").where(
+                user_id=user_id).one() != task_message['message_id']
+        ):
+            await task_message.edit_text(
+                f'<i>{question}\n\nОтветьте на вопрос, пока все квадратики не '
+                f'заполнятся:\n{"🔳"*seconds}{"⬜"*(9-seconds)}\n\n'
+                '💡 Награда за верный ответ: <b>4 очка</b></i>',
+                reply_markup=markup
+            )
+            await asyncio.sleep(1)
+        else:
+            return
+
+    if (
+        cur.select("task_message", "userdata").where(
+            user_id=user_id).one() != task_message['message_id']
+    ):
+        no_answer_markup = InlineKeyboardMarkup(row_width=2)
+        if (capital == country):
+            answer = 'Да'
+            no_answer_markup.add(
+                InlineKeyboardButton(
+                    text='Да✅',
+                    callback_data='late_answer'
+                ),
+                InlineKeyboardButton(
+                    text='Нет❌',
+                    callback_data='late_answer'
+                )
+            )
+        else:
+            question = (
+                '<b>Верно ли утверждение?</b>\n\nСтолица государства '
+                f'{countries[country]} - <s>{capitals[capital]}</s> '
+                f'<b>{capitals[country]}</b>.\n\n<b>{capitals[capital]}</b> - '
+                f'столица государства <b>{countries[capital]}</b>'
+            )
+            answer = 'Нет'
+            no_answer_markup.add(
+                InlineKeyboardButton(
+                    text='Да❌',
+                    callback_data='late_answer'
+                ),
+                InlineKeyboardButton(
+                    text='Нет✅',
+                    callback_data='late_answer'
+                )
+            )
+        no_answer_markup.add(
+            InlineKeyboardButton(
+                text='🔄 Заново',
+                callback_data='play_geo'
+            )
+        )
+
+        cur.update("userdata").add(balance=-10).where(user_id=user_id).commit()
+        cur.update("userdata").add(last_geography=current_time()).where(
+            user_id=user_id).commit()
+
+        await task_message.edit_text(
+            f'<i>{question}\n\nПравильный ответ: <b>{answer}</b>\n\n'
+            '<code>Вы не ответили на вопрос.\n'
+            '💲 Штраф за отсутствие ответа: $10</code></i>',
+            reply_markup=no_answer_markup
+        )
+        await call.answer('Раунд закончен')
+
+
+async def answer_geo(call: CallbackQuery,
+                      answer: str, country: int, capital: int):
+    '''
+    Callback for a math game answer
+
+    :param call - callback:
+    :param answer - user's answer:
+    :param country - index of the country:
+    :param capital - index of the capital:
+    '''
+    user_id = call.from_user.id
+    balance = cur.select("balance", "userdata").where(user_id=user_id).one()
+    current_place = cur.select("current_place", "userdata").where(
+        user_id=user_id).one()
+
+    if current_place != 'Университет':
+        return await call.answer(
+                text=(
+                    '🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
+                    'местности'
+                ),
+                show_alert=True
+            )
+
+    if balance < 10:
+        return await call.answer(
+                text=(
+                    '❌ Вам нужно хотя бы $10, чтобы начать игру'
+                ),
+                show_alert=True
+            )
+
+    cur.update("userdata").set(task_message=call.message.message_id).where(
+        user_id=user_id).commit()
+
+    correct_answer = 'yes' if country == capital else 'no'
+    ru_answer = 'Да' if correct_answer == 'yes' else 'Нет'
+
+    left_text = 'Да'
+    right_text = 'Нет'
+
+    if correct_answer == answer:
+        if answer == 'yes':
+            left_text = 'Да✅'
+        else:
+            right_text = 'Нет✅'
+        reward_text = 'Вы ответили верно.\n💡 Награда: 4 очка'
+        cur.update("userdata").add(xp=4).where(user_id=user_id).commit()
+    else:
+        if answer == 'yes':
+            left_text = 'Да❌'
+        else:
+            right_text = 'Нет❌'
+        reward_text = 'Вы ответили неверно.\n💲 Штраф: $10'
+        cur.update("userdata").add(balance=-10).where(
+            user_id=user_id).commit()
+        cur.update("userdata").add(last_math=current_time()).where(
+            user_id=user_id).commit()
+
+    if correct_answer == 'yes':
+        question = (
+                '<b>Верно ли утверждение?</b>\n\n'
+                f'Столица государства {countries[country]} - '
+                f'<b>{capitals[capital]}</b>'
+            )
+    else:
+        question = (
+                '<b>Верно ли утверждение?</b>\n\nСтолица государства '
+                f'{countries[country]} - <s>{capitals[capital]}</s> '
+                f'<b>{capitals[country]}</b>.\n\n<b>{capitals[capital]}</b> - '
+                f'столица государства <b>{countries[capital]}</b>'
+            )
+
+    markup = InlineKeyboardMarkup(row_width=2)
+    markup.add(
+        InlineKeyboardButton(
+            text=left_text,
+            callback_data='late_answer'
+        ),
+        InlineKeyboardButton(
+            text=right_text,
+            callback_data='late_answer'
+        ),
+        InlineKeyboardButton(
+            text='🔄 Заново',
+            callback_data='play_geo'
         )
     )
 

@@ -300,12 +300,20 @@ async def callback_handler(call: CallbackQuery):
                 await university(call)
             case 'play_math':
                 await play_math(call)
+            case 'play_geo':
+                await play_geo(call)
             case ansmath if ansgears.startswith("answer_math "):
                 arguments = ansgears.split(' ')
                 await answer_math(
                     call, answer=arguments[1], number_1=int(arguments[2]),
                     operator=arguments[3], number_2=int(arguments[4]),
                     suggestion=int(arguments[5])
+                )
+            case ansgeo if ansgeo.startswith("answer_geo "):
+                arguments = ansgeo.split(' ')
+                await answer_geo(
+                    call, answer=arguments[1], country=int(arguments[2]),
+                    capital=int(arguments[3])
                 )
 
             case 'my_reflink':
