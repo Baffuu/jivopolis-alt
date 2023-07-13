@@ -888,11 +888,19 @@ async def play_geo(call: CallbackQuery):
                 show_alert=True
             )
 
-    country = random.randint(0, len(countries))
+    country = random.randint(0, len(countries) - 1)
     if random.uniform(0, 1) < 0.4:
         capital = country
     else:
-        capital = random.randint(0, len(capitals))
+        if country >= 6:
+            lower_border = country - 6
+        else:
+            lower_border = 0
+        if country <= len(countries) - 7:
+            upper_border = country + 6
+        else:
+            upper_border = len(countries) - 1
+        capital = random.randint(lower_border, upper_border)
 
     markup = InlineKeyboardMarkup(row_width=2)
     markup.add(
@@ -916,14 +924,14 @@ async def play_geo(call: CallbackQuery):
         reply_markup=markup
     )
 
-    for seconds in range(0, 10):
+    for seconds in range(0, 7):
         if (
             cur.select("task_message", "userdata").where(
                 user_id=user_id).one() != task_message['message_id']
         ):
             await task_message.edit_text(
                 f'<i>{question}\n\nОтветьте на вопрос, пока все квадратики не '
-                f'заполнятся:\n{"🔳"*seconds}{"⬜"*(9-seconds)}\n\n'
+                f'заполнятся:\n{"🔳"*seconds}{"⬜"*(6-seconds)}\n\n'
                 '💡 Награда за верный ответ: <b>4 очка</b></i>',
                 reply_markup=markup
             )
@@ -987,7 +995,7 @@ async def play_geo(call: CallbackQuery):
 
 
 async def answer_geo(call: CallbackQuery,
-                      answer: str, country: int, capital: int):
+                    answer: str, country: int, capital: int):
     '''
     Callback for a math game answer
 
