@@ -133,6 +133,11 @@ def get_building(place: str) -> InlineKeyboardButton | None:
                 text="🏫 Живополисский университет",
                 callback_data="university"
             )
+        case "Ридипольская гимназия":
+            button = InlineKeyboardButton(
+                text="🏫 Ридипольская районная гимназия",
+                callback_data="university"
+            )
         case "Котайский Мединститут":
             button = InlineKeyboardButton(
                 text="🏫 Котайский институт медицинских наук",

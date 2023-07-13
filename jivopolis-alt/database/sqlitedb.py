@@ -74,6 +74,11 @@ def create_userdata(cur: fyCursor) -> None:
     register_date   DATETIME        DEFAULT 0               NOT NULL,
     last_fight      DATETIME        DEFAULT 0               NOT NULL,
     prison_started  DATETIME        DEFAULT 0               NOT NULL,
+    last_geography  DATETIME        DEFAULT 0               NOT NULL,
+    last_math       DATETIME        DEFAULT 0               NOT NULL,
+    last_gears      DATETIME        DEFAULT 0               NOT NULL,
+    gears_today     INTEGER         DEFAULT 0               NOT NULL,
+    task_message    INTEGER         DEFAULT 0               NOT NULL,
 
     fyCoin          INTEGER         DEFAULT 0               NOT NULL,
     Mithereum       INTEGER         DEFAULT 0               NOT NULL,
@@ -163,6 +168,7 @@ def create_userdata(cur: fyCursor) -> None:
     hamster         INTEGER         DEFAULT 0               NOT NULL,
     fan             INTEGER         DEFAULT 0               NOT NULL,
     pickaxe         INTEGER         DEFAULT 0               NOT NULL,
+
     cobble          INTEGER         DEFAULT 0               NOT NULL,
     iron            INTEGER         DEFAULT 0               NOT NULL,
     gold            INTEGER         DEFAULT 0               NOT NULL,

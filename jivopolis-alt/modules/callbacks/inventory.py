@@ -114,7 +114,7 @@ async def itemdesc(call: CallbackQuery, user_id: int):
             )
 
     if call.data in limeteds:
-        itemsleft = cur.execute(f"SELECT {item} FROM globaldata").fetchone()[0]
+        itemsleft = cur.select(call.data, "globaldata").one()
 
         if itemsleft > 0:
             itemsleft = (

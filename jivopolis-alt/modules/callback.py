@@ -284,6 +284,29 @@ async def callback_handler(call: CallbackQuery):
                 await go_mining(call)
             case 'resource_market':
                 await resource_market(call)
+            case 'factory':
+                await factory(call)
+            case 'play_gears':
+                await play_gears(call)
+            case ansgears if ansgears.startswith("answer_gears "):
+                arguments = ansgears.split(' ')
+                await answer_gears(
+                    call, answer=arguments[1], direction=arguments[2],
+                    amount=int(arguments[3])
+                )
+            case 'late_answer':
+                await call.answer('А уже поздно, игра закончилась :(')
+            case 'university':
+                await university(call)
+            case 'play_math':
+                await play_math(call)
+            case ansmath if ansgears.startswith("answer_math "):
+                arguments = ansgears.split(' ')
+                await answer_math(
+                    call, answer=arguments[1], number_1=int(arguments[2]),
+                    operator=arguments[3], number_2=int(arguments[4]),
+                    suggestion=int(arguments[5])
+                )
 
             case 'my_reflink':
                 await my_reflink(call)
