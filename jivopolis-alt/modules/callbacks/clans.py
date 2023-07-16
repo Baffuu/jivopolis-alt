@@ -45,18 +45,19 @@ async def create_clan(call: CallbackQuery) -> None:
     except BadRequest as e:
         if str(e) == 'Not enough rights to manage chat invite link':
             await call.message.edit_text(
-                f"{call.message.text}\n\n>>>🚨 Пожалуйста, сначала дайте боту "
-                "административные права."
+                f"{call.message.text}\n\n<i>>>>🚨 Пожалуйста, сначала дайте "
+                "боту права администратора</i>"
             )
         else:
             raise
 
     await tglog(
-        (
-            f"🏘 #new_clan | {await get_embedded_link(user_id)}"
-            f" создал новый клан: <a href='{link}'>{call.message.chat.title}"
-            f"</a>. <code>[{chat_id}]</code>"
-        )
+            message=(
+                f"🏘 {await get_embedded_link(user_id)}"
+                f" создал новый клан: <a href='{link}'>"
+                f"{call.message.chat.title}</a>. <code>[{chat_id}]</code>"
+            ),
+            tag='#new_clan'
     )
     await bot.send_message(
         chat_id,
@@ -85,7 +86,7 @@ async def joinclan(call: CallbackQuery, user_id: int) -> None:
 
     if count < 1:
         return await call.answer(
-            "😓 Похоже, такого клана не существует.",
+            "😓 Похоже, такого клана не существует",
             show_alert=True
         )
     elif count > 1:
@@ -129,7 +130,7 @@ async def leaveclan(call: CallbackQuery) -> None:
 
     if not user_clan or user_clan != call.message.chat.id:
         return await call.answer(
-            "🤥 Но ты ведь не состоишь в этом клане… Нельзя выйти если ты не "
+            "🤥 Но ты ведь не состоишь в этом клане… Нельзя выйти, если ты не "
             "заходил, дорогой!",
             show_alert=True
         )
