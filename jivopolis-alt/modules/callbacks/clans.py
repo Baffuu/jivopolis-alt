@@ -267,8 +267,8 @@ async def clan_top(call: CallbackQuery):
     """
 
     clans = cur.execute(
-        "SELECT * FROM clandata WHERE clan_type=\"public\" AND clan_balance<1000000"
-        " ORDER BY -clan_balance"
+        "SELECT * FROM clandata WHERE clan_type=\"public\" AND "
+        "clan_balance<1000000 ORDER BY -clan_balance"
     )
 
     clan_text = ''

@@ -276,7 +276,7 @@ def get_building(place: str) -> InlineKeyboardButton | None:
 async def log_to_telegram(message: str, tag: str) -> Message:
     return await bot.send_message(
         OfficialChats.LOGCHAT,
-        f"{message} | <i>{tag}</i>"
+        f"<i>{message} | {tag}</i>"
     )
 
 
