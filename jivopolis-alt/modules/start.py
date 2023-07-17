@@ -446,9 +446,9 @@ class StartCommand():
             clan_id=chat.id).one()
 
         text = f"""
-            🏯 Клан {clan_name}{description or ''}
-            \n\n🏬 Штаб-квартира: {HQplace} {f', {address}' if address else ''}
-            \n\n{members_count} 👥 {clan_balance} 💲{top_num} 🔝
+            🏯 <i>Клан <b>{clan_name}</b>{description or ''}\n
+            \n🏬 Штаб-квартира: <b>{HQplace} {f', {address}' if address else ''}
+            </b>\n\n<b>{members_count} 👥 {clan_balance} 💲{top_num} 🔝</b></i>
         """
 
         return (

@@ -140,3 +140,154 @@ async def leaveclan(call: CallbackQuery) -> None:
 
     await call.message.answer(
         f"<i><b>{await get_embedded_link(user_id)}</b> вышел из клана</i>")
+
+
+async def clan_members(call: CallbackQuery) -> None:
+    """
+    Callback for clan members
+
+    :param call - callback:
+    """
+    clan_id = call.message.chat.id
+    count = cur.select("count(*)", "clandata").where(clan_id=clan_id).one()
+
+    if count < 1:
+        return await call.answer(
+            "😓 Похоже, такого клана не существует",
+            show_alert=True
+        )
+    elif count > 1:
+        raise ValueError("found more than one clan with such ID")
+
+    text = ''
+    clan_owner = cur.select("owner_id", "clandata").where(
+        clan_id=clan_id).one()
+    clan_members = cur.select("user_id", "userdata").where(
+        clan_id=clan_id).fetch()
+
+    if clan_owner:
+        text += (
+            f'👑 Создатель клана:\n{await get_embedded_link(clan_owner)}\n\n'
+        )
+    if len(clan_members) > 0:
+        text += '👥 Участники клана:'
+        for member_id in clan_members:
+            text += f'\n{await get_embedded_link(member_id[0])}'
+
+    markup = InlineKeyboardMarkup().add(
+        InlineKeyboardButton(
+            text='◀ Скрыть',
+            callback_data='cancel_action'
+        )
+    )
+    await call.message.answer(f'<i><b>{text}</b></i>', reply_markup=markup)
+
+
+async def call_clan(call: CallbackQuery):
+    """
+    Callback to call all clan members
+
+    :param call - callback:
+    """
+    chat_id = call.message.chat.id
+    count = cur.select("count(*)", "clandata").where(clan_id=chat_id).one()
+
+    if count < 1:
+        return await call.answer(
+            "😓 Похоже, такого клана не существует",
+            show_alert=True
+        )
+    elif count > 1:
+        raise ValueError("found more than one clan with such ID")
+
+    member = await bot.get_chat_member(chat_id, call.from_user.id)
+    if (
+        not member.is_chat_admin()
+        and not member.is_chat_creator()
+    ):
+        return await bot.send_message(
+            chat_id,
+            '👀 <i>Созывать клан может только администратор чата</i>'
+        )
+
+    clan_members = cur.select("user_id", "userdata").where(
+        clan_id=chat_id).fetch()
+    clan_name = cur.select("clan_name", "clandata").where(
+        clan_id=chat_id).one()
+    link = cur.select("link", "clandata").where(
+        clan_id=chat_id).one()
+
+    sent_successfully = 0
+    errors = 0
+    user_not_exists = 0
+    blocked_bot = 0
+    for member_id in clan_members:
+        try:
+            await bot.send_message(
+                chat_id=member_id[0],
+                text=f'<i>📣 Вас созывает клан <b><a href="{link}">'
+                     f'{clan_name}</a></b></i>'
+            )
+            sent_successfully += 1
+        except Exception as e:
+            match (str(e)):
+                case (
+                    "Chat not found" |
+                    "Forbidden: user is deactivated" |
+                    "Forbidden: bot can't send messages to bots"
+                ):
+                    user_not_exists += 1
+                case 'Forbidden: bot was blocked by the user':
+                    blocked_bot += 1
+                case _:
+                    errors += 1
+
+    markup = InlineKeyboardMarkup().add(
+        InlineKeyboardButton(
+            text='✔ Готово',
+            callback_data='cancel_action'
+        )
+    )
+
+    await call.message.answer(
+        '<i><b>📣 Созыв участников завершён</b>\n\n'
+        f'✅ Успешно созвано: <b>{sent_successfully}</b>\n'
+        '🚮 Пользователи не существуют или удалены из Telegram: '
+        f'<b>{user_not_exists}</b>\n✋ Заблокировали Живополис: '
+        f'<b>{blocked_bot}</b>\n❌ Другие ошибки: <b>{errors}</b></i>',
+        reply_markup=markup
+    )
+
+
+async def clan_top(call: CallbackQuery):
+    """
+    Callback to call all clan members
+
+    :param call - callback:
+    """
+
+    clans = cur.execute(
+        "SELECT * FROM clandata WHERE clan_type=\"public\" AND clan_balance<1000000"
+        " ORDER BY -clan_balance"
+    )
+
+    clan_text = ''
+    clan_number = 1
+    for clan in clans:
+        clan_text += (
+            f'{clan_number}. \n<a href="{clan[8]}">{clan[2]}</a> - ${clan[4]}'
+            '\n'
+        )
+        clan_number += 1
+
+    markup = InlineKeyboardMarkup().add(
+        InlineKeyboardButton(
+            text='◀ Скрыть',
+            callback_data='cancel_action'
+        )
+    )
+
+    await call.message.answer(
+        f'<i><b>🏆 Топ кланов по балансу\n\n{clan_text}</b></i>',
+        reply_markup=markup
+    )
