@@ -176,7 +176,7 @@ async def give_money(message: Message, nonick=True):
     if money < amount:
         return await utils.answer(
             message,
-            "💨 Недостаточно денег.",
+            "💨 Недостаточно денег",
             italise=True,
             reply=True
         )

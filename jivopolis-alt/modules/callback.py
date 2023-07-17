@@ -364,6 +364,18 @@ async def callback_handler(call: CallbackQuery):
                 await create_clan(call)
             case buyclan if buyclan.startswith('buyclan_'):
                 await buyclan_(call, call.data.replace('buyclan_', ''))
+            case "clan_members":
+                await clan_members(call)
+            case "call_clan":
+                await call_clan(call)
+            case "clan_top":
+                await clan_top(call)
+            case "clan_settings":
+                await clan_settings(call)
+            case "delete_clan":
+                await delete_clan(call)
+            case "delete_clan_confirm":
+                await delete_clan_confirm(call)
 
             case taxi if taxi.startswith("taxi_page:"):
                 await taxi_page(call, int(call.data.replace("taxi_page:", "")))
