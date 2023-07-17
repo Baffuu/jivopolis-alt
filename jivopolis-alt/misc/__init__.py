@@ -9,6 +9,8 @@ from ..items import Item, ITEMS
 
 from ..resources import Resource, RESOURCES
 
+# from ..clanbuildings import ClanBuilding, CLAN_BUILDINGS
+
 from .lootbox import (
     lootbox_open, LOOTBOX
 )
