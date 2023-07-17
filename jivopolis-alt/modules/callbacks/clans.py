@@ -27,18 +27,18 @@ async def create_clan(call: CallbackQuery) -> None:
         not member.is_chat_admin()
         and not member.is_chat_creator()
     ):
-        return await bot.send_message(
-            chat_id,
-            '👀 <i>Создать клан может только администратор чата</i>'
+        return await call.answer(
+            '👀 Создать клан может только администратор чата',
+            show_alert=True
         )
 
     count = cur.select("count(*)", "clandata").where(clan_id=chat_id).one()
 
     if count >= 1:
-        return await bot.send_message(
-            chat_id,
-            '<i>🚥 Такой клан уже существует. Для создания нового сначала'
-            ' удалите старый.</i>'
+        return await call.answer(
+            '🚥 Такой клан уже существует. Для создания нового сначала'
+            ' распустите старый',
+            show_alert=True
         )
     try:
         link = await insert_clan(call.message.chat, call.from_user)
@@ -53,17 +53,17 @@ async def create_clan(call: CallbackQuery) -> None:
 
     await tglog(
             message=(
-                f"🏘 {await get_embedded_link(user_id)}"
-                f" создал новый клан: <a href='{link}'>"
-                f"{call.message.chat.title}</a>. <code>[{chat_id}]</code>"
+                f"<b>🏘 {await get_embedded_link(user_id)}</b>"
+                f" создал новый клан: <b><a href='{link}'>"
+                f"{call.message.chat.title}</a></b>. <code>[{chat_id}]</code>"
             ),
             tag='#new_clan'
     )
     await bot.send_message(
         chat_id,
         text=(
-            f"<i>🏘 {await get_embedded_link(user_id)} создал новый клан. "
-            "Скорее присоединяйтесь!</i>"
+            f"<i>🏘 <b>{await get_embedded_link(user_id)}</b> создал новый клан"
+            ". Скорее присоединяйтесь!</i>"
         ),
         reply_markup=InlineKeyboardMarkup().add(
             InlineKeyboardButton('➕ Присоединиться', callback_data='join_clan')
@@ -144,7 +144,7 @@ async def leaveclan(call: CallbackQuery) -> None:
 
 async def clan_members(call: CallbackQuery) -> None:
     """
-    Callback for clan members
+    Callback for clan members list
 
     :param call - callback:
     """
@@ -205,9 +205,9 @@ async def call_clan(call: CallbackQuery):
         not member.is_chat_admin()
         and not member.is_chat_creator()
     ):
-        return await bot.send_message(
-            chat_id,
-            '👀 <i>Созывать клан может только администратор чата</i>'
+        return await call.answer(
+            '👀 Созывать клан может только администратор чата',
+            show_alert=True
         )
 
     clan_members = cur.select("user_id", "userdata").where(
@@ -261,14 +261,14 @@ async def call_clan(call: CallbackQuery):
 
 async def clan_top(call: CallbackQuery):
     """
-    Callback to call all clan members
+    Callback for 10 clans with the greatest balance
 
     :param call - callback:
     """
 
     clans = cur.execute(
         "SELECT * FROM clandata WHERE clan_type=\"public\" AND "
-        "clan_balance<1000000 ORDER BY -clan_balance"
+        "clan_balance<1000000 ORDER BY -clan_balance LIMIT 20"
     )
 
     clan_text = ''
@@ -290,4 +290,146 @@ async def clan_top(call: CallbackQuery):
     await call.message.answer(
         f'<i><b>🏆 Топ кланов по балансу\n\n{clan_text}</b></i>',
         reply_markup=markup
+    )
+
+
+async def clan_settings(call: CallbackQuery):
+    """
+    Callback for clan settings
+
+    :param call - callback:
+    """
+    chat_id = call.message.chat.id
+    count = cur.select("count(*)", "clandata").where(clan_id=chat_id).one()
+
+    if count < 1:
+        return await call.answer(
+            "😓 Похоже, такого клана не существует",
+            show_alert=True
+        )
+    elif count > 1:
+        raise ValueError("found more than one clan with such ID")
+
+    member = await bot.get_chat_member(chat_id, call.from_user.id)
+    if (
+        not member.is_chat_admin()
+        and not member.is_chat_creator()
+    ):
+        return await call.answer(
+            '👀 Управлять кланом может только администратор чата',
+            show_alert=True
+        )
+
+    markup = InlineKeyboardMarkup(row_width=1).add(
+        InlineKeyboardButton(
+            text='🗑 Распустить клан',
+            callback_data='delete_clan'
+        ),
+        InlineKeyboardButton(
+            text='◀ Назад',
+            callback_data='cancel_action'
+        )
+    )
+
+    await call.message.answer(
+        '<i>⚙ Настройки клана</i>',
+        reply_markup=markup
+    )
+
+
+async def delete_clan(call: CallbackQuery):
+    """
+    Callback for a clan deleting menu
+
+    :param call - callback:
+    """
+    chat_id = call.message.chat.id
+    user_id = call.from_user.id
+    count = cur.select("count(*)", "clandata").where(clan_id=chat_id).one()
+
+    if count < 1:
+        return await call.answer(
+            "😓 Похоже, такого клана не существует",
+            show_alert=True
+        )
+    elif count > 1:
+        raise ValueError("found more than one clan with such ID")
+
+    owner = cur.select("owner_id", "clandata").where(clan_id=chat_id).one()
+    if owner != user_id:
+        return await call.answer(
+            '👀 Распустить клан может только его создатель',
+            show_alert=True
+        )
+
+    markup = InlineKeyboardMarkup(row_width=1).add(
+        InlineKeyboardButton(
+            text='✅ Подтвердить',
+            callback_data='delete_clan_confirm'
+        ),
+        InlineKeyboardButton(
+            text='❌ Отмена',
+            callback_data='cancel_action'
+        )
+    )
+
+    await call.message.answer(
+        '<i>😨 Вы точно хотите удалить ваш клан вместе со всеми его '
+        'деньгами, дополнениями и постройками? Это действие невозможно '
+        'отменить</i>',
+        reply_markup=markup
+    )
+
+
+async def delete_clan_confirm(call: CallbackQuery):
+    """
+    Callback for clan removal
+
+    :param call - callback:
+    """
+    chat_id = call.message.chat.id
+    user_id = call.from_user.id
+    count = cur.select("count(*)", "clandata").where(clan_id=chat_id).one()
+
+    if count < 1:
+        return await call.answer(
+            "😓 Похоже, такого клана не существует",
+            show_alert=True
+        )
+    elif count > 1:
+        raise ValueError("found more than one clan with such ID")
+
+    owner = cur.select("owner_id", "clandata").where(clan_id=chat_id).one()
+    if owner != user_id:
+        return await call.answer(
+            '👀 Распустить клан может только его создатель',
+            show_alert=True
+        )
+
+    name = cur.select("clan_name", "clandata").where(clan_id=chat_id).one()
+    cur.execute(
+        "DELETE FROM clandata WHERE clan_id=?", (chat_id,)
+    ).commit()
+
+    markup = InlineKeyboardMarkup(row_width=1).add(
+        InlineKeyboardButton(
+            text='😪 Хорошо',
+            callback_data='cancel_action'
+        ),
+        InlineKeyboardButton(
+            text='➕ Создать новый клан',
+            callback_data='create_clan'
+        )
+    )
+    await call.message.answer(
+        '<i>😥 Вот и всё... Ваш клан канул в Лету. Вернуть его невозможно</i>',
+        reply_markup=markup
+    )
+
+    await tglog(
+            message=(
+                f"😪 <b>{await get_embedded_link(user_id)}</b>"
+                f" распустил клан <b>{name}</b>. <code>[{chat_id}]</code>"
+            ),
+            tag='#delete_clan'
     )
