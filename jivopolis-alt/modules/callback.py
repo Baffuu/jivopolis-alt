@@ -510,6 +510,8 @@ async def callback_handler(call: CallbackQuery):
                 await tram_back(call)
             case walkname if walkname.startswith("walk_"):
                 await walk(call, destination=walkname[5:])
+            case "local_clans":
+                await local_clans(call)
 
             case gpscat if gpscat.startswith("gps_category_"):
                 await gps_category(call, category=gpscat.replace("gps_category_", ""))

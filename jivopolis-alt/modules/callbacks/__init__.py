@@ -48,7 +48,7 @@ from .traveling import (
     businessclass_lounge, go_bytrain, buscall, regbuscall,
     go_bybus, go_byshuttle, tramcall, tram_lounge, proceed_tram,
     tram_forward, tram_back, walk, gps_category, gps_location,
-    gps_transport, car_menu_page
+    gps_transport, car_menu_page, local_clans
 )
 
 from .locations import (

@@ -2641,3 +2641,43 @@ async def walk(call: CallbackQuery, destination: str):
     await tostation(call.from_user.id, target_station=destination)
 
     await city(call.message, call.from_user.id)
+
+
+async def local_clans(call: CallbackQuery):
+    '''
+    Callback for walking
+
+    :param call - callback:
+    :param destination - name of the place to go to:
+    '''
+    user_id = call.from_user.id
+    place = cur.select("current_place", "userdata").where(
+        user_id=user_id).one()
+
+    count = cur.select("count(*)", "clandata").where(
+        HQ_place=place, clan_type="public"
+    ).one()
+    
+    if count == 0:
+        text = '😪 В вашей местности нет кланов'
+    else:
+        text = f'🏬 Кланы в местности <b>{place}</b>:\n'
+        clans = cur.execute(
+            "SELECT * FROM clandata WHERE HQ_place=? AND clan_type=? LIMIT 40",
+            (place, 'public',)).fetchall()
+        for clan_row in clans:
+            text += (
+                f'\n<b>{clan_row[7]}. <a href="{clan_row[8]}">'
+                f'{clan_row[2]}</a></b>'
+            )
+
+    markup = InlineKeyboardMarkup(row_width=1).add(
+        InlineKeyboardButton(
+            text='✅ Готово',
+            callback_data='cancel_action'
+        )
+    )
+    await call.message.answer(
+        f'<i>{text}</i>', reply_markup=markup
+    )
+    
