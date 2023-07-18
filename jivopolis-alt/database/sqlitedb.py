@@ -1,4 +1,5 @@
-from fyCursor import connect, fyCursor
+import contextlib
+from fyCursor import connect, fyCursor, Table, Field, DATATYPES
 import sqlite3
 
 from typing import Tuple, Optional, NoReturn, Any
@@ -10,25 +11,32 @@ from aiogram.types import User, Chat
 from aiogram.utils.deep_linking import encode_payload
 
 
-def connect_database() -> Tuple[sqlite3.Connection, fyCursor] | NoReturn:
+def connect_database() -> Tuple[
+    sqlite3.Connection,
+    fyCursor,
+    dict[str, Table]
+] | NoReturn:
     """
     connects database, creates tables if they do not exists, etc.
     """
     cur = connect('database.db')
     if conn := cur.connection:
-        _connect_tables(cur)
-        return conn, cur
+        tables = _connect_tables(cur)
+        return conn, cur, tables
     logger.critical('database is not connected')
     raise RuntimeError('database is not connected')
 
 
-def _connect_tables(cur: fyCursor):
+def _connect_tables(cur: fyCursor) -> dict[str, Table]:
     create_userdata(cur)
     create_globaldata(cur)
     create_clandata(cur)
     create_cryptodata(cur)
-    create_marketplace(cur)
-    return logger.success('Database connected')
+    marketplace = create_marketplace(cur)
+    logger.success('Database connected')
+    return {
+        "marketplace": marketplace
+    }
 
 
 def create_userdata(cur: fyCursor) -> None:
@@ -217,11 +225,8 @@ def create_clandata(cur: fyCursor) -> None:
 
 
 def create_cryptodata(cur: fyCursor) -> None:
-    try:
-        table = cur.execute("""SELECT * FROM cryptodata""").fetchone()
-    except sqlite3.OperationalError:
-        table = False
-    if table:
+    with contextlib.suppress(sqlite3.OperationalError):
+        cur.execute("""SELECT * FROM cryptodata""").fetchone()
         return
 
     cur.execute("""
@@ -246,17 +251,18 @@ def create_cryptodata(cur: fyCursor) -> None:
         cur.execute(f"INSERT INTO cryptodata(crypto) VALUES (\"{i}\")")
 
 
-def create_marketplace(cur: fyCursor) -> None:
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS
-    marketplace(
-        id INTEGER PRIMARY KEY,
-        type TEXT NOT NULL,
-        seller_id INTEGER NOT NULL,
-        put_up_date DATETIME,
-        cost INTEGER NOT NULL
-    )
-    """)
+def create_marketplace(cur: fyCursor) -> Table:
+    fields = {
+        "id": Field(primary_key=True, type=DATATYPES.INTEGER),
+        "type": Field(nullable=False, type=DATATYPES.TEXT),
+        "seller_id": Field(nullable=False, type=DATATYPES.INTEGER),
+        "put_up_date": Field(type=DATATYPES.TIMESTAMP),
+        "cost": Field(nullable=False, type=DATATYPES.INTEGER)
+    }
+
+    global market_table
+    market_table = Table(name="marketplace", cursor=cur, kwargs_fields=fields)
+    return market_table.create(True)
 
 
 async def insert_clan(
