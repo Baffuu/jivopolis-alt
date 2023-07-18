@@ -378,17 +378,19 @@ async def local_people(call: CallbackQuery):
     '''
     place = cur.select("current_place", "userdata").where(
         user_id=call.from_user.id).one()
-    usercount = cur.select("count(*)", "userdata").where(
-        current_place=place).one()
+    count = cur.execute(
+            "SELECT count(*) FROM userdata WHERE current_place=? AND "
+            "profile_type=?", (place, 'public',)).fetchall()[0][0]
 
-    if usercount <= 1:
+    if count <= 1:
         return await call.message.answer(
             "<i>👤 Вы стоите один, оглядываясь по сторонам…\n"
             "\n😓 В вашей местности не найдено людей. Помимо вас, "
             "само собой</i>"
         )
 
-    cur.execute(f"SELECT * FROM userdata WHERE current_place = '{place}'")
+    cur.execute("SELECT * FROM userdata WHERE current_place = ? "
+                "AND profile_type = ? LIMIT 40", (place, "public",))
 
     users = ''.join(
         [
@@ -396,8 +398,16 @@ async def local_people(call: CallbackQuery):
             for index, row in enumerate(cur.fetchall(), start=1)
         ]
     )
+
+    markup = InlineKeyboardMarkup().add(
+        InlineKeyboardButton(
+            text="◀ Назад",
+            callback_data="cancel_action"
+        )
+    )
     await call.message.answer(
-        f'<i>👤 Пользователи в местности <b>{place}</b>: <b>{users}</b></i>')
+        f'<i>👤 Пользователи в местности <b>{place}</b>: <b>{users}</b></i>',
+        reply_markup=markup)
 
 
 async def delivery_menu(call: CallbackQuery) -> None:
@@ -2645,19 +2655,18 @@ async def walk(call: CallbackQuery, destination: str):
 
 async def local_clans(call: CallbackQuery):
     '''
-    Callback for walking
+    Callback for local clans
 
     :param call - callback:
-    :param destination - name of the place to go to:
     '''
     user_id = call.from_user.id
     place = cur.select("current_place", "userdata").where(
         user_id=user_id).one()
 
-    count = cur.select("count(*)", "clandata").where(
-        HQ_place=place, clan_type="public"
-    ).one()
-    
+    count = cur.execute(
+            "SELECT count(*) FROM clandata WHERE HQ_place=? AND clan_type=?",
+            (place, 'public',)).one()
+
     if count == 0:
         text = '😪 В вашей местности нет кланов'
     else:
@@ -2673,11 +2682,10 @@ async def local_clans(call: CallbackQuery):
 
     markup = InlineKeyboardMarkup(row_width=1).add(
         InlineKeyboardButton(
-            text='✅ Готово',
+            text='◀ Назад',
             callback_data='cancel_action'
         )
     )
     await call.message.answer(
         f'<i>{text}</i>', reply_markup=markup
     )
-    
