@@ -356,6 +356,7 @@ async def callback_handler(call: CallbackQuery):
                 await economics(call)
             case 'shop_24':
                 await shop_24(call)
+
             case 'join_clan':
                 await joinclan(call, call.from_user.id)
             case 'leave_clan':
@@ -376,6 +377,8 @@ async def callback_handler(call: CallbackQuery):
                 await delete_clan(call)
             case "delete_clan_confirm":
                 await delete_clan_confirm(call)
+            case "toggle_clan_type":
+                await toggle_clan_type(call)
 
             case taxi if taxi.startswith("taxi_page:"):
                 await taxi_page(call, int(call.data.replace("taxi_page:", "")))

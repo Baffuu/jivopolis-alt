@@ -320,7 +320,15 @@ async def clan_settings(call: CallbackQuery):
             show_alert=True
         )
 
+    clan_type = cur.select("clan_type", "clandata").where(
+        clan_id=chat_id).one()
+    clan_type_ru = 'Частный' if clan_type == 'private' else 'Публичный'
+
     markup = InlineKeyboardMarkup(row_width=1).add(
+        InlineKeyboardButton(
+            text=f'🔐 Тип клана: {clan_type_ru}',
+            callback_data='toggle_clan_type'
+        ),
         InlineKeyboardButton(
             text='🗑 Распустить клан',
             callback_data='delete_clan'
@@ -432,4 +440,58 @@ async def delete_clan_confirm(call: CallbackQuery):
                 f" распустил клан <b>{name}</b>. <code>[{chat_id}]</code>"
             ),
             tag='#delete_clan'
+    )
+
+
+async def toggle_clan_type(call: CallbackQuery):
+    """
+    Callback for a clan type changing setting
+
+    :param call - callback:
+    """
+    chat_id = call.message.chat.id
+    count = cur.select("count(*)", "clandata").where(clan_id=chat_id).one()
+
+    if count < 1:
+        return await call.answer(
+            "😓 Похоже, такого клана не существует",
+            show_alert=True
+        )
+    elif count > 1:
+        raise ValueError("found more than one clan with such ID")
+
+    member = await bot.get_chat_member(chat_id, call.from_user.id)
+    if (
+        not member.is_chat_admin()
+        and not member.is_chat_creator()
+    ):
+        return await call.answer(
+            '👀 Управлять кланом может только администратор чата',
+            show_alert=True
+        )
+
+    clan_type = cur.select("clan_type", "clandata").where(
+        clan_id=chat_id).one()
+    new_clan_type = 'public' if clan_type == 'private' else 'private'
+    new_clan_type_ru = 'Публичный' if new_clan_type == 'public' else 'Частный'
+
+    if call.message.chat.username is None:
+        chat_data = await bot.get_chat(chat_id)
+        username = chat_data.invite_link
+    else:
+        username = f't.me/{call.message.chat.username}'
+
+    cur.update("clandata").set(clan_type=new_clan_type).where(
+        clan_id=chat_id).commit()
+    cur.update("clandata").set(link=username).where(clan_id=chat_id).commit()
+
+    markup = InlineKeyboardMarkup(row_width=1).add(
+        InlineKeyboardButton(
+            text='✅ Готово',
+            callback_data='cancel_action'
+        )
+    )
+    await call.message.answer(
+        f'<i>🥳 Тип вашего клана изменён на <b>{new_clan_type_ru}</b></i>',
+        reply_markup=markup
     )

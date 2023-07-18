@@ -59,7 +59,8 @@ from .locations import (
 
 from .clans import (
     create_clan, joinclan, leaveclan, clan_members, call_clan,
-    clan_top, clan_settings, delete_clan, delete_clan_confirm
+    clan_top, clan_settings, delete_clan, delete_clan_confirm,
+    toggle_clan_type
 )
 
 from .shops import (
