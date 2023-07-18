@@ -447,7 +447,7 @@ class StartCommand():
 
         text = f"""
             🏯 <i>Клан <b>{clan_name}</b>{description or ''}\n
-            \n🏬 Штаб-квартира: <b>{HQplace} {f', {address}' if address else ''}
+            \n🏬 Штаб-квартира: <b>{HQplace}{f', {address}' if address else ''}
             </b>\n\n<b>{members_count} 👥 {clan_balance} 💲{top_num} 🔝</b></i>
         """
 

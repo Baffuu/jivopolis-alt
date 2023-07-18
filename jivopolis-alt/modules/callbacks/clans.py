@@ -323,11 +323,22 @@ async def clan_settings(call: CallbackQuery):
     clan_type = cur.select("clan_type", "clandata").where(
         clan_id=chat_id).one()
     clan_type_ru = 'Частный' if clan_type == 'private' else 'Публичный'
+    clan_hq = cur.select("HQ_place", "clandata").where(
+        clan_id=chat_id).one()
+    user_place = cur.select("current_place", "userdata").where(
+        user_id=call.from_user.id).one()
 
     markup = InlineKeyboardMarkup(row_width=1).add(
         InlineKeyboardButton(
             text=f'🔐 Тип клана: {clan_type_ru}',
             callback_data='toggle_clan_type'
+        ),
+        InlineKeyboardButton(
+            text=f'🏬 Построить ШК: {user_place}',
+            callback_data='clan_hq'
+        ) if clan_hq == 'не установлено' else InlineKeyboardButton(
+            text='🏬❌ Снести штаб-квартиру',
+            callback_data='clan_hq'
         ),
         InlineKeyboardButton(
             text='🗑 Распустить клан',
@@ -495,3 +506,66 @@ async def toggle_clan_type(call: CallbackQuery):
         f'<i>🥳 Тип вашего клана изменён на <b>{new_clan_type_ru}</b></i>',
         reply_markup=markup
     )
+
+
+async def clan_hq(call: CallbackQuery):
+    """
+    Callback for building or demolition of clan headquarters
+
+    :param call - callback:
+    """
+    chat_id = call.message.chat.id
+    count = cur.select("count(*)", "clandata").where(clan_id=chat_id).one()
+
+    if count < 1:
+        return await call.answer(
+            "😓 Похоже, такого клана не существует",
+            show_alert=True
+        )
+    elif count > 1:
+        raise ValueError("found more than one clan with such ID")
+
+    member = await bot.get_chat_member(chat_id, call.from_user.id)
+    if (
+        not member.is_chat_admin()
+        and not member.is_chat_creator()
+    ):
+        return await call.answer(
+            '👀 Управлять кланом может только администратор чата',
+            show_alert=True
+        )
+
+    clan_hq = cur.select("HQ_place", "clandata").where(
+        clan_id=chat_id).one()
+    user_place = cur.select("current_place", "userdata").where(
+        user_id=call.from_user.id).one()
+
+    markup = InlineKeyboardMarkup(row_width=1).add(
+        InlineKeyboardButton(
+            text='✅ Готово',
+            callback_data='cancel_action'
+        )
+    )
+
+    if clan_hq == 'не установлено':
+        address = cur.select("MAX(address)+1", "clandata").where(
+            HQ_place=user_place).one()
+        address = address or 1
+        cur.update("clandata").set(HQ_place=user_place).where(
+            clan_id=chat_id).commit()
+        cur.update("clandata").set(address=address).where(
+            clan_id=chat_id).commit()
+        await call.message.answer(
+            f'<i>🥳 Штаб-квартира построена по адресу <b>{user_place}, '
+            f'{address}</b></i>',
+            reply_markup=markup
+        )
+    else:
+        cur.update("clandata").set(HQ_place='не установлено').where(
+            clan_id=chat_id).commit()
+        cur.update("clandata").set(address=0).where(
+            clan_id=chat_id).commit()
+        await call.message.answer(
+            '<i>😪 Штаб-квартира вашего клана снесена</i>',
+            reply_markup=markup
+        )

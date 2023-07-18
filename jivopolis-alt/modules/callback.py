@@ -379,6 +379,8 @@ async def callback_handler(call: CallbackQuery):
                 await delete_clan_confirm(call)
             case "toggle_clan_type":
                 await toggle_clan_type(call)
+            case "clan_hq":
+                await clan_hq(call)
 
             case taxi if taxi.startswith("taxi_page:"):
                 await taxi_page(call, int(call.data.replace("taxi_page:", "")))
