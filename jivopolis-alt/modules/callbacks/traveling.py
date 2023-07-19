@@ -379,8 +379,8 @@ async def local_people(call: CallbackQuery):
     place = cur.select("current_place", "userdata").where(
         user_id=call.from_user.id).one()
     count = cur.execute(
-            "SELECT count(*) FROM userdata WHERE current_place=? AND "
-            "profile_type=?", (place, 'public',)).fetchall()[0][0]
+            f"SELECT count(*) FROM userdata WHERE current_place='{place}'"
+            " AND profile_type='public'").fetchall()[0][0]
 
     if count <= 1:
         return await call.message.answer(
@@ -389,8 +389,8 @@ async def local_people(call: CallbackQuery):
             "само собой</i>"
         )
 
-    cur.execute("SELECT * FROM userdata WHERE current_place = ? "
-                "AND profile_type = ? LIMIT 40", (place, "public",))
+    cur.execute(f"SELECT * FROM userdata WHERE current_place = '{place}' "
+                "AND profile_type = 'public' LIMIT 40")
 
     users = ''.join(
         [
@@ -2664,16 +2664,15 @@ async def local_clans(call: CallbackQuery):
         user_id=user_id).one()
 
     count = cur.execute(
-            "SELECT count(*) FROM clandata WHERE HQ_place=? AND clan_type=?",
-            (place, 'public',)).one()
+            f"SELECT count(*) FROM clandata WHERE HQ_place='{place}'"
+            " AND clan_type='public'").fetchall()[0][0]
 
     if count == 0:
         text = '😪 В вашей местности нет кланов'
     else:
         text = f'🏬 Кланы в местности <b>{place}</b>:\n'
-        clans = cur.execute(
-            "SELECT * FROM clandata WHERE HQ_place=? AND clan_type=? LIMIT 40",
-            (place, 'public',)).fetchall()
+        clans = cur.execute(f"SELECT * FROM clandata WHERE HQ_place = '{place}"
+                            "' AND clan_type = 'public' LIMIT 40").fetchall()
         for clan_row in clans:
             text += (
                 f'\n<b>{clan_row[7]}. <a href="{clan_row[8]}">'
