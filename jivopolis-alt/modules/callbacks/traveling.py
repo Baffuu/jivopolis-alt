@@ -3,7 +3,9 @@ import random
 import asyncio
 
 from ... import logger, bot
-from ...misc import get_building, get_embedded_link, ITEMS
+from ...misc import (
+    get_building, get_embedded_link, ITEMS, get_embedded_clan_link
+)
 from ...misc.misc import remaining, isinterval
 from ...misc.constants import (MINIMUM_CAR_LEVEL, MAXIMUM_DRIVE_MENU_SLOTS,
                                MAP, REGIONAL_MAP)
@@ -382,11 +384,19 @@ async def local_people(call: CallbackQuery):
             f"SELECT count(*) FROM userdata WHERE current_place='{place}'"
             " AND profile_type='public'").fetchall()[0][0]
 
+    markup = InlineKeyboardMarkup().add(
+        InlineKeyboardButton(
+            text="◀ Назад",
+            callback_data="cancel_action"
+        )
+    )
+
     if count <= 1:
         return await call.message.answer(
             "<i>👤 Вы стоите один, оглядываясь по сторонам…\n"
             "\n😓 В вашей местности не найдено людей. Помимо вас, "
-            "само собой</i>"
+            "само собой</i>",
+            reply_markup=markup
         )
 
     cur.execute(f"SELECT * FROM userdata WHERE current_place = '{place}' "
@@ -399,14 +409,8 @@ async def local_people(call: CallbackQuery):
         ]
     )
 
-    markup = InlineKeyboardMarkup().add(
-        InlineKeyboardButton(
-            text="◀ Назад",
-            callback_data="cancel_action"
-        )
-    )
     await call.message.answer(
-        f'<i>👤 Пользователи в местности <b>{place}</b>: <b>{users}</b></i>',
+        f'<i>👤 Пользователи в местности <b>{place}</b>:\n<b>{users}</b></i>',
         reply_markup=markup)
 
 
@@ -2667,24 +2671,28 @@ async def local_clans(call: CallbackQuery):
             f"SELECT count(*) FROM clandata WHERE HQ_place='{place}'"
             " AND clan_type='public'").fetchall()[0][0]
 
-    if count == 0:
-        text = '😪 В вашей местности нет кланов'
-    else:
-        text = f'🏬 Кланы в местности <b>{place}</b>:\n'
-        clans = cur.execute(f"SELECT * FROM clandata WHERE HQ_place = '{place}"
-                            "' AND clan_type = 'public' LIMIT 40").fetchall()
-        for clan_row in clans:
-            text += (
-                f'\n<b>{clan_row[7]}. <a href="{clan_row[8]}">'
-                f'{clan_row[2]}</a></b>'
-            )
-
     markup = InlineKeyboardMarkup(row_width=1).add(
         InlineKeyboardButton(
             text='◀ Назад',
             callback_data='cancel_action'
         )
     )
+
+    if count == 0:
+        return await call.message.answer(
+            '😪 <i>В вашей местности нет кланов</i>',
+            reply_markup=markup)
+    else:
+        text = f'🏬 Кланы в местности {place}'
+        cur.execute(f"SELECT * FROM clandata WHERE HQ_place = '{place}"
+                    "' AND clan_type = 'public' LIMIT 40")
+    clans = ''.join(
+        [
+            f'\n{row[7]}. {await get_embedded_clan_link(row[1])}'
+            for row in cur.fetchall()
+        ]
+    )
+
     await call.message.answer(
-        f'<i>{text}</i>', reply_markup=markup
+        f'<i><b>{text}:\n{clans}</b></i>', reply_markup=markup
     )
