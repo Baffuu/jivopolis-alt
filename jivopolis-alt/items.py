@@ -6,7 +6,7 @@ from typing import Literal, Union, Optional, Any
 class Item():
     name: str
     ru_name: str
-    emoji: Optional[str] = '🌀'
+    emoji: str = '🌀'
     cost: int = -1
     type: Optional[str] = None
     type_param: Optional[Union[str, int, list[Any]]] = None
