@@ -31,7 +31,6 @@ async def get_link(
     if encoded_id and not user_id:
         user_id = decode_payload(encoded_id)
     me = await bot.get_me()
-
     return f"https://t.me/{me.username}?start={user_id}"
 
 

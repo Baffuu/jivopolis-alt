@@ -1,6 +1,7 @@
 import contextlib
+
 from ..database import cur
-from ..database.functions import check
+from ..database.functions import check, itemdata
 from ..misc import get_embedded_link, get_link, get_mask
 from aiogram.types import (
     InlineQuery,
@@ -8,10 +9,12 @@ from aiogram.types import (
     InputTextMessageContent,
     InlineKeyboardButton,
     InlineKeyboardMarkup,
-    ChosenInlineResult
+    ChosenInlineResult,
 )
 from .. import logger, bot, Dispatcher, tglog
+from .marketplace.marketplace import market
 from ..misc import OfficialChats
+from ..items import ITEMS
 
 
 async def inline_mode(query: InlineQuery):
@@ -94,7 +97,7 @@ async def inline_mode(query: InlineQuery):
             balance = 0
             data = None
 
-        match(data):
+        match (data):
             case None:
                 pass
             case give if give.startswith('$'):
@@ -102,6 +105,9 @@ async def inline_mode(query: InlineQuery):
                     data, balance, results,
                     user_id, mask, nick  # type: ignore
                 )
+            case sell if sell.startswith("%"):
+                results = await sell_query(data, user_id)
+
         return await bot.answer_inline_query(query.id, results, 1)
     except Exception as e:
         logger.exception(e)
@@ -112,7 +118,6 @@ async def on_pressed_inline_query(inline: ChosenInlineResult):
         user_id = inline.from_user.id
         # nick = cur.execute(f"SELECT nickname FROM userdata WHERE user_id={user_id}").fetchone()[0] # noqa
         data = inline.query
-
         if data.startswith('$'):
             money = int(data[1:])
             if money > 0:
@@ -126,6 +131,24 @@ async def on_pressed_inline_query(inline: ChosenInlineResult):
                 await tglog(
                     f'<i>💲 <b>{await get_embedded_link(user_id)}</b> '
                     f'выставил счёт на <b>${money}</b>', '#user_bill</i>'
+                )
+        elif data.startswith("%"):
+            cost = int(data[1:])
+
+            if cost > 0:  # if item is not free
+                item = ITEMS[inline.result_id.split(" ")[1]]
+
+                if not inline.result_id.split(" ")[4]:
+                    market.publish(
+                        user_id,
+                        item,
+                        cost
+                    )
+
+                await tglog(
+                    f"{await get_embedded_link(user_id)} продаёт {item.emoji}"
+                    f"{item.ru_name} за ${cost}",
+                    "#user_sellitem"
                 )
 
 
@@ -197,6 +220,86 @@ async def givemoney_query(
                 '🚫 Введите правильное число'),
         ))
 
+    return results
+
+
+async def sell_query(
+    text: str,
+    user_id: int
+):
+    post_on_market = "-b" in text  # todo: make constant for "-b"
+    if post_on_market:
+        text = text.replace("-b", "")
+    try:
+        money = int(text[1:])
+    except Exception:
+        money = -1
+
+    markup = InlineKeyboardMarkup()
+    index = 0
+    results: list[InlineQueryResultArticle] = []
+
+    for itemname in ITEMS:
+        if index > 15:  # to show only first 15 results
+            # todo: make constant
+            break
+
+        itemdata_ = await itemdata(user_id, itemname)
+
+        if itemdata_ == "emptyslot" or itemdata_ is None:
+            continue
+
+        if money == 0:
+            markup.inline_keyboard
+            markup.inline_keyboard = [
+                [
+                    InlineKeyboardButton(
+                        text='Забрать бесплатно',
+                        callback_data=f'slot {itemname} {money} {user_id} {post_on_market}'  # noqa: E501
+                    )
+                ]
+            ]
+        elif money > 0:
+            markup.inline_keyboard = [
+                [
+                    InlineKeyboardButton(
+                        text=f'Купить за ${money}',
+                        callback_data=f'slot {itemname} {money} {user_id} {post_on_market}'  # noqa: E501
+                    )
+                ]
+            ]
+
+        amount = cur.select(itemname, "userdata").where(
+            user_id=user_id).one()
+        item = ITEMS[itemname]
+        results.append(
+            InlineQueryResultArticle(
+                id=f'slot {itemname} {money}',
+                title=f'Продать {item.emoji}{item.ru_name} за ${money}',
+                description=f'У вас этого предмета: {amount}',
+                input_message_content=InputTextMessageContent(
+                    f'<i>{await get_embedded_link(user_id)} предлагает вам'
+                    f' <b>{item.emoji} {item.ru_name}</b> за <b>${money}</'
+                    'b></i>'
+                ),
+                reply_markup=markup,
+            )
+        )
+        index += 1
+
+    if money < 0:
+        results.append(
+            InlineQueryResultArticle(
+                id='error',
+                title='🚫 Продать товар за $X',
+                description='❌ Введите целое неотрицательное число после'
+                            f' знака ${money}',
+                input_message_content=InputTextMessageContent(
+                    '<i>Нужно ввести целое неотрицательное число</i>'
+                ),
+                reply_markup=markup,
+            )
+        )
     return results
 
 
