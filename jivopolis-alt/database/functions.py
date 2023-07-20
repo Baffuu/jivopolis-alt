@@ -29,7 +29,29 @@ from aiogram.types import (
 from aiogram.utils.text_decorations import HtmlDecoration
 
 
-async def can_interact(user_id: int | str) -> None:
+async def get_process(user_id: int | str) -> str:
+    '''
+    Get current process performed by the user.
+
+    :param user_id - user's id:
+    '''
+    try:
+        return cur.select("process", "userdata").where(
+            user_id=user_id).one()
+
+    except TypeError:
+        if (
+            message.chat.type == "private"
+            and message.text.lower() != 'создать персонажа'
+        ):
+            cur.update("userdata").set(process="login").where(
+                user_id=user_id).commit()
+            return "login"
+        else:
+            return ""
+
+
+async def can_interact(user_id: int | str) -> bool:
     '''
     Checks whether the user can interact with the bot.
     Returns false if the user is dead or banned.
@@ -57,7 +79,6 @@ async def can_interact(user_id: int | str) -> None:
         )       
     
     return not (is_dead or is_banned)
-
 
 
 async def check(user_id: int | str, chat_id: int | str) -> None | Message:

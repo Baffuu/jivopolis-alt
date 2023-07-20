@@ -7,11 +7,12 @@ from ..filters import RequireBetaFilter
 from .emoji_handler import slot_machine
 from .. import dp, cur, bot, tglog, get_embedded_link
 from ..utils import is_allowed_nonick
-from ..database.functions import profile, can_interact
+from ..database.functions import profile, can_interact, get_process
 from ..misc.config import hellos
 from .callbacks.inventory import lootbox_button
 from aiogram.types import Message, ChatType
 from aiogram.dispatcher.filters import Text
+from .callbacks.traveling import find_address
 
 
 def contains(text: str | Iterable, content: str) -> bool:
@@ -47,7 +48,7 @@ async def chatbot_functions(message: Message):
             del _message
         case t if t.startswith('выйди'):
             await message.reply(
-                "😭 Мне следует уйти? Очень жаль. Прощайте, друзья…"
+                "<i>😭 Мне следует уйти? Очень жаль. Прощайте, друзья…</i>"
             )
             await bot.leave_chat(message.chat.id)
         case t if t.startswith(('передать ', 'пожертвовать ')):
@@ -162,6 +163,22 @@ async def lootbox_text(message: Message, nonick: bool = True):
         return
     with contextlib.suppress(Exception):
         await lootbox_button(message.from_user.id, message)
+
+
+@dp.message_handler(
+    lambda message: not message.text.startswith('/'),
+    RequireBetaFilter())
+async def processes_text(message: Message):
+    if not await can_interact(message.from_user.id):
+        return
+    process = await get_process(message.from_user.id)
+    match (process):
+        case 'search_address':
+            await find_address(message)
+        case _:
+            return
+    cur.update("userdata").set(process='').where(
+        user_id=message.from_user.id).commit()
 
 
 async def give_money(message: Message, nonick=True):

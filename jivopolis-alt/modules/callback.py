@@ -73,6 +73,10 @@ async def callback_handler(call: CallbackQuery):
                 await itemdesc(call, call.from_user.id)
             case 'cancel_action':
                 await bot.delete_message(call.message.chat.id, call.message.message_id)
+            case 'cancel_process':
+                await bot.delete_message(call.message.chat.id, call.message.message_id)
+                cur.update("userdata").set(process='').where(
+                    user_id=call.from_user.id).commit()
             case 'no_items_in_inventory':
                 await call.answer('🙉  У вас в инвентаре нет предметов. Но вы всегда можете их купить', show_alert=True)
             case 'put_mask_off':
@@ -512,6 +516,8 @@ async def callback_handler(call: CallbackQuery):
                 await walk(call, destination=walkname[5:])
             case "local_clans":
                 await local_clans(call)
+            case "search_by_address":
+                await search_by_address(call)
 
             case gpscat if gpscat.startswith("gps_category_"):
                 await gps_category(call, category=gpscat.replace("gps_category_", ""))
