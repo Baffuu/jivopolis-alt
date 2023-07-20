@@ -61,7 +61,9 @@ from .locations import (
 from .clans import (
     create_clan, joinclan, leaveclan, clan_members, call_clan,
     clan_top, clan_settings, delete_clan, delete_clan_confirm,
-    toggle_clan_type, clan_hq
+    toggle_clan_type, clan_hq, set_clan_name, set_clan_bio,
+    confirm_clan_profile_setting, delete_clan_bio, clan_profile,
+    set_clan_link, delete_clan_link, delete_clan_name
 )
 
 from .shops import (

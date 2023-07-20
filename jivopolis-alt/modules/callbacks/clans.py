@@ -6,6 +6,7 @@ from ...database import cur, insert_clan
 from ..start import StartCommand
 
 from aiogram.types import (
+    Message,
     CallbackQuery,
     InlineKeyboardButton,
     InlineKeyboardMarkup
@@ -334,6 +335,10 @@ async def clan_settings(call: CallbackQuery):
             callback_data='toggle_clan_type'
         ),
         InlineKeyboardButton(
+            text='✏ Профиль клана',
+            callback_data='clan_profile'
+        ),
+        InlineKeyboardButton(
             text=f'🏬 Построить ШК: {user_place}',
             callback_data='clan_hq'
         ) if clan_hq == 'не установлено' else InlineKeyboardButton(
@@ -352,6 +357,58 @@ async def clan_settings(call: CallbackQuery):
 
     await call.message.answer(
         '<i>⚙ Настройки клана</i>',
+        reply_markup=markup
+    )
+
+
+async def clan_profile(call: CallbackQuery):
+    """
+    Callback for clan profile settings
+
+    :param call - callback:
+    """
+    chat_id = call.message.chat.id
+    count = cur.select("count(*)", "clandata").where(clan_id=chat_id).one()
+
+    if count < 1:
+        return await call.answer(
+            "😓 Похоже, такого клана не существует",
+            show_alert=True
+        )
+    elif count > 1:
+        raise ValueError("found more than one clan with such ID")
+
+    member = await bot.get_chat_member(chat_id, call.from_user.id)
+    if (
+        not member.is_chat_admin()
+        and not member.is_chat_creator()
+    ):
+        return await call.answer(
+            '👀 Управлять кланом может только администратор чата',
+            show_alert=True
+        )
+
+    markup = InlineKeyboardMarkup(row_width=1).add(
+        InlineKeyboardButton(
+            text='✏ Изменить название клана',
+            callback_data='set_clan_name'
+        ),
+        InlineKeyboardButton(
+            text='📝 Изменить описание клана',
+            callback_data='set_clan_bio'
+        ),
+        InlineKeyboardButton(
+            text='📎 Изменить ссылку на клан',
+            callback_data='set_clan_link'
+        ),
+        InlineKeyboardButton(
+            text='◀ Назад',
+            callback_data='cancel_action'
+        )
+    )
+
+    await call.message.answer(
+        '<i>✏ Настройки профиля клана</i>',
         reply_markup=markup
     )
 
@@ -491,6 +548,11 @@ async def toggle_clan_type(call: CallbackQuery):
         username = chat_data.invite_link
     else:
         username = f't.me/{call.message.chat.username}'
+    if not username:
+        return await call.answer(
+            '🚨 Пожалуйста, сначала дайте боту права администратора',
+            show_alert=True
+        )
 
     cur.update("clandata").set(clan_type=new_clan_type).where(
         clan_id=chat_id).commit()
@@ -569,3 +631,336 @@ async def clan_hq(call: CallbackQuery):
             '<i>😪 Штаб-квартира вашего клана снесена</i>',
             reply_markup=markup
         )
+
+
+async def set_clan_name(call: CallbackQuery) -> None:
+    '''
+    Callback for clan name setting
+
+    :param call - callback*
+    '''
+    chat_id = call.message.chat.id
+    count = cur.select("count(*)", "clandata").where(clan_id=chat_id).one()
+
+    if count < 1:
+        return await call.answer(
+            "😓 Похоже, такого клана не существует",
+            show_alert=True
+        )
+    elif count > 1:
+        raise ValueError("found more than one clan with such ID")
+
+    member = await bot.get_chat_member(chat_id, call.from_user.id)
+    if (
+        not member.is_chat_admin()
+        and not member.is_chat_creator()
+    ):
+        return await call.answer(
+            '👀 Управлять кланом может только администратор чата',
+            show_alert=True
+        )
+
+    cur.update("userdata").set(process="set_clan_name").where(
+        user_id=call.from_user.id).commit()
+
+    await call.message.answer(
+        "<i>✏ Введите новое название клана</i>",
+        reply_markup=InlineKeyboardMarkup(row_width=1).add(
+            InlineKeyboardButton(
+                text="🔄 По умолчанию",
+                callback_data="delete_clan_name"
+            ),
+            InlineKeyboardButton(
+                text="🚫 Отмена",
+                callback_data="cancel_process"
+            )
+        )
+    )
+
+
+async def delete_clan_name(call: CallbackQuery) -> None:
+    '''
+    Callback for clan name resetting
+
+    :param call - callback:
+    '''
+    chat_id = call.message.chat.id
+    count = cur.select("count(*)", "clandata").where(clan_id=chat_id).one()
+
+    if count < 1:
+        return await call.answer(
+            "😓 Похоже, такого клана не существует",
+            show_alert=True
+        )
+    elif count > 1:
+        raise ValueError("found more than one clan with such ID")
+
+    member = await bot.get_chat_member(chat_id, call.from_user.id)
+    if (
+        not member.is_chat_admin()
+        and not member.is_chat_creator()
+    ):
+        return await call.answer(
+            '👀 Управлять кланом может только администратор чата',
+            show_alert=True
+        )
+
+    cur.update("userdata").set(process="").where(
+        user_id=call.from_user.id).commit()
+    cur.update("clandata").set(clan_name=call.message.chat.title).where(
+        clan_id=chat_id).commit()
+
+    await call.message.answer(
+        "<i>👌 Название клана успешно изменено</i>",
+        reply_markup=InlineKeyboardMarkup().add(
+            InlineKeyboardButton(
+                text="✅ Готово",
+                callback_data="cancel_action"
+            )
+        )
+    )
+
+
+async def set_clan_link(call: CallbackQuery) -> None:
+    '''
+    Callback for clan link setting
+
+    :param call - callback:
+    '''
+    chat_id = call.message.chat.id
+    count = cur.select("count(*)", "clandata").where(clan_id=chat_id).one()
+
+    if count < 1:
+        return await call.answer(
+            "😓 Похоже, такого клана не существует",
+            show_alert=True
+        )
+    elif count > 1:
+        raise ValueError("found more than one clan with such ID")
+
+    member = await bot.get_chat_member(chat_id, call.from_user.id)
+    if (
+        not member.is_chat_admin()
+        and not member.is_chat_creator()
+    ):
+        return await call.answer(
+            '👀 Управлять кланом может только администратор чата',
+            show_alert=True
+        )
+
+    cur.update("userdata").set(process="set_clan_link").where(
+        user_id=call.from_user.id).commit()
+
+    await call.message.answer(
+        "<i>📎 Введите новую ссылку на клан.\n\n<b>‼ Внимание! </b>"
+        "Ссылка на клан может вести только на некоммерческий "
+        "Telegram-чат, бот или канал, связанный с Живополисом, "
+        "либо на пользователя Telegram при его согласии (если "
+        "пользователь имеет прямое отношение к клану).\n\n"
+        "Если ссылка вашего клана будет вести на коммерческий "
+        "ресурс, внешний ресурс или ресурс, не имеющий прямого "
+        "отношения к Живополису, мы можем заблокировать вас или ваш "
+        "клан. Мы вас предупредили</i>",
+        reply_markup=InlineKeyboardMarkup(row_width=1).add(
+            InlineKeyboardButton(
+                text="🔄 По умолчанию",
+                callback_data="delete_clan_link"
+            ),
+            InlineKeyboardButton(
+                text="🚫 Отмена",
+                callback_data="cancel_process"
+            )
+        )
+    )
+
+
+async def delete_clan_link(call: CallbackQuery) -> None:
+    '''
+    Callback for custom clan link resetting
+
+    :param call - callback:
+    '''
+    chat_id = call.message.chat.id
+    count = cur.select("count(*)", "clandata").where(clan_id=chat_id).one()
+
+    if count < 1:
+        return await call.answer(
+            "😓 Похоже, такого клана не существует",
+            show_alert=True
+        )
+    elif count > 1:
+        raise ValueError("found more than one clan with such ID")
+
+    member = await bot.get_chat_member(chat_id, call.from_user.id)
+    if (
+        not member.is_chat_admin()
+        and not member.is_chat_creator()
+    ):
+        return await call.answer(
+            '👀 Управлять кланом может только администратор чата',
+            show_alert=True
+        )
+
+    cur.update("userdata").set(process="").where(
+        user_id=call.from_user.id).commit()
+
+    if call.message.chat.username is None:
+        getchat = await bot.get_chat(chat_id)
+        new_chat_link = getchat.invite_link
+        if not new_chat_link:
+            return await call.answer(
+                "🚨 Пожалуйста, сначала дайте боту права "
+                "администратора",
+                show_alert=True
+            )
+    else:
+        new_chat_link = f't.me/{call.message.chat.username}'
+    cur.update("clandata").set(link=new_chat_link).where(
+        clan_id=chat_id).commit()
+
+    await call.message.answer(
+        "<i>👌 Ссылка на клан успешно изменена</i>",
+        reply_markup=InlineKeyboardMarkup().add(
+            InlineKeyboardButton(
+                text="✅ Готово",
+                callback_data="cancel_action"
+            )
+        )
+    )
+
+
+async def set_clan_bio(call: CallbackQuery) -> None:
+    '''
+    Callback for clan bio setting
+
+    :param call - callback:
+    '''
+    chat_id = call.message.chat.id
+    count = cur.select("count(*)", "clandata").where(clan_id=chat_id).one()
+
+    if count < 1:
+        return await call.answer(
+            "😓 Похоже, такого клана не существует",
+            show_alert=True
+        )
+    elif count > 1:
+        raise ValueError("found more than one clan with such ID")
+
+    member = await bot.get_chat_member(chat_id, call.from_user.id)
+    if (
+        not member.is_chat_admin()
+        and not member.is_chat_creator()
+    ):
+        return await call.answer(
+            '👀 Управлять кланом может только администратор чата',
+            show_alert=True
+        )
+
+    cur.update("userdata").set(process="set_clan_bio").where(
+        user_id=call.from_user.id).commit()
+
+    await call.message.answer(
+        "<i>📝 Введите новое описание клана</i>",
+        reply_markup=InlineKeyboardMarkup(row_width=1).add(
+            InlineKeyboardButton(
+                text="🗑 Удалить описание клана",
+                callback_data="delete_clan_bio"
+            ),
+            InlineKeyboardButton(
+                text="🚫 Отмена",
+                callback_data="cancel_process"
+            )
+        )
+    )
+
+
+async def delete_clan_bio(call: CallbackQuery) -> None:
+    '''
+    Callback for clan bio deleting
+
+    :param call - callback:
+    '''
+    chat_id = call.message.chat.id
+    count = cur.select("count(*)", "clandata").where(clan_id=chat_id).one()
+
+    if count < 1:
+        return await call.answer(
+            "😓 Похоже, такого клана не существует",
+            show_alert=True
+        )
+    elif count > 1:
+        raise ValueError("found more than one clan with such ID")
+
+    member = await bot.get_chat_member(chat_id, call.from_user.id)
+    if (
+        not member.is_chat_admin()
+        and not member.is_chat_creator()
+    ):
+        return await call.answer(
+            '👀 Управлять кланом может только администратор чата',
+            show_alert=True
+        )
+
+    cur.update("userdata").set(process="").where(
+        user_id=call.from_user.id).commit()
+    cur.update("clandata").set(description="").where(
+        clan_id=chat_id).commit()
+
+    await call.message.answer(
+        "<i>👌 Описание клана успешно удалено</i>",
+        reply_markup=InlineKeyboardMarkup().add(
+            InlineKeyboardButton(
+                text="✅ Готово",
+                callback_data="cancel_action"
+            )
+        )
+    )
+
+
+async def confirm_clan_profile_setting(message: Message, setting: str) -> None:
+    '''
+    Callback for changing a clan profile setting
+
+    :param message - message:
+    :param setting - the setting to be changed:
+    '''
+    chat_id = message.chat.id
+    count = cur.select("count(*)", "clandata").where(clan_id=chat_id).one()
+
+    failure_markup = InlineKeyboardMarkup().add(
+        InlineKeyboardButton(
+            text='😪 Хорошо',
+            callback_data='cancel_action'
+        )
+    )
+
+    if count < 1:
+        return await message.reply(
+            "<i>😓 Похоже, такого клана не существует</i>",
+            reply_markup=failure_markup
+        )
+    elif count > 1:
+        raise ValueError("found more than one clan with such ID")
+
+    member = await bot.get_chat_member(chat_id, message.from_user.id)
+    if (
+        not member.is_chat_admin()
+        and not member.is_chat_creator()
+    ):
+        return await message.reply(
+            '<i>👀 Управлять кланом может только администратор чата</i>',
+            reply_markup=failure_markup
+        )
+
+    cur.update("clandata").set(**{setting: message.text}).where(
+        clan_id=chat_id).commit()
+
+    await message.answer(
+        "<i>🥳 Данные клана успешно изменены</i>",
+        reply_markup=InlineKeyboardMarkup().add(
+            InlineKeyboardButton(
+                text="✅ Готово",
+                callback_data="cancel_action"
+            )
+        )
+    )

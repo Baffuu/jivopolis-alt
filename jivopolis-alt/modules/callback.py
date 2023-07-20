@@ -385,6 +385,20 @@ async def callback_handler(call: CallbackQuery):
                 await toggle_clan_type(call)
             case "clan_hq":
                 await clan_hq(call)
+            case "clan_profile":
+                await clan_profile(call)
+            case "set_clan_name":
+                await set_clan_name(call)
+            case "set_clan_bio":
+                await set_clan_bio(call)
+            case "set_clan_link":
+                await set_clan_link(call)
+            case "delete_clan_name":
+                await delete_clan_name(call)
+            case "delete_clan_link":
+                await delete_clan_link(call)
+            case "delete_clan_bio":
+                await delete_clan_bio(call)
 
             case taxi if taxi.startswith("taxi_page:"):
                 await taxi_page(call, int(call.data.replace("taxi_page:", "")))

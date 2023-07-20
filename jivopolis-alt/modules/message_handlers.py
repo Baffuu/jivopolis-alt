@@ -13,6 +13,7 @@ from .callbacks.inventory import lootbox_button
 from aiogram.types import Message, ChatType
 from aiogram.dispatcher.filters import Text
 from .callbacks.traveling import find_address
+from .callbacks.clans import confirm_clan_profile_setting
 
 
 def contains(text: str | Iterable, content: str) -> bool:
@@ -175,6 +176,12 @@ async def processes_text(message: Message):
     match (process):
         case 'search_address':
             await find_address(message)
+        case 'set_clan_name':
+            await confirm_clan_profile_setting(message, 'clan_name')
+        case 'set_clan_bio':
+            await confirm_clan_profile_setting(message, 'description')
+        case 'set_clan_link':
+            await confirm_clan_profile_setting(message, 'link')
         case _:
             return
     cur.update("userdata").set(process='').where(

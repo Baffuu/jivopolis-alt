@@ -406,6 +406,8 @@ class StartCommand():
 
         description = cur.select("description", "clandata").where(
             clan_id=chat.id).one()
+        if description:
+            description = '\n\n' + description
 
         markup = InlineKeyboardMarkup().add(
             InlineKeyboardButton(
