@@ -45,8 +45,8 @@ async def create_clan(call: CallbackQuery) -> None:
         link = await insert_clan(call.message.chat, call.from_user)
     except BadRequest as e:
         if str(e) == 'Not enough rights to manage chat invite link':
-            await call.message.edit_text(
-                f"{call.message.text}\n\n<i>>>>🚨 Пожалуйста, сначала дайте "
+            return await call.message.edit_text(
+                f"<i>{call.message.text}\n\n>>>🚨 Пожалуйста, сначала дайте "
                 "боту права администратора</i>"
             )
         else:
