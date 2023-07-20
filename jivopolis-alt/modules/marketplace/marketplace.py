@@ -5,7 +5,7 @@ from fyCursor import fyCursor, Table
 from typing import Union, Self, List, get_args
 
 from ...database import tables, cur
-from .constants import TABLE
+from .constants import ID, TABLE, SELLER_ID, COST, TYPE, PUT_UP_DATE
 from ...items import Item, ITEMS
 
 
@@ -41,10 +41,10 @@ class Marketplace:
         cost: float | int
     ) -> None:
         self.table << {
-            "type": item.name if isinstance(item, Item) else item,
-            "seller_id": seller_id,
-            "put_up_date": time.time(),
-            "cost": cost
+            TYPE: item.name if isinstance(item, Item) else item,
+            SELLER_ID: seller_id,
+            PUT_UP_DATE: time.time(),
+            COST: cost
         }
 
     def remove(
@@ -73,22 +73,22 @@ class Marketplace:
         self: Self,
         product_id: int
     ) -> Product:
-        name = self.cur.select("type", TABLE).where(id=product_id).one()
-        stamp = float(self.cur.select("put_up_date", TABLE).where(
+        name = self.cur.select(TYPE, TABLE).where(id=product_id).one()
+        stamp = float(self.cur.select(PUT_UP_DATE, TABLE).where(
             id=product_id).one())
         time = datetime.fromtimestamp(stamp)
 
         return Product(
             product_id,
-            self.cur.select("seller_id", TABLE).where(id=product_id).one(),
+            self.cur.select(SELLER_ID, TABLE).where(id=product_id).one(),
             name,
             ITEMS[name],
-            self.cur.select("cost", TABLE).where(id=product_id).one(),
+            self.cur.select(COST, TABLE).where(id=product_id).one(),
             time
         )
 
     def get_all(self: Self) -> List[Product]:
-        ids = self.cur.execute(f"SELECT id FROM {TABLE}").fetch()
+        ids = self.cur.select(ID, TABLE).fetch()
 
         def unpack(to_unpack: list[tuple[int]]) -> list[int]:
             output = []

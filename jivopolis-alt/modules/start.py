@@ -2,7 +2,7 @@ import random
 import contextlib
 from time import time
 from collections import namedtuple
-
+from .marketplace import group_support
 from aiogram.types import (
     Message,
     InlineKeyboardMarkup,
@@ -103,13 +103,15 @@ class StartCommand():
                 return await message.reply(
                     "<i> Вы умерли. Попросите кого-нибудь вас воскресить</i>"
                 )
-
-            if message.chat.type == ChatType.PRIVATE:
+            if await group_support.IsInMarket().check(message):
+                await group_support.on_start_pressed(message)
+            elif message.chat.type == ChatType.PRIVATE:
                 await self._private_start(user_id)
             elif message.chat.id == OfficialChats.CASINOCHAT:
                 await self._casino_start(message)
             elif message.chat.type in [ChatType.SUPERGROUP, ChatType.GROUP]:
                 await self._clan_start(message.chat)
+
         except Exception as e:
             logger.exception(e)
             return await bot.send_message(
