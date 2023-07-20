@@ -7,7 +7,7 @@ from ..filters import RequireBetaFilter
 from .emoji_handler import slot_machine
 from .. import dp, cur, bot, tglog, get_embedded_link
 from ..utils import is_allowed_nonick
-from ..database.functions import profile
+from ..database.functions import profile, can_interact
 from ..misc.config import hellos
 from .callbacks.inventory import lootbox_button
 from aiogram.types import Message, ChatType
@@ -29,6 +29,8 @@ def contains(text: str | Iterable, content: str) -> bool:
     RequireBetaFilter()
 )
 async def chatbot_functions(message: Message):
+    if not await can_interact(message.from_user.id):
+        return
     if not await RequireBetaFilter().check(message, False):
         return
     text = message.text[9:].lower()
@@ -45,7 +47,7 @@ async def chatbot_functions(message: Message):
             del _message
         case t if t.startswith('выйди'):
             await message.reply(
-                "😭 Мне следует уйти? Очень жаль, прощайте, друзья…"
+                "😭 Мне следует уйти? Очень жаль. Прощайте, друзья…"
             )
             await bot.leave_chat(message.chat.id)
         case t if t.startswith(('передать ', 'пожертвовать ')):
@@ -77,6 +79,8 @@ async def chatbot_functions(message: Message):
     RequireBetaFilter()
 )
 async def profile_alias_text(message: Message, nonick=True):
+    if not await can_interact(message.from_user.id):
+        return
     if not await is_allowed_nonick(message.from_user.id) and nonick:
         return
     if message.reply_to_message:
@@ -93,6 +97,8 @@ async def profile_alias_text(message: Message, nonick=True):
     RequireBetaFilter()
 )
 async def my_balance_text(message: Message, nonick: bool = True):
+    if not await can_interact(message.from_user.id):
+        return
     if not await is_allowed_nonick(message.from_user.id) and nonick:
         return
     user_id = message.from_user.id
@@ -112,6 +118,8 @@ async def my_balance_text(message: Message, nonick: bool = True):
     RequireBetaFilter()
 )
 async def user_id_text(message: Message, nonick: bool = True):
+    if not await can_interact(message.from_user.id):
+        return
     if not await is_allowed_nonick(message.from_user.id) and nonick:
         return
     await message.reply(
@@ -148,6 +156,8 @@ async def ping_text(message: Message):
     RequireBetaFilter()
 )
 async def lootbox_text(message: Message, nonick: bool = True):
+    if not await can_interact(message.from_user.id):
+        return
     if not await is_allowed_nonick(message.from_user.id) and nonick:
         return
     with contextlib.suppress(Exception):
@@ -155,6 +165,8 @@ async def lootbox_text(message: Message, nonick: bool = True):
 
 
 async def give_money(message: Message, nonick=True):
+    if not await can_interact(message.from_user.id):
+        return
     if not await is_allowed_nonick(message.from_user.id) and nonick:
         return
 

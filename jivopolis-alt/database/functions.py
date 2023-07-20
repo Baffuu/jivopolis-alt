@@ -29,6 +29,37 @@ from aiogram.types import (
 from aiogram.utils.text_decorations import HtmlDecoration
 
 
+async def can_interact(user_id: int | str) -> None:
+    '''
+    Checks whether the user can interact with the bot.
+    Returns false if the user is dead or banned.
+
+    :param user_id - user's id:
+    '''
+    is_banned = bool(
+        cur.select("is_banned", "userdata").where(
+            user_id=user_id).one()
+    )
+    if is_banned:
+        await bot.send_message(
+            user_id,
+            f'🧛🏻‍♂️ <i>Вы были забанены в боте. Если вы считаете, что эт'
+            'о ошибка, обратитесь в <a href="'
+            f'{OfficialChats.SUPPORTCHATLINK}">поддержку</a></i>'
+        )
+
+    is_dead = cur.select("health", "userdata").where(
+        user_id=user_id).one() < 0
+    if is_dead:
+        await bot.send_message(
+            user_id,
+            '<i>☠️ Вы умерли. Попросите кого-нибудь вас воскресить</i>'
+        )       
+    
+    return not (is_dead or is_banned)
+
+
+
 async def check(user_id: int | str, chat_id: int | str) -> None | Message:
     '''
     checks everything

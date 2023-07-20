@@ -409,6 +409,12 @@ async def local_people(call: CallbackQuery):
         ]
     )
 
+    markup.add(
+        InlineKeyboardButton(
+            text='🔍 Искать по номеру дома',
+            callback_data='search_by_address'
+        )
+    )
     await call.message.answer(
         f'<i>👤 Пользователи в местности <b>{place}</b>:\n<b>{users}</b></i>',
         reply_markup=markup)
@@ -2669,7 +2675,7 @@ async def local_clans(call: CallbackQuery):
 
     count = cur.execute(
             f"SELECT count(*) FROM clandata WHERE HQ_place='{place}'"
-            " AND clan_type='public'").fetchall()[0][0]
+            " AND clan_type='public'").one()
 
     markup = InlineKeyboardMarkup(row_width=1).add(
         InlineKeyboardButton(
@@ -2695,4 +2701,20 @@ async def local_clans(call: CallbackQuery):
 
     await call.message.answer(
         f'<i><b>{text}:\n{clans}</b></i>', reply_markup=markup
+    )
+
+
+async def search_by_address(call: CallbackQuery) -> None:
+    cur.update("userdata").set(process="search_address").where(
+        user_id=call.from_user.id).commit()
+
+    await bot.send_message(
+        call.message.chat.id,
+        "<i>📝 Введите номер дома</i>",
+        reply_markup=InlineKeyboardMarkup().add(
+            InlineKeyboardButton(
+                text="🚫 Отмена",
+                callback_data="cancel_process"
+            )
+        )
     )
