@@ -65,7 +65,7 @@ class sqlrun():
                         )
                 )
 
-            elif args.lower().startswith("select") and rank <= 3:
+            elif args.lower().startswith("select") and rank < 3:
                 return await self._return_values(message, args)
 
             else:

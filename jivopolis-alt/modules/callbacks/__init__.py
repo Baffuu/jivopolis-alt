@@ -64,7 +64,8 @@ from .clans import (
     toggle_clan_type, clan_hq, set_clan_name, set_clan_bio,
     confirm_clan_profile_setting, delete_clan_bio, clan_profile,
     set_clan_link, delete_clan_link, delete_clan_name, confirm_clan_photo,
-    set_clan_photo, delete_clan_photo
+    set_clan_photo, delete_clan_photo, clan_addon_menu, buy_clan_addon,
+    sell_clan_addon
 )
 
 from .shops import (

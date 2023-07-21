@@ -167,7 +167,8 @@ async def lootbox_text(message: Message, nonick: bool = True):
 
 
 @dp.message_handler(
-    lambda message: not message.text.startswith('/'),
+    lambda message: (not message.text.startswith('/') and
+                     not message.text.startswith('.')),
     RequireBetaFilter())
 async def processes_text(message: Message):
     if not await can_interact(message.from_user.id):

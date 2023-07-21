@@ -403,6 +403,12 @@ async def callback_handler(call: CallbackQuery):
                 await set_clan_photo(call)
             case "delete_clan_photo":
                 await delete_clan_photo(call)
+            case buy_addon if buy_addon.startswith("buyaddon_"):
+                await buy_clan_addon(call, buy_addon[9:])
+            case sell_addon if sell_addon.startswith("selladdon_"):
+                await sell_clan_addon(call, sell_addon[10:])
+            case addon if addon.startswith("addon_"):
+                await clan_addon_menu(call, addon[6:])
 
             case taxi if taxi.startswith("taxi_page:"):
                 await taxi_page(call, int(call.data.replace("taxi_page:", "")))

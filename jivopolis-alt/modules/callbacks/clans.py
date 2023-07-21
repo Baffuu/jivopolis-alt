@@ -2,6 +2,7 @@ import contextlib
 from ... import bot, tglog
 
 from ...misc import get_embedded_link
+from ...misc.config import addon_prices, addon_descriptions
 from ...database import cur, insert_clan
 from ..start import StartCommand
 
@@ -344,7 +345,16 @@ async def clan_settings(call: CallbackQuery):
         ) if clan_hq == 'не установлено' else InlineKeyboardButton(
             text='🏬❌ Снести штаб-квартиру',
             callback_data='clan_hq'
-        ),
+        )
+    )
+    if clan_hq != 'не установлено':
+        markup.add(
+            InlineKeyboardButton(
+                text='🏛 Клан-локация',
+                callback_data='addon_location'
+            )
+        )
+    markup.add(
         InlineKeyboardButton(
             text='🗑 Распустить клан',
             callback_data='delete_clan'
@@ -999,7 +1009,7 @@ async def delete_clan_photo(call: CallbackQuery) -> None:
         clan_id=chat_id).commit()
 
     await call.message.answer(
-        "<i>👌 Аватарка клана успешно удалено</i>",
+        "<i>👌 Аватарка клана успешно удалена</i>",
         reply_markup=InlineKeyboardMarkup().add(
             InlineKeyboardButton(
                 text="✅ Готово",
@@ -1110,7 +1120,7 @@ async def confirm_clan_photo(message: Message) -> None:
         )
         cur.update("clandata").set(photo_id=new_photo).where(
             clan_id=chat_id).commit()
-    except Exception as e:
+    except Exception:
         await message.answer(
             '😨 <i>Видимо, вы отправили не фото и не ссылку на фото</i>',
             reply_markup=failure_markup.add(
@@ -1120,4 +1130,170 @@ async def confirm_clan_photo(message: Message) -> None:
                 )
             )
         )
-        print(e)
+
+
+async def buy_clan_addon(call: CallbackQuery, addon: str) -> None:
+    '''
+    Callback for buying a clan addon
+
+    :param call - callback:
+    :param addon - addon symbolic name:
+    '''
+    chat_id = call.message.chat.id
+    count = cur.select("count(*)", "clandata").where(clan_id=chat_id).one()
+
+    if count < 1:
+        return await call.answer(
+            "😓 Похоже, такого клана не существует",
+            show_alert=True
+        )
+    elif count > 1:
+        raise ValueError("found more than one clan with such ID")
+
+    member = await bot.get_chat_member(chat_id, call.from_user.id)
+    if (
+        not member.is_chat_admin()
+        and not member.is_chat_creator()
+    ):
+        return await call.answer(
+            '👀 Управлять кланом может только администратор чата',
+            show_alert=True
+        )
+
+    addon_amount = cur.select(f"addon_{addon}", "clandata").where(
+        clan_id=chat_id).one()
+    if addon_amount == "True":
+        return await call.answer(
+            '🤨 В клане уже есть это дополнение, зачем вам ещё одно?',
+            show_alert=True
+        )
+
+    balance = cur.select("balance", "userdata").where(
+        user_id=call.from_user.id).one()
+    if balance < addon_prices[addon]:
+        return await call.answer(
+            '😪 У вас недостаточно денег',
+            show_alert=True
+        )
+
+    cur.update("userdata").add(balance=-addon_prices[addon]).where(
+        user_id=call.from_user.id).commit()
+    cur.update("clandata").set(**{f'addon_{addon}': True}).where(
+        clan_id=chat_id).commit()
+
+    await call.message.answer(
+        "<i>👌 Дополнение успешно добавлено</i>",
+        reply_markup=InlineKeyboardMarkup().add(
+            InlineKeyboardButton(
+                text="✅ Готово",
+                callback_data="cancel_action"
+            )
+        )
+    )
+
+
+async def sell_clan_addon(call: CallbackQuery, addon: str) -> None:
+    '''
+    Callback for unbuying a clan addon
+
+    :param call - callback:
+    :param addon - addon symbolic name:
+    '''
+    chat_id = call.message.chat.id
+    count = cur.select("count(*)", "clandata").where(clan_id=chat_id).one()
+
+    if count < 1:
+        return await call.answer(
+            "😓 Похоже, такого клана не существует",
+            show_alert=True
+        )
+    elif count > 1:
+        raise ValueError("found more than one clan with such ID")
+
+    member = await bot.get_chat_member(chat_id, call.from_user.id)
+    if (
+        not member.is_chat_admin()
+        and not member.is_chat_creator()
+    ):
+        return await call.answer(
+            '👀 Управлять кланом может только администратор чата',
+            show_alert=True
+        )
+
+    addon_amount = cur.select(f"addon_{addon}", "clandata").where(
+        clan_id=chat_id).one()
+    if addon_amount == "False":
+        return await call.answer(
+            '🤨 В клане нет этого дополнения, что вы собрались продавать?',
+            show_alert=True
+        )
+
+    cur.update("userdata").add(balance=addon_prices[addon]).where(
+        user_id=call.from_user.id).commit()
+    cur.update("clandata").set(**{f'addon_{addon}': False}).where(
+        clan_id=chat_id).commit()
+
+    await call.message.answer(
+        "<i>👌 Дополнение успешно продано</i>",
+        reply_markup=InlineKeyboardMarkup(row_width=1).add(
+            InlineKeyboardButton(
+                text="✅ Готово",
+                callback_data="cancel_action"
+            )
+        )
+    )
+
+
+async def clan_addon_menu(call: CallbackQuery, addon: str):
+    '''
+    Callback for a clan addon menu
+
+    :param call - callback:
+    :param addon - addon symbolic name:
+    '''
+    chat_id = call.message.chat.id
+    count = cur.select("count(*)", "clandata").where(clan_id=chat_id).one()
+
+    if count < 1:
+        return await call.answer(
+            "😓 Похоже, такого клана не существует",
+            show_alert=True
+        )
+    elif count > 1:
+        raise ValueError("found more than one clan with such ID")
+
+    member = await bot.get_chat_member(chat_id, call.from_user.id)
+    if (
+        not member.is_chat_admin()
+        and not member.is_chat_creator()
+    ):
+        return await call.answer(
+            '👀 Управлять кланом может только администратор чата',
+            show_alert=True
+        )
+
+    addon_amount = cur.select(f"addon_{addon}", "clandata").where(
+        clan_id=chat_id).one()
+
+    cost = addon_prices[addon]
+    description = addon_descriptions[addon]
+
+    await call.message.answer(
+        f"<i>{description}.\n\n💸 Включение дополнения стоит <b>${cost}"
+        "</b>. При отмене покупки эта сумма возвращается тому администратору,"
+        " кто её отменил</i>",
+        reply_markup=InlineKeyboardMarkup(row_width=1).add(
+            InlineKeyboardButton(
+                text=f"✅ Купить (${cost})",
+                callback_data=f"buyaddon_{addon}"
+            ) if addon_amount == "False" else
+            InlineKeyboardButton(
+                text="❌ Отменить покупку",
+                callback_data=f"selladdon_{addon}"
+            ),
+            InlineKeyboardButton(
+                text="◀ Назад",
+                callback_data="cancel_action"
+            )
+        )
+    )

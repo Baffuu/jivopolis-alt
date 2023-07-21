@@ -211,7 +211,12 @@ def create_clandata(cur: fyCursor) -> None:
     lootbox         INTEGER         DEFAULT 0               NOT NULL,
     last_box        DATETIME        DEFAULT 0               NOT NULL,
     description     TEXT,
-    photo_id        TEXT
+    photo_id        TEXT,
+    addon_location  BOOL            DEFAULT False           NOT NULL,
+    addon_gameclub  BOOL            DEFAULT False           NOT NULL,
+    filter_sticker  BOOL            DEFAULT False           NOT NULL,
+    filter_swearing BOOL            DEFAULT False           NOT NULL,
+    filter_dice     BOOL            DEFAULT False           NOT NULL
 )
     """)
 

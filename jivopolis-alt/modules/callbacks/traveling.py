@@ -155,10 +155,11 @@ async def city(message: Message, user_id: str | int):
                 )
             )
 
-    '''
-    cur.execute("SELECT * FROM clandata WHERE islocation=1 AND hqplace=? AND type=?", (place, "public",)) # noqa
-    for row in cur:
-        markup.add(InlineKeyboardButton(text="🏢 {0}".format(row[1]), url=row[8]))''' # noqa
+    clans = cur.execute("SELECT * FROM clandata WHERE addon_location=\"True\" "
+                        f"AND HQ_place=\"{place}\" AND clan_type=\"public\""
+                        " ORDER BY address LIMIT 7").fetchall() # noqa
+    for row in clans:
+        markup.add(InlineKeyboardButton(text=f"🏢 {row[2]}", url=row[8])) # noqa
 
     markup.add(
         InlineKeyboardButton(
