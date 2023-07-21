@@ -402,6 +402,10 @@ async def clan_profile(call: CallbackQuery):
             callback_data='set_clan_link'
         ),
         InlineKeyboardButton(
+            text='🖼 Изменить аватарку клана',
+            callback_data='set_clan_photo'
+        ),
+        InlineKeyboardButton(
             text='◀ Назад',
             callback_data='cancel_action'
         )
@@ -917,6 +921,94 @@ async def delete_clan_bio(call: CallbackQuery) -> None:
     )
 
 
+async def set_clan_photo(call: CallbackQuery) -> None:
+    '''
+    Callback for clan profile picture setting
+
+    :param call - callback:
+    '''
+    chat_id = call.message.chat.id
+    count = cur.select("count(*)", "clandata").where(clan_id=chat_id).one()
+
+    if count < 1:
+        return await call.answer(
+            "😓 Похоже, такого клана не существует",
+            show_alert=True
+        )
+    elif count > 1:
+        raise ValueError("found more than one clan with such ID")
+
+    member = await bot.get_chat_member(chat_id, call.from_user.id)
+    if (
+        not member.is_chat_admin()
+        and not member.is_chat_creator()
+    ):
+        return await call.answer(
+            '👀 Управлять кланом может только администратор чата',
+            show_alert=True
+        )
+
+    cur.update("userdata").set(process="set_clan_photo").where(
+        user_id=call.from_user.id).commit()
+
+    await call.message.answer(
+        "<i>📝 Отправьте новое фото клана или ссылку на фото</i>",
+        reply_markup=InlineKeyboardMarkup(row_width=1).add(
+            InlineKeyboardButton(
+                text="🗑 Удалить аватарку клана",
+                callback_data="delete_clan_photo"
+            ),
+            InlineKeyboardButton(
+                text="🚫 Отмена",
+                callback_data="cancel_process"
+            )
+        )
+    )
+
+
+async def delete_clan_photo(call: CallbackQuery) -> None:
+    '''
+    Callback for clan profile picture deleting
+
+    :param call - callback:
+    '''
+    chat_id = call.message.chat.id
+    count = cur.select("count(*)", "clandata").where(clan_id=chat_id).one()
+
+    if count < 1:
+        return await call.answer(
+            "😓 Похоже, такого клана не существует",
+            show_alert=True
+        )
+    elif count > 1:
+        raise ValueError("found more than one clan with such ID")
+
+    member = await bot.get_chat_member(chat_id, call.from_user.id)
+    if (
+        not member.is_chat_admin()
+        and not member.is_chat_creator()
+    ):
+        return await call.answer(
+            '👀 Управлять кланом может только администратор чата',
+            show_alert=True
+        )
+
+    cur.update("userdata").set(process="").where(
+        user_id=call.from_user.id).commit()
+    cur.update("clandata").set(photo_id="").where(
+        clan_id=chat_id).commit()
+
+    await call.message.answer(
+        "<i>👌 Аватарка клана успешно удалено</i>",
+        reply_markup=InlineKeyboardMarkup().add(
+            InlineKeyboardButton(
+                text="✅ Готово",
+                callback_data="cancel_action"
+            )
+        )
+    )
+
+
 async def confirm_clan_profile_setting(message: Message, setting: str) -> None:
     '''
     Callback for changing a clan profile setting
@@ -964,3 +1056,68 @@ async def confirm_clan_profile_setting(message: Message, setting: str) -> None:
             )
         )
     )
+
+
+async def confirm_clan_photo(message: Message) -> None:
+    '''
+    Callback for changing clan profile picture
+
+    :param message - message:
+    '''
+    chat_id = message.chat.id
+    count = cur.select("count(*)", "clandata").where(clan_id=chat_id).one()
+
+    failure_markup = InlineKeyboardMarkup().add(
+        InlineKeyboardButton(
+            text='😪 Хорошо',
+            callback_data='cancel_action'
+        )
+    )
+
+    if count < 1:
+        return await message.reply(
+            "<i>😓 Похоже, такого клана не существует</i>",
+            reply_markup=failure_markup
+        )
+    elif count > 1:
+        raise ValueError("found more than one clan with such ID")
+
+    member = await bot.get_chat_member(chat_id, message.from_user.id)
+    if (
+        not member.is_chat_admin()
+        and not member.is_chat_creator()
+    ):
+        return await message.reply(
+            '<i>👀 Управлять кланом может только администратор чата</i>',
+            reply_markup=failure_markup
+        )
+
+    if len(message.photo) == 0:
+        new_photo = message.text
+    else:
+        new_photo = message.photo[0].file_id
+
+    try:
+        await message.answer_photo(
+            new_photo,
+            "<i>🥳 Фото клана успешно изменено</i>",
+            reply_markup=InlineKeyboardMarkup().add(
+                InlineKeyboardButton(
+                    text="✅ Готово",
+                    callback_data="cancel_action"
+                )
+            )
+        )
+        cur.update("clandata").set(photo_id=new_photo).where(
+            clan_id=chat_id).commit()
+    except Exception as e:
+        await message.answer(
+            '😨 <i>Видимо, вы отправили не фото и не ссылку на фото</i>',
+            reply_markup=failure_markup.add(
+                InlineKeyboardButton(
+                    text='🔄 Заново',
+                    callback_data='set_clan_photo'
+                )
+            )
+        )
+        print(e)

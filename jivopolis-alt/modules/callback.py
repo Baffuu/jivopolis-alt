@@ -399,6 +399,10 @@ async def callback_handler(call: CallbackQuery):
                 await delete_clan_link(call)
             case "delete_clan_bio":
                 await delete_clan_bio(call)
+            case "set_clan_photo":
+                await set_clan_photo(call)
+            case "delete_clan_photo":
+                await delete_clan_photo(call)
 
             case taxi if taxi.startswith("taxi_page:"):
                 await taxi_page(call, int(call.data.replace("taxi_page:", "")))
