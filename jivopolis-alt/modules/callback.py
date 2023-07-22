@@ -409,6 +409,8 @@ async def callback_handler(call: CallbackQuery):
                 await sell_clan_addon(call, sell_addon[10:])
             case addon if addon.startswith("addon_"):
                 await clan_addon_menu(call, addon[6:])
+            case "clan_features":
+                await clan_features(call)
 
             case taxi if taxi.startswith("taxi_page:"):
                 await taxi_page(call, int(call.data.replace("taxi_page:", "")))

@@ -356,6 +356,10 @@ async def clan_settings(call: CallbackQuery):
         )
     markup.add(
         InlineKeyboardButton(
+            text='🛠 Функционал клана',
+            callback_data='clan_features'
+        ),
+        InlineKeyboardButton(
             text='🗑 Распустить клан',
             callback_data='delete_clan'
         ),
@@ -1162,7 +1166,7 @@ async def buy_clan_addon(call: CallbackQuery, addon: str) -> None:
 
     addon_amount = cur.select(f"addon_{addon}", "clandata").where(
         clan_id=chat_id).one()
-    if addon_amount == "True":
+    if addon_amount:
         return await call.answer(
             '🤨 В клане уже есть это дополнение, зачем вам ещё одно?',
             show_alert=True
@@ -1178,7 +1182,7 @@ async def buy_clan_addon(call: CallbackQuery, addon: str) -> None:
 
     cur.update("userdata").add(balance=-addon_prices[addon]).where(
         user_id=call.from_user.id).commit()
-    cur.update("clandata").set(**{f'addon_{addon}': True}).where(
+    cur.update("clandata").set(**{f'addon_{addon}': 1}).where(
         clan_id=chat_id).commit()
 
     await call.message.answer(
@@ -1222,7 +1226,7 @@ async def sell_clan_addon(call: CallbackQuery, addon: str) -> None:
 
     addon_amount = cur.select(f"addon_{addon}", "clandata").where(
         clan_id=chat_id).one()
-    if addon_amount == "False":
+    if not addon_amount:
         return await call.answer(
             '🤨 В клане нет этого дополнения, что вы собрались продавать?',
             show_alert=True
@@ -1230,7 +1234,7 @@ async def sell_clan_addon(call: CallbackQuery, addon: str) -> None:
 
     cur.update("userdata").add(balance=addon_prices[addon]).where(
         user_id=call.from_user.id).commit()
-    cur.update("clandata").set(**{f'addon_{addon}': False}).where(
+    cur.update("clandata").set(**{f'addon_{addon}': 0}).where(
         clan_id=chat_id).commit()
 
     await call.message.answer(
@@ -1286,7 +1290,7 @@ async def clan_addon_menu(call: CallbackQuery, addon: str):
             InlineKeyboardButton(
                 text=f"✅ Купить (${cost})",
                 callback_data=f"buyaddon_{addon}"
-            ) if addon_amount == "False" else
+            ) if not addon_amount else
             InlineKeyboardButton(
                 text="❌ Отменить покупку",
                 callback_data=f"selladdon_{addon}"
@@ -1296,4 +1300,52 @@ async def clan_addon_menu(call: CallbackQuery, addon: str):
                 callback_data="cancel_action"
             )
         )
+    )
+
+
+async def clan_features(call: CallbackQuery):
+    """
+    Callback for clan features menu
+
+    :param call - callback:
+    """
+    chat_id = call.message.chat.id
+    count = cur.select("count(*)", "clandata").where(clan_id=chat_id).one()
+
+    if count < 1:
+        return await call.answer(
+            "😓 Похоже, такого клана не существует",
+            show_alert=True
+        )
+    elif count > 1:
+        raise ValueError("found more than one clan with such ID")
+
+    member = await bot.get_chat_member(chat_id, call.from_user.id)
+    if (
+        not member.is_chat_admin()
+        and not member.is_chat_creator()
+    ):
+        return await call.answer(
+            '👀 Управлять кланом может только администратор чата',
+            show_alert=True
+        )
+
+    markup = InlineKeyboardMarkup(row_width=1).add(
+        InlineKeyboardButton(
+            text='📛 Фильтр сообщений',
+            callback_data='clan_filter'
+        ),
+        InlineKeyboardButton(
+            text='🎰 Мини-казино',
+            callback_data='addon_gameclub'
+        ),
+        InlineKeyboardButton(
+            text='◀ Назад',
+            callback_data='cancel_action'
+        )
+    )
+
+    await call.message.answer(
+        '<i>🛠 Функционал клана</i>',
+        reply_markup=markup
     )

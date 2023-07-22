@@ -80,8 +80,8 @@ class sqlrun():
 
         except Exception as e:
             await message.answer(
-                f"<b>🧯 ERROR WHILE SQLQ: <i>{utils.get_full_class_name(e)}:"
-                f"</b>{e}</i>"
+                "<b>🧯 <i>ERROR WHILE SQLQ:</i>\n\n:"
+                f"{utils.get_full_class_name(e)}</b>\n<code>{e}</code>"
             )
 
     def _check_request(self, message: Message, args: str):

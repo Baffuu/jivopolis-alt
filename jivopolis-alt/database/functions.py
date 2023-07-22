@@ -697,8 +697,7 @@ async def earn(money: int, message: Message | None = None, user_id: int | None =
     elif not user_id:
         user_id = message.from_user.id
 
-    cur.execute(f"UPDATE userdata SET balance = balance+{money} WHERE user_id = {user_id}")
-    conn.commit()
+    cur.update("userdata").add(balance=money).where(user_id=user_id).commit()
 
 
 async def buy(call: CallbackQuery, item: str, user_id: int, cost: Optional[int] = None, amount: int = 1):
