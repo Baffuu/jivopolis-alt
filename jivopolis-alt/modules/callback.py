@@ -411,6 +411,10 @@ async def callback_handler(call: CallbackQuery):
                 await clan_addon_menu(call, addon[6:])
             case "clan_features":
                 await clan_features(call)
+            case "set_gameclub_timeout":
+                await set_gameclub_timeout(call)
+            case set_timeout if set_timeout.startswith("set_timeout_"):
+                await confirm_timeout(call, timeout=int(set_timeout[12:]))
 
             case taxi if taxi.startswith("taxi_page:"):
                 await taxi_page(call, int(call.data.replace("taxi_page:", "")))

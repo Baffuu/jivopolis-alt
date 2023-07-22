@@ -2,12 +2,14 @@ import contextlib
 import random
 import asyncio
 from ..filters import RequireBetaFilter
-from ..database.functions import check, earn
+from ..database.functions import check, earn, current_time
 from ..database import cur
 from ..misc import OfficialChats, get_embedded_link
 from ..misc.constants import SLOTMACHINE_TOKEN_COST, ERROR_MESSAGE
 from .. import bot, Dispatcher, logger
-from aiogram.types import Message, ChatType
+from aiogram.types import (
+    Message, ChatType, InlineKeyboardMarkup, InlineKeyboardButton
+)
 
 
 async def dice_handler(message: Message):
@@ -74,6 +76,21 @@ async def slot_machine(message: Message, user_id: int | None = None):
 
     balance = cur.select("balance", "userdata").where(
         user_id=user_id).one()
+    lastplay = cur.select("last_gameclub", "userdata").where(
+        user_id=user_id).one()
+    timeout = cur.select("game_timeout", "clandata").where(
+        clan_id=chat_id).one()
+    if current_time() - lastplay < timeout:
+        return await message.reply(
+            "😠 <i>Пользоваться игровыми автоматами в данном клане "
+            f"можно раз в <b>{timeout}</b> секунд</i>",
+            reply_markup=InlineKeyboardMarkup().add(
+                InlineKeyboardButton(
+                    text="👌 Понятно",
+                    callback_data="cancel_action"
+                )
+            )
+        )
 
     if balance < SLOTMACHINE_TOKEN_COST:
         return await message.answer(
@@ -107,6 +124,8 @@ async def slot_machine(message: Message, user_id: int | None = None):
             is_win = await _slots_win(user_id, chat_id, 3, rand)
         case _:
             is_win = False
+    cur.update("userdata").set(last_gameclub=current_time()).where(
+        user_id=user_id).commit()
     await asyncio.sleep(60)
     await _message.delete()
 

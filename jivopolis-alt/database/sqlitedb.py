@@ -61,6 +61,7 @@ def create_userdata(cur: fyCursor) -> None:
     nonick_cmds     INTEGER         DEFAULT 0               NOT NULL,
     last_box        DATETIME        DEFAULT 0               NOT NULL,
     total_jackpots  INTEGER         DEFAULT 0               NOT NULL,
+    last_gameclub   INTEGER         DEFAULT 0               NOT NULL,
 
     current_place   TEXT            DEFAULT \"Вокзальная\"  NOT NULL,
     line            INTEGER         DEFAULT 2               NOT NULL,
@@ -216,7 +217,8 @@ def create_clandata(cur: fyCursor) -> None:
     addon_gameclub  INTEGER         DEFAULT 0               NOT NULL,
     filter_sticker  INTEGER         DEFAULT 0               NOT NULL,
     filter_swearing INTEGER         DEFAULT 0               NOT NULL,
-    filter_dice     INTEGER         DEFAULT 0               NOT NULL
+    filter_dice     INTEGER         DEFAULT 0               NOT NULL,
+    game_timeout    INTEGER         DEFAULT 10              NOT NULL
 )
     """)
 

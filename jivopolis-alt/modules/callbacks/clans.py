@@ -1282,11 +1282,22 @@ async def clan_addon_menu(call: CallbackQuery, addon: str):
     cost = addon_prices[addon]
     description = addon_descriptions[addon]
 
+    markup = InlineKeyboardMarkup(row_width=1)
+    if addon == "gameclub" and addon_amount:
+        timeout = cur.select("game_timeout", "clandata").where(
+            clan_id=chat_id).one()
+        markup.add(
+            InlineKeyboardButton(
+                text=f"⏱ Кулдаун: {timeout} с",
+                callback_data="set_gameclub_timeout"
+            )
+        )
+
     await call.message.answer(
         f"<i>{description}.\n\n💸 Включение дополнения стоит <b>${cost}"
         "</b>. При отмене покупки эта сумма возвращается тому администратору,"
         " кто её отменил</i>",
-        reply_markup=InlineKeyboardMarkup(row_width=1).add(
+        reply_markup=markup.add(
             InlineKeyboardButton(
                 text=f"✅ Купить (${cost})",
                 callback_data=f"buyaddon_{addon}"
@@ -1349,3 +1360,104 @@ async def clan_features(call: CallbackQuery):
         '<i>🛠 Функционал клана</i>',
         reply_markup=markup
     )
+
+
+async def set_gameclub_timeout(call: CallbackQuery):
+    """
+    Callback for game club timeout menu
+
+    :param call - callback:
+    """
+    chat_id = call.message.chat.id
+    count = cur.select("count(*)", "clandata").where(clan_id=chat_id).one()
+
+    if count < 1:
+        return await call.answer(
+            "😓 Похоже, такого клана не существует",
+            show_alert=True
+        )
+    elif count > 1:
+        raise ValueError("found more than one clan with such ID")
+
+    member = await bot.get_chat_member(chat_id, call.from_user.id)
+    if (
+        not member.is_chat_admin()
+        and not member.is_chat_creator()
+    ):
+        return await call.answer(
+            '👀 Управлять кланом может только администратор чата',
+            show_alert=True
+        )
+
+    amount = cur.select("addon_gameclub", "clandata").where(
+        clan_id=chat_id).one()
+    if not amount:
+        return await call.answer(
+            '🤔 Сначала приобретите дополнение "Мини-казино"',
+            show_alert=True
+        )
+
+    timeout = cur.select("game_timeout", "clandata").where(
+        clan_id=chat_id).one()
+    markup = InlineKeyboardMarkup(row_width=5)
+    optionlist = []
+    for option in ["5", "10", "15", "20", "30", "45", "60", "90", "300"]:
+        optionlist.append(
+            InlineKeyboardButton(
+                text=f"{option} с",
+                callback_data=f"set_timeout_{option}"
+            )
+        )
+    markup.add(*optionlist)
+    markup.add(
+        InlineKeyboardButton(
+            text="◀ Назад",
+            callback_data="cancel_action"
+        )
+    )
+
+    await call.message.answer(
+        '<i>⏱ Выберите, какое минимальное время должно пройти между крутками'
+        f' одного пользователя.\n\nТекущий кулдаун: <b>{timeout} с</b></i>',
+        reply_markup=markup
+    )
+
+
+async def confirm_timeout(call: CallbackQuery, timeout: int):
+    """
+    Callback for game club timeout setting
+
+    :param call - callback:
+    """
+    chat_id = call.message.chat.id
+    count = cur.select("count(*)", "clandata").where(clan_id=chat_id).one()
+
+    if count < 1:
+        return await call.answer(
+            "😓 Похоже, такого клана не существует",
+            show_alert=True
+        )
+    elif count > 1:
+        raise ValueError("found more than one clan with such ID")
+
+    member = await bot.get_chat_member(chat_id, call.from_user.id)
+    if (
+        not member.is_chat_admin()
+        and not member.is_chat_creator()
+    ):
+        return await call.answer(
+            '👀 Управлять кланом может только администратор чата',
+            show_alert=True
+        )
+
+    amount = cur.select("addon_gameclub", "clandata").where(
+        clan_id=chat_id).one()
+    if not amount:
+        return await call.answer(
+            '🤔 Сначала приобретите дополнение "Мини-казино"',
+            show_alert=True
+        )
+
+    cur.update("clandata").set(game_timeout=timeout).where(
+        clan_id=call.message.chat.id).commit()
+    await clan_addon_menu(call, addon="gameclub")
