@@ -12,7 +12,8 @@ from . import (
     message_handlers,
     location_handler,
     document_handler,
-    voice_video_handler
+    voice_video_handler,
+    contact_handler
 )
 from .. import Dispatcher
 
@@ -40,6 +41,7 @@ async def register_all(dp: Dispatcher) -> tuple[ModuleType]:  # -> None:
     voice_video_handler.register(dp)
     document_handler.register(dp)
     new_member_handler.register(dp)
+    contact_handler.register(dp)
 
     return (
         start,
@@ -54,5 +56,6 @@ async def register_all(dp: Dispatcher) -> tuple[ModuleType]:  # -> None:
         payments,
         location_handler,
         document_handler,
-        voice_video_handler
+        voice_video_handler,
+        contact_handler
     )

@@ -1,16 +1,16 @@
 from .. import Dispatcher
-from ..filters import RequireBetaFilter
 from aiogram.types import Message
 import contextlib
 from ..database import cur
+from ..filters import RequireBetaFilter
 
 
-async def delete_location(message: Message):
+async def delete_contacts(message: Message):
     count = cur.select("count(*)", "clandata").where(
             clan_id=message.chat.id).one()
 
     if count == 1:
-        dice = cur.select("filter_location", "clandata").where(
+        dice = cur.select("filter_contact", "clandata").where(
             clan_id=message.chat.id).one()
         if dice:
             with contextlib.suppress(Exception):
@@ -19,7 +19,7 @@ async def delete_location(message: Message):
 
 def register(dp: Dispatcher):
     dp.register_message_handler(
-        delete_location,
-        RequireBetaFilter(),
-        content_types=['location']
-    )
+            delete_contacts,
+            RequireBetaFilter(),
+            content_types=['contact']
+        )

@@ -224,6 +224,8 @@ def create_clandata(cur: fyCursor) -> None:
     filter_leave    INTEGER         DEFAULT 0               NOT NULL,
     filter_document INTEGER         DEFAULT 0               NOT NULL,
     filter_location INTEGER         DEFAULT 0               NOT NULL,
+    filter_contact  INTEGER         DEFAULT 0               NOT NULL,
+    filter_gif      INTEGER         DEFAULT 0               NOT NULL,
     game_timeout    INTEGER         DEFAULT 10              NOT NULL
 )
     """)

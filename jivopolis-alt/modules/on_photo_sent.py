@@ -60,5 +60,18 @@ async def get_photo_messages(message: Message):
             user_id=user_id).commit()
 
 
+async def delete_videos(message: Message):
+    count = cur.select("count(*)", "clandata").where(
+            clan_id=message.chat.id).one()
+
+    if count == 1:
+        dice = cur.select("filter_photo", "clandata").where(
+            clan_id=message.chat.id).one()
+        if dice:
+            with contextlib.suppress(Exception):
+                return await message.delete()
+
+
 def register(dp: Dispatcher):
     dp.register_message_handler(get_photo_messages, content_types=['photo'])
+    dp.register_message_handler(delete_videos, content_types=['video'])

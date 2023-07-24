@@ -1,4 +1,4 @@
-from .. import dp, bot, Dispatcher
+from .. import bot, Dispatcher
 from ..misc.constants import BETATEST_MINIMUM_RANK
 from ..database import cur
 from aiogram.types import Message
@@ -6,7 +6,6 @@ from ..filters import RequireBetaFilter
 import contextlib
 
 
-@dp.message_handler(content_types=['new_chat_members'])
 async def welcome_new_member(message: Message):
     bot_ = await bot.get_me()
     bot_id = bot_.id
@@ -27,7 +26,6 @@ async def welcome_new_member(message: Message):
                 return await message.delete()
 
 
-@dp.message_handler(content_types=['left_chat_member'])
 async def delete_leave_message(message: Message):
     count = cur.select("count(*)", "clandata").where(
             clan_id=message.chat.id).one()
