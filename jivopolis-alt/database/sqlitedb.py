@@ -216,8 +216,14 @@ def create_clandata(cur: fyCursor) -> None:
     addon_location  INTEGER         DEFAULT 0               NOT NULL,
     addon_gameclub  INTEGER         DEFAULT 0               NOT NULL,
     filter_sticker  INTEGER         DEFAULT 0               NOT NULL,
-    filter_swearing INTEGER         DEFAULT 0               NOT NULL,
+    filter_photo    INTEGER         DEFAULT 0               NOT NULL,
     filter_dice     INTEGER         DEFAULT 0               NOT NULL,
+    filter_voice    INTEGER         DEFAULT 0               NOT NULL,
+    filter_video    INTEGER         DEFAULT 0               NOT NULL,
+    filter_join     INTEGER         DEFAULT 0               NOT NULL,
+    filter_leave    INTEGER         DEFAULT 0               NOT NULL,
+    filter_document INTEGER         DEFAULT 0               NOT NULL,
+    filter_location INTEGER         DEFAULT 0               NOT NULL,
     game_timeout    INTEGER         DEFAULT 10              NOT NULL
 )
     """)

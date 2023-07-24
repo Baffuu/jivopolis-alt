@@ -2,7 +2,7 @@ import contextlib
 from ... import bot, tglog
 
 from ...misc import get_embedded_link
-from ...misc.config import addon_prices, addon_descriptions
+from ...misc.config import addon_prices, addon_descriptions, filter_names
 from ...database import cur, insert_clan
 from ..start import StartCommand
 
@@ -1461,3 +1461,97 @@ async def confirm_timeout(call: CallbackQuery, timeout: int):
     cur.update("clandata").set(game_timeout=timeout).where(
         clan_id=call.message.chat.id).commit()
     await clan_addon_menu(call, addon="gameclub")
+
+
+async def clan_filter(call: CallbackQuery):
+    """
+    Callback for clan filter feature menu
+
+    :param call - callback:
+    """
+    chat_id = call.message.chat.id
+    count = cur.select("count(*)", "clandata").where(clan_id=chat_id).one()
+
+    if count < 1:
+        return await call.answer(
+            "😓 Похоже, такого клана не существует",
+            show_alert=True
+        )
+    elif count > 1:
+        raise ValueError("found more than one clan with such ID")
+
+    member = await bot.get_chat_member(chat_id, call.from_user.id)
+    if (
+        not member.is_chat_admin()
+        and not member.is_chat_creator()
+    ):
+        return await call.answer(
+            '👀 Управлять кланом может только администратор чата',
+            show_alert=True
+        )
+
+    markup = InlineKeyboardMarkup(row_width=1)
+    for filter in filter_names:
+        filter_state = cur.select(f"filter_{filter}", "clandata").where(
+            clan_id=chat_id).one()
+        filter_state_ru = "Включено" if filter_state else "Выключено"
+        markup.add(
+            InlineKeyboardButton(
+                f'{filter_names[filter]}: {filter_state_ru}',
+                callback_data=f'toggle_filter_{filter}'
+            )
+        )
+
+    markup.add(
+        InlineKeyboardButton(
+            text='◀ Назад',
+            callback_data='cancel_action'
+        )
+    )
+
+    await call.message.answer(
+        '<i>📛 <b>Фильтр сообщений</b> удаляет сообщения определённого типа. '
+        'Выберите, какие типы сообщений он будет удалять.\n\n<b>Обратите '
+        'внимание!\n1.</b> Фильтр удаляет сообщения даже админов и создателя '
+        'группы.\n<b>2.</b> Если у бота нет прав на удаление сообщений, он '
+        'просто будет игнорировать все нарушения</i>',
+        reply_markup=markup
+    )
+
+
+async def toggle_filter(call: CallbackQuery, filter: str):
+    """
+    Callback for toggling a filter
+
+    :param call - callback:
+    :param filter - filter name:
+    """
+    chat_id = call.message.chat.id
+    count = cur.select("count(*)", "clandata").where(clan_id=chat_id).one()
+
+    if count < 1:
+        return await call.answer(
+            "😓 Похоже, такого клана не существует",
+            show_alert=True
+        )
+    elif count > 1:
+        raise ValueError("found more than one clan with such ID")
+
+    member = await bot.get_chat_member(chat_id, call.from_user.id)
+    if (
+        not member.is_chat_admin()
+        and not member.is_chat_creator()
+    ):
+        return await call.answer(
+            '👀 Управлять кланом может только администратор чата',
+            show_alert=True
+        )
+
+    filter_enabled = cur.select(f"filter_{filter}", "clandata").where(
+        clan_id=chat_id).one()
+
+    cur.update("clandata").set(**{f"filter_{filter}": abs(
+        filter_enabled-1)}).where(clan_id=chat_id).commit()
+
+    await call.message.delete()
+    await clan_filter(call)

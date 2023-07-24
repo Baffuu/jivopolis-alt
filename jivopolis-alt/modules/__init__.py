@@ -9,7 +9,10 @@ from . import (
     emoji_handler,
     payments,
     new_member_handler,
-    message_handlers
+    message_handlers,
+    location_handler,
+    document_handler,
+    voice_video_handler
 )
 from .. import Dispatcher
 
@@ -33,6 +36,10 @@ async def register_all(dp: Dispatcher) -> tuple[ModuleType]:  # -> None:
     on_photo_sent.register(dp)
     stickers_handler.register(dp)
     emoji_handler.register(dp)
+    location_handler.register(dp)
+    voice_video_handler.register(dp)
+    document_handler.register(dp)
+    new_member_handler.register(dp)
 
     return (
         start,
@@ -44,5 +51,8 @@ async def register_all(dp: Dispatcher) -> tuple[ModuleType]:  # -> None:
         emoji_handler,
         new_member_handler,
         message_handlers,
-        payments
+        payments,
+        location_handler,
+        document_handler,
+        voice_video_handler
     )

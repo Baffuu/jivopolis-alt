@@ -173,6 +173,7 @@ async def lootbox_text(message: Message, nonick: bool = True):
 async def processes_text(message: Message):
     if not await can_interact(message.from_user.id):
         return
+
     process = await get_process(message.from_user.id)
     match (process):
         case 'search_address':

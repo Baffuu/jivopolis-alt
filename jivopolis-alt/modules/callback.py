@@ -415,6 +415,10 @@ async def callback_handler(call: CallbackQuery):
                 await set_gameclub_timeout(call)
             case set_timeout if set_timeout.startswith("set_timeout_"):
                 await confirm_timeout(call, timeout=int(set_timeout[12:]))
+            case "clan_filter":
+                await clan_filter(call)
+            case togglefilter if togglefilter.startswith("toggle_filter_"):
+                await toggle_filter(call, filter=togglefilter[14:])
 
             case taxi if taxi.startswith("taxi_page:"):
                 await taxi_page(call, int(call.data.replace("taxi_page:", "")))

@@ -12,6 +12,8 @@ from aiogram.types import (
     Message
 )
 
+import contextlib
+
 
 async def get_photo_messages(message: Message):
     user_id = message.from_user.id
@@ -30,6 +32,16 @@ async def get_photo_messages(message: Message):
             'о ошибка, обратитесь в <a href="'
             f'{OfficialChats.SUPPORTCHATLINK}">поддержку</a></i>'
         )
+
+    count = cur.select("count(*)", "clandata").where(
+            clan_id=message.chat.id).one()
+
+    if count == 1:
+        dice = cur.select("filter_photo", "clandata").where(
+            clan_id=message.chat.id).one()
+        if dice:
+            with contextlib.suppress(Exception):
+                return await message.delete()
 
     process = await get_process(user_id)
 
