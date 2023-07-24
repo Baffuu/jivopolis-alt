@@ -257,7 +257,8 @@ def create_marketplace(cur: fyCursor) -> Table:
         "type": Field(nullable=False, type=DATATYPES.TEXT),
         "seller_id": Field(nullable=False, type=DATATYPES.INTEGER),
         "put_up_date": Field(type=DATATYPES.TIMESTAMP),
-        "cost": Field(nullable=False, type=DATATYPES.INTEGER)
+        "cost": Field(nullable=False, type=DATATYPES.INTEGER),
+        "temp_id": Field(nullable=False, type=DATATYPES.INTEGER)
     }
 
     global market_table

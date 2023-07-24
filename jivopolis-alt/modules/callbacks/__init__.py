@@ -68,5 +68,6 @@ from .shops import (
     shop,
     moda_menu,
     ticket_shop,
-    maximdom, maximdom_elevator
+    maximdom, maximdom_elevator,
+    buyslot
 )

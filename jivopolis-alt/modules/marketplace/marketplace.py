@@ -1,3 +1,4 @@
+import random
 import time
 from dataclasses import dataclass
 from datetime import datetime
@@ -5,7 +6,17 @@ from fyCursor import fyCursor, Table
 from typing import Union, Self, List, get_args
 
 from ...database import tables, cur
-from .constants import ID, TABLE, SELLER_ID, COST, TYPE, PUT_UP_DATE
+from .constants import (
+    ID,
+    TABLE,
+    SELLER_ID,
+    COST,
+    TYPE,
+    PUT_UP_DATE,
+    TEMP_ID,
+    TEMP_ID_LENGTH,
+    ALPHABET
+)
 from ...items import Item, ITEMS
 
 
@@ -38,14 +49,27 @@ class Marketplace:
         self: Self,
         seller_id: int,
         item: Item | str,
-        cost: float | int
-    ) -> None:
+        cost: float | int,
+        temp_id: str
+    ) -> int:
         self.table << {
             TYPE: item.name if isinstance(item, Item) else item,
             SELLER_ID: seller_id,
             PUT_UP_DATE: time.time(),
-            COST: cost
+            COST: cost,
+            TEMP_ID: temp_id
         }
+        return self.get_by_temp(temp_id)
+
+    def generate_temp(self):
+        return "".join(random.choice(ALPHABET) for _ in range(TEMP_ID_LENGTH))  # todo: check if this id already exists # noqa: E501
+
+    def get_by_temp(self, temp_id: str | int) -> int:
+        out = self.cur.select("id", self.table.name).where(
+            temp_id=temp_id).one()
+        if out is None:
+            raise RuntimeError("No item with such id")
+        return out
 
     def remove(
         self: Self,
@@ -66,7 +90,8 @@ class Marketplace:
         else:
             raise TypeError("Wrong type of product")
         _product = self.get_product(product_id)
-        self.cur.execute(f"DELETE FROM {TABLE} WHERE id={product_id}").commit()
+        self.cur.execute(f"DELETE FROM {self.table.name}\
+                         WHERE id={product_id}").commit()
         return _product
 
     def get_product(

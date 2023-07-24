@@ -17,6 +17,10 @@ from ..misc import OfficialChats
 from ..items import ITEMS
 
 
+def str_to_bool(__s: str):
+    return __s == "True"
+
+
 async def inline_mode(query: InlineQuery):
     try:
         user_id = query.from_user.id
@@ -138,11 +142,12 @@ async def on_pressed_inline_query(inline: ChosenInlineResult):
             if cost > 0:  # if item is not free
                 item = ITEMS[inline.result_id.split(" ")[1]]
 
-                if not inline.result_id.split(" ")[4]:
+                if str_to_bool(inline.result_id.split(" ")[4]):
                     market.publish(
                         user_id,
                         item,
-                        cost
+                        cost,
+                        inline.result_id.split(" ")[5]
                     )
 
                 await tglog(
@@ -227,8 +232,8 @@ async def sell_query(
     text: str,
     user_id: int
 ):
-    post_on_market = "-b" in text  # todo: make constant for "-b"
-    if post_on_market:
+    post_on_market = "-b" not in text  # todo: make constant for "-b"
+    if not post_on_market:
         text = text.replace("-b", "")
     try:
         money = int(text[1:])
@@ -239,6 +244,9 @@ async def sell_query(
     index = 0
     results: list[InlineQueryResultArticle] = []
 
+    def get_query(itemname: str):
+        return f'slot {itemname} {money} {user_id} {post_on_market} {market.generate_temp()}'  # noqa: E501
+
     for itemname in ITEMS:
         if index > 15:  # to show only first 15 results
             # todo: make constant
@@ -248,14 +256,14 @@ async def sell_query(
 
         if itemdata_ == "emptyslot" or itemdata_ is None:
             continue
-
+        data = get_query(itemname)
         if money == 0:
             markup.inline_keyboard
             markup.inline_keyboard = [
                 [
                     InlineKeyboardButton(
                         text='Забрать бесплатно',
-                        callback_data=f'slot {itemname} {money} {user_id} {post_on_market}'  # noqa: E501
+                        callback_data=data
                     )
                 ]
             ]
@@ -264,7 +272,7 @@ async def sell_query(
                 [
                     InlineKeyboardButton(
                         text=f'Купить за ${money}',
-                        callback_data=f'slot {itemname} {money} {user_id} {post_on_market}'  # noqa: E501
+                        callback_data=data
                     )
                 ]
             ]
@@ -274,7 +282,7 @@ async def sell_query(
         item = ITEMS[itemname]
         results.append(
             InlineQueryResultArticle(
-                id=f'slot {itemname} {money}',
+                id=data,
                 title=f'Продать {item.emoji}{item.ru_name} за ${money}',
                 description=f'У вас этого предмета: {amount}',
                 input_message_content=InputTextMessageContent(

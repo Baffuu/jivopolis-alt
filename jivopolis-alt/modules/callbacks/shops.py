@@ -1,5 +1,11 @@
+import contextlib
+
+from ...misc.misc import get_embedded_link, tglog
+from ..marketplace.marketplace import market
+from ... import bot
 from ...database import cur
 from ...database.functions import buybutton
+from ...items import ITEMS
 from typing import Optional
 from aiogram.types import (
     CallbackQuery,
@@ -287,3 +293,76 @@ async def maximdom_elevator(call: CallbackQuery) -> None:
         '<i>🏬 Добро пожаловать в торговый центр Максимдом!</i>',
         reply_markup=markup
     )
+
+
+class SlotData():
+    def __init__(
+        self,
+        itemname: str,
+        money: str,
+        user_id: str,
+        post_on_market: str,
+        temp_id: int
+    ) -> None:
+        self.itemname = itemname
+        self.cost = int(money)
+        self.user_id = int(user_id)
+        self.post_on_market = post_on_market != "False"
+        self.id = market.get_by_temp(temp_id)
+
+
+async def buyslot(call: CallbackQuery) -> None:
+    user_id = call.from_user.id
+    message = call.message
+
+    data = call.data.split(' ')
+    data = SlotData(data[1], data[2], data[3], data[4], data[5])
+    with contextlib.suppress(RuntimeError):
+        market.remove(data.id)
+    if user_id == data.user_id:
+        if message is None:
+            await bot.edit_message_text(
+                inline_message_id=call.inline_message_id,
+                text="<i>Слот отменён продавцом</i>"
+            )
+        else:
+            await message.edit_text(
+                text='<i>Слот отменён продавцом</i>'
+            )
+        return cur.update("userdata").add(**{data.itemname: 1}).where(
+            user_id=user_id).commit()
+    balance = cur.select("balance", "userdata").where(user_id=user_id).one()
+
+    if balance < data.cost:
+        return await call.answer('❌ У вас недостаточно средств', True)
+
+    cur.update("userdata").add(**{data.itemname: 1}).where(
+        user_id=user_id).commit()
+    cur.update("userdata").add(balance=-data.cost).where(
+        user_id=user_id).commit()
+    cur.update("userdata").add(balance=data.cost).where(
+        user_id=data.user_id).commit()
+
+    item = ITEMS[data.itemname]
+
+    with contextlib.suppress(Exception):
+        await bot.send_message(
+            data.user_id,
+            f'{await get_embedded_link(user_id)} купил у вас <b>{item.emoji} '
+            f'{item.ru_name}</b> за <b>${data.cost}</b>'
+        )
+
+    if data.cost > 0:
+        await tglog(
+            f'{await get_embedded_link(user_id)} купил <b>{item.emoji} '
+            f'{item.ru_name}</b> за <b>${data.cost}</b>',
+            '#user_getitem</i>'
+        )
+
+    with contextlib.suppress(Exception):
+        await message.edit_text(
+            f'<i>{await get_embedded_link(user_id)} купил <b>{item.emoji} '
+            f'{item.ru_name}</b> за <b>${item.cost}</b>'
+        )
+
+    await call.answer("Спасибо за покупку", show_alert=True)
