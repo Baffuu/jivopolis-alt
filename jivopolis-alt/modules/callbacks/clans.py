@@ -5,6 +5,7 @@ from ...misc import get_embedded_link
 from ...misc.config import addon_prices, addon_descriptions, filter_names
 from ...database import cur, insert_clan
 from ..start import StartCommand
+from ...clanbuildings import CLAN_BUILDINGS
 
 from aiogram.types import (
     Message,
@@ -1555,3 +1556,159 @@ async def toggle_filter(call: CallbackQuery, filter: str):
 
     await call.message.delete()
     await clan_filter(call)
+
+
+async def clan_buildings(call: CallbackQuery):
+    """
+    Callback for clan buildings menu
+
+    :param call - callback:
+    """
+    chat_id = call.message.chat.id
+    count = cur.select("count(*)", "clandata").where(clan_id=chat_id).one()
+
+    if count < 1:
+        return await call.answer(
+            "😓 Похоже, такого клана не существует",
+            show_alert=True
+        )
+    elif count > 1:
+        raise ValueError("found more than one clan with such ID")
+
+    markup = InlineKeyboardMarkup(row_width=1)
+    for building in CLAN_BUILDINGS:
+        amount = cur.select(f"build_{building}", "clandata").where(
+            clan_id=chat_id).one()
+        build = CLAN_BUILDINGS[building]
+        if amount > 0:
+            markup.add(
+                InlineKeyboardButton(
+                    text=build.ru_name,
+                    callback_data=f'building_{building}'
+                )
+            )
+
+    markup.add(
+        InlineKeyboardButton(
+            text='🏗 Магазин построек',
+            callback_data='clan_building_shop'
+        ),
+        InlineKeyboardButton(
+            text='◀ Назад',
+            callback_data='cancel_action'
+        )
+    )
+
+    await call.message.answer(
+        '<i>🏙 Постройки клана</i>',
+        reply_markup=markup
+    )
+
+
+async def clan_building_shop(call: CallbackQuery):
+    """
+    Callback for clan buildings shop
+
+    :param call - callback:
+    """
+    chat_id = call.message.chat.id
+    count = cur.select("count(*)", "clandata").where(clan_id=chat_id).one()
+
+    if count < 1:
+        return await call.answer(
+            "😓 Похоже, такого клана не существует",
+            show_alert=True
+        )
+    elif count > 1:
+        raise ValueError("found more than one clan with such ID")
+
+    member = await bot.get_chat_member(chat_id, call.from_user.id)
+    if (
+        not member.is_chat_admin()
+        and not member.is_chat_creator()
+    ):
+        return await call.answer(
+            '👀 Управлять кланом может только администратор чата',
+            show_alert=True
+        )
+
+    markup = InlineKeyboardMarkup(row_width=1)
+    for building in CLAN_BUILDINGS:
+        build = CLAN_BUILDINGS[building]
+        markup.add(
+            InlineKeyboardButton(
+                text=build.ru_name,
+                callback_data=f'building_{building}'
+            )
+        )
+
+    markup.add(
+        InlineKeyboardButton(
+            text='◀ Назад',
+            callback_data='cancel_action'
+        )
+    )
+
+    await call.message.answer(
+        '<i>🏗 Магазин построек клана</i>',
+        reply_markup=markup
+    )
+
+
+'''
+async def clan_building_menu(call: CallbackQuery, building: str):
+    Callback for a clan building menu
+
+    :param call - callback:
+    :param addon - addon symbolic name:
+    chat_id = call.message.chat.id
+    build = CLAN_BUILDINGS[building]
+    count = cur.select("count(*)", "clandata").where(clan_id=chat_id).one()
+
+    if count < 1:
+        return await call.answer(
+            "😓 Похоже, такого клана не существует",
+            show_alert=True
+        )
+    elif count > 1:
+        raise ValueError("found more than one clan with such ID")
+
+    member = await bot.get_chat_member(chat_id, call.from_user.id)
+    if (
+        not member.is_chat_admin()
+        and not member.is_chat_creator()
+        and CLAN_BUILDINGS[building].admins_only
+    ):
+        return await call.answer(
+            '👀 Пользоваться данной постройкой может только администратор чата',
+            show_alert=True
+        )
+
+    amount = cur.select(f"build_{building}", "clandata").where(
+        clan_id=chat_id).one()
+
+    cost = build.price
+    description = build.description
+
+    markup = InlineKeyboardMarkup(row_width=1)
+    text = (
+        f"{description}.\n\n💸 Включение дополнения стоит <b>${cost}"
+        "</b>. При отмене покупки эта сумма возвращается тому администратору,"
+        " кто её отменил"
+    )
+    if build.max_level:
+        text += (
+            f".\n\nЭту постройку можно улучшать вплоть до <b>{build.max_level}"
+            f"</b>"
+        )
+
+    await call.message.answer(
+        f"<i>{text}</i>",
+        reply_markup=markup.add(
+            InlineKeyboardButton(
+                text="◀ Назад",
+                callback_data="cancel_action"
+            )
+        )
+    )
+'''

@@ -419,6 +419,10 @@ async def callback_handler(call: CallbackQuery):
                 await clan_filter(call)
             case togglefilter if togglefilter.startswith("toggle_filter_"):
                 await toggle_filter(call, filter=togglefilter[14:])
+            case "clan_buildings":
+                await clan_buildings(call)
+            case "clan_building_shop":
+                await clan_building_shop(call)
 
             case taxi if taxi.startswith("taxi_page:"):
                 await taxi_page(call, int(call.data.replace("taxi_page:", "")))
