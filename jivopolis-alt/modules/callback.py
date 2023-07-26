@@ -424,6 +424,17 @@ async def callback_handler(call: CallbackQuery):
             case "clan_building_shop":
                 await clan_building_shop(call)
 
+            case buildmenu if buildmenu.startswith("building_"):
+                await clan_building_menu(call, buildmenu[9:])
+            case buy_build if buy_build.startswith("buybuilding_"):
+                await buy_clan_building(call, buy_build[12:])
+            case sell_build if sell_build.startswith("sellbuilding_"):
+                await sell_clan_building(call, sell_build[13:])
+            case up_build if up_build.startswith("upgrade_building_"):
+                await upgrade_clan_building(call, up_build[17:])
+            case usebuild if usebuild.startswith("use_building_"):
+                await use_clan_building(call, usebuild[13:])
+
             case taxi if taxi.startswith("taxi_page:"):
                 await taxi_page(call, int(call.data.replace("taxi_page:", "")))
 

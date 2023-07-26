@@ -1136,7 +1136,7 @@ async def buyclan_(call: CallbackQuery, item: str) -> None:
 
     :raises ValueError if item does not exist or is not in clan-items
     '''
-    if item not in clanitems:
+    if item not in clanitems[0]:
         raise ValueError("no such item in clanitems")
 
     cost = clanitems[1][clanitems[0].index(item)]
@@ -1159,7 +1159,7 @@ async def buyclan_(call: CallbackQuery, item: str) -> None:
 
     clan_bonus_devider = random.randint(1, 5)
 
-    cur.update("clandata").add(balance=cost//clan_bonus_devider).where(
+    cur.update("clandata").add(clan_balance=cost//clan_bonus_devider).where(
         clan_id=chat_id).commit()
     await call.answer(
         f'Покупка совершена успешно. Ваш баланс: ${balance-cost}. Баланс клана'

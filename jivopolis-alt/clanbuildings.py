@@ -18,6 +18,10 @@ class ClanBuilding():
     # only admins can open the building
     admins_only: bool = False
 
+    # list of items to sell in the building
+    # if None, the building has no selling keyboard
+    shop: list | None = None
+
 
 CLAN_BUILDINGS = {
     'mail': ClanBuilding(
@@ -50,7 +54,8 @@ CLAN_BUILDINGS = {
         ),
         price=600,
         upgrade_markup=0,
-        max_level=0
+        max_level=0,
+        shop=['pill']
     ),
     'farm': ClanBuilding(
         name='farm',

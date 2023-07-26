@@ -4,6 +4,7 @@ from ... import bot, tglog
 from ...misc import get_embedded_link
 from ...misc.config import addon_prices, addon_descriptions, filter_names
 from ...database import cur, insert_clan
+from ...database.functions import buybutton
 from ..start import StartCommand
 from ...clanbuildings import CLAN_BUILDINGS
 
@@ -1655,12 +1656,13 @@ async def clan_building_shop(call: CallbackQuery):
     )
 
 
-'''
 async def clan_building_menu(call: CallbackQuery, building: str):
+    '''
     Callback for a clan building menu
 
     :param call - callback:
     :param addon - addon symbolic name:
+    '''
     chat_id = call.message.chat.id
     build = CLAN_BUILDINGS[building]
     count = cur.select("count(*)", "clandata").where(clan_id=chat_id).one()
@@ -1689,17 +1691,51 @@ async def clan_building_menu(call: CallbackQuery, building: str):
 
     cost = build.price
     description = build.description
+    name = build.ru_name
 
     markup = InlineKeyboardMarkup(row_width=1)
     text = (
-        f"{description}.\n\n💸 Включение дополнения стоит <b>${cost}"
-        "</b>. При отмене покупки эта сумма возвращается тому администратору,"
-        " кто её отменил"
+        f"<b>{name}</b> - {description}.\n\n💸 Покупка постройки стоит "
+        f"<b>${cost}</b>. При отмене покупки эта сумма возвращается тому"
+        " администратору, кто её отменил"
     )
-    if build.max_level:
+    if build.max_level and amount:
         text += (
             f".\n\nЭту постройку можно улучшать вплоть до <b>{build.max_level}"
-            f"</b>"
+            "</b> уровня. Стоимость каждого апгрейда на <b>$"
+            f"{build.upgrade_markup}</b> больше стоимости предыдущего.\n\n"
+            "❗ При отмене покупки постройки возвращается её начальная"
+            " стоимость без учёта улучшений.\n\nУровень постройки - "
+            f"<b>{amount}</b>"
+        )
+
+    if amount:
+        markup.add(
+            InlineKeyboardButton(
+                text="▶ Воспользоваться",
+                callback_data=f"use_building_{building}"
+            )
+        )
+        if build.max_level and amount <= build.max_level:
+            cost = build.price + amount*build.upgrade_markup
+            markup.add(
+                InlineKeyboardButton(
+                    text=f"↗ Улучшить (${cost})",
+                    callback_data=f"upgrade_building_{building}"
+                )
+            )
+        markup.add(
+            InlineKeyboardButton(
+                text="❌ Отменить покупку",
+                callback_data=f"sellbuilding_{building}"
+            )
+        )
+    else:
+        markup.add(
+            InlineKeyboardButton(
+                text=f"🏗 Построить (${build.price})",
+                callback_data=f"buybuilding_{building}"
+            )
         )
 
     await call.message.answer(
@@ -1711,4 +1747,247 @@ async def clan_building_menu(call: CallbackQuery, building: str):
             )
         )
     )
-'''
+
+
+async def buy_clan_building(call: CallbackQuery, building: str) -> None:
+    '''
+    Callback for buying a clan building
+
+    :param call - callback:
+    :param building - building symbolic name:
+    '''
+    chat_id = call.message.chat.id
+    count = cur.select("count(*)", "clandata").where(clan_id=chat_id).one()
+
+    if count < 1:
+        return await call.answer(
+            "😓 Похоже, такого клана не существует",
+            show_alert=True
+        )
+    elif count > 1:
+        raise ValueError("found more than one clan with such ID")
+
+    member = await bot.get_chat_member(chat_id, call.from_user.id)
+    if (
+        not member.is_chat_admin()
+        and not member.is_chat_creator()
+    ):
+        return await call.answer(
+            '👀 Управлять кланом может только администратор чата',
+            show_alert=True
+        )
+
+    amount = cur.select(f"build_{building}", "clandata").where(
+        clan_id=chat_id).one()
+    if amount:
+        return await call.answer(
+            '🤨 В клане уже есть эта постройка, зачем вам ещё одна?',
+            show_alert=True
+        )
+
+    price = CLAN_BUILDINGS[building].price
+
+    balance = cur.select("balance", "userdata").where(
+        user_id=call.from_user.id).one()
+    if balance < price:
+        return await call.answer(
+            '😪 У вас недостаточно денег',
+            show_alert=True
+        )
+
+    cur.update("userdata").add(balance=-price).where(
+        user_id=call.from_user.id).commit()
+    cur.update("clandata").set(**{f'build_{building}': 1}).where(
+        clan_id=chat_id).commit()
+
+    await call.message.answer(
+        "<i>👌 Постройка успешно куплена</i>",
+        reply_markup=InlineKeyboardMarkup().add(
+            InlineKeyboardButton(
+                text="✅ Готово",
+                callback_data="cancel_action"
+            )
+        )
+    )
+
+
+async def sell_clan_building(call: CallbackQuery, building: str) -> None:
+    '''
+    Callback for unbuying a clan building
+
+    :param call - callback:
+    :param building - building symbolic name:
+    '''
+    chat_id = call.message.chat.id
+    count = cur.select("count(*)", "clandata").where(clan_id=chat_id).one()
+
+    if count < 1:
+        return await call.answer(
+            "😓 Похоже, такого клана не существует",
+            show_alert=True
+        )
+    elif count > 1:
+        raise ValueError("found more than one clan with such ID")
+
+    member = await bot.get_chat_member(chat_id, call.from_user.id)
+    if (
+        not member.is_chat_admin()
+        and not member.is_chat_creator()
+    ):
+        return await call.answer(
+            '👀 Управлять кланом может только администратор чата',
+            show_alert=True
+        )
+
+    amount = cur.select(f"build_{building}", "clandata").where(
+        clan_id=chat_id).one()
+    if not amount:
+        return await call.answer(
+            '🤨 В клане уже нет этой постройки, что вы собрались продавать?',
+            show_alert=True
+        )
+
+    price = CLAN_BUILDINGS[building].price
+
+    cur.update("userdata").add(balance=price).where(
+        user_id=call.from_user.id).commit()
+    cur.update("clandata").set(**{f'build_{building}': 0}).where(
+        clan_id=chat_id).commit()
+
+    await call.message.answer(
+        "<i>👌 Постройка успешно продана</i>",
+        reply_markup=InlineKeyboardMarkup().add(
+            InlineKeyboardButton(
+                text="✅ Готово",
+                callback_data="cancel_action"
+            )
+        )
+    )
+
+
+async def upgrade_clan_building(call: CallbackQuery, building: str) -> None:
+    '''
+    Callback for upgrading a clan building
+
+    :param call - callback:
+    :param building - building symbolic name:
+    '''
+    chat_id = call.message.chat.id
+    count = cur.select("count(*)", "clandata").where(clan_id=chat_id).one()
+
+    if count < 1:
+        return await call.answer(
+            "😓 Похоже, такого клана не существует",
+            show_alert=True
+        )
+    elif count > 1:
+        raise ValueError("found more than one clan with such ID")
+
+    member = await bot.get_chat_member(chat_id, call.from_user.id)
+    if (
+        not member.is_chat_admin()
+        and not member.is_chat_creator()
+    ):
+        return await call.answer(
+            '👀 Управлять кланом может только администратор чата',
+            show_alert=True
+        )
+
+    amount = cur.select(f"build_{building}", "clandata").where(
+        clan_id=chat_id).one()
+    if not amount:
+        return await call.answer(
+            '🤨 В клане нет этой постройки, что вы собрались улучшать?',
+            show_alert=True
+        )
+    if amount >= CLAN_BUILDINGS[building].max_level:
+        return await call.answer(
+            '😪 Постройка уже улучшена до максимального уровня',
+            show_alert=True
+        )
+
+    price = CLAN_BUILDINGS[building].price +\
+        CLAN_BUILDINGS[building].upgrade_markup*amount
+
+    balance = cur.select("balance", "userdata").where(
+        user_id=call.from_user.id).one()
+    if balance < price:
+        return await call.answer(
+            '😪 У вас недостаточно денег',
+            show_alert=True
+        )
+
+    cur.update("userdata").add(balance=-price).where(
+        user_id=call.from_user.id).commit()
+    cur.update("clandata").add(**{f'build_{building}': 1}).where(
+        clan_id=chat_id).commit()
+
+    await call.message.answer(
+        f"<i>👌 Постройка успешно улучшена до уровня <b>{amount+1}</b></i>",
+        reply_markup=InlineKeyboardMarkup().add(
+            InlineKeyboardButton(
+                text="✅ Готово",
+                callback_data="cancel_action"
+            )
+        )
+    )
+
+
+async def use_clan_building(call: CallbackQuery, building: str) -> None:
+    '''
+    Callback for using a clan building
+
+    :param call - callback:
+    :param building - building symbolic name:
+    '''
+    chat_id = call.message.chat.id
+    count = cur.select("count(*)", "clandata").where(clan_id=chat_id).one()
+    build = CLAN_BUILDINGS[building]
+
+    if count < 1:
+        return await call.answer(
+            "😓 Похоже, такого клана не существует",
+            show_alert=True
+        )
+    elif count > 1:
+        raise ValueError("found more than one clan with such ID")
+
+    member = await bot.get_chat_member(chat_id, call.from_user.id)
+    if (
+        not member.is_chat_admin()
+        and not member.is_chat_creator()
+        and build.admins_only
+    ):
+        return await call.answer(
+            '👀 Пользоваться данной постройкой может только администратор чата',
+            show_alert=True
+        )
+
+    amount = cur.select(f"build_{building}", "clandata").where(
+        clan_id=chat_id).one()
+    if not amount:
+        return await call.answer(
+            '🤨 В клане нет этой постройки, что вы собрались использовать?',
+            show_alert=True
+        )
+
+    text = f"<b>{build.ru_name}</b> - {build.description}"
+    if build.max_level:
+        text += f".\n\nУровень постройки - <b>{amount}</b>"
+
+    markup = InlineKeyboardMarkup(row_width=1)
+    if build.shop is not None:
+        for item in build.shop:
+            markup.add(
+                buybutton(item, status='clan')
+            )
+
+    await call.message.answer(
+        f"<i>{text}</i>",
+        reply_markup=markup.add(
+            InlineKeyboardButton(
+                text="◀ Назад",
+                callback_data="cancel_action"
+            )
+        )
+    )

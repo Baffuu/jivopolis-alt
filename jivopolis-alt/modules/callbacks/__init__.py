@@ -66,7 +66,9 @@ from .clans import (
     set_clan_link, delete_clan_link, delete_clan_name, confirm_clan_photo,
     set_clan_photo, delete_clan_photo, clan_addon_menu, buy_clan_addon,
     sell_clan_addon, clan_features, set_gameclub_timeout, confirm_timeout,
-    clan_filter, toggle_filter, clan_buildings, clan_building_shop
+    clan_filter, toggle_filter, clan_buildings, clan_building_shop,
+    buy_clan_building, sell_clan_building, upgrade_clan_building, clan_building_menu,
+    use_clan_building
 )
 
 from .shops import (
