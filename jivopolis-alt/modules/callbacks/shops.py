@@ -1,5 +1,13 @@
+import contextlib
+
+from loguru import logger
+
+from ...misc.misc import get_embedded_link, tglog
+from ...marketplace.marketplace import market
+from ... import bot
 from ...database import cur
 from ...database.functions import buybutton
+from ...items import ITEMS
 from typing import Optional
 from aiogram.types import (
     CallbackQuery,
@@ -287,3 +295,121 @@ async def maximdom_elevator(call: CallbackQuery) -> None:
         '<i>🏬 Добро пожаловать в торговый центр Максимдом!</i>',
         reply_markup=markup
     )
+
+
+class SlotData():
+    def __init__(
+        self,
+        itemname: str,
+        money: str,
+        user_id: str,
+        post_on_market: str,
+        temp_id: int
+    ) -> None:
+        self.itemname = itemname
+        self.cost = int(money)
+        self.user_id = int(user_id)
+        self.post_on_market = post_on_market != "False"
+        try:
+            self.id = market.get_by_temp(temp_id)
+        except RuntimeError:
+            self.id = temp_id
+
+
+async def buyslot(call: CallbackQuery) -> None:
+    user_id = call.from_user.id
+    message = call.message
+
+    data = call.data.split(' ')
+    try:
+        data = SlotData(data[1], data[2], data[3], data[4], data[5])
+    except TypeError as e:
+        logger.exception(e)
+    try:
+        market.remove(int(data.id))
+    except ValueError:
+        return await call.answer(
+            "🙀 Somebody already bought this product",
+            show_alert=True
+        )
+    except RuntimeError:
+        pass
+    if user_id == data.user_id:
+        if message is None:
+            await bot.edit_message_text(
+                inline_message_id=call.inline_message_id,
+                text="<i>Слот отменён продавцом</i>"
+            )
+        else:
+            await message.edit_text(
+                text='<i>Слот отменён продавцом</i>'
+            )
+        return cur.update("userdata").add(**{data.itemname: 1}).where(
+            user_id=user_id).commit()
+    balance = cur.select("balance", "userdata").where(user_id=user_id).one()
+
+    if balance < data.cost:
+        return await call.answer('❌ У вас недостаточно средств', True)
+
+    cur.update("userdata").add(**{data.itemname: 1}).where(
+        user_id=user_id).commit()
+    cur.update("userdata").add(balance=-data.cost).where(
+        user_id=user_id).commit()
+    cur.update("userdata").add(balance=data.cost).where(
+        user_id=data.user_id).commit()
+
+    item = ITEMS[data.itemname]
+
+    with contextlib.suppress(Exception):
+        await bot.send_message(
+            data.user_id,
+            f'{await get_embedded_link(user_id)} купил у вас <b>{item.emoji} '
+            f'{item.ru_name}</b> за <b>${data.cost}</b>'
+        )
+
+    if data.cost > 0:
+        await tglog(
+            f'{await get_embedded_link(user_id)} купил <b>{item.emoji} '
+            f'{item.ru_name}</b> за <b>${data.cost}</b>',
+            '#user_getitem</i>'
+        )
+
+    with contextlib.suppress(Exception):
+        await message.edit_text(
+            f'<i>{await get_embedded_link(user_id)} купил <b>{item.emoji} '
+            f'{item.ru_name}</b> за <b>${item.cost}</b>'
+        )
+
+    await call.answer("Спасибо за покупку", show_alert=True)
+
+
+async def product_info(call: CallbackQuery):
+    product_id = call.data.replace("product_info_", "")
+    try:
+        product = market.get_product(product_id)
+    except ValueError:
+        return await call.answer(
+            "🙀 Somebody already bought this product",
+            show_alert=True
+        )
+    item = product.item
+    message = (
+        f"<b>{item.emoji} {item.ru_name}</b>"
+        f"\n>>> <i>{item.description}</i>"
+        f"\n            💍 Seller: {await get_embedded_link(product.owner)}&lt;"
+    )
+    await call.answer(
+        "🪡 I send you product info in private messages",
+        show_alert=True
+    )
+    await bot.send_message(
+        call.from_user.id,
+        message,
+        reply_markup=InlineKeyboardMarkup().add(
+            InlineKeyboardButton(
+                f"💸 Buy for {product.cost}",
+                callback_data=f"slot {item.name} {product.cost} {product.owner} True {product.id}"  # noqa
+            )
+        )
+    )
+    return product

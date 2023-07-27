@@ -1,0 +1,12 @@
+GROUP_ID = -1001612535843
+TABLE = "marketplace"
+SELLER_ID = "seller_id"
+COST = "cost"
+TYPE = "type"
+PUT_UP_DATE = "put_up_date"
+ID = "id"
+MAX_KEYBOARD_LENGTH = 45
+ROW_WIDTH = 8
+TEMP_ID = "temp_id"
+ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+TEMP_ID_LENGTH = 10

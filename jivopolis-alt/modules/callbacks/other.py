@@ -385,7 +385,7 @@ async def exchange_menu_(call: CallbackQuery):
             callback_data=f"exchange_{crypto.name}:-1"
         )
     ]
-    print(buttons)
+
     await call.message.answer(
         f"{crypto.emoji} {crypto.ru_name}\nТекущее значение: {crypto_value}",
         reply_markup=InlineKeyboardMarkup(row_width=1).add(*buttons)

@@ -1,12 +1,15 @@
 # type: ignore
 # flake8: noqa
+from datetime import datetime
 import time
 import random
 import sqlite3
 import contextlib
 
+from .bot import bot
 from .misc import tglog, ITEMS
 from .database import cur
+from .marketplace.marketplace import market
 from .misc.config import limeteds
 
 from loguru import logger
@@ -15,6 +18,7 @@ from loguru import logger
 async def update():
     await refill_market()
     await update_crypto()
+    await remove_old_products()
 
 
 async def refill_market():
@@ -92,3 +96,25 @@ def _change_values(c, current_value, change):
 
 async def get_crypto() -> list:
     return [item for item in ITEMS if ITEMS[item].type == "crypto"]
+
+
+async def remove_old_products():
+    lastmarket = time.time() - float(cur.select("lastmarket", "globaldata").one())
+    DAY = 60 * 60 * 24
+    if lastmarket < DAY:
+        return
+    WEEK = DAY * 7
+
+    for product in market.get_all():
+        if product.date.timestamp() + WEEK < time.time():
+            cur.update("userdata").add(**{product.item.name: 1}).where(user_id=product.owner)
+            await bot.send_message(
+                product.owner,
+                (
+                    f"⏳ Ваш товар {str(product.item)} находился на прилавке слишком долго. Он снят и вернулся к вам в инвентарь."
+                    "\n\n💡Вы всегда можете выставить ваш товар заново"
+                )
+            )
+            product.remove()
+    cur.update("globaldata").set(lastmarket=time.time()).commit()
+    await tglog("a", "b") # todo
