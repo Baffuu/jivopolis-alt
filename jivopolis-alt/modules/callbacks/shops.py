@@ -1,6 +1,7 @@
 import contextlib
 
 from loguru import logger
+from matplotlib.pyplot import show
 
 from ...misc.misc import get_embedded_link, tglog
 from ..marketplace.marketplace import market
@@ -328,7 +329,10 @@ async def buyslot(call: CallbackQuery) -> None:
     try:
         market.remove(int(data.id))
     except ValueError:
-        return await call.answer("🙀 Somebody already bought this product")
+        return await call.answer(
+            "🙀 Somebody already bought this product",
+            show_alert=True
+        )
     except RuntimeError:
         pass
     if user_id == data.user_id:
@@ -389,7 +393,7 @@ async def product_info(call: CallbackQuery):
         f"\n>>> <i>{item.description}</i>"
         f"\n            💍 Seller: {await get_embedded_link(product.owner)}&lt;"
     )
-    await call.answer("🪡 I send you product info in private messages")
+    await call.answer("🪡 I send you product info in private messages", show_alert=True)
     await bot.send_message(
         call.from_user.id,
         message,
