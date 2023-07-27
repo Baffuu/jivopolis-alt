@@ -2,7 +2,7 @@ import random
 import contextlib
 from time import time
 from collections import namedtuple
-from .marketplace import group_support
+from ..marketplace import group_support
 from aiogram.types import (
     Message,
     InlineKeyboardMarkup,

@@ -1,6 +1,5 @@
 from types import ModuleType
 from . import (
-    marketplace,
     callback,
     admin_commands,
     inline_bot,
@@ -12,7 +11,7 @@ from . import (
     new_member_handler,
     message_handlers
 )
-from .. import Dispatcher
+from .. import Dispatcher, marketplace
 
 
 async def register_all(dp: Dispatcher) -> tuple[ModuleType]:  # -> None:

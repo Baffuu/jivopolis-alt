@@ -1,6 +1,6 @@
 from .marketplace import market, Product
 from .constants import MAX_KEYBOARD_LENGTH, GROUP_ID, ROW_WIDTH
-from ...filters import RequireBetaFilter
+from ..filters import RequireBetaFilter
 
 from typing import Coroutine, Any
 from aiogram import Dispatcher

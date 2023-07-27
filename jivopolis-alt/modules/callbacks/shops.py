@@ -1,10 +1,9 @@
 import contextlib
 
 from loguru import logger
-from matplotlib.pyplot import show
 
 from ...misc.misc import get_embedded_link, tglog
-from ..marketplace.marketplace import market
+from ...marketplace.marketplace import market
 from ... import bot
 from ...database import cur
 from ...database.functions import buybutton

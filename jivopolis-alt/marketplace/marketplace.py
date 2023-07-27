@@ -4,7 +4,7 @@ from datetime import datetime
 from fyCursor import fyCursor, Table
 from typing import Self, List
 
-from ...database import tables, cur
+from ..database import tables, cur
 from .constants import (
     ID,
     TABLE,
@@ -16,7 +16,7 @@ from .constants import (
     TEMP_ID_LENGTH,
     ALPHABET
 )
-from ...items import Item, ITEMS
+from ..items import Item, ITEMS
 
 
 class Product:

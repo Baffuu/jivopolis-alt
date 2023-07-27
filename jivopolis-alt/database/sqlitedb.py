@@ -195,6 +195,7 @@ def create_globaldata(cur: fyCursor) -> None:
     treasury        INTEGER         DEFAULT 0               NOT NULL,
     lastfill        DATETIME        DEFAULT 0               NOT NULL,
     lastcrypto      DATETIME        DEFAULT 0               NOT NULL,
+    lastmarket      DATETIME        DEFAULT 0               NOT NULL,
     baguette        INTEGER,
     pelmeni         INTEGER,
     soup            INTEGER,

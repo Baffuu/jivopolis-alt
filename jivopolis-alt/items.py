@@ -24,6 +24,9 @@ class Item():
             else self.cost
         )
 
+    def __str__(self) -> str:
+        return f"{self.emoji} {self.ru_name}"
+
 
 ITEMS = {
     'walrus': Item(  # todo: rename to seal

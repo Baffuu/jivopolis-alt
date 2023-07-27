@@ -12,7 +12,7 @@ from aiogram.types import (
     ChosenInlineResult,
 )
 from .. import logger, bot, Dispatcher, tglog
-from .marketplace.marketplace import market
+from ..marketplace.marketplace import market
 from ..misc import OfficialChats
 from ..items import ITEMS
 
