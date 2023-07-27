@@ -386,14 +386,23 @@ async def buyslot(call: CallbackQuery) -> None:
 
 async def product_info(call: CallbackQuery):
     product_id = call.data.replace("product_info_", "")
-    product = market.get_product(product_id)
+    try:
+        product = market.get_product(product_id)
+    except ValueError:
+        return await call.answer(
+            "🙀 Somebody already bought this product",
+            show_alert=True
+        )
     item = product.item
     message = (
         f"<b>{item.emoji} {item.ru_name}</b>"
         f"\n>>> <i>{item.description}</i>"
         f"\n            💍 Seller: {await get_embedded_link(product.owner)}&lt;"
     )
-    await call.answer("🪡 I send you product info in private messages", show_alert=True)
+    await call.answer(
+        "🪡 I send you product info in private messages",
+        show_alert=True
+    )
     await bot.send_message(
         call.from_user.id,
         message,
