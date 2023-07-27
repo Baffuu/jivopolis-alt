@@ -325,8 +325,12 @@ async def buyslot(call: CallbackQuery) -> None:
         data = SlotData(data[1], data[2], data[3], data[4], data[5])
     except TypeError as e:
         logger.exception(e)
-    with contextlib.suppress(RuntimeError):
+    try:
         market.remove(int(data.id))
+    except ValueError:
+        return await call.answer("🙀 Somebody already bought this product")
+    except RuntimeError:
+        pass
     if user_id == data.user_id:
         if message is None:
             await bot.edit_message_text(
