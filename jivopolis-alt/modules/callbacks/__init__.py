@@ -48,7 +48,8 @@ from .traveling import (
     businessclass_lounge, go_bytrain, buscall, regbuscall,
     go_bybus, go_byshuttle, tramcall, tram_lounge, proceed_tram,
     tram_forward, tram_back, walk, gps_category, gps_location,
-    gps_transport, car_menu_page
+    gps_transport, car_menu_page, local_clans, find_address,
+    search_by_address
 )
 
 from .locations import (
@@ -59,7 +60,15 @@ from .locations import (
 
 from .clans import (
     create_clan, joinclan, leaveclan, clan_members, call_clan,
-    clan_top, clan_settings, delete_clan, delete_clan_confirm
+    clan_top, clan_settings, delete_clan, delete_clan_confirm,
+    toggle_clan_type, clan_hq, set_clan_name, set_clan_bio,
+    confirm_clan_profile_setting, delete_clan_bio, clan_profile,
+    set_clan_link, delete_clan_link, delete_clan_name, confirm_clan_photo,
+    set_clan_photo, delete_clan_photo, clan_addon_menu, buy_clan_addon,
+    sell_clan_addon, clan_features, set_gameclub_timeout, confirm_timeout,
+    clan_filter, toggle_filter, clan_buildings, clan_building_shop,
+    buy_clan_building, sell_clan_building, upgrade_clan_building, clan_building_menu,
+    use_clan_building, donate_cow, milk_cow_clan, give_lootboxes
 )
 
 from .shops import (

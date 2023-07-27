@@ -7,11 +7,13 @@ from ..filters import RequireBetaFilter
 from .emoji_handler import slot_machine
 from .. import dp, cur, bot, tglog, get_embedded_link
 from ..utils import is_allowed_nonick
-from ..database.functions import profile
+from ..database.functions import profile, can_interact, get_process
 from ..misc.config import hellos
 from .callbacks.inventory import lootbox_button
 from aiogram.types import Message, ChatType
 from aiogram.dispatcher.filters import Text
+from .callbacks.traveling import find_address
+from .callbacks.clans import confirm_clan_profile_setting, confirm_clan_photo
 
 
 def contains(text: str | Iterable, content: str) -> bool:
@@ -29,6 +31,8 @@ def contains(text: str | Iterable, content: str) -> bool:
     RequireBetaFilter()
 )
 async def chatbot_functions(message: Message):
+    if not await can_interact(message.from_user.id):
+        return
     if not await RequireBetaFilter().check(message, False):
         return
     text = message.text[9:].lower()
@@ -45,7 +49,7 @@ async def chatbot_functions(message: Message):
             del _message
         case t if t.startswith('выйди'):
             await message.reply(
-                "😭 Мне следует уйти? Очень жаль, прощайте, друзья…"
+                "<i>😭 Мне следует уйти? Очень жаль. Прощайте, друзья…</i>"
             )
             await bot.leave_chat(message.chat.id)
         case t if t.startswith(('передать ', 'пожертвовать ')):
@@ -77,6 +81,8 @@ async def chatbot_functions(message: Message):
     RequireBetaFilter()
 )
 async def profile_alias_text(message: Message, nonick=True):
+    if not await can_interact(message.from_user.id):
+        return
     if not await is_allowed_nonick(message.from_user.id) and nonick:
         return
     if message.reply_to_message:
@@ -93,6 +99,8 @@ async def profile_alias_text(message: Message, nonick=True):
     RequireBetaFilter()
 )
 async def my_balance_text(message: Message, nonick: bool = True):
+    if not await can_interact(message.from_user.id):
+        return
     if not await is_allowed_nonick(message.from_user.id) and nonick:
         return
     user_id = message.from_user.id
@@ -112,6 +120,8 @@ async def my_balance_text(message: Message, nonick: bool = True):
     RequireBetaFilter()
 )
 async def user_id_text(message: Message, nonick: bool = True):
+    if not await can_interact(message.from_user.id):
+        return
     if not await is_allowed_nonick(message.from_user.id) and nonick:
         return
     await message.reply(
@@ -148,13 +158,43 @@ async def ping_text(message: Message):
     RequireBetaFilter()
 )
 async def lootbox_text(message: Message, nonick: bool = True):
+    if not await can_interact(message.from_user.id):
+        return
     if not await is_allowed_nonick(message.from_user.id) and nonick:
         return
     with contextlib.suppress(Exception):
         await lootbox_button(message.from_user.id, message)
 
 
+@dp.message_handler(
+    lambda message: (not message.text.startswith('/') and
+                     not message.text.startswith('.')),
+    RequireBetaFilter())
+async def processes_text(message: Message):
+    if not await can_interact(message.from_user.id):
+        return
+
+    process = await get_process(message.from_user.id)
+    match (process):
+        case 'search_address':
+            await find_address(message)
+        case 'set_clan_name':
+            await confirm_clan_profile_setting(message, 'clan_name')
+        case 'set_clan_bio':
+            await confirm_clan_profile_setting(message, 'description')
+        case 'set_clan_link':
+            await confirm_clan_profile_setting(message, 'link')
+        case 'set_clan_photo':
+            await confirm_clan_photo(message)
+        case _:
+            return
+    cur.update("userdata").set(process='').where(
+        user_id=message.from_user.id).commit()
+
+
 async def give_money(message: Message, nonick=True):
+    if not await can_interact(message.from_user.id):
+        return
     if not await is_allowed_nonick(message.from_user.id) and nonick:
         return
 

@@ -3,7 +3,9 @@ import random
 import asyncio
 
 from ... import logger, bot
-from ...misc import get_building, get_embedded_link, ITEMS
+from ...misc import (
+    get_building, get_embedded_link, ITEMS, get_embedded_clan_link
+)
 from ...misc.misc import remaining, isinterval
 from ...misc.constants import (MINIMUM_CAR_LEVEL, MAXIMUM_DRIVE_MENU_SLOTS,
                                MAP, REGIONAL_MAP)
@@ -153,10 +155,11 @@ async def city(message: Message, user_id: str | int):
                 )
             )
 
-    '''
-    cur.execute("SELECT * FROM clandata WHERE islocation=1 AND hqplace=? AND type=?", (place, "public",)) # noqa
-    for row in cur:
-        markup.add(InlineKeyboardButton(text="🏢 {0}".format(row[1]), url=row[8]))''' # noqa
+    clans = cur.execute("SELECT * FROM clandata WHERE addon_location=\"True\" "
+                        f"AND HQ_place=\"{place}\" AND clan_type=\"public\""
+                        " ORDER BY address LIMIT 7").fetchall() # noqa
+    for row in clans:
+        markup.add(InlineKeyboardButton(text=f"🏢 {row[2]}", url=row[8])) # noqa
 
     markup.add(
         InlineKeyboardButton(
@@ -378,17 +381,27 @@ async def local_people(call: CallbackQuery):
     '''
     place = cur.select("current_place", "userdata").where(
         user_id=call.from_user.id).one()
-    usercount = cur.select("count(*)", "userdata").where(
-        current_place=place).one()
+    count = cur.execute(
+            f"SELECT count(*) FROM userdata WHERE current_place='{place}'"
+            " AND profile_type='public'").fetchall()[0][0]
 
-    if usercount <= 1:
+    markup = InlineKeyboardMarkup().add(
+        InlineKeyboardButton(
+            text="◀ Назад",
+            callback_data="cancel_action"
+        )
+    )
+
+    if count <= 1:
         return await call.message.answer(
             "<i>👤 Вы стоите один, оглядываясь по сторонам…\n"
             "\n😓 В вашей местности не найдено людей. Помимо вас, "
-            "само собой</i>"
+            "само собой</i>",
+            reply_markup=markup
         )
 
-    cur.execute(f"SELECT * FROM userdata WHERE current_place = '{place}'")
+    cur.execute(f"SELECT * FROM userdata WHERE current_place = '{place}' "
+                "AND profile_type = 'public' LIMIT 40")
 
     users = ''.join(
         [
@@ -396,8 +409,10 @@ async def local_people(call: CallbackQuery):
             for index, row in enumerate(cur.fetchall(), start=1)
         ]
     )
+
     await call.message.answer(
-        f'<i>👤 Пользователи в местности <b>{place}</b>: <b>{users}</b></i>')
+        f'<i>👤 Пользователи в местности <b>{place}</b>:\n<b>{users}</b></i>',
+        reply_markup=markup)
 
 
 async def delivery_menu(call: CallbackQuery) -> None:
@@ -1121,7 +1136,7 @@ async def buyclan_(call: CallbackQuery, item: str) -> None:
 
     :raises ValueError if item does not exist or is not in clan-items
     '''
-    if item not in clanitems:
+    if item not in clanitems[0]:
         raise ValueError("no such item in clanitems")
 
     cost = clanitems[1][clanitems[0].index(item)]
@@ -1144,7 +1159,7 @@ async def buyclan_(call: CallbackQuery, item: str) -> None:
 
     clan_bonus_devider = random.randint(1, 5)
 
-    cur.update("clandata").add(balance=cost//clan_bonus_devider).where(
+    cur.update("clandata").add(clan_balance=cost//clan_bonus_devider).where(
         clan_id=chat_id).commit()
     await call.answer(
         f'Покупка совершена успешно. Ваш баланс: ${balance-cost}. Баланс клана'
@@ -2641,3 +2656,125 @@ async def walk(call: CallbackQuery, destination: str):
     await tostation(call.from_user.id, target_station=destination)
 
     await city(call.message, call.from_user.id)
+
+
+async def local_clans(call: CallbackQuery):
+    '''
+    Callback for local clans
+
+    :param call - callback:
+    '''
+    user_id = call.from_user.id
+    place = cur.select("current_place", "userdata").where(
+        user_id=user_id).one()
+
+    count = cur.execute(
+            f"SELECT count(*) FROM clandata WHERE HQ_place='{place}'"
+            " AND clan_type='public'").one()
+
+    markup = InlineKeyboardMarkup(row_width=1).add(
+        InlineKeyboardButton(
+            text='◀ Назад',
+            callback_data='cancel_action'
+        )
+    )
+
+    if count == 0:
+        return await call.message.answer(
+            '😪 <i>В вашей местности нет кланов</i>',
+            reply_markup=markup)
+    else:
+        text = f'🏬 Кланы в местности {place}'
+        cur.execute(f"SELECT * FROM clandata WHERE HQ_place = '{place}"
+                    "' AND clan_type = 'public' LIMIT 40")
+    clans = ''.join(
+        [
+            f'\n{row[7]}. {await get_embedded_clan_link(row[1])}'
+            for row in cur.fetchall()
+        ]
+    )
+
+    markup.add(
+        InlineKeyboardButton(
+            text='🔍 Искать по номеру дома',
+            callback_data='search_by_address'
+        )
+    )
+    await call.message.answer(
+        f'<i><b>{text}:\n{clans}</b></i>', reply_markup=markup
+    )
+
+
+async def search_by_address(call: CallbackQuery) -> None:
+    cur.update("userdata").set(process="search_address").where(
+        user_id=call.from_user.id).commit()
+
+    await bot.send_message(
+        call.message.chat.id,
+        "<i>📝 Введите номер дома</i>",
+        reply_markup=InlineKeyboardMarkup().add(
+            InlineKeyboardButton(
+                text="🚫 Отмена",
+                callback_data="cancel_process"
+            )
+        )
+    )
+
+
+async def find_address(message: Message) -> None:
+    '''
+    Method for list of clan headquarters for selected address
+
+    :param message - message which called this method:
+    '''
+    if message.chat.type != 'private':
+        return
+    try:
+        address = int(message.text)
+    except ValueError:
+        return await message.answer(
+            "<i>🤔 Вы ввели не число</i>",
+            reply_markup=InlineKeyboardMarkup(row_width=1).add(
+                InlineKeyboardButton(
+                    text="🔄 Ввести заново",
+                    callback_data="search_by_address"
+                ),
+                InlineKeyboardButton(
+                    text="🚫 Отмена",
+                    callback_data="cancel_action"
+                )
+            )
+        )
+    place = cur.select("current_place", "userdata").where(
+        user_id=message.from_user.id
+    ).one()
+
+    count = cur.execute(
+            f"SELECT count(*) FROM clandata WHERE HQ_place='{place}'"
+            f" AND clan_type='public' AND address={address}").one()
+
+    markup = InlineKeyboardMarkup(row_width=1).add(
+        InlineKeyboardButton(
+            text='◀ Назад',
+            callback_data='cancel_action'
+        )
+    )
+
+    if count == 0:
+        return await message.answer(
+            '😪 <i>По этому адресу нет кланов</i>',
+            reply_markup=markup)
+    else:
+        text = f'🏬 Кланы по адресу {place}, {address}'
+        cur.execute(f"SELECT * FROM clandata WHERE HQ_place = '{place}"
+                    f"' AND clan_type = 'public' AND address = {address}")
+    clans = ''.join(
+        [
+            f'\n{row[7]}. {await get_embedded_clan_link(row[1])}'
+            for row in cur.fetchall()
+        ]
+    )
+
+    await message.answer(
+        f'<i><b>{text}:\n{clans}</b></i>', reply_markup=markup
+    )

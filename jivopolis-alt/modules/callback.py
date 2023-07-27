@@ -73,6 +73,10 @@ async def callback_handler(call: CallbackQuery):
                 await itemdesc(call, call.from_user.id)
             case 'cancel_action':
                 await bot.delete_message(call.message.chat.id, call.message.message_id)
+            case 'cancel_process':
+                await bot.delete_message(call.message.chat.id, call.message.message_id)
+                cur.update("userdata").set(process='').where(
+                    user_id=call.from_user.id).commit()
             case 'no_items_in_inventory':
                 await call.answer('🙉  У вас в инвентаре нет предметов. Но вы всегда можете их купить', show_alert=True)
             case 'put_mask_off':
@@ -356,6 +360,7 @@ async def callback_handler(call: CallbackQuery):
                 await economics(call)
             case 'shop_24':
                 await shop_24(call)
+
             case 'join_clan':
                 await joinclan(call, call.from_user.id)
             case 'leave_clan':
@@ -376,6 +381,66 @@ async def callback_handler(call: CallbackQuery):
                 await delete_clan(call)
             case "delete_clan_confirm":
                 await delete_clan_confirm(call)
+            case "toggle_clan_type":
+                await toggle_clan_type(call)
+            case "clan_hq":
+                await clan_hq(call)
+            case "clan_profile":
+                await clan_profile(call)
+            case "set_clan_name":
+                await set_clan_name(call)
+            case "set_clan_bio":
+                await set_clan_bio(call)
+            case "set_clan_link":
+                await set_clan_link(call)
+            case "delete_clan_name":
+                await delete_clan_name(call)
+            case "delete_clan_link":
+                await delete_clan_link(call)
+            case "delete_clan_bio":
+                await delete_clan_bio(call)
+            case "set_clan_photo":
+                await set_clan_photo(call)
+            case "delete_clan_photo":
+                await delete_clan_photo(call)
+            case buy_addon if buy_addon.startswith("buyaddon_"):
+                await buy_clan_addon(call, buy_addon[9:])
+            case sell_addon if sell_addon.startswith("selladdon_"):
+                await sell_clan_addon(call, sell_addon[10:])
+            case addon if addon.startswith("addon_"):
+                await clan_addon_menu(call, addon[6:])
+            case "clan_features":
+                await clan_features(call)
+            case "set_gameclub_timeout":
+                await set_gameclub_timeout(call)
+            case set_timeout if set_timeout.startswith("set_timeout_"):
+                await confirm_timeout(call, timeout=int(set_timeout[12:]))
+            case "clan_filter":
+                await clan_filter(call)
+            case togglefilter if togglefilter.startswith("toggle_filter_"):
+                await toggle_filter(call, filter=togglefilter[14:])
+            case "clan_buildings":
+                await clan_buildings(call)
+            case "clan_building_shop":
+                await clan_building_shop(call)
+
+            case buildmenu if buildmenu.startswith("building_"):
+                await clan_building_menu(call, buildmenu[9:])
+            case buy_build if buy_build.startswith("buybuilding_"):
+                await buy_clan_building(call, buy_build[12:])
+            case sell_build if sell_build.startswith("sellbuilding_"):
+                await sell_clan_building(call, sell_build[13:])
+            case up_build if up_build.startswith("upgrade_building_"):
+                await upgrade_clan_building(call, up_build[17:])
+            case usebuild if usebuild.startswith("use_building_"):
+                await use_clan_building(call, usebuild[13:])
+            
+            case "donate_cow":
+                await donate_cow(call)
+            case "milk_cow_clan":
+                await milk_cow_clan(call)
+            case "give_lootboxes":
+                await give_lootboxes(call)
 
             case taxi if taxi.startswith("taxi_page:"):
                 await taxi_page(call, int(call.data.replace("taxi_page:", "")))
@@ -505,6 +570,10 @@ async def callback_handler(call: CallbackQuery):
                 await tram_back(call)
             case walkname if walkname.startswith("walk_"):
                 await walk(call, destination=walkname[5:])
+            case "local_clans":
+                await local_clans(call)
+            case "search_by_address":
+                await search_by_address(call)
 
             case gpscat if gpscat.startswith("gps_category_"):
                 await gps_category(call, category=gpscat.replace("gps_category_", ""))
