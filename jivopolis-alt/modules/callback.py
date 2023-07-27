@@ -439,6 +439,8 @@ async def callback_handler(call: CallbackQuery):
                 await donate_cow(call)
             case "milk_cow_clan":
                 await milk_cow_clan(call)
+            case "give_lootboxes":
+                await give_lootboxes(call)
 
             case taxi if taxi.startswith("taxi_page:"):
                 await taxi_page(call, int(call.data.replace("taxi_page:", "")))

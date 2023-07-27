@@ -2007,6 +2007,18 @@ async def use_clan_building(call: CallbackQuery, building: str) -> None:
                     callback_data='milk_cow_clan'
                 )
             )
+        case "mail":
+            text += (
+                ".\n\n📦 Раз в неделю администраторы группы могут раздать "
+                "лутбоксы всем участникам клана. Каждому участнику выдаётся "
+                "количество лутбоксов, равное уровню постройки"
+            )
+            markup.add(
+                InlineKeyboardButton(
+                    text='📦 Раздать лутбоксы',
+                    callback_data='give_lootboxes'
+                )
+            )
 
     await call.message.answer(
         f"<i>{text}</i>",
@@ -2122,4 +2134,115 @@ async def milk_cow_clan(call: CallbackQuery) -> None:
     await call.message.answer(
         f"<i>🐄 Участник клана <b>{await get_embedded_link(user_id)}</b> "
         "подоил корову</i>"
+    )
+
+
+async def give_lootboxes(call: CallbackQuery) -> None:
+    '''
+    Callback for sending lootboxes to clan members
+
+    :param call - callback:
+    '''
+    chat_id = call.message.chat.id
+    count = cur.select("count(*)", "clandata").where(clan_id=chat_id).one()
+
+    if count < 1:
+        return await call.answer(
+            "😓 Похоже, такого клана не существует",
+            show_alert=True
+        )
+    elif count > 1:
+        raise ValueError("found more than one clan with such ID")
+
+    amount = cur.select("build_mail", "clandata").where(
+        clan_id=chat_id).one()
+    if not amount:
+        return await call.answer(
+            "😣 В клане нет постройки \"Почтовое отделение\"",
+            show_alert=True
+        )
+
+    member = await bot.get_chat_member(chat_id, call.from_user.id)
+    if (
+        not member.is_chat_admin()
+        and not member.is_chat_creator()
+    ):
+        return await call.answer(
+            '👀 Раздавать лутбоксы может только администратор чата',
+            show_alert=True
+        )
+
+    remaining = 604800-current_time()+cur.select(
+        "last_lootbox", "clandata").where(clan_id=chat_id).one()
+    if remaining >= 0:
+        days = int(remaining // 86400)
+        without_days = remaining-days*86400
+        hours, minutes, seconds = get_time_units(86400-without_days)
+        return await call.answer(
+            f"🥱 Вы уже отправляли лутбоксы на этой неделе. Подождите {days}"
+            f" дней {hours} часов {minutes} минут {seconds} секунд",
+            show_alert=True
+        )
+
+    cur.update("clandata").set(last_lootbox=current_time()).where(
+        clan_id=chat_id).commit()
+
+    clan_members = cur.select("user_id", "userdata").where(
+        clan_id=chat_id).fetch()
+    clan_name = cur.select("clan_name", "clandata").where(
+        clan_id=chat_id).one()
+    link = cur.select("link", "clandata").where(
+        clan_id=chat_id).one()
+
+    sent_successfully = 0
+    errors = 0
+    user_not_exists = 0
+    blocked_bot = 0
+    match(str(amount)[-1]):
+        case "1":
+            lootbox_case = "лутбокс"
+        case "2" | "3" | "4":
+            lootbox_case = "лутбокса"
+        case _:
+            lootbox_case = "лутбоксов"
+    if len(str(amount)) > 1 and str(amount)[-2] == "1":
+        lootbox_case = "лутбоксов"
+
+    for member_id in clan_members:
+        cur.update("userdata").add(lootbox=amount).where(
+            user_id=member_id[0]).commit()
+        try:
+            await bot.send_message(
+                chat_id=member_id[0],
+                text=f'<i>📦 Вам {amount} {lootbox_case} от <b>'
+                     f'<a href="{link}">{clan_name}</a></b></i>'
+            )
+            sent_successfully += 1
+        except Exception as e:
+            match (str(e)):
+                case (
+                    "Chat not found" |
+                    "Forbidden: user is deactivated" |
+                    "Forbidden: bot can't send messages to bots"
+                ):
+                    user_not_exists += 1
+                case 'Forbidden: bot was blocked by the user':
+                    blocked_bot += 1
+                case _:
+                    errors += 1
+
+    markup = InlineKeyboardMarkup().add(
+        InlineKeyboardButton(
+            text='✔ Готово',
+            callback_data='cancel_action'
+        )
+    )
+
+    await call.message.answer(
+        '<i><b>📦 Раздача лутбоксов завершена</b>\n\n'
+        f'✅ Сообщение успешно отправлено: <b>{sent_successfully}</b>\n'
+        '🚮 Пользователи не существуют или удалены из Telegram: '
+        f'<b>{user_not_exists}</b>\n✋ Заблокировали Живополис: '
+        f'<b>{blocked_bot}</b>\n❌ Другие ошибки: <b>{errors}</b></i>',
+        reply_markup=markup
     )
