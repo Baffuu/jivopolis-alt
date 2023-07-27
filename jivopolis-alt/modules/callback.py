@@ -529,6 +529,8 @@ async def callback_handler(call: CallbackQuery):
                 await exchange_(call)
             case slot if slot.startswith("slot"):
                 await buyslot(call)
+            case i if i.startswith("product_info_"):
+                await product_info(call)
             case _:
                 return await call.answer('♿️ 404: команда не найдена', show_alert=True)
     except TypeError as e:

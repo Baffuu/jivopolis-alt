@@ -1,5 +1,7 @@
 import contextlib
 
+from loguru import logger
+
 from ...misc.misc import get_embedded_link, tglog
 from ..marketplace.marketplace import market
 from ... import bot
@@ -308,7 +310,10 @@ class SlotData():
         self.cost = int(money)
         self.user_id = int(user_id)
         self.post_on_market = post_on_market != "False"
-        self.id = market.get_by_temp(temp_id)
+        try:
+            self.id = market.get_by_temp(temp_id)
+        except RuntimeError:
+            self.id = temp_id
 
 
 async def buyslot(call: CallbackQuery) -> None:
@@ -316,9 +321,12 @@ async def buyslot(call: CallbackQuery) -> None:
     message = call.message
 
     data = call.data.split(' ')
-    data = SlotData(data[1], data[2], data[3], data[4], data[5])
+    try:
+        data = SlotData(data[1], data[2], data[3], data[4], data[5])
+    except TypeError as e:
+        logger.exception(e)
     with contextlib.suppress(RuntimeError):
-        market.remove(data.id)
+        market.remove(int(data.id))
     if user_id == data.user_id:
         if message is None:
             await bot.edit_message_text(
@@ -366,3 +374,26 @@ async def buyslot(call: CallbackQuery) -> None:
         )
 
     await call.answer("Спасибо за покупку", show_alert=True)
+
+
+async def product_info(call: CallbackQuery):
+    product_id = call.data.replace("product_info_", "")
+    product = market.get_product(product_id)
+    item = product.item
+    message = (
+        f"<b>{item.emoji} {item.ru_name}</b>"
+        f"\n>>> <i>{item.description}</i>"
+        f"\n            💍 Seller: {await get_embedded_link(product.owner)}&lt;"
+    )
+    await call.answer("🪡 I send you product info in private messages")
+    await bot.send_message(
+        call.from_user.id,
+        message,
+        reply_markup=InlineKeyboardMarkup().add(
+            InlineKeyboardButton(
+                f"💸 Buy for {product.cost}",
+                callback_data=f"slot {item.name} {product.cost} {product.owner} True {product.id}"  # noqa
+            )
+        )
+    )
+    return product

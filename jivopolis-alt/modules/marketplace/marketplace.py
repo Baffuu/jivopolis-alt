@@ -2,7 +2,7 @@ import random
 import time
 from datetime import datetime
 from fyCursor import fyCursor, Table
-from typing import Union, Self, List, get_args
+from typing import Self, List
 
 from ...database import tables, cur
 from .constants import (
@@ -93,7 +93,7 @@ class Marketplace:
             for product_ in products:
                 self.remove(product_)
 
-        if isinstance(product, get_args(Union[int, float])):
+        if isinstance(product, (int, float)):
             product_id = product
         elif isinstance(product, Product):
             product_id = product.id
@@ -108,6 +108,8 @@ class Marketplace:
         self: Self,
         product_id: int
     ) -> Product:
+        if not self.cur.select("COUNT(*)", TABLE).where(id=product_id).one():
+            raise ValueError("Product with such id does not exists")
         name = self.cur.select(TYPE, TABLE).where(id=product_id).one()
         stamp = float(self.cur.select(PUT_UP_DATE, TABLE).where(
             id=product_id).one())
