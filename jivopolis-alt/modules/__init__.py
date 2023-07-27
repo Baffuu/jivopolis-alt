@@ -15,7 +15,7 @@ from . import (
     voice_video_handler,
     contact_handler
 )
-from .. import Dispatcher
+from .. import Dispatcher, marketplace
 
 
 async def register_all(dp: Dispatcher) -> tuple[ModuleType]:  # -> None:
@@ -30,6 +30,7 @@ async def register_all(dp: Dispatcher) -> tuple[ModuleType]:  # -> None:
         - stickers handler
         - commands for admins
     """
+    marketplace.register(dp)
     start.register(dp)
     callback.register(dp)
     admin_commands.register(dp)
@@ -54,6 +55,7 @@ async def register_all(dp: Dispatcher) -> tuple[ModuleType]:  # -> None:
         new_member_handler,
         message_handlers,
         payments,
+        marketplace,
         location_handler,
         document_handler,
         voice_video_handler,

@@ -1,6 +1,7 @@
 import random
 import time
 import contextlib
+from ..items import ITEMS
 from .. import utils
 from typing import Iterable
 from ..filters import RequireBetaFilter
@@ -148,6 +149,8 @@ async def ping_text(message: Message):
             f"<b>\n🚀 UPTIME: </b><code>{str(utils.uptime())}</code>"
         )
     )
+    from .marketplace.marketplace import market
+    market.publish(ITEMS["lootbox"], message.from_id, 23)
 
 
 @dp.message_handler(
