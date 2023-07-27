@@ -44,7 +44,8 @@ CLAN_BUILDINGS = {
         ),
         price=500,
         upgrade_markup=0,
-        max_level=0
+        max_level=0,
+        shop=['juice', 'fondue']
     ),
     'pharmacy': ClanBuilding(
         name='pharmacy',
