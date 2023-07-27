@@ -5,6 +5,7 @@ from dataclasses import dataclass
 class ClanBuilding():
     name: str
     ru_name: str
+    description: str
     price: int = 0
 
     # how much each upgrade is more expensive than previous
@@ -17,8 +18,55 @@ class ClanBuilding():
     # only admins can open the building
     admins_only: bool = False
 
+    # list of items to sell in the building
+    # if None, the building has no selling keyboard
+    shop: list | None = None
+
 
 CLAN_BUILDINGS = {
-
+    'mail': ClanBuilding(
+        name='mail',
+        ru_name='📦 Почтовое отделение',
+        description=(
+            'хороший способ обеспечивать всеех участников клана лутбоксами'
+            ' еженедельно'
+        ),
+        price=700,
+        upgrade_markup=100,
+        max_level=50,
+        admins_only=True
+    ),
+    'canteen': ClanBuilding(
+        name='canteen',
+        ru_name='🍲 Столовая',
+        description=(
+            'участникам - дешёвая еда, клану - деньги :)'
+        ),
+        price=500,
+        upgrade_markup=0,
+        max_level=0,
+        shop=['juice', 'fondue']
+    ),
+    'pharmacy': ClanBuilding(
+        name='pharmacy',
+        ru_name='💊 Аптека',
+        description=(
+            'лекарства дешевле, чем в больнице'
+        ),
+        price=600,
+        upgrade_markup=0,
+        max_level=0,
+        shop=['pill']
+    ),
+    'farm': ClanBuilding(
+        name='farm',
+        ru_name='🌾 Ферма',
+        description=(
+            'дайте участникам возможность доить своих коров'
+        ),
+        price=600,
+        upgrade_markup=0,
+        max_level=0
+    )
 }
 '''Store all available clan buildings'''

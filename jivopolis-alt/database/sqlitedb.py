@@ -69,6 +69,7 @@ def create_userdata(cur: fyCursor) -> None:
     nonick_cmds     INTEGER         DEFAULT 0               NOT NULL,
     last_box        DATETIME        DEFAULT 0               NOT NULL,
     total_jackpots  INTEGER         DEFAULT 0               NOT NULL,
+    last_gameclub   INTEGER         DEFAULT 0               NOT NULL,
 
     current_place   TEXT            DEFAULT \"Вокзальная\"  NOT NULL,
     line            INTEGER         DEFAULT 2               NOT NULL,
@@ -87,6 +88,7 @@ def create_userdata(cur: fyCursor) -> None:
     last_gears      DATETIME        DEFAULT 0               NOT NULL,
     gears_today     INTEGER         DEFAULT 0               NOT NULL,
     task_message    INTEGER         DEFAULT 0               NOT NULL,
+    last_milk       DATETIME        DEFAULT 0               NOT NULL,
 
     fyCoin          INTEGER         DEFAULT 0               NOT NULL,
     Mithereum       INTEGER         DEFAULT 0               NOT NULL,
@@ -220,7 +222,27 @@ def create_clandata(cur: fyCursor) -> None:
     lootbox         INTEGER         DEFAULT 0               NOT NULL,
     last_box        DATETIME        DEFAULT 0               NOT NULL,
     description     TEXT,
-    photo_id        TEXT
+    photo_id        TEXT,
+    addon_location  INTEGER         DEFAULT 0               NOT NULL,
+    addon_gameclub  INTEGER         DEFAULT 0               NOT NULL,
+    filter_sticker  INTEGER         DEFAULT 0               NOT NULL,
+    filter_photo    INTEGER         DEFAULT 0               NOT NULL,
+    filter_dice     INTEGER         DEFAULT 0               NOT NULL,
+    filter_voice    INTEGER         DEFAULT 0               NOT NULL,
+    filter_video    INTEGER         DEFAULT 0               NOT NULL,
+    filter_join     INTEGER         DEFAULT 0               NOT NULL,
+    filter_leave    INTEGER         DEFAULT 0               NOT NULL,
+    filter_document INTEGER         DEFAULT 0               NOT NULL,
+    filter_location INTEGER         DEFAULT 0               NOT NULL,
+    filter_contact  INTEGER         DEFAULT 0               NOT NULL,
+    filter_gif      INTEGER         DEFAULT 0               NOT NULL,
+    game_timeout    INTEGER         DEFAULT 10              NOT NULL,
+    build_mail      INTEGER         DEFAULT 0               NOT NULL,
+    build_canteen   INTEGER         DEFAULT 0               NOT NULL,
+    build_pharmacy  INTEGER         DEFAULT 0               NOT NULL,
+    build_farm      INTEGER         DEFAULT 0               NOT NULL,
+    cows            INTEGER         DEFAULT 0               NOT NULL,
+    last_lootbox    DATETIME        DEFAULT 0               NOT NULL
 )
     """)
 

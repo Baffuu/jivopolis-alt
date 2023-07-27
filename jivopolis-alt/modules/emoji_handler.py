@@ -2,12 +2,14 @@ import contextlib
 import random
 import asyncio
 from ..filters import RequireBetaFilter
-from ..database.functions import check, earn
+from ..database.functions import check, earn, current_time
 from ..database import cur
 from ..misc import OfficialChats, get_embedded_link
 from ..misc.constants import SLOTMACHINE_TOKEN_COST, ERROR_MESSAGE
 from .. import bot, Dispatcher, logger
-from aiogram.types import Message, ChatType
+from aiogram.types import (
+    Message, ChatType, InlineKeyboardMarkup, InlineKeyboardButton
+)
 
 
 async def dice_handler(message: Message):
@@ -48,27 +50,20 @@ async def dice_handler(message: Message):
 
         count = cur.select("count(*)", "clandata").where(
             clan_id=message.chat.id).one()
-        count = 0
 
-        if count != 0:  # todo
-            dice = cur.select("dice", "clandata").where(
-                group_id=message.chat.id).one()
-            if dice == 0:
-                return await message.delete()
+        if count == 1:
+            dice = cur.select("filter_dice", "clandata").where(
+                clan_id=message.chat.id).one()
+            if dice:
+                with contextlib.suppress(Exception):
+                    return await message.delete()
 
-        '''
-        cur.execute("SELECT count(*) FROM clandata WHERE clan_id = ?", (message.chat.id,))  # noqa
-        count = cur.fetchone()[0]
-        if count == 0:
-            return
-        cur.execute("SELECT gameclub FROM clandata WHERE clan_id = ?", (message.chat.id,))  # noqa
-        gameclub = cur.fetchone()[0]
-        if gameclub == 1:
-            return
-        '''
-
-        if message.dice.emoji == '🎰':
-            return await slot_machine(message)
+            gameclub = cur.select("addon_gameclub", "clandata").where(
+                clan_id=message.chat.id).one()
+            if not gameclub:
+                return
+            if message.dice.emoji == '🎰':
+                return await slot_machine(message)
     except Exception as e:
         logger.exception(e)
         await message.answer(ERROR_MESSAGE.format(e))
@@ -82,6 +77,21 @@ async def slot_machine(message: Message, user_id: int | None = None):
 
     balance = cur.select("balance", "userdata").where(
         user_id=user_id).one()
+    lastplay = cur.select("last_gameclub", "userdata").where(
+        user_id=user_id).one()
+    timeout = cur.select("game_timeout", "clandata").where(
+        clan_id=chat_id).one()
+    if current_time() - lastplay < timeout:
+        return await message.reply(
+            "😠 <i>Пользоваться игровыми автоматами в данном клане "
+            f"можно раз в <b>{timeout}</b> секунд</i>",
+            reply_markup=InlineKeyboardMarkup().add(
+                InlineKeyboardButton(
+                    text="👌 Понятно",
+                    callback_data="cancel_action"
+                )
+            )
+        )
 
     if balance < SLOTMACHINE_TOKEN_COST:
         return await message.answer(
@@ -93,7 +103,8 @@ async def slot_machine(message: Message, user_id: int | None = None):
         f"<i><b>{await get_embedded_link(user_id)}</b> бросает в автомат жетон"
         f" стоимостью <b>${SLOTMACHINE_TOKEN_COST}</b></i>"
     )
-    await earn(-SLOTMACHINE_TOKEN_COST, message)
+    cur.update("userdata").add(balance=-SLOTMACHINE_TOKEN_COST).where(
+        user_id=message.from_user.id).commit()
 
     cur.update("clandata").add(clan_balance=SLOTMACHINE_TOKEN_COST//2).where(
         clan_id=chat_id).commit()
@@ -114,6 +125,8 @@ async def slot_machine(message: Message, user_id: int | None = None):
             is_win = await _slots_win(user_id, chat_id, 3, rand)
         case _:
             is_win = False
+    cur.update("userdata").set(last_gameclub=current_time()).where(
+        user_id=user_id).commit()
     await asyncio.sleep(60)
     await _message.delete()
 

@@ -47,6 +47,17 @@ async def get_embedded_link(
     )
 
 
+async def get_embedded_clan_link(
+    clan_id: str | int
+) -> str:
+    type = cur.select("clan_type", "clandata").where(clan_id=clan_id).one()
+    name = cur.select("clan_name", "clandata").where(clan_id=clan_id).one()
+    link = cur.select("link", "clandata").where(clan_id=clan_id).one()
+    return (
+        f"<a href='{link}'>{name}</a>" if type == 'public' else name
+    )
+
+
 def get_mask(user_id: int | str) -> Union[str, None]:
     '''
     get mask or race of user

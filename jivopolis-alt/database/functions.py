@@ -29,6 +29,58 @@ from aiogram.types import (
 from aiogram.utils.text_decorations import HtmlDecoration
 
 
+async def get_process(user_id: int | str) -> str:
+    '''
+    Get current process performed by the user.
+
+    :param user_id - user's id:
+    '''
+    try:
+        return cur.select("process", "userdata").where(
+            user_id=user_id).one()
+
+    except TypeError:
+        if (
+            message.chat.type == "private"
+            and message.text.lower() != 'создать персонажа'
+        ):
+            cur.update("userdata").set(process="login").where(
+                user_id=user_id).commit()
+            return "login"
+        else:
+            return ""
+
+
+async def can_interact(user_id: int | str) -> bool:
+    '''
+    Checks whether the user can interact with the bot.
+    Returns false if the user is dead or banned.
+
+    :param user_id - user's id:
+    '''
+    is_banned = bool(
+        cur.select("is_banned", "userdata").where(
+            user_id=user_id).one()
+    )
+    if is_banned:
+        await bot.send_message(
+            user_id,
+            f'🧛🏻‍♂️ <i>Вы были забанены в боте. Если вы считаете, что эт'
+            'о ошибка, обратитесь в <a href="'
+            f'{OfficialChats.SUPPORTCHATLINK}">поддержку</a></i>'
+        )
+
+    is_dead = cur.select("health", "userdata").where(
+        user_id=user_id).one() < 0
+    if is_dead:
+        await bot.send_message(
+            user_id,
+            '<i>☠️ Вы умерли. Попросите кого-нибудь вас воскресить</i>'
+        )       
+    
+    return not (is_dead or is_banned)
+
+
 async def check(user_id: int | str, chat_id: int | str) -> None | Message:
     '''
     checks everything
@@ -645,8 +697,7 @@ async def earn(money: int, message: Message | None = None, user_id: int | None =
     elif not user_id:
         user_id = message.from_user.id
 
-    cur.execute(f"UPDATE userdata SET balance = balance+{money} WHERE user_id = {user_id}")
-    conn.commit()
+    cur.update("userdata").add(balance=money).where(user_id=user_id).commit()
 
 
 async def buy(call: CallbackQuery, item: str, user_id: int, cost: Optional[int] = None, amount: int = 1):
