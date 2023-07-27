@@ -138,9 +138,10 @@ async def on_pressed_inline_query(inline: ChosenInlineResult):
                 )
         elif data.startswith("%"):
             cost = int(data[1:])
-
+            item = ITEMS[inline.result_id.split(" ")[1]]
+            cur.update("userdata").add(**{item.name: -1}).where(
+                user_id=inline.from_user.id).commit()
             if cost > 0:  # if item is not free
-                item = ITEMS[inline.result_id.split(" ")[1]]
 
                 if str_to_bool(inline.result_id.split(" ")[4]):
                     market.publish(

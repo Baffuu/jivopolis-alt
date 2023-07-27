@@ -1,6 +1,5 @@
 import random
 import time
-from dataclasses import dataclass
 from datetime import datetime
 from fyCursor import fyCursor, Table
 from typing import Union, Self, List, get_args
@@ -20,14 +19,25 @@ from .constants import (
 from ...items import Item, ITEMS
 
 
-@dataclass
 class Product:
-    id: int
-    owner_id: int
-    type: str
-    item: Item
-    cost: float | int
-    date: datetime
+    """
+    Represents product in marketplace
+    """
+    def __init__(
+        self,
+        id: int,
+        owner_id: int,
+        type: str,
+        item: Item,
+        cost: float | int,
+        date: datetime
+    ) -> None:
+        self.id = id
+        self.owner = owner_id
+        self.type = type
+        self.item = item
+        self.cost = cost
+        self.date = date
 
     def remove(self) -> Self:
         return market.remove(self)
@@ -102,7 +112,6 @@ class Marketplace:
         stamp = float(self.cur.select(PUT_UP_DATE, TABLE).where(
             id=product_id).one())
         time = datetime.fromtimestamp(stamp)
-
         return Product(
             product_id,
             self.cur.select(SELLER_ID, TABLE).where(id=product_id).one(),
@@ -115,19 +124,10 @@ class Marketplace:
     def get_all(self: Self) -> List[Product]:
         ids = self.cur.select(ID, TABLE).fetch()
 
-        def unpack(to_unpack: list[tuple[int]]) -> list[int]:
-            output = []
-
-            for tuple_ in to_unpack:
-                for element in tuple_:
-                    output.append(element)
-
-            return output
-
         output = []
 
-        for id in unpack(ids):
-            output.append(self.get_product(id))
+        for tuple_ in ids:
+            output.extend(self.get_product(id) for id in tuple_)
         return output
 
 

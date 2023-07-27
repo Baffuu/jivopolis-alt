@@ -26,31 +26,31 @@ class Item():
 
 
 ITEMS = {
-    'walrus': Item(
-                name='seal',
-                ru_name='Тюлень',
-                emoji='🦭',
-                cost=1000,
-                type='mask',
-                description='очень любят баны'
+    'walrus': Item(  # todo: rename to seal
+        name='walrus',
+        ru_name='Тюлень',
+        emoji='🦭',
+        cost=1000,
+        type='mask',
+        description='очень любят баны'
     ),
 
     'lootbox': Item(
-                name='lootbox',
-                ru_name='Лутбокс',
-                emoji='📦',
-                type='lootbox',
-                description='в нём может быть что-то интересное'
+        name='lootbox',
+        ru_name='Лутбокс',
+        emoji='📦',
+        type='lootbox',
+        description='в нём может быть что-то интересное'
     ),
 
     'cow': Item(
-                name='cow',
-                ru_name='Корова',
-                cost=250,
-                emoji='🐄',
-                type='mask',
-                type_param='can_get_milk',
-                description='даёт молоко, но только на ферме'
+        name='cow',
+        ru_name='Корова',
+        cost=250,
+        emoji='🐄',
+        type='mask',
+        type_param='can_get_milk',
+        description='даёт молоко, но только на ферме'
     ),
 
     'key': Item(
