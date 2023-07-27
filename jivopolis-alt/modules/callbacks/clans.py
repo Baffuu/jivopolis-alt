@@ -276,15 +276,10 @@ async def clan_top(call: CallbackQuery):
         "clan_balance<1000000 ORDER BY -clan_balance LIMIT 20"
     )
 
-    clan_text = ''
-    clan_number = 1
-    for clan in clans:
-        clan_text += (
-            f'{clan_number}. \n<a href="{clan[8]}">{clan[2]}</a> - ${clan[4]}'
-            '\n'
-        )
-        clan_number += 1
-
+    clan_text = ''.join(
+        f'{clan_number}. \n<a href="{clan[8]}">{clan[2]}</a> - ${clan[4]}\n'
+        for clan_number, clan in enumerate(clans, start=1)
+    )
     markup = InlineKeyboardMarkup().add(
         InlineKeyboardButton(
             text='◀ Скрыть',
@@ -1167,9 +1162,11 @@ async def buy_clan_addon(call: CallbackQuery, addon: str) -> None:
             show_alert=True
         )
 
-    addon_amount = cur.select(f"addon_{addon}", "clandata").where(
-        clan_id=chat_id).one()
-    if addon_amount:
+    if (
+        cur.select(f"addon_{addon}", "clandata")
+        .where(clan_id=chat_id)
+        .one()
+    ):
         return await call.answer(
             '🤨 В клане уже есть это дополнение, зачем вам ещё одно?',
             show_alert=True
@@ -1302,13 +1299,12 @@ async def clan_addon_menu(call: CallbackQuery, addon: str):
         " кто её отменил</i>",
         reply_markup=markup.add(
             InlineKeyboardButton(
-                text=f"✅ Купить (${cost})",
-                callback_data=f"buyaddon_{addon}"
-            ) if not addon_amount else
-            InlineKeyboardButton(
                 text="❌ Отменить покупку",
                 callback_data=f"selladdon_{addon}"
-            ),
+            ) if addon_amount else InlineKeyboardButton(
+                            text=f"✅ Купить (${cost})",
+                            callback_data=f"buyaddon_{addon}"
+                        ),
             InlineKeyboardButton(
                 text="◀ Назад",
                 callback_data="cancel_action"
@@ -1403,14 +1399,12 @@ async def set_gameclub_timeout(call: CallbackQuery):
     timeout = cur.select("game_timeout", "clandata").where(
         clan_id=chat_id).one()
     markup = InlineKeyboardMarkup(row_width=5)
-    optionlist = []
-    for option in ["5", "10", "15", "20", "30", "45", "60", "90", "300"]:
-        optionlist.append(
-            InlineKeyboardButton(
-                text=f"{option} с",
-                callback_data=f"set_timeout_{option}"
-            )
+    optionlist = [
+        InlineKeyboardButton(
+            text=f"{option} с", callback_data=f"set_timeout_{option}"
         )
+        for option in ["5", "10", "15", "20", "30", "45", "60", "90", "300"]
+    ]
     markup.add(*optionlist)
     markup.add(
         InlineKeyboardButton(
@@ -1581,8 +1575,8 @@ async def clan_buildings(call: CallbackQuery):
     for building in CLAN_BUILDINGS:
         amount = cur.select(f"build_{building}", "clandata").where(
             clan_id=chat_id).one()
-        build = CLAN_BUILDINGS[building]
         if amount > 0:
+            build = CLAN_BUILDINGS[building]
             markup.add(
                 InlineKeyboardButton(
                     text=build.ru_name,
@@ -1778,9 +1772,11 @@ async def buy_clan_building(call: CallbackQuery, building: str) -> None:
             show_alert=True
         )
 
-    amount = cur.select(f"build_{building}", "clandata").where(
-        clan_id=chat_id).one()
-    if amount:
+    if (
+        cur.select(f"build_{building}", "clandata")
+        .where(clan_id=chat_id)
+        .one()
+    ):
         return await call.answer(
             '🤨 В клане уже есть эта постройка, зачем вам ещё одна?',
             show_alert=True
