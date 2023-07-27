@@ -80,6 +80,7 @@ def create_userdata(cur: fyCursor) -> None:
     last_gears      DATETIME        DEFAULT 0               NOT NULL,
     gears_today     INTEGER         DEFAULT 0               NOT NULL,
     task_message    INTEGER         DEFAULT 0               NOT NULL,
+    last_milk       DATETIME        DEFAULT 0               NOT NULL,
 
     fyCoin          INTEGER         DEFAULT 0               NOT NULL,
     Mithereum       INTEGER         DEFAULT 0               NOT NULL,
@@ -230,7 +231,9 @@ def create_clandata(cur: fyCursor) -> None:
     build_mail      INTEGER         DEFAULT 0               NOT NULL,
     build_canteen   INTEGER         DEFAULT 0               NOT NULL,
     build_pharmacy  INTEGER         DEFAULT 0               NOT NULL,
-    build_farm      INTEGER         DEFAULT 0               NOT NULL
+    build_farm      INTEGER         DEFAULT 0               NOT NULL,
+    cows            INTEGER         DEFAULT 0               NOT NULL,
+    last_lootbox    DATETIME        DEFAULT 0               NOT NULL
 )
     """)
 

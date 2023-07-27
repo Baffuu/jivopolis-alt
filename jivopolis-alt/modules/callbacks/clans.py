@@ -1,10 +1,11 @@
 import contextlib
 from ... import bot, tglog
+import asyncio
 
-from ...misc import get_embedded_link
+from ...misc import get_embedded_link, get_time_units
 from ...misc.config import addon_prices, addon_descriptions, filter_names
 from ...database import cur, insert_clan
-from ...database.functions import buybutton
+from ...database.functions import buybutton, current_time
 from ..start import StartCommand
 from ...clanbuildings import CLAN_BUILDINGS
 
@@ -1982,6 +1983,31 @@ async def use_clan_building(call: CallbackQuery, building: str) -> None:
                 buybutton(item, status='clan')
             )
 
+    match(building):
+        case "farm":
+            clan_cows = cur.select("cows", "clandata").where(
+                clan_id=chat_id).one()
+            user_cows = cur.select("cow", "userdata").where(
+                user_id=call.from_user.id).one()
+            text += (
+                ".\n\n🐄 Чтобы участники клана могли доить коров, в клане "
+                f"должна быть минимум одна корова. У вас <b>{user_cows}"
+                f"</b> коров, в клане <b>{clan_cows}</b> коров.\n\nКаждый "
+                "пользователь может доить только одну корову в день (и только"
+                " в том клане, в котором он состоит). При каждой дойке из "
+                "клана забирается одна корова"
+            )
+            markup.add(
+                InlineKeyboardButton(
+                    text='🐄 Пожертвовать корову в клан',
+                    callback_data='donate_cow'
+                ),
+                InlineKeyboardButton(
+                    text='🥛 Подоить корову',
+                    callback_data='milk_cow_clan'
+                )
+            )
+
     await call.message.answer(
         f"<i>{text}</i>",
         reply_markup=markup.add(
@@ -1990,4 +2016,110 @@ async def use_clan_building(call: CallbackQuery, building: str) -> None:
                 callback_data="cancel_action"
             )
         )
+    )
+
+
+async def donate_cow(call: CallbackQuery) -> None:
+    '''
+    Callback for donating a cow to clan
+
+    :param call - callback:
+    '''
+    chat_id = call.message.chat.id
+    user_id = call.from_user.id
+    count = cur.select("count(*)", "clandata").where(clan_id=chat_id).one()
+
+    if count < 1:
+        return await call.answer(
+            "😓 Похоже, такого клана не существует",
+            show_alert=True
+        )
+    elif count > 1:
+        raise ValueError("found more than one clan with such ID")
+
+    user_cow = cur.select("cow", "userdata").where(
+        user_id=user_id).one()
+    if user_cow < 1:
+        return await call.answer(
+            "😣 У вас недостаточно коров. Купите хотя бы одну в зоопарке",
+            show_alert=True
+        )
+
+    cur.update("userdata").add(cow=-1).where(user_id=user_id).commit()
+    cur.update("clandata").add(cows=1).where(clan_id=chat_id).commit()
+    clan_cow = cur.select("cows", "clandata").where(
+        clan_id=chat_id).one()
+
+    await call.answer(
+        f"🥳 Вы пожертвовали корову в клан. Теперь у вас {user_cow-1}"
+        f" коров, зато в клане их {clan_cow}",
+        show_alert=True
+    )
+
+
+async def milk_cow_clan(call: CallbackQuery) -> None:
+    '''
+    Callback for donating a cow in a clan
+
+    :param call - callback:
+    '''
+    chat_id = call.message.chat.id
+    user_id = call.from_user.id
+    count = cur.select("count(*)", "clandata").where(clan_id=chat_id).one()
+
+    if count < 1:
+        return await call.answer(
+            "😓 Похоже, такого клана не существует",
+            show_alert=True
+        )
+    elif count > 1:
+        raise ValueError("found more than one clan with such ID")
+
+    has_building = cur.select("build_farm", "clandata").where(
+        clan_id=chat_id).one()
+    if not has_building:
+        return await call.answer(
+            "😣 В клане нет постройки \"Ферма\"",
+            show_alert=True
+        )
+
+    last_milk = cur.select("last_milk", "userdata").where(
+        user_id=user_id).one()
+    if current_time()-last_milk < 86400:
+        hours, minutes, seconds = get_time_units(current_time()-last_milk)
+        return await call.answer(
+            "🥱 Вы уже доили корову сегодня. Подождите "
+            f"{hours} часов {minutes} минут {seconds} секунд",
+            show_alert=True
+        )
+
+    clan_id = cur.select("clan_id", "userdata").where(
+        user_id=user_id).one()
+    if clan_id != chat_id:
+        return await call.answer(
+            "😨 Доить корову в клане могут только участники клана",
+            show_alert=True
+        )
+
+    clan_cow = cur.select("cows", "clandata").where(
+        clan_id=chat_id).one()
+    if clan_cow < 1:
+        return await call.answer(
+            "😣 В клане нет коров",
+            show_alert=True
+        )
+
+    await call.answer(
+        "🥛 Дойка коровы началась... Подождите 10 секунд",
+        show_alert=True
+    )
+    cur.update("userdata").set(last_milk=current_time()).where(
+        user_id=user_id).commit()
+    await asyncio.sleep(10)
+    cur.update("userdata").add(milk=1).where(user_id=user_id).commit()
+    cur.update("clandata").add(cows=-1).where(clan_id=chat_id).commit()
+
+    await call.message.answer(
+        f"<i>🐄 Участник клана <b>{await get_embedded_link(user_id)}</b> "
+        "подоил корову</i>"
     )

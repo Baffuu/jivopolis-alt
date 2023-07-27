@@ -434,6 +434,11 @@ async def callback_handler(call: CallbackQuery):
                 await upgrade_clan_building(call, up_build[17:])
             case usebuild if usebuild.startswith("use_building_"):
                 await use_clan_building(call, usebuild[13:])
+            
+            case "donate_cow":
+                await donate_cow(call)
+            case "milk_cow_clan":
+                await milk_cow_clan(call)
 
             case taxi if taxi.startswith("taxi_page:"):
                 await taxi_page(call, int(call.data.replace("taxi_page:", "")))

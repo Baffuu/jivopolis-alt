@@ -68,7 +68,7 @@ from .clans import (
     sell_clan_addon, clan_features, set_gameclub_timeout, confirm_timeout,
     clan_filter, toggle_filter, clan_buildings, clan_building_shop,
     buy_clan_building, sell_clan_building, upgrade_clan_building, clan_building_menu,
-    use_clan_building
+    use_clan_building, donate_cow, milk_cow_clan
 )
 
 from .shops import (
