@@ -76,9 +76,21 @@ async def can_interact(user_id: int | str) -> bool:
         await bot.send_message(
             user_id,
             '<i>☠️ Вы умерли. Попросите кого-нибудь вас воскресить</i>'
-        )       
+        )
+
+    in_prison = cur.select("prison_started", "userdata").where(
+        user_id=user_id).one() - current_time()
+    is_in_prison = in_prison > 0
+    if is_in_prison:
+        minutes = int(in_prison / 60)
+        seconds = int(in_prison % 60)
+        await bot.send_message(
+            user_id,
+            f'👮‍♂️<i> Вы находитесь в тюрьме. До выхода вам осталось {minutes}'
+            f' минут {seconds} секунд</i>'
+        )
     
-    return not (is_dead or is_banned)
+    return not (is_dead or is_banned or is_in_prison)
 
 
 async def check(user_id: int | str, chat_id: int | str) -> None | Message:
@@ -339,7 +351,7 @@ async def shoot(user_id: int | str, target_id: int | str, chat_id: int | str) ->
         await bot.send_message(target_id, f"<i>&#128299; Вас застрелил <b>{await get_embedded_link(user_id)}</b></i>")
 
         if random.choice([True, False]):
-            cur.execute(f"UPDATE userdata SET prison={current_time() + 1200} WHERE user_id={user_id}")
+            cur.execute(f"UPDATE userdata SET prison_started={current_time() + 1200} WHERE user_id={user_id}")
             conn.commit()
 
             await bot.send_message(

@@ -104,6 +104,17 @@ class StartCommand():
                     "<i> Вы умерли. Попросите кого-нибудь вас воскресить</i>"
                 )
 
+            in_prison = cur.select("prison_started", "userdata").where(
+                user_id=user_id).one() - current_time()
+            is_in_prison = in_prison > 0
+            if is_in_prison:
+                minutes = int(in_prison / 60)
+                seconds = int(in_prison % 60)
+                return await message.reply(
+                    '👮‍♂️<i> Вы находитесь в тюрьме. До выхода вам осталось '
+                    f'{minutes} минут {seconds} секунд</i>'
+                )
+
             if message.chat.type == ChatType.PRIVATE:
                 await self._private_start(user_id)
             elif message.chat.id == OfficialChats.CASINOCHAT:

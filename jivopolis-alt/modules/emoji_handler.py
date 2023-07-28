@@ -8,7 +8,7 @@ from ..misc import OfficialChats, get_embedded_link
 from ..misc.constants import SLOTMACHINE_TOKEN_COST, ERROR_MESSAGE
 from .. import bot, Dispatcher, logger
 from aiogram.types import (
-    Message, ChatType, InlineKeyboardMarkup, InlineKeyboardButton
+    Message, InlineKeyboardMarkup, InlineKeyboardButton
 )
 
 
@@ -41,12 +41,20 @@ async def dice_handler(message: Message):
             )
 
         if health < 0:
-            await message.answer(text='<i>☠️ Вы умерли</i>')
+            return await message.answer(
+                '<i>☠️ Вы умерли. Попросите кого-нибудь вас воскресить</i>'
+            )
 
-            if message.chat.type == ChatType.PRIVATE:
-                return await message.answer(
-                    '<i>☠️ Вы умерли. Попросите кого-нибудь вас воскресить</i>'
-                )
+        in_prison = cur.select("prison_started", "userdata").where(
+            user_id=message.from_user.id).one() - current_time()
+        is_in_prison = in_prison > 0
+        if is_in_prison:
+            minutes = int(in_prison / 60)
+            seconds = int(in_prison % 60)
+            return await message.answer(
+                '👮‍♂️<i> Вы находитесь в тюрьме. До выхода вам осталось '
+                f'{minutes} минут {seconds} секунд</i>'
+            )
 
         count = cur.select("count(*)", "clandata").where(
             clan_id=message.chat.id).one()

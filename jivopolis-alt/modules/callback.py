@@ -7,7 +7,7 @@ from .. import bot, logger, Dispatcher, tglog, utils
 from ..misc import ITEMS
 from ..misc.config import SUPPORT_LINK, villages, trains, CITY, tramroute
 from ..database import cur
-from ..database.functions import check, profile, eat
+from ..database.functions import check, profile, eat, current_time
 from ..filters import RequireBetaFilter
 from aiogram.utils.exceptions import (
     MessageCantBeDeleted,
@@ -55,6 +55,19 @@ async def callback_handler(call: CallbackQuery):
                 return await call.message.answer(
                     '<i>☠️ Вы умерли. Попросите кого-нибудь вас воскресить</i>'
                 )
+            return
+        
+        in_prison = cur.select("prison_started", "userdata").where(
+            user_id=call.from_user.id).one() - current_time()
+        is_in_prison = in_prison > 0
+        if is_in_prison:
+            minutes = int(in_prison / 60)
+            seconds = int(in_prison % 60)
+            return await call.answer(
+                f'👮‍♂️ Вы находитесь в тюрьме. До выхода вам осталось {minutes}'
+                f' минут {seconds} секунд',
+                show_alert=True
+            )
 
         match (call.data):
             case 'chats':

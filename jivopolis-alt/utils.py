@@ -13,6 +13,8 @@ from aiogram.utils.exceptions import RetryAfter
 from aiogram.utils.text_decorations import HtmlDecoration
 from typing import Union, Iterable, Coroutine, Optional, Any
 
+from .misc import current_time
+
 DEFAULT_MESSAGE = "🌔"
 DEFAULT_SLEEP = 5
 
@@ -40,6 +42,18 @@ async def check_user(user_id: int | str, is_admin: bool = False) -> bool:
                 f'"{OfficialChats.SUPPORTCHATLINK}">поддержку</a></i>'
             )
         return False
+
+    in_prison = cur.select("prison_started", "userdata").where(
+        user_id=user_id).one() - current_time()
+    is_in_prison = in_prison > 0
+    if is_in_prison:
+        minutes = int(in_prison / 60)
+        seconds = int(in_prison % 60)
+        await bot.send_message(
+            user_id,
+            f'👮‍♂️<i> Вы находитесь в тюрьме. До выхода вам осталось {minutes}'
+            f' минут {seconds} секунд</i>'
+        )
 
     rank = cur.execute(
         f"SELECT rank FROM userdata WHERE user_id = {user_id}"
