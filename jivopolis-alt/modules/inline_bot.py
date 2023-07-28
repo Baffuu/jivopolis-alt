@@ -1,7 +1,7 @@
 import contextlib
 
 from ..database import cur
-from ..database.functions import check, itemdata
+from ..database.functions import check, current_time, itemdata
 from ..misc import get_embedded_link, get_link, get_mask
 from aiogram.types import (
     InlineQuery,
