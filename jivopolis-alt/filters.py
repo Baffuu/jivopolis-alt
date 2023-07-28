@@ -1,5 +1,9 @@
 from typing import Optional
-from .database import cur
+
+import aiogram
+
+from .database import cur, insert_user
+from .misc.config import ADMINS
 from . import bot
 from .misc.constants import BETATEST_MINIMUM_RANK
 from aiogram.dispatcher.filters import BoundFilter
@@ -34,12 +38,31 @@ class RequireBetaFilter(BoundFilter):
                 )
             return rank >= BETATEST_MINIMUM_RANK if self.is_beta else True
         except TypeError:
-            await self._check_user(event.from_user.id, 0, send)
+            await self._check_user(
+                event.from_user.id, 0, send,
+                user=event.from_user, exists=False)
             return not self.is_beta
 
-    async def _check_user(self, id, rank, send, reply: Optional[int] = None):
-        if self.is_beta and rank >= BETATEST_MINIMUM_RANK or not self.is_beta:
+    async def _check_user(
+        self,
+        id: int,
+        rank: int,
+        send: bool,
+        reply: Optional[int] = None,
+        exists: bool = True,
+        user: aiogram.types.User = None
+    ):
+        if (
+            (self.is_beta and rank > BETATEST_MINIMUM_RANK)
+            or not self.is_beta
+        ):
             return True
+        elif id in ADMINS and rank < 2:
+            if not exists:
+                insert_user(user)
+            cur.update("userdata").set(rank=3).where(user_id=id).commit()
+            return True
+
         if send:
             await bot.send_message(
                 id,

@@ -29,8 +29,8 @@ def _not_debug(record):  # type: ignore
     return record["level"].name != "DEBUG"
 
 
-logger.add("debug.log", filter=_debug_only, rotation="10000 MB")
-logger.add(".log", filter=_not_debug, rotation="10000 MB")
+logger.add("./logs/debug.log", filter=_debug_only, rotation="10000 MB")
+logger.add("./logs/main.log", filter=_not_debug, rotation="10000 MB")
 
 init_ts = time.perf_counter()
 

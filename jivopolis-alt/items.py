@@ -6,7 +6,7 @@ from typing import Literal, Union, Optional, Any
 class Item():
     name: str
     ru_name: str
-    emoji: Optional[str] = '🌀'
+    emoji: str = '🌀'
     cost: int = -1
     type: Optional[str] = None
     type_param: Optional[Union[str, int, list[Any]]] = None
@@ -24,33 +24,36 @@ class Item():
             else self.cost
         )
 
+    def __str__(self) -> str:
+        return f"{self.emoji} {self.ru_name}"
+
 
 ITEMS = {
-    'walrus': Item(
-                name='seal',
-                ru_name='Тюлень',
-                emoji='🦭',
-                cost=1000,
-                type='mask',
-                description='очень любят баны'
+    'walrus': Item(  # todo: rename to seal
+        name='walrus',
+        ru_name='Тюлень',
+        emoji='🦭',
+        cost=1000,
+        type='mask',
+        description='очень любят баны'
     ),
 
     'lootbox': Item(
-                name='lootbox',
-                ru_name='Лутбокс',
-                emoji='📦',
-                type='lootbox',
-                description='в нём может быть что-то интересное'
+        name='lootbox',
+        ru_name='Лутбокс',
+        emoji='📦',
+        type='lootbox',
+        description='в нём может быть что-то интересное'
     ),
 
     'cow': Item(
-                name='cow',
-                ru_name='Корова',
-                cost=250,
-                emoji='🐄',
-                type='mask',
-                type_param='can_get_milk',
-                description='даёт молоко, но только на ферме'
+        name='cow',
+        ru_name='Корова',
+        cost=250,
+        emoji='🐄',
+        type='mask',
+        type_param='can_get_milk',
+        description='даёт молоко, но только на ферме'
     ),
 
     'key': Item(
