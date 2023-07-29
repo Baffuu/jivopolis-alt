@@ -156,7 +156,8 @@ from .clans import (
     use_clan_building,
     donate_cow,
     milk_cow_clan,
-    give_lootboxes
+    give_lootboxes,
+    rob_clan
 )
 
 from .shops import (
@@ -320,5 +321,6 @@ __all__ = [
     "use_clan_building",
     "donate_cow",
     "milk_cow_clan",
-    "give_lootboxes"
+    "give_lootboxes",
+    "rob_clan"
 ]

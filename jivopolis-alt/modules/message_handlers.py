@@ -174,10 +174,12 @@ async def lootbox_text(message: Message, nonick: bool = True):
                      not message.text.startswith('.')),
     RequireBetaFilter())
 async def processes_text(message: Message):
-    if not await can_interact(message.from_user.id):
+    process = await get_process(message.from_user.id)
+    if process == '':
         return
 
-    process = await get_process(message.from_user.id)
+    if not await can_interact(message.from_user.id):
+        return
     match (process):
         case 'search_address':
             await find_address(message)

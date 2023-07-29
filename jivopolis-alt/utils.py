@@ -46,7 +46,7 @@ async def check_user(user_id: int | str, is_admin: bool = False) -> bool:
     in_prison = cur.select("prison_started", "userdata").where(
         user_id=user_id).one() - current_time()
     is_in_prison = in_prison > 0
-    if is_in_prison:
+    if is_in_prison and not is_admin:
         minutes = int(in_prison / 60)
         seconds = int(in_prison % 60)
         await bot.send_message(
@@ -54,6 +54,7 @@ async def check_user(user_id: int | str, is_admin: bool = False) -> bool:
             f'👮‍♂️<i> Вы находитесь в тюрьме. До выхода вам осталось {minutes}'
             f' минут {seconds} секунд</i>'
         )
+        return False
 
     rank = cur.execute(
         f"SELECT rank FROM userdata WHERE user_id = {user_id}"

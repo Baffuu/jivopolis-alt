@@ -1,11 +1,12 @@
 import contextlib
 from ... import bot, tglog
 import asyncio
+import random
 
 from ...misc import get_embedded_link, get_time_units
 from ...misc.config import addon_prices, addon_descriptions, filter_names
 from ...database import cur, insert_clan
-from ...database.functions import buybutton, current_time
+from ...database.functions import buybutton, current_time, prison_sentence
 from ..start import StartCommand
 from ...clanbuildings import CLAN_BUILDINGS
 
@@ -2242,3 +2243,57 @@ async def give_lootboxes(call: CallbackQuery) -> None:
         f'<b>{blocked_bot}</b>\n❌ Другие ошибки: <b>{errors}</b></i>',
         reply_markup=markup
     )
+
+
+async def rob_clan(message: Message):
+    '''
+    Callback for clan robbing
+
+    :param message - user's message:
+    '''
+    chat_id = message.chat.id
+    count = cur.select("count(*)", "clandata").where(clan_id=chat_id).one()
+    markup = InlineKeyboardMarkup().add(
+        InlineKeyboardButton(
+            text='🥱 Хорошо',
+            callback_data='cancel_action'
+        )
+    )
+
+    if count < 1:
+        return await message.reply(
+            "😓 <i>Похоже, такого клана не существует</i>",
+            reply_markup=markup
+        )
+    elif count > 1:
+        raise ValueError("found more than one clan with such ID")
+
+    balance = cur.select("clan_balance", "clandata").where(
+        clan_id=chat_id).one()
+    if balance > 100000:
+        return await message.reply(
+            "👀 <i>Нельзя взламывать кланы, баланс которых больше $100k</i>",
+            reply_markup=markup
+        )
+
+    if random.randint(1, 10) < 10:
+        return await prison_sentence(
+            message, term=10, reason="попытку обворовать клан",
+            caption="Видимо, кому-то придётся поучиться взламывать..."
+        )
+    else:
+        if balance < 45:
+            return await message.reply(
+                "😣 <i>В клане почти нет денег :(</i>",
+                reply_markup=markup
+            )
+        rob_sum = random.randint(1, 45)
+        cur.update("clandata").add(clan_balance=-rob_sum).where(
+            clan_id=chat_id).commit()
+        cur.update("userdata").add(balance=rob_sum).where(
+            user_id=message.from_user.id).commit()
+
+        await message.answer(
+            f"<i>😎 Крутой <b>{await get_embedded_link(message.from_user.id)}"
+            f"</b> взломал клан и забрал <b>${rob_sum}</b></i>"
+        )

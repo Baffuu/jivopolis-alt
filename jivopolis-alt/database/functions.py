@@ -365,6 +365,30 @@ async def shoot(user_id: int | str, target_id: int | str, chat_id: int | str) ->
             await bot.send_message(chat_id, f"<i>&#10060; Вы выстрелили мимо. Возможно, это к лучшему.\nПистолет потрачен зря</i>")
 
 
+async def prison_sentence(message: Message, term: int, reason: str, caption: str="") -> None:
+    """
+    put a user in prison
+
+    :param message (Message) - user's message:
+    :param term (int) - term of prison sentence (in minutes):
+    :param reason (str) - the detention:
+    :param caption (str) - text before the sentence description:
+    """
+    cur.update("userdata").set(prison_started=current_time() + term*60).where(
+        user_id=message.from_user.id).commit()
+    await message.answer(
+        f"<i>{caption}\n\n👮‍♂️ Господин <b>{await get_embedded_link(message.from_user.id)}</b>, "
+        f"вы были арестованы за {reason}. Пройдёмте в отделение.\n\nВы были арестованы на "
+        f"<b>{term}</b> минут</i>",
+        reply_markup=InlineKeyboardMarkup().add(
+            InlineKeyboardButton(
+                text="😪 Скрыть сообщение",
+                callback_data="cancel_action"
+            )
+        )
+    )
+
+
 async def achieve(user_id: int | str, chat_id : int | str, achievement: str) -> None: #todo new ACHIEVEMENTS
     """
     achieve a user 
