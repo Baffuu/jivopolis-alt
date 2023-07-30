@@ -7,6 +7,7 @@ from typing import Iterable
 from ..filters import RequireBetaFilter
 from .emoji_handler import slot_machine
 from .. import dp, cur, bot, tglog, get_embedded_link
+from ..misc.misc import get_embedded_clan_link
 from ..utils import is_allowed_nonick
 from ..database.functions import profile, can_interact, get_process
 from ..misc.config import hellos
@@ -43,19 +44,20 @@ async def chatbot_functions(message: Message):
         text = text[1:]
     match (text):
         case t if 'привет' in t:
-            await message.reply(f'<i>{random.choice(hellos)}</i>')
+            return await message.reply(f'<i>{random.choice(hellos)}</i>')
         case t if contains('казино', t):
             _message = await message.answer_dice("🎰")
             await slot_machine(_message, message.from_user.id)
             del _message
+            return
         case t if t.startswith('выйди'):
             await message.reply(
                 "<i>😭 Мне следует уйти? Очень жаль. Прощайте, друзья…</i>"
             )
-            await bot.leave_chat(message.chat.id)
+            return await bot.leave_chat(message.chat.id)
         case t if t.startswith(('передать ', 'пожертвовать ')):
             message.text = text
-            await give_money(message, False)
+            return await give_money(message, False)
     if text.__contains__('как дела'):
         await message.reply(f"<i>{choice_how()}</i>")
     elif text.__contains__('или'):
@@ -206,17 +208,13 @@ async def give_money(message: Message, nonick=True):
     amount = int(message.text.split(" ")[1])
 
     user_id = message.from_user.id
-    # chat_id = message.chat.id
+    chat_id = message.chat.id
 
     if message.chat.type == ChatType.PRIVATE:
         return
 
-    if not message.reply_to_message:
-        return
-
     money = cur.select("balance", from_="userdata").where(
         user_id=user_id).one()
-    other_id = message.reply_to_message.from_user.id
 
     if money < amount:
         return await utils.answer(
@@ -225,36 +223,65 @@ async def give_money(message: Message, nonick=True):
             italise=True,
             reply=True
         )
-    elif money < 0:
+    elif amount < 0:
         return await utils.answer(
             message,
-            "😧 Нельзя передать отрицательное количество денег!",
+            "😧 Деньги так не работают, товарищ",
             italise=True,
             reply=True
         )
-    elif user_id == other_id:
-        return await utils.answer(
+
+    if message.reply_to_message:
+        other_id = message.reply_to_message.from_user.id
+        if user_id == other_id:
+            return await utils.answer(
+                message,
+                f'<b>{await get_embedded_link(user_id)}</b> перекладывает из'
+                f' кармана в карман <b>${amount}</b>',
+                italise=True
+            )
+
+        cur.update("userdata").add(balance=-amount).where(
+            user_id=user_id).commit()
+        cur.update("userdata").add(balance=amount).where(
+            user_id=other_id).commit()
+
+        await utils.answer(
             message,
-            f'<b>{await get_embedded_link(user_id)}</b> перекладывает из'
-            f' кармана в карман <b>${amount}</b>',
-            italise=True
+            f'<b>{await get_embedded_link(user_id)}</b> передал <b'
+            f'>{await get_embedded_link(other_id)}</b> <b>${amount}</b>',
+            italise=True,
+            reply=True
         )
+        await tglog(
+            f"{await get_embedded_link(user_id)} передал "
+            f"{await get_embedded_link(other_id)} ${amount}",
+            "#moneyshare"
+        )
+    else:
+        count = cur.select("count(*)", "clandata").where(clan_id=chat_id).one()
+        if count > 1:
+            raise ValueError("found more than one clan with such ID")
+        elif count < 1:
+            return
 
-    cur.update("userdata").add(balance=-amount).where(user_id=user_id).commit()
-    cur.update("userdata").add(balance=amount).where(user_id=other_id).commit()
+        cur.update("userdata").add(balance=-amount).where(
+            user_id=user_id).commit()
+        cur.update("clandata").add(clan_balance=amount).where(
+            clan_id=chat_id).commit()
 
-    await utils.answer(
-        message,
-        f'<b>{await get_embedded_link(user_id)}</b> передал <b'
-        f'>{await get_embedded_link(other_id)}</b> ${amount}',
-        italise=True,
-        reply=True
-    )
-    await tglog(
-        f"{await get_embedded_link(user_id)} передал "
-        f"{await get_embedded_link(other_id)} ${amount}",
-        "#moneyshare"
-    )
+        await utils.answer(
+            message,
+            f'<b>{await get_embedded_link(user_id)}</b> пожертвовал в клан '
+            f'<b>${amount}</b>',
+            italise=True,
+            reply=True
+        )
+        await tglog(
+            f"{await get_embedded_link(user_id)} пожертвовал в клан "
+            f"{await get_embedded_clan_link(chat_id)}${amount}",
+            "#moneyshare_clan"
+        )
 
 
 def choice_how() -> str:

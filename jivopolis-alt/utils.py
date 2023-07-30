@@ -125,7 +125,8 @@ async def _answer_message(
     **kwargs: Any
 ) -> Union[Message, list[Message]]:
     message = await _italise(message) if italise else message  # type: ignore
-    editable = await _italise(editable) if italise else editable  # type: ignore # noqa: E501
+    if editable:
+        editable = await _italise(editable) if italise else editable  # type: ignore # noqa: E501
 
     if not message and not editable:
         raise AttributeError(
