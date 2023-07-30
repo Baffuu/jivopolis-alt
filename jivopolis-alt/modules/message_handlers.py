@@ -9,7 +9,9 @@ from .emoji_handler import slot_machine
 from .. import dp, cur, bot, tglog, get_embedded_link
 from ..misc.misc import get_embedded_clan_link
 from ..utils import is_allowed_nonick
-from ..database.functions import profile, can_interact, get_process
+from ..database.functions import (
+    profile, can_interact, get_process, current_time
+)
 from ..misc.config import hellos
 from .callbacks.inventory import lootbox_button
 from aiogram.types import Message, ChatType
@@ -58,6 +60,9 @@ async def chatbot_functions(message: Message):
         case t if t.startswith(('передать ', 'пожертвовать ')):
             message.text = text
             return await give_money(message, False)
+        case t if t.startswith('вывести '):
+            message.text = text
+            return await withdraw_money(message, False)
     if text.__contains__('как дела'):
         await message.reply(f"<i>{choice_how()}</i>")
     elif text.__contains__('или'):
@@ -173,8 +178,8 @@ async def lootbox_text(message: Message, nonick: bool = True):
 
 @dp.message_handler(
     lambda message: (not message.text.startswith('/') and
-                     not message.text.startswith('.')),
-    RequireBetaFilter())
+                     not message.text.startswith('.'))
+)
 async def processes_text(message: Message):
     process = await get_process(message.from_user.id)
     if process == '':
@@ -282,6 +287,81 @@ async def give_money(message: Message, nonick=True):
             f"{await get_embedded_clan_link(chat_id)}${amount}",
             "#moneyshare_clan"
         )
+
+
+async def withdraw_money(message: Message, nonick=True):
+    if not await can_interact(message.from_user.id):
+        return
+    if not await is_allowed_nonick(message.from_user.id) and nonick:
+        return
+
+    amount = int(message.text.split(" ")[1])
+
+    user_id = message.from_user.id
+    chat_id = message.chat.id
+
+    if message.chat.type == ChatType.PRIVATE:
+        return
+
+    count = cur.select("count(*)", "clandata").where(clan_id=chat_id).one()
+    if count > 1:
+        raise ValueError("found more than one clan with such ID")
+    elif count < 1:
+        return
+    member = await bot.get_chat_member(chat_id, user_id)
+    if (
+        not member.is_chat_admin()
+        and not member.is_chat_creator()
+    ):
+        return await utils.answer(
+            message,
+            "👀 Выводить деньги из клана может только администратор чата",
+            italise=True,
+            reply=True
+        )
+
+    money = cur.select("clan_balance", from_="clandata").where(
+        clan_id=chat_id).one()
+    last_withdraw = cur.select("last_withdrawal", from_="clandata").where(
+        clan_id=chat_id).one()
+
+    if amount < 0:
+        return await utils.answer(
+            message,
+            "😧 Деньги так не работают, товарищ",
+            italise=True,
+            reply=True
+        )
+    elif current_time() - last_withdraw < 7200:
+        return await utils.answer(
+            message,
+            "🥱 Выводить деньги из клана можно лишь раз в 2 часа",
+            italise=True,
+            reply=True
+        )
+
+
+    if amount > money / 2:
+        amount = money // 2
+    cur.update("userdata").add(balance=amount).where(
+        user_id=user_id).commit()
+    cur.update("clandata").add(clan_balance=-amount).where(
+        clan_id=chat_id).commit()
+    cur.update("clandata").set(last_withdrawal=current_time()).where(
+        clan_id=chat_id).commit()
+
+    await utils.answer(
+        message,
+        f'<b>{await get_embedded_link(user_id)}</b> вывел из клана '
+        f'<b>${amount}</b>',
+        italise=True,
+        reply=True
+    )
+    await tglog(
+        f"{await get_embedded_link(user_id)} вывел из клана "
+        f"{await get_embedded_clan_link(chat_id)} ${amount}",
+        "#moneywithdrawal"
+    )
 
 
 def choice_how() -> str:

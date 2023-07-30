@@ -242,7 +242,8 @@ def create_clandata(cur: fyCursor) -> None:
     build_pharmacy  INTEGER         DEFAULT 0               NOT NULL,
     build_farm      INTEGER         DEFAULT 0               NOT NULL,
     cows            INTEGER         DEFAULT 0               NOT NULL,
-    last_lootbox    DATETIME        DEFAULT 0               NOT NULL
+    last_lootbox    DATETIME        DEFAULT 0               NOT NULL,
+    last_withdrawal DATETIME        DEFAULT 0               NOT NULL
 )
     """)
 
