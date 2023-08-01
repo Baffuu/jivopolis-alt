@@ -1,8 +1,8 @@
 from .misc import (
     get_link, get_mask,
     current_time, get_building,
-    get_time_units, get_embedded_link,
-    get_embedded_clan_link, tglog
+    get_time_units, get_embedded_link, tglog,
+    get_embedded_clan_link
 )
 
 from ..items import Item, ITEMS
@@ -26,5 +26,5 @@ __all__ = [
     "get_time_units", "get_embedded_link", "tglog",
     "Item", "ITEMS", "lootbox_open", "LOOTBOX",
     "OfficialChats", "MINIMUM_HEALTH", "clanitems", "Resource",
-    "RESOURCES"
+    "RESOURCES", "get_embedded_clan_link"
 ]

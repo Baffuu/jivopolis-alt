@@ -12,6 +12,7 @@ from ..utils import is_allowed_nonick
 from ..database.functions import (
     profile, can_interact, get_process, current_time
 )
+from ..misc.moder import mute_member, unmute_member
 from ..misc.config import hellos
 from .callbacks.inventory import lootbox_button
 from aiogram.types import Message, ChatType
@@ -118,6 +119,22 @@ async def my_balance_text(message: Message, nonick: bool = True):
         f'<i><b>{await get_embedded_link(user_id)}</b> размахивает перед всеми'
         f' своими накоплениями в количестве <b>${money}</b></i>'
     )
+
+
+@dp.message_handler(
+    Text(
+        startswith='/',
+        ignore_case=True
+    ),
+    RequireBetaFilter()
+)
+async def command_handler(message: Message):
+    if not await can_interact(message.from_user.id):
+        return
+    if message.text.startswith('/mute'):
+        await mute_member(message)
+    elif message.text.startswith('/unmute'):
+        await unmute_member(message)
 
 
 @dp.message_handler(
@@ -339,7 +356,6 @@ async def withdraw_money(message: Message, nonick=True):
             italise=True,
             reply=True
         )
-
 
     if amount > money / 2:
         amount = money // 2
