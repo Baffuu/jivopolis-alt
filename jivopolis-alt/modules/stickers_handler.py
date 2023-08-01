@@ -1,6 +1,7 @@
 from .. import bot, Dispatcher, logger
 from ..filters import RequireBetaFilter
 from ..misc import constants
+from ..misc.moder import mute_member, unmute_member
 from .callbacks import lootbox_button, rob_clan
 from ..database import cur
 from ..utils import check_user
@@ -33,6 +34,10 @@ async def sticker_handler(message: Message):
                 return await lootbox_button(message.from_user.id, message)
             case '🖥':
                 return await rob_clan(message)
+            case '⛔':
+                return await mute_member(message)
+            case '📣':
+                return await unmute_member(message)
 
     except Exception as e:
         logger.exception(e)
