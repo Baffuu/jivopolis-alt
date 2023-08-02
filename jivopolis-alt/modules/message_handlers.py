@@ -13,7 +13,8 @@ from ..database.functions import (
     profile, can_interact, get_process, current_time
 )
 from ..misc.moder import (
-    mute_member, unmute_member, promote_member, demote_member
+    mute_member, unmute_member, promote_member, demote_member, pin_message,
+    unpin_message
 )
 from ..misc.config import hellos
 from .callbacks.inventory import lootbox_button
@@ -158,6 +159,10 @@ async def command_handler(message: Message):
         await promote_member(message, True)
     elif message.text.startswith('/demote'):
         await demote_member(message)
+    elif message.text.startswith('/pin'):
+        await pin_message(message)
+    elif message.text.startswith('/unpin'):
+        await unpin_message(message)
 
 
 @dp.message_handler(

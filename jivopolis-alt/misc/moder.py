@@ -271,3 +271,77 @@ async def promote_member(message: Message, title_only: bool = False) -> None:
             ' прав</i>',
             reply_markup=markup
         )
+
+
+async def pin_message(message: Message) -> None:
+    '''
+    Pin chat message.
+
+    :param message - moderator's message:
+    '''
+    user_id = message.from_user.id
+    markup = InlineKeyboardMarkup(row_width=1).add(
+                InlineKeyboardButton(
+                    text="🥱 Понятно",
+                    callback_data="cancel_action"
+                )
+            )
+    chat_id = message.chat.id
+
+    member = await bot.get_chat_member(chat_id, user_id)
+    if not (member.is_chat_admin() or member.is_chat_owner()) \
+       or not member['can_pin_messages']:
+        return await message.reply(
+            '😨 <i>У вас нет прав на выполнение этого действия</i>',
+            reply_markup=markup
+        )
+
+    try:
+        await bot.pin_chat_message(chat_id,
+                                   message.reply_to_message.message_id)
+        await message.reply_to_message.reply(
+            '<i>😊 Сообщение закреплено</i>'
+        )
+    except Exception:
+        return await message.reply(
+            '😨 <i>Произошла ошибка. Возможно, у Живополиса недостаточно'
+            ' прав</i>',
+            reply_markup=markup
+        )
+
+
+async def unpin_message(message: Message) -> None:
+    '''
+    Unpin chat message.
+
+    :param message - moderator's message:
+    '''
+    user_id = message.from_user.id
+    markup = InlineKeyboardMarkup(row_width=1).add(
+                InlineKeyboardButton(
+                    text="🥱 Понятно",
+                    callback_data="cancel_action"
+                )
+            )
+    chat_id = message.chat.id
+
+    member = await bot.get_chat_member(chat_id, user_id)
+    if not (member.is_chat_admin() or member.is_chat_owner()) \
+       or not member['can_pin_messages']:
+        return await message.reply(
+            '😨 <i>У вас нет прав на выполнение этого действия</i>',
+            reply_markup=markup
+        )
+
+    try:
+        await bot.unpin_chat_message(chat_id,
+                                     message.reply_to_message.message_id)
+        await message.reply_to_message.reply(
+            '<i>🤔 Сообщение откреплено</i>'
+        )
+    except Exception:
+        return await message.reply(
+            '😨 <i>Произошла ошибка. Возможно, у Живополиса недостаточно'
+            ' прав</i>',
+            reply_markup=markup
+        )
