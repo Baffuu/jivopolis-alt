@@ -12,10 +12,14 @@ from ..utils import is_allowed_nonick
 from ..database.functions import (
     profile, can_interact, get_process, current_time
 )
-from ..misc.moder import mute_member, unmute_member
+from ..misc.moder import (
+    mute_member, unmute_member, promote_member, demote_member
+)
 from ..misc.config import hellos
 from .callbacks.inventory import lootbox_button
-from aiogram.types import Message, ChatType
+from aiogram.types import (
+    Message, ChatType, InlineKeyboardButton, InlineKeyboardMarkup
+)
 from aiogram.dispatcher.filters import Text
 from .callbacks.traveling import find_address
 from .callbacks.clans import confirm_clan_profile_setting, confirm_clan_photo
@@ -131,10 +135,29 @@ async def my_balance_text(message: Message, nonick: bool = True):
 async def command_handler(message: Message):
     if not await can_interact(message.from_user.id):
         return
+    admin_commands = ['/mute', '/unmute', '/promote', '/demote', '/pin',
+                      '/unpin']
+    if not message.reply_to_message and \
+            any(message.text.startswith(comm) for comm in admin_commands):
+        return await message.reply(
+            '🥱 <i>Ответьте на необходимое сообщение</i>',
+            reply_markup=InlineKeyboardMarkup(row_width=1).add(
+                InlineKeyboardButton(
+                    text="🥱 Понятно",
+                    callback_data="cancel_action"
+                )
+            )
+        )
     if message.text.startswith('/mute'):
         await mute_member(message)
     elif message.text.startswith('/unmute'):
         await unmute_member(message)
+    elif message.text.startswith('/promote'):
+        await promote_member(message)
+    elif message.text.startswith('/prefix'):
+        await promote_member(message, True)
+    elif message.text.startswith('/demote'):
+        await demote_member(message)
 
 
 @dp.message_handler(

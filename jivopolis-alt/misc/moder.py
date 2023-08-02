@@ -19,7 +19,8 @@ async def can_perform(user_id: int, other_id: int, chat_id: int | str,
     other = await bot.get_chat_member(chat_id, other_id)
     if not (member.is_chat_owner() or member.is_chat_admin()):
         return False
-    elif other.is_chat_owner() or other.is_chat_admin():
+    elif other.is_chat_owner() or (other.is_chat_admin() and
+                                   right != 'can_promote_members'):
         return False
     else:
         return member[right]
@@ -65,7 +66,7 @@ async def mute_member(message: Message) -> None:
     '''
     Mute chat member.
 
-    :message - moderator's message:
+    :param message - moderator's message:
     '''
     user_id = message.from_user.id
     markup = InlineKeyboardMarkup(row_width=1).add(
@@ -74,11 +75,6 @@ async def mute_member(message: Message) -> None:
                     callback_data="cancel_action"
                 )
             )
-    if not message.reply_to_message:
-        return await message.reply(
-            '🥱 <i>Ответьте на сообщение пользователя</i>',
-            reply_markup=markup
-        )
     other_id = message.reply_to_message.from_user.id
     chat_id = message.chat.id
 
@@ -149,7 +145,7 @@ async def unmute_member(message: Message) -> None:
     '''
     Unmute chat member.
 
-    :message - moderator's message:
+    :param message - moderator's message:
     '''
     user_id = message.from_user.id
     markup = InlineKeyboardMarkup(row_width=1).add(
@@ -158,11 +154,6 @@ async def unmute_member(message: Message) -> None:
                     callback_data="cancel_action"
                 )
             )
-    if not message.reply_to_message:
-        return await message.reply(
-            '🥱 <i>Ответьте на сообщение пользователя</i>',
-            reply_markup=markup
-        )
     other_id = message.reply_to_message.from_user.id
     chat_id = message.chat.id
 
@@ -181,6 +172,98 @@ async def unmute_member(message: Message) -> None:
                                        permissions)
         await message.reply_to_message.reply(
             '🥳 <i>Вы снова можете говорить</i>'
+        )
+    except Exception:
+        return await message.reply(
+            '😨 <i>Произошла ошибка. Возможно, у Живополиса недостаточно'
+            ' прав</i>',
+            reply_markup=markup
+        )
+
+
+async def demote_member(message: Message) -> None:
+    '''
+    Demote chat member.
+
+    :param message - moderator's message:
+    '''
+    user_id = message.from_user.id
+    markup = InlineKeyboardMarkup(row_width=1).add(
+                InlineKeyboardButton(
+                    text="🥱 Понятно",
+                    callback_data="cancel_action"
+                )
+            )
+    other_id = message.reply_to_message.from_user.id
+    chat_id = message.chat.id
+
+    if not await can_perform(user_id, other_id, chat_id,
+                             'can_promote_members'):
+        return await message.reply(
+            '😨 <i>У вас нет прав на выполнение этого действия</i>',
+            reply_markup=markup
+        )
+
+    try:
+        await bot.promote_chat_member(
+            chat_id, other_id, False, False)
+        await message.reply_to_message.reply(
+            '😪 <i>Вы больше не админ :(</i>'
+        )
+    except Exception:
+        return await message.reply(
+            '😨 <i>Произошла ошибка. Возможно, у Живополиса недостаточно'
+            ' прав</i>',
+            reply_markup=markup
+        )
+
+
+async def promote_member(message: Message, title_only: bool = False) -> None:
+    '''
+    Promote chat member.
+
+    :param message - moderator's message:
+    :param title_only - True if no rights should be given to the member:
+    '''
+    user_id = message.from_user.id
+    markup = InlineKeyboardMarkup(row_width=1).add(
+                InlineKeyboardButton(
+                    text="🥱 Понятно",
+                    callback_data="cancel_action"
+                )
+            )
+    other_id = message.reply_to_message.from_user.id
+    chat_id = message.chat.id
+
+    if not await can_perform(user_id, other_id, chat_id,
+                             'can_promote_members'):
+        return await message.reply(
+            '😨 <i>У вас нет прав на выполнение этого действия</i>',
+            reply_markup=markup
+        )
+
+    title = (
+        message.text.split(" ", maxsplit=1)[1] if
+        len(message.text.split(" ")) > 1 else ""
+    ) if message.text else ""
+
+    try:
+        if not title_only:
+            await bot.promote_chat_member(
+                chat_id, other_id, False, True, False,
+                can_delete_messages=True, can_manage_voice_chats=True,
+                can_pin_messages=True, can_restrict_members=True,
+                can_invite_users=True, can_promote_members=False)
+        else:
+            await bot.promote_chat_member(
+                chat_id, other_id, False, True)
+        await bot.set_chat_administrator_custom_title(
+            chat_id, other_id, custom_title=title if title else
+            "Модератор чата"
+        )
+
+        await message.reply_to_message.reply(
+            '😎 <i>Вы стали администратором чата, круто!</i>'
         )
     except Exception:
         return await message.reply(
