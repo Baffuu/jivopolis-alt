@@ -3,6 +3,7 @@ from ..database.functions import current_time
 from aiogram.types import (
     Message, InlineKeyboardButton, InlineKeyboardMarkup, ChatPermissions
 )
+import re
 
 
 async def can_perform(user_id: int, other_id: int, chat_id: int | str,
@@ -36,7 +37,7 @@ def decode_term(string_term: str) -> int | str:
         try:
             temporary_value = int(string_term if string_term[-1].isnumeric()
                                   else string_term[:-1])
-        except ValueError:
+        except Exception:
             return "not int"
     if string_term[-1].isnumeric():
         temporary_value = int(string_term) * 60
@@ -343,5 +344,140 @@ async def unpin_message(message: Message) -> None:
         return await message.reply(
             '😨 <i>Произошла ошибка. Возможно, у Живополиса недостаточно'
             ' прав</i>',
+            reply_markup=markup
+        )
+
+
+async def moderate(message: Message) -> None:
+    '''
+    Moderate the chat (only available for chat owner).
+
+    :param message - moderator's message:
+    '''
+    user_id = message.from_user.id
+    markup = InlineKeyboardMarkup(row_width=1).add(
+                InlineKeyboardButton(
+                    text="🥱 Понятно",
+                    callback_data="cancel_action"
+                )
+            )
+    chat_id = message.chat.id
+    text = message.text.split(" ", maxsplit=2)
+    if re.fullmatch(r'/moderate<[-,0-9]+>', text[0]):
+        id = text[0].replace("/moderate<", "")[:-1]
+        try:
+            chat = await bot.get_chat(int(id))
+            chat_id = chat.id
+        except Exception:
+            return await message.reply(
+                '😨 <i>Такого чата не существует</i>',
+                reply_markup=markup
+            )
+
+    member = await bot.get_chat_member(chat_id, user_id)
+    if not member.is_chat_owner() and message.text != '/moderate chat_id':
+        return await message.reply(
+            '😨 <i>Пользоваться этой командой может только владелец чата</i>',
+            reply_markup=markup
+        )
+
+    if len(text) < 2:
+        return await message.reply(
+            '😨 <i>Данная команда должна иметь минимум 1 аргумент</i>',
+            reply_markup=markup
+        )
+
+    command = text[1]
+    flags = text[2].split(", ") if len(text) > 2 else []
+    require_reply = ["ban_forever", "ban", "unban", "kick", "ban_channel",
+                     "unban_channel"]
+
+    if not message.reply_to_message and command in require_reply:
+        return await message.reply(
+            '😨 <i>Ответьте на нужное сообщение</i>',
+            reply_markup=markup
+        )
+
+    if command == "ban":
+        time = decode_term(flags[0]) if len(flags) > 0 else ""
+        if not isinstance(time, int):
+            return await message.reply(
+                '😨 <i>Предоставлен неверный срок бана</i>',
+                reply_markup=markup
+            )
+
+    try:
+        match(command):
+            case "ban_forever":
+                await bot.ban_chat_member(
+                    chat_id, message.reply_to_message.from_user.id,
+                    revoke_messages=flags.__contains__("r")
+                )
+            case "ban":
+                await bot.ban_chat_member(
+                    chat_id, message.reply_to_message.from_user.id,
+                    revoke_messages=flags.__contains__("r"),
+                    until_date=current_time()+time
+                )
+            case "unban":
+                await bot.unban_chat_member(
+                    chat_id, message.reply_to_message.from_user.id,
+                    only_if_banned=True
+                )
+            case "kick":
+                await bot.unban_chat_member(
+                    chat_id, message.reply_to_message.from_user.id
+                )
+            case "ban_channel":
+                await bot.ban_chat_sender_chat(
+                    chat_id, message.reply_to_message.sender_chat.id
+                    if message.reply_to_message.sender_chat else
+                    message.reply_to_message.from_user.id
+                )
+            case "unban_channel":
+                await bot.unban_chat_sender_chat(
+                    chat_id, message.reply_to_message.sender_chat.id
+                    if message.reply_to_message.sender_chat else
+                    message.reply_to_message.from_user.id
+                )
+            case "unpin":
+                await bot.unpin_all_chat_messages(chat_id)
+            case "mute":
+                await bot.set_chat_permissions(
+                    chat_id, ChatPermissions(False)
+                )
+            case "unmute":
+                permissions = (
+                    ChatPermissions(True) if 't' in flags else
+                    ChatPermissions(
+                        *[True for i in range(8)]
+                    )
+                )
+                await bot.set_chat_permissions(
+                    chat_id, permissions
+                )
+            case "chat_id":
+                return await message.reply(
+                    '<i><b>🆔 Данные чата:</b>\n\nID: <code>'
+                    f'{message.chat.id}</code>.\nЗаголовок: <code>'
+                    f'{message.chat.title}</code>.\nУчастников: <b>'
+                    f'{await bot.get_chat_member_count(message.chat.id)}'
+                    '</b></i>'
+                )
+            case _:
+                return await message.reply(
+                    '😨 <i>Неизвестная команда</i>',
+                    reply_markup=markup
+                )
+        reply_message = (
+            message.reply_to_message if message.reply_to_message else message
+        )
+        await reply_message.reply(
+            '<i>🤔 Действие выполнено</i>'
+        )
+    except Exception as e:
+        return await message.reply(
+            '😨 <i>Произошла ошибка. Возможно, у Живополиса недостаточно'
+            f' прав.\n\n<b>Текст ошибки:</b> <code>{e}</code></i>',
             reply_markup=markup
         )

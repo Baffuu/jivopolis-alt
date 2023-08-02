@@ -14,7 +14,7 @@ from ..database.functions import (
 )
 from ..misc.moder import (
     mute_member, unmute_member, promote_member, demote_member, pin_message,
-    unpin_message
+    unpin_message, moderate
 )
 from ..misc.config import hellos
 from .callbacks.inventory import lootbox_button
@@ -163,6 +163,8 @@ async def command_handler(message: Message):
         await pin_message(message)
     elif message.text.startswith('/unpin'):
         await unpin_message(message)
+    elif message.text.startswith('/moderate'):
+        await moderate(message)
 
 
 @dp.message_handler(
