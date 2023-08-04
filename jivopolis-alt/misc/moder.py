@@ -87,7 +87,7 @@ async def mute_member(message: Message) -> None:
         )
 
     if message.text:
-        term_identifier = message.text.replace(" ", "").replace("/mute", "")
+        term_identifier = message.text.replace(" ", "").replace("!mute", "")
         seconds = decode_term(term_identifier) if term_identifier else 300
         if seconds == "not int":
             return await message.reply(
@@ -363,8 +363,8 @@ async def moderate(message: Message) -> None:
             )
     chat_id = message.chat.id
     text = message.text.split(" ", maxsplit=2)
-    if re.fullmatch(r'/moderate<[-,0-9]+>', text[0]):
-        id = text[0].replace("/moderate<", "")[:-1]
+    if re.fullmatch(r'!moderate<[-,0-9]+>', text[0]):
+        id = text[0].replace("!moderate<", "")[:-1]
         try:
             chat = await bot.get_chat(int(id))
             chat_id = chat.id
@@ -375,7 +375,7 @@ async def moderate(message: Message) -> None:
             )
 
     member = await bot.get_chat_member(chat_id, user_id)
-    if not member.is_chat_owner() and message.text != '/moderate chat_id':
+    if not member.is_chat_owner() and message.text != '!moderate chat_id':
         return await message.reply(
             '😨 <i>Пользоваться этой командой может только владелец чата</i>',
             reply_markup=markup

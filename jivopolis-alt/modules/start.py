@@ -25,7 +25,7 @@ from .. import bot, Dispatcher, logger, tglog
 from ..filters import RequireBetaFilter
 from ..misc import get_mask, get_link, current_time, OfficialChats, constants
 from ..database import cur, insert_user
-from ..database.functions import check, profile
+from ..database.functions import check, profile, get_embedded_link
 from ..misc.config import levelrange, hellos, randomtext, SUPPORT_LINK
 
 Rase = namedtuple('Rase', ['emoji', 'ru_name', 'name', 'image_url'])
@@ -138,20 +138,21 @@ class StartCommand():
     ) -> str | None:
         nick = cur.select("nickname", "userdata").where(user_id=user_id).one()
 
-        cur.execute("""
-            SELECT * FROM userdata
+        leaderboard = cur.execute("""
+            SELECT user_id FROM userdata
             WHERE profile_type=\"public\" AND rank=0
             ORDER BY balance
             DESC LIMIT 10
-        """)
+        """).fetch()
 
         leaders = "&#127942; Лидеры Живополиса на данный момент:"
-
-        for row in cur:
-            leaders += (
-                f"\n<b><a href=\"{await get_link(row[1])}\">"
-                f"{get_mask(row[1])}{row[2]}</a> - ${row[4]}</b>"
-            )
+        if leaderboard:
+            for id in leaderboard:
+                balance = cur.select("balance", "userdata").where(
+                    user_id=id[0]).one()
+                leaders += (
+                    f"\n<b>{await get_embedded_link(id[0])} - ${balance}</b>"
+                )
 
         buttons = self._start_buttons(user_id)
         mask = get_mask(user_id)

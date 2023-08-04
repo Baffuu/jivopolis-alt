@@ -128,7 +128,7 @@ async def my_balance_text(message: Message, nonick: bool = True):
 
 @dp.message_handler(
     Text(
-        startswith='/',
+        startswith='!',
         ignore_case=True
     ),
     RequireBetaFilter()
@@ -136,8 +136,8 @@ async def my_balance_text(message: Message, nonick: bool = True):
 async def command_handler(message: Message):
     if not await can_interact(message.from_user.id):
         return
-    admin_commands = ['/mute', '/unmute', '/promote', '/demote', '/pin',
-                      '/unpin']
+    admin_commands = ['!mute', '!unmute', '!promote', '!demote', '!pin',
+                      '!unpin']
     if not message.reply_to_message and \
             any(message.text.startswith(comm) for comm in admin_commands):
         return await message.reply(
@@ -149,21 +149,21 @@ async def command_handler(message: Message):
                 )
             )
         )
-    if message.text.startswith('/mute'):
+    if message.text.startswith('!mute'):
         await mute_member(message)
-    elif message.text.startswith('/unmute'):
+    elif message.text.startswith('!unmute'):
         await unmute_member(message)
-    elif message.text.startswith('/promote'):
+    elif message.text.startswith('!promote'):
         await promote_member(message)
-    elif message.text.startswith('/prefix'):
+    elif message.text.startswith('!prefix'):
         await promote_member(message, True)
-    elif message.text.startswith('/demote'):
+    elif message.text.startswith('!demote'):
         await demote_member(message)
-    elif message.text.startswith('/pin'):
+    elif message.text.startswith('!pin'):
         await pin_message(message)
-    elif message.text.startswith('/unpin'):
+    elif message.text.startswith('!unpin'):
         await unpin_message(message)
-    elif message.text.startswith('/moderate'):
+    elif message.text.startswith('!moderate'):
         await moderate(message)
 
 

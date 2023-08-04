@@ -98,22 +98,15 @@ async def check(user_id: int | str, chat_id: int | str) -> None | Message:
     checks everything
     '''
     try:
-        cur.execute(
-            "UPDATE userdata SET "
-            f"lastseen={current_time()} WHERE user_id={user_id}"
-        )
+        cur.update("userdata").set(lastseen=current_time()).where(user_id=user_id).commit()
         conn.commit()
 
-        xp = cur.execute(
-            f"SELECT xp FROM userdata WHERE user_id={user_id}"
-        ).fetchone()[0]
+        xp = cur.select("xp", "userdata").where(user_id=user_id).one()
 
-        rank = cur.execute(
-            f"SELECT rank FROM userdata WHERE user_id={user_id}"
-        ).fetchone()[0]
+        rank = cur.select("rank", "userdata").where(user_id=user_id).one()
 
         if user_id in ADMINS and rank < 2:
-            cur.execute(f"UPDATE userdata SET rank=3 WHERE user_id={user_id}")
+            cur.update("userdata").set(rank=3).where(user_id=user_id).commit()
             conn.commit()
 
         lastgears = current_time() - cur.select("last_gears", "userdata").where(user_id=user_id).one()
@@ -124,36 +117,38 @@ async def check(user_id: int | str, chat_id: int | str) -> None | Message:
             cur.update("userdata").set(last_gears=current_time()).where(user_id=user_id).commit()
             conn.commit()
 
-        lvl = cur.execute(
-            f"SELECT level FROM userdata WHERE user_id={user_id}"
-        ).fetchone()[0]
+        lvl = cur.select("level", "userdata").where(user_id=user_id).one()
 
         if lvl >= len(levelrange)-1:
             return
         elif xp >= levelrange[lvl] and xp < levelrange[lvl+1]:
             return
-        for i in levelrange:
+        for index, points in enumerate(levelrange):
             if (
-                xp >= i 
-                and levelrange.index(i) >= len(levelrange) - 1 
-                and lvl != levelrange.index(i)
+                xp >= points
+                and (index == len(levelrange) - 1
+                or (xp < levelrange[index+1]
+                and index < len(levelrange) - 1))
+                and lvl != index
             ):
-                cur.execute(f"UPDATE userdata SET level={levelrange.index(i)} WHERE user_id={user_id}")
+                cur.update("userdata").set(level=index).where(user_id=user_id).commit()
                 conn.commit()
+                description = leveldesc[index] if len(leveldesc) > index else ""
                 try:
                     return await bot.send_message(
-                        user_id, 
-                        f"<i>&#128305; Теперь ваш уровень в Живополисе: <b>{levelrange.index(i)}</b>\nПоздравляем!\n{leveldesc[levelrange.index(i)]}</i>")
+                        user_id,
+                        f"<i>&#128305; Теперь ваш уровень в Живополисе: <b>{index}</b>\nПоздравляем!\n{description}</i>")
                 except Exception:
-                    return await bot.send_message(chat_id, f"<i>&#128305; Теперь ваш уровень в Живополисе: <b>{levelrange.index(i)}</b>\nПоздравляем!\n{leveldesc[levelrange.index(i)]}</i>")
-
-            if xp>=i and xp<levelrange[levelrange.index(i)] and lvl!=levelrange.index(i):
-                cur.execute("UPDATE userdata SET level=? WHERE user_id=?", (levelrange.index(i), user_id,))
+                    return await bot.send_message(chat_id, f"<i>&#128305; Теперь ваш уровень в Живополисе: <b>{index}</b>\nПоздравляем!\n{description}</i>")
+            '''
+            elif xp>=points and xp<levelrange[levelrange.index(i)] and lvl!=index:
+                cur.update("userdata").set(level=levelrange.index(i)).where(user_id=user_id).commit()
                 conn.commit()
                 try:
-                    return await bot.send_message(user_id, f"<i>&#128305; Теперь ваш уровень в Живополисе: <b>{levelrange.index(i)}</b>\nПоздравляем!\n{leveldesc[levelrange.index(i)]}</i>")
+                    return await bot.send_message(user_id, f"<i>&#128305; Теперь ваш уровень в Живополисе: <b>{index}</b>\nПоздравляем!\n{leveldesc[index]}</i>")
                 except Exception:
-                    return await bot.send_message(chat_id, f"<i>&#128305; Теперь ваш уровень в Живополисе: <b>{levelrange.index(i)}</b>\nПоздравляем!\n{leveldesc[levelrange.index(i)]}</i>")
+                    return await bot.send_message(chat_id, f"<i>&#128305; Теперь ваш уровень в Живополисе: <b>{index}</b>\nПоздравляем!\n{leveldesc[index]}</i>")
+            '''
 
     except Exception as e:
         logger.exception(e)
