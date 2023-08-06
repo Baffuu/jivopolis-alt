@@ -5,6 +5,7 @@ import random
 
 from ...misc import get_embedded_link, get_time_units
 from ...misc.config import addon_prices, addon_descriptions, filter_names
+from ...misc.constants import MINIMUM_PUBLIC_CLAN_LEVEL
 from ...database import cur, insert_clan
 from ...database.functions import buybutton, current_time, prison_sentence
 from ..start import StartCommand
@@ -559,6 +560,18 @@ async def toggle_clan_type(call: CallbackQuery):
         clan_id=chat_id).one()
     new_clan_type = 'public' if clan_type == 'private' else 'private'
     new_clan_type_ru = 'Публичный' if new_clan_type == 'public' else 'Частный'
+
+    if new_clan_type == 'public':
+        owner = cur.select("owner_id", "clandata").where(clan_id=chat_id).one()
+        level = cur.select("level", "userdata").where(
+            user_id=owner).one()
+
+        if level < MINIMUM_PUBLIC_CLAN_LEVEL:
+            return await call.answer(
+                '🚫 Уровень владельца клана должен быть не меньше '
+                f'{MINIMUM_PUBLIC_CLAN_LEVEL}, чтобы клан стал публичным',
+                show_alert=True
+            )
 
     if call.message.chat.username is None:
         chat_data = await bot.get_chat(chat_id)

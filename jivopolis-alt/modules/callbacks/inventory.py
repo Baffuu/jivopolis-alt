@@ -6,7 +6,7 @@ from ...misc import (
     get_time_units, current_time,
     RESOURCES
 )
-from ...misc.config import limeteds
+from ...misc.config import limited_items
 from ..start import StartCommand
 from ...database import cur
 from ...database.functions import itemdata
@@ -113,7 +113,7 @@ async def itemdesc(call: CallbackQuery, user_id: int):
                 ' если считаете, что это ошибка.'
             )
 
-    if call.data in limeteds:
+    if call.data in limited_items:
         itemsleft = cur.select(call.data, "globaldata").one()
 
         if itemsleft > 0:

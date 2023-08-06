@@ -5,7 +5,7 @@ from .traveling import state_balance
 
 from ... import bot, logger
 from ...database import cur, conn
-from ...misc.config import limeteds
+from ...misc.config import limited_items
 from ...misc import get_mask, get_link, OfficialChats, get_embedded_link, ITEMS
 
 from aiogram.types import (
@@ -267,7 +267,7 @@ async def economics(call: CallbackQuery) -> None:
 
     limits = ''
 
-    for item in limeteds:
+    for item in limited_items:
         limits += f'\n{ITEMS[item].emoji} {ITEMS[item].ru_name} - '
         item_left = cur.execute(f"SELECT {item} FROM globaldata").fetchone()[0]
 

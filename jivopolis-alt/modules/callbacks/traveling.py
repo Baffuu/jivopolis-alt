@@ -8,15 +8,15 @@ from ...misc import (
 )
 from ...misc.misc import remaining, isinterval
 from ...misc.constants import (MINIMUM_CAR_LEVEL, MAXIMUM_DRIVE_MENU_SLOTS,
-                               MAP, REGIONAL_MAP)
+                               MAP, REGIONAL_MAP, MINIMUM_TAXI_LEVEL)
 from ...database import cur
 from ...database.functions import buy, buybutton, itemdata
 
 from ...misc.config import (
     METRO, WALK, CITY,
     trains, villages, autostations,
-    limeteds,
-    lvlcab, cabcost, locations, REGTRAIN,
+    limited_items,
+    cabcost, locations, REGTRAIN,
     clanitems, LINES, LINES_GENITIVE, ticket_time, aircost,
     buscost, regbuscost, tramroute
 )
@@ -718,9 +718,9 @@ async def taxi_menu(message: Message, user_id: int):
     level = cur.select("level", "userdata").where(
         user_id=user_id).one()
 
-    if level < lvlcab:
+    if level < MINIMUM_TAXI_LEVEL:
         return await message.answer(
-            f'🚫 Данная функция доступна только с уровня {lvlcab}'
+            f'🚫 Данная функция доступна только с уровня {MINIMUM_TAXI_LEVEL}'
         )
 
     current_place = cur.select("current_place", "userdata").where(
@@ -766,9 +766,9 @@ async def taxi_page(call: CallbackQuery, menu: int):
     level = cur.select("level", "userdata").where(user_id=user_id).one()
     message = call.message
 
-    if level < lvlcab:
+    if level < MINIMUM_TAXI_LEVEL:
         return await message.answer(
-            f'🚫 Данная функция доступна только с уровня {lvlcab}'
+            f'🚫 Данная функция доступна только с уровня {MINIMUM_TAXI_LEVEL}'
         )
 
     current_place = cur.select("current_place", "userdata").where(
@@ -1049,7 +1049,7 @@ async def gps_transport(call: CallbackQuery, place: str):
         else:
             text += f'\n🚐 Остановка маршрутных такси <b>{place}</b>'
     if place in CITY and current_place in CITY and place != current_place \
-            and level >= lvlcab:
+            and level >= MINIMUM_TAXI_LEVEL:
         cost = (cabcost*abs(CITY.index(place)-CITY.index(current_place)))//1
         text += '\n\n🚕 Вы можете доехать из местности ' +\
                 f'<b>{current_place}</b> до местности <b>{place}</b>' +\
@@ -1109,7 +1109,7 @@ async def buy24_(call: CallbackQuery, item: str) -> None:
 
     :raises ValueError if item doesn't seem to exists
     '''
-    if item not in ITEMS or item not in limeteds:
+    if item not in ITEMS or item not in limited_items:
         raise ValueError("no such item")
     items_left = cur.select(item, "globaldata").one()
 

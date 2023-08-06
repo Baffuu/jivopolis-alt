@@ -14,7 +14,7 @@ from . import cur, conn
 from .. import bot, logger, get_embedded_link, get_link, get_mask, tglog, utils
 from ..misc import current_time, ITEMS, constants
 from ..misc.config import (
-    limeteds, leveldesc,
+    limited_items, leveldesc,
     levelrange, ach, ADMINS,
     clanitems
 )
@@ -227,7 +227,7 @@ def buybutton(
             InlineKeyboardButton(
                 f'{itemob.emoji} {itemob.ru_name} - ${cost}', callback_data=f'buy24_{item}'
             )
-            if item in limeteds
+            if item in limited_items
             else None
         )
 
