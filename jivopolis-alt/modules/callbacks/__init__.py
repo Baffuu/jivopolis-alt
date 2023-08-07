@@ -40,7 +40,8 @@ from .user_profile import (
     privacy_settings,
     delete_account,
     delete_account_confirm,
-    log_out
+    log_out,
+    toggle_profile_type
 )
 
 from .traveling import (
@@ -209,6 +210,7 @@ __all__ = [
     "delete_account",
     "delete_account_confirm",
     "log_out",
+    "toggle_profile_type",
     "buycall",
     "city",
     "car_menu",

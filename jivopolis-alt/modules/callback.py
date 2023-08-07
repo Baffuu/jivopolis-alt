@@ -603,6 +603,8 @@ async def callback_handler(call: CallbackQuery):
                 await delete_account(call)
             case 'delete_account_confirm':
                 await delete_account_confirm(call)
+            case 'toggle_profile_type':
+                await toggle_profile_type(call)
 
             case "work":
                 await call.answer("🏗 Ведутся строительные работы. Ожидайте открытия вашей работы в ближайших обновлениях", True)

@@ -228,3 +228,31 @@ async def log_out(call: CallbackQuery):
             ),
             tag='#log_out'
     )
+
+
+async def toggle_profile_type(call: CallbackQuery):
+    """
+    Callback for a clan type changing setting
+
+    :param call - callback:
+    """
+    user_id = call.from_user.id
+
+    old_type = cur.select("profile_type", "userdata").where(
+        user_id=user_id).one()
+    new_type = 'public' if old_type == 'private' else 'private'
+    new_type_ru = 'Открытый' if new_type == 'public' else 'Закрытый'
+
+    cur.update("userdata").set(profile_type=new_type).where(
+        user_id=user_id).commit()
+
+    markup = InlineKeyboardMarkup(row_width=1).add(
+        InlineKeyboardButton(
+            text='✅ Готово',
+            callback_data='cancel_action'
+        )
+    )
+    await call.message.answer(
+        f'<i>🥳 Тип вашего профиля изменён на <b>{new_type_ru}</b></i>',
+        reply_markup=markup
+    )
