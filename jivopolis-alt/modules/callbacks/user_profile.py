@@ -2,6 +2,7 @@ from ... import bot
 from ...misc import ITEMS
 import sqlite3
 from ...database import cur
+from ...database.functions import tglog, get_embedded_link
 
 from aiogram.utils.deep_linking import get_start_link
 from aiogram.types import (
@@ -103,7 +104,7 @@ async def my_reflink(call: CallbackQuery) -> None:
 
 
 async def privacy_settings(call: CallbackQuery):
-    markup = InlineKeyboardMarkup()
+    markup = InlineKeyboardMarkup(row_width=1)
     user_id = call.from_user.id
     profile_type = cur.select("profile_type", "userdata").where(
         user_id=user_id).one()
@@ -123,9 +124,107 @@ async def privacy_settings(call: CallbackQuery):
         InlineKeyboardButton(
             "🗑 Удалить аккаунт",
             callback_data="delete-account",
+        ),
+        InlineKeyboardButton(
+            "◀ Назад",
+            callback_data="cancel_action",
         )
     )
     await call.message.answer(
         '🔏<i><b>Настройки конфиденциальности</b></i>',
         reply_markup=markup
+    )
+
+
+async def delete_account(call: CallbackQuery):
+    """
+    Callback for account deleting menu
+
+    :param call - callback:
+    """
+
+    markup = InlineKeyboardMarkup(row_width=1).add(
+        InlineKeyboardButton(
+            text='✅ Подтвердить',
+            callback_data='delete_account_confirm'
+        ),
+        InlineKeyboardButton(
+            text='❌ Отмена',
+            callback_data='cancel_action'
+        )
+    )
+
+    await call.message.answer(
+        '<i>😨 Вы точно хотите удалить ваш аккаунт вместе со всеми его '
+        'деньгами, ресурсами, достижениями? Это действие невозможно '
+        'отменить</i>',
+        reply_markup=markup
+    )
+
+
+async def delete_account_confirm(call: CallbackQuery):
+    """
+    Callback for account removal
+
+    :param call - callback:
+    """
+    user_id = call.from_user.id
+
+    embedded_link = await get_embedded_link(user_id)
+    cur.execute(
+        f"DELETE FROM userdata WHERE user_id={user_id}"
+    ).commit()
+
+    markup = InlineKeyboardMarkup(row_width=1).add(
+        InlineKeyboardButton(
+            text='😪 Хорошо',
+            callback_data='cancel_action'
+        ),
+        InlineKeyboardButton(
+            text='➕ Создать новый',
+            callback_data='sign_up'
+        )
+    )
+    await call.message.answer(
+        '<i>😥 Вот и всё... Ваш аккаунт удалён. Вернуть его невозможно</i>',
+        reply_markup=markup
+    )
+
+    await tglog(
+            message=(
+                f"😪 <b>{embedded_link}</b> удалил свой аккаунт"
+            ),
+            tag='#delete_account'
+    )
+
+
+async def log_out(call: CallbackQuery):
+    """
+    Callback for logging out
+
+    :param call - callback:
+    """
+    user_id = call.from_user.id
+
+    embedded_link = await get_embedded_link(user_id)
+    id = cur.select("id", "userdata").where(user_id=user_id).one()
+    cur.update("userdata").set(user_id=0).where(id=id).commit()
+
+    markup = InlineKeyboardMarkup(row_width=1).add(
+        InlineKeyboardButton(
+            text='😪 Хорошо',
+            callback_data='cancel_action'
+        )
+    )
+    await call.message.answer(
+        '<i>🥱 Вы вышли из аккаунта. Надеемся, что вы вспомните свой ключ'
+        ' доступа, если вдруг вам захочется вернуть свой аккаунт</i>',
+        reply_markup=markup
+    )
+
+    await tglog(
+            message=(
+                f"➡ <b>{embedded_link}</b> вышел из аккаунта"
+            ),
+            tag='#log_out'
     )

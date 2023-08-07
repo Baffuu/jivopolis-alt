@@ -37,7 +37,10 @@ from .user_profile import (
     put_mask_off,
     put_mask_on,
     my_reflink,
-    privacy_settings
+    privacy_settings,
+    delete_account,
+    delete_account_confirm,
+    log_out
 )
 
 from .traveling import (
@@ -203,6 +206,9 @@ __all__ = [
     "put_mask_on",
     "my_reflink",
     "privacy_settings",
+    "delete_account",
+    "delete_account_confirm",
+    "log_out",
     "buycall",
     "city",
     "car_menu",
