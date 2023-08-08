@@ -24,6 +24,7 @@ from aiogram.types import (
 from aiogram.dispatcher.filters import Text
 from .callbacks.traveling import find_address
 from .callbacks.clans import confirm_clan_profile_setting, confirm_clan_photo
+from .callbacks.user_profile import confirm_photo, confirm_profile_setting
 
 
 def contains(text: str | Iterable, content: str) -> bool:
@@ -245,6 +246,12 @@ async def processes_text(message: Message):
             await confirm_clan_profile_setting(message, 'link')
         case 'set_clan_photo':
             await confirm_clan_photo(message)
+        case 'set_nick':
+            await confirm_profile_setting(message, 'nickname')
+        case 'set_bio':
+            await confirm_profile_setting(message, 'description')
+        case 'set_photo':
+            await confirm_photo(message)
         case _:
             return
     cur.update("userdata").set(process='').where(

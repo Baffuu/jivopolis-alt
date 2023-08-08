@@ -4,6 +4,7 @@ from ..database import cur
 from ..database.functions import check, get_process
 
 from .callbacks.clans import confirm_clan_photo
+from .callbacks.user_profile import confirm_photo
 
 from ..misc import OfficialChats
 
@@ -45,14 +46,10 @@ async def get_photo_messages(message: Message):
 
     process = await get_process(user_id)
 
-    if process == "setphoto":
-        cur.update("userdata").set(photo=message.photo[0].file_id).where(
-            user_id=user_id).commit()
-        photo = cur.select("photo", "userdata").where(user_id=user_id).one()
-        await bot.send_photo(message.chat.id,
-                             photo, caption="<i>Ваше фото</i>")
+    if process == "set_photo":
+        await confirm_photo(message)
         cur.update("userdata").set(process="").where(
-                user_id=user_id).commit()
+            user_id=user_id).commit()
 
     elif process == "set_clan_photo":
         await confirm_clan_photo(message)

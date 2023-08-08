@@ -8,7 +8,7 @@ from aiogram.utils.deep_linking import get_start_link
 from aiogram.types import (
     InlineKeyboardButton,
     InlineKeyboardMarkup,
-    CallbackQuery
+    CallbackQuery, Message
 )
 
 
@@ -256,3 +256,237 @@ async def toggle_profile_type(call: CallbackQuery):
         f'<i>🥳 Тип вашего профиля изменён на <b>{new_type_ru}</b></i>',
         reply_markup=markup
     )
+
+
+async def profile_settings(call: CallbackQuery):
+    """
+    Callback for user profile settings
+
+    :param call - callback:
+    """
+    markup = InlineKeyboardMarkup(row_width=1).add(
+        InlineKeyboardButton(
+            text='✏ Изменить ник',
+            callback_data='set_nick'
+        ),
+        InlineKeyboardButton(
+            text='📝 Изменить описание',
+            callback_data='set_bio'
+        ),
+        InlineKeyboardButton(
+            text='🖼 Изменить фото профиля',
+            callback_data='set_photo'
+        ),
+        InlineKeyboardButton(
+            text='◀ Назад',
+            callback_data='cancel_action'
+        )
+    )
+
+    await call.message.answer(
+        '<i>✏ Настройки профиля</i>',
+        reply_markup=markup
+    )
+
+
+async def set_nick(call: CallbackQuery) -> None:
+    '''
+    Callback for nickname setting
+
+    :param call - callback*
+    '''
+    cur.update("userdata").set(process="set_nick").where(
+        user_id=call.from_user.id).commit()
+
+    await call.message.answer(
+        "<i>✏ Введите новый ник</i>",
+        reply_markup=InlineKeyboardMarkup(row_width=1).add(
+            InlineKeyboardButton(
+                text="🔄 По умолчанию",
+                callback_data="delete_nick"
+            ),
+            InlineKeyboardButton(
+                text="🚫 Отмена",
+                callback_data="cancel_process"
+            )
+        )
+    )
+
+
+async def delete_nick(call: CallbackQuery) -> None:
+    '''
+    Callback for nickname resetting
+
+    :param call - callback:
+    '''
+    cur.update("userdata").set(process="").where(
+        user_id=call.from_user.id).commit()
+    cur.update("userdata").set(nickname=call.from_user.first_name).where(
+        user_id=call.from_user.id).commit()
+
+    await call.message.answer(
+        "<i>👌 Ник успешно изменён</i>",
+        reply_markup=InlineKeyboardMarkup().add(
+            InlineKeyboardButton(
+                text="✅ Готово",
+                callback_data="cancel_action"
+            )
+        )
+    )
+
+
+async def set_bio(call: CallbackQuery) -> None:
+    '''
+    Callback for nickname setting
+
+    :param call - callback:
+    '''
+    cur.update("userdata").set(process="set_bio").where(
+        user_id=call.from_user.id).commit()
+
+    await call.message.answer(
+        "<i>📝 Введите новое описание</i>",
+        reply_markup=InlineKeyboardMarkup(row_width=1).add(
+            InlineKeyboardButton(
+                text="🗑 Удалить описание",
+                callback_data="delete_bio"
+            ),
+            InlineKeyboardButton(
+                text="🚫 Отмена",
+                callback_data="cancel_process"
+            )
+        )
+    )
+
+
+async def delete_bio(call: CallbackQuery) -> None:
+    '''
+    Callback for bio deletting
+
+    :param call - callback:
+    '''
+    cur.update("userdata").set(process="").where(
+        user_id=call.from_user.id).commit()
+    cur.update("userdata").set(description="").where(
+        user_id=call.from_user.id).commit()
+
+    await call.message.answer(
+        "<i>👌 Описание успешно удалено</i>",
+        reply_markup=InlineKeyboardMarkup().add(
+            InlineKeyboardButton(
+                text="✅ Готово",
+                callback_data="cancel_action"
+            )
+        )
+    )
+
+
+async def set_photo(call: CallbackQuery) -> None:
+    '''
+    Callback for profile picture setting
+
+    :param call - callback:
+    '''
+    cur.update("userdata").set(process="set_photo").where(
+        user_id=call.from_user.id).commit()
+
+    await call.message.answer(
+        "<i>📝 Отправьте новое фото профиля (в сжатом виде) или "
+        "ссылку на фото</i>",
+        reply_markup=InlineKeyboardMarkup(row_width=1).add(
+            InlineKeyboardButton(
+                text="🗑 Удалить фото профиля",
+                callback_data="delete_photo"
+            ),
+            InlineKeyboardButton(
+                text="🚫 Отмена",
+                callback_data="cancel_process"
+            )
+        )
+    )
+
+
+async def delete_photo(call: CallbackQuery) -> None:
+    '''
+    Callback for profile picture deletting
+
+    :param call - callback:
+    '''
+    cur.update("userdata").set(process="").where(
+        user_id=call.from_user.id).commit()
+    cur.update("userdata").set(photo_id="").where(
+        user_id=call.from_user.id).commit()
+
+    await call.message.answer(
+        "<i>👌 Фото профиля успешно удалено</i>",
+        reply_markup=InlineKeyboardMarkup().add(
+            InlineKeyboardButton(
+                text="✅ Готово",
+                callback_data="cancel_action"
+            )
+        )
+    )
+
+
+async def confirm_profile_setting(message: Message, setting: str) -> None:
+    '''
+    Callback for changing a profile setting
+
+    :param message - message:
+    :param setting - the setting to be changed:
+    '''
+    cur.update("userdata").set(**{setting: message.text}).where(
+        user_id=message.from_user.id).commit()
+
+    await message.answer(
+        "<i>🥳 Данные профиля успешно изменены</i>",
+        reply_markup=InlineKeyboardMarkup().add(
+            InlineKeyboardButton(
+                text="✅ Готово",
+                callback_data="cancel_action"
+            )
+        )
+    )
+
+
+async def confirm_photo(message: Message) -> None:
+    '''
+    Callback for changing profile picture
+
+    :param message - message:
+    '''
+    failure_markup = InlineKeyboardMarkup().add(
+        InlineKeyboardButton(
+            text='😪 Хорошо',
+            callback_data='cancel_action'
+        )
+    )
+
+    if len(message.photo) == 0:
+        new_photo = message.text
+    else:
+        new_photo = message.photo[0].file_id
+
+    try:
+        await message.answer_photo(
+            new_photo,
+            "<i>🥳 Фото успешно изменено</i>",
+            reply_markup=InlineKeyboardMarkup().add(
+                InlineKeyboardButton(
+                    text="✅ Готово",
+                    callback_data="cancel_action"
+                )
+            )
+        )
+        cur.update("userdata").set(photo_id=new_photo).where(
+            user_id=message.from_user.id).commit()
+    except Exception:
+        await message.answer(
+            '😨 <i>Видимо, вы отправили не фото и не ссылку на фото</i>',
+            reply_markup=failure_markup.add(
+                InlineKeyboardButton(
+                    text='🔄 Заново',
+                    callback_data='set_photo'
+                )
+            )
+        )

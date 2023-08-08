@@ -41,7 +41,16 @@ from .user_profile import (
     delete_account,
     delete_account_confirm,
     log_out,
-    toggle_profile_type
+    toggle_profile_type,
+    profile_settings,
+    confirm_profile_setting,
+    set_nick,
+    set_bio,
+    set_photo,
+    delete_nick,
+    delete_bio,
+    delete_photo,
+    confirm_photo
 )
 
 from .traveling import (
@@ -211,6 +220,15 @@ __all__ = [
     "delete_account_confirm",
     "log_out",
     "toggle_profile_type",
+    "profile_settings",
+    "confirm_profile_setting",
+    "set_nick",
+    "set_bio",
+    "set_photo",
+    "delete_nick",
+    "delete_bio",
+    "delete_photo",
+    "confirm_photo",
     "buycall",
     "city",
     "car_menu",

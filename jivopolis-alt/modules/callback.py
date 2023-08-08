@@ -605,6 +605,20 @@ async def callback_handler(call: CallbackQuery):
                 await delete_account_confirm(call)
             case 'toggle_profile_type':
                 await toggle_profile_type(call)
+            case 'profile_settings':
+                await profile_settings(call)
+            case 'set_nick':
+                await set_nick(call)
+            case 'set_bio':
+                await set_bio(call)
+            case 'set_photo':
+                await set_photo(call)
+            case 'delete_nick':
+                await delete_nick(call)
+            case 'delete_bio':
+                await delete_bio(call)
+            case 'delete_photo':
+                await delete_photo(call)
 
             case "work":
                 await call.answer("🏗 Ведутся строительные работы. Ожидайте открытия вашей работы в ближайших обновлениях", True)

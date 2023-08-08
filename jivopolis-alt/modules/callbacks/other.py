@@ -349,6 +349,10 @@ async def user_settings(call: CallbackQuery):
         InlineKeyboardButton(
             text='🔐 Конфиденциальность',
             callback_data='privacy_settings'
+        ),
+        InlineKeyboardButton(
+            text='◀ Назад',
+            callback_data='cancel_action'
         )
     )
     await call.message.answer('<i><b>Настройки</b></i>', reply_markup=markup)

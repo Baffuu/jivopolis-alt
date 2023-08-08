@@ -667,7 +667,7 @@ async def set_clan_name(call: CallbackQuery) -> None:
     '''
     Callback for clan name setting
 
-    :param call - callback*
+    :param call - callback:
     '''
     chat_id = call.message.chat.id
     count = cur.select("count(*)", "clandata").where(clan_id=chat_id).one()
@@ -978,7 +978,8 @@ async def set_clan_photo(call: CallbackQuery) -> None:
         user_id=call.from_user.id).commit()
 
     await call.message.answer(
-        "<i>📝 Отправьте новое фото клана или ссылку на фото</i>",
+        "<i>📝 Отправьте новое фото клана (в сжатом виде) "
+        "или ссылку на фото</i>",
         reply_markup=InlineKeyboardMarkup(row_width=1).add(
             InlineKeyboardButton(
                 text="🗑 Удалить аватарку клана",
