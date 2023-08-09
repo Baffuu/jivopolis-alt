@@ -525,12 +525,12 @@ class profile_():
             markup = self._add_setting_buttons(markup)
 
         PROFILE_TEXT = (
-            f"{await get_embedded_link(user_id)} {f'[{rank}]' or ''}"
-            f"\n🌟{level} 💖 {health} 💡{xp}  💸 {balance}"
-            f"\n{random.choice(constants.TIME_EMOJIS)} Был(-а) {lastseen}"
-            f"\n🎞 Aккаунт создан: {register_date} {inviter}"
+            f"<i><b>{await get_embedded_link(user_id)}</b> {f'[{rank}]' or ''}"
+            f"\n🌟<b>{level} 💖 {health} 💡{xp}  💸 {balance}</b>"
+            f"\n{random.choice(constants.TIME_EMOJIS)} Был(-а) <b>{lastseen}</b>"
+            f"\n🎞 Aккаунт создан: <b>{register_date} {inviter}</b>"
             f"\n\n<i>{description}</i>"
-            f"\n\n🛡 Клан: <b>{(HtmlDecoration().link(str(clan_name), str(clan_link)) if clan_type == 'public' else clan_name) if clan_id is not None else 'отсутствует'}</b>"
+            f"\n\n🛡 Клан: <b>{(HtmlDecoration().link(str(clan_name), str(clan_link)) if clan_type == 'public' else clan_name) if clan_id is not None else 'отсутствует'}</b></i>"
         )
         if photo:
             return await message.reply_photo(photo, PROFILE_TEXT)
