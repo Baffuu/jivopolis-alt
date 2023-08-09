@@ -118,7 +118,7 @@ class StartCommand():
             if await group_support.IsInMarket().check(message):
                 await group_support.on_start_pressed(message)
             elif message.chat.type == ChatType.PRIVATE:
-                await self._private_start(user_id)
+                await self._private_start(user_id, message=message)
             elif message.chat.id == OfficialChats.CASINOCHAT:
                 await self._casino_start(message)
             elif message.chat.type in [ChatType.SUPERGROUP, ChatType.GROUP]:
@@ -134,9 +134,15 @@ class StartCommand():
     async def _private_start(
         self,
         user_id: str | int,
-        give_text: bool = False
+        give_text: bool = False,
+        message: Message | None = None
     ) -> str | None:
         nick = cur.select("nickname", "userdata").where(user_id=user_id).one()
+        if message:
+            id = message.get_args()
+            count = cur.select("count(*)", "userdata").where(user_id=id).one()
+            if int(count) == 1:
+                return await profile(id, message)
 
         leaderboard = cur.execute("""
             SELECT user_id FROM userdata
