@@ -141,7 +141,7 @@ class StartCommand():
         if message:
             id = message.get_args()
             count = cur.select("count(*)", "userdata").where(user_id=id).one()
-            if int(count) == 1:
+            if int(count) >= 1:
                 return await profile(id, message)
 
         leaderboard = cur.execute("""
