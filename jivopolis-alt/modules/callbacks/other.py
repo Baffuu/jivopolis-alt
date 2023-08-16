@@ -304,16 +304,16 @@ async def economics(call: CallbackQuery) -> None:
 
 async def toggle_nonick(call: CallbackQuery) -> None:
     if await is_allowed_nonick(call.from_user.id):
-        turn = 0
-        change = "выключен"
+        new_mode = 0
+        new_mode_ru = "выключен"
     else:
-        turn = 1
-        change = "включён"
+        new_mode = 1
+        new_mode_ru = "включён"
 
-    cur.update("userdata").set(nonick_cmds=turn).where(
+    cur.update("userdata").set(nonick_cmds=new_mode).where(
         user_id=call.from_user.id).commit()
 
-    await call.answer(f"👁 Nonick теперь {change}", show_alert=True)
+    await call.answer(f"👁 Nonick теперь {new_mode_ru}", show_alert=True)
     with contextlib.suppress(MessageCantBeDeleted, MessageToDeleteNotFound):
         await call.message.delete()
     await user_settings(call)

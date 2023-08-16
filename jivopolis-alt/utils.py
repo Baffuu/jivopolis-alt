@@ -72,9 +72,7 @@ async def check_user(user_id: int | str, is_admin: bool = False) -> bool:
 async def is_allowed_nonick(user_id: int) -> bool:
     return (
         bool(
-            cur.execute(
-                f"SELECT nonick_cmds FROM userdata WHERE user_id={user_id}"
-            ).fetchone()[0]
+            cur.select("nonick_cmds", "userdata").where(user_id=user_id).one()
         )
         if await check_user(user_id)
         else False

@@ -37,8 +37,12 @@ def contains(text: str | Iterable, content: str) -> bool:
     return True in items
 
 
+nonick_commands = ['передать', 'пожертвовать', 'вывести', 'баланс', 'ящик']
+
+
 @dp.message_handler(
-    Text(startswith="живополис", ignore_case=True),
+    lambda msg: (msg.text.lower().startswith("живополис")) or
+    (any(cmd in msg.text.lower() for cmd in nonick_commands)),
     RequireBetaFilter()
 )
 async def chatbot_functions(message: Message):
@@ -46,11 +50,17 @@ async def chatbot_functions(message: Message):
         return
     if not await RequireBetaFilter().check(message, False):
         return
-    text = message.text[9:].lower()
+    text = message.text.lower()
+    allowed_nonick = await is_allowed_nonick(message.from_user.id)
+    if not allowed_nonick and not text.startswith("живополис"):
+        return
+    if text.startswith("живополис"):
+        text = text[9:].lower()
     if text.startswith(', '):
         text = text[1:]
     if text.startswith(" "):
         text = text[1:]
+    print(text)
     match (text):
         case t if 'привет' in t:
             return await message.reply(f'<i>{random.choice(hellos)}</i>')
