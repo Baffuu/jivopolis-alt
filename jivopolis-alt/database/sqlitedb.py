@@ -102,6 +102,7 @@ def create_userdata(cur: fyCursor) -> None:
     fox             INTEGER         DEFAULT 0               NOT NULL,
     gun             INTEGER         DEFAULT 0               NOT NULL,
     wolf            INTEGER         DEFAULT 0               NOT NULL,
+    parrot          INTEGER         DEFAULT 0               NOT NULL,
     vest            INTEGER         DEFAULT 0               NOT NULL,
     japanese_goblin INTEGER         DEFAULT 0               NOT NULL,
     ninja           INTEGER         DEFAULT 0               NOT NULL,
