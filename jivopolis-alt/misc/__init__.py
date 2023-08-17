@@ -6,6 +6,7 @@ from .misc import (
 )
 
 from ..items import Item, ITEMS
+from ..achievements import Achievement, ACHIEVEMENTS
 
 from ..resources import Resource, RESOURCES
 
@@ -26,5 +27,6 @@ __all__ = [
     "get_time_units", "get_embedded_link", "tglog",
     "Item", "ITEMS", "lootbox_open", "LOOTBOX",
     "OfficialChats", "MINIMUM_HEALTH", "clanitems", "Resource",
-    "RESOURCES", "get_embedded_clan_link"
+    "RESOURCES", "get_embedded_clan_link", "Achievement",
+    "ACHIEVEMENTS"
 ]

@@ -12,10 +12,10 @@ from typing import Union, Optional
 
 from . import cur, conn
 from .. import bot, logger, get_embedded_link, get_link, get_mask, tglog, utils
-from ..misc import current_time, ITEMS, constants
+from ..misc import current_time, ITEMS, constants, ACHIEVEMENTS
 from ..misc.config import (
     limited_items, leveldesc,
-    levelrange, ach, ADMINS,
+    levelrange, ADMINS,
     clanitems
 )
 
@@ -384,7 +384,7 @@ async def prison_sentence(message: Message, term: int, reason: str, caption: str
     )
 
 
-async def achieve(user_id: int | str, chat_id : int | str, achievement: str) -> None: #todo new ACHIEVEMENTS
+async def achieve(user_id: int | str, chat_id : int | str, achievement: str) -> None:  # todo new ACHIEVEMENTS
     """
     achieve a user 
     
@@ -392,35 +392,45 @@ async def achieve(user_id: int | str, chat_id : int | str, achievement: str) -> 
     :param chat_id (int) - Telegram Chat ID of chat in which messages will be sent 
     :param achievement (str) - Index of achievement 
     """
-    achieve = cur.execute(f"SELECT {achievement} FROM userdata WHERE user_id={user_id}").fetchone()
+    achieve = cur.select(achievement, "userdata").where(user_id=user_id).one()
     
     if achieve != 0:
         return
 
-    index = ach[0].index(achievement)
-    name = ach[1][index]
-    desc = ach[2][index]
-    money = ach[3][index]
-    points = ach[4][index]
+    achievement_data = ACHIEVEMENTS[achievement]
+    name = achievement_data.ru_name
+    desc = achievement_data.description
+    money = achievement_data.money_reward
+    points = achievement_data.xp_reward
+    progress = achievement_data.progress
+    min_progress = achievement_data.completion_progress
+    link = await get_embedded_link(user_id)
 
-    cur.execute(f"UPDATE userdata SET {achievement} = 1 WHERE user_id = {user_id}")
-    conn.commit()
+    if progress:
+        cur.update("userdata").add(**{progress: 1}).where(user_id=user_id).commit()
+        current_progress = cur.select(progress, "userdata").where(user_id=user_id).one()
+        if current_progress < min_progress:
+            return
+    
+    cur.update("userdata").set(**{achievement: 1}).where(user_id=user_id).commit()
 
-    rasa = cur.execute(f"SELECT rasa FROM userdata WHERE user_id = {user_id}").fetchone()
-    nick = cur.execute(f"SELECT nick FROM userdata WHERE user_id = {user_id}").fetchone()
-
-    cur.execute(f"UPDATE userdata SET balance = balance + {money} WHERE user_id = {user_id}")
-    conn.commit()
-    cur.execute(f"UPDATE userdata SET points = points+{points} WHERE user_id = {user_id}")
-    conn.commit()
-
-    chat_type = await bot.get_chat(chat_id)
-    chat_type = chat_type.type
+    if money:
+        cur.update("userdata").add(balance=money).where(user_id=user_id).commit()
+    if points:
+        cur.update("userdata").add(xp=points).where(user_id=user_id).commit()
 
     if chat_type == "private":
-        await bot.send_message(chat_id, f"<i>У вас новое достижение: <b>{name}</b>\n{desc}. \nВаша награда: <b>${money}</b> и &#128161; <b>{points}</b> очков</i>")
+        await bot.send_message(chat_id, f"<i>У вас новое достижение: <b>{name}</b>\n{desc}. \nВаша награда: <b>${money}</b> и 💡 <b>{points}</b> очков</i>")
     else:
-        await bot.send_message(chat_id, f"<i><b><a href=\"tg://user?id={user_id}\">{rasa}{nick}</a></b>, у вас новое достижение: <b>{name}</b>\n{desc}. \nВаша награда: <b>${money}</b> и &#128161; <b>{points}</b> очков</i>")
+        await bot.send_message(chat_id, f"<i><b>{link}</b>, у вас новое достижение: <b>{name}</b>\n{desc}. \nВаша награда: <b>${money}</b> и 💡 <b>{points}</b> очков</i>")
+    
+    special_reward = achievement_data.special_reward
+    if special_reward:
+        item = ITEMS[special_reward]
+        item_name = item.ru_name
+        emoji = item.emoji
+        cur.update("userdata").add(**{special_reward: 1}).where(user_id=user_id).commit()
+        await bot.send_message(chat_id, f"<i>За выполнение достижения вы получаете <b>{emoji}{item_name}</b></i>")
 
 
 async def cure(user_id: str, target_id: str, chat_id: str) -> None | Message: # function is useless now...
