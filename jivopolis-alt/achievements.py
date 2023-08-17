@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+
 @dataclass
 class Achievement():
     name: str
@@ -11,11 +12,13 @@ class Achievement():
     money_reward: int = 0
     xp_reward: int = 0
 
-    # A special reward. Pass database column of the item or None if no special reward is given.
+    # Special reward. Pass database column of the item.
+    # Pass None for no special reward.
     special_reward: str | None = None
 
-    # Database column for achievement progress and minimum progress for an achievement.
+    # Database column for achievement progress.
     progress: str | None = None
+    # Minimum progress for an achievement.
     completion_progress: int = 0
 
 
