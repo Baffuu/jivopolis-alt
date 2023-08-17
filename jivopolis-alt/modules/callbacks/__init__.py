@@ -50,7 +50,9 @@ from .user_profile import (
     delete_nick,
     delete_bio,
     delete_photo,
-    confirm_photo
+    confirm_photo,
+    achievements,
+    achievement_category
 )
 
 from .traveling import (
@@ -229,7 +231,9 @@ __all__ = [
     "delete_bio",
     "delete_photo",
     "confirm_photo",
+    "achievements",
     "buycall",
+    "achievement_category",
     "city",
     "car_menu",
     "goto_on_car",

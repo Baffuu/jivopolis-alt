@@ -619,6 +619,11 @@ async def callback_handler(call: CallbackQuery):
                 await delete_bio(call)
             case 'delete_photo':
                 await delete_photo(call)
+            
+            case 'achievements':
+                await achievements(call)
+            case achcat if achcat.startswith('ach_cat_'):
+                await achievement_category(call, achcat.replace('ach_cat_', ''))
 
             case "work":
                 await call.answer("🏗 Ведутся строительные работы. Ожидайте открытия вашей работы в ближайших обновлениях", True)

@@ -543,7 +543,7 @@ class profile_():
             f"\n\n🛡 Клан: <b>{(HtmlDecoration().link(str(clan_name), str(clan_link)) if clan_type == 'public' else clan_name) if clan_id is not None else 'отсутствует'}</b></i>"
         )
         if photo:
-            return await message.reply_photo(photo, PROFILE_TEXT)
+            return await message.reply_photo(photo, PROFILE_TEXT, reply_markup=markup)
         await message.reply(PROFILE_TEXT, reply_markup=markup)
 
 
