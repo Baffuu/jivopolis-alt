@@ -186,7 +186,8 @@ def create_userdata(cur: fyCursor) -> None:
     gem             INTEGER         DEFAULT 0               NOT NULL,
     topaz           INTEGER         DEFAULT 0               NOT NULL,
 
-    cab_achieve     INTEGER         DEFAULT 0               NOT NULL
+    cab_achieve     INTEGER         DEFAULT 0               NOT NULL,
+    shuttle_achieve INTEGER         DEFAULT 0               NOT NULL
 )
 """)
 

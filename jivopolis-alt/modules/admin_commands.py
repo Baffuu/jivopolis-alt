@@ -94,7 +94,7 @@ class sqlrun():
             "drop",
             "insert",
             "replace"
-        ]  # команды, которые требуют одобрения мегаадминистрации
+        ]  # commands requiring mega admin approval
 
         approve_request = False
         request = None
@@ -138,6 +138,44 @@ class sqlrun():
                     f">>> {values}"
                 )
             )
+
+
+async def batch_cmd(message: Message):
+    '''
+    .batch command adds certain columns to userdata (or specified table)
+    '''
+    user_id = message.from_user.id
+    rank = cur.select("rank", "userdata").where(user_id=user_id).one()
+    if rank < 3:
+        return
+    command = message.text.split('\n')[0]
+    if command.startswith(".batch:"):
+        table = command.replace(".batch:", "")
+    else:
+        table = "userdata"
+    columns = message.text.lower().split('\n')[1:]
+    text = f"<i>Adding columns to <b>{table}...</b>"
+    for column in columns:
+        try:
+            cur.execute(
+                f"ALTER TABLE {table} ADD {column} INTEGER DEFAULT 0 NOT NULL"
+            ).commit()
+            result = f"😃 Successfully added column <b>{column}</b>."
+        except Exception as e:
+            if "duplicate column name" in str(e):
+                result = f"🤨 Column <b>{column}</b> already exists."
+            else:
+                result = f"😪 Couldn't add <b>{column}</b>: <code>{e}</code>."
+        text += f"\n\n{result}"
+    text += "\n\n💨 Adding columns completed</i>"
+    await message.answer(
+        text, reply_markup=InlineKeyboardMarkup().add(
+            InlineKeyboardButton(
+                text="🤔 Хорошо",
+                callback_data="cancel_action"
+            )
+        )
+    )
 
 
 async def globan_cmd(message: Message):

@@ -25,6 +25,7 @@ from aiogram.dispatcher.filters import Text
 from .callbacks.traveling import find_address
 from .callbacks.clans import confirm_clan_profile_setting, confirm_clan_photo
 from .callbacks.user_profile import confirm_photo, confirm_profile_setting
+from .admin_commands import batch_cmd
 
 
 def contains(text: str | Iterable, content: str) -> bool:
@@ -176,6 +177,11 @@ async def command_handler(message: Message):
         await unpin_message(message)
     elif message.text.startswith('!moderate'):
         await moderate(message)
+
+
+@dp.message_handler(Text(startswith=".batch"))
+async def batch_handler(message: Message):
+    await batch_cmd(message)
 
 
 @dp.message_handler(
