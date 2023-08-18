@@ -167,11 +167,12 @@ async def batch_cmd(message: Message):
             else:
                 result = f"😪 Couldn't add <b>{column}</b>: <code>{e}</code>."
         text += f"\n\n{result}"
-    text += "\n\n💨 Adding columns completed</i>"
+    text += "\n\n💨 Adding columns completed. Don't forget to add those " +\
+            "columns to the table creation query if you haven't yet!</i>"
     await message.answer(
         text, reply_markup=InlineKeyboardMarkup().add(
             InlineKeyboardButton(
-                text="🤔 Хорошо",
+                text="🤔 Okay",
                 callback_data="cancel_action"
             )
         )
