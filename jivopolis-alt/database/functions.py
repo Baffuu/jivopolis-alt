@@ -411,7 +411,7 @@ async def achieve(user_id: int | str, chat_id : int | str, achievement: str) -> 
         current_progress = cur.select(progress, "userdata").where(user_id=user_id).one()
         if current_progress < min_progress:
             return
-    
+
     cur.update("userdata").set(**{achievement: 1}).where(user_id=user_id).commit()
 
     if money:
@@ -419,7 +419,8 @@ async def achieve(user_id: int | str, chat_id : int | str, achievement: str) -> 
     if points:
         cur.update("userdata").add(xp=points).where(user_id=user_id).commit()
 
-    if chat_type == "private":
+    chat = await bot.get_chat(chat_id)
+    if chat.type == "private":
         await bot.send_message(chat_id, f"<i>У вас новое достижение: <b>{name}</b>\n{desc}. \nВаша награда: <b>${money}</b> и 💡 <b>{points}</b> очков</i>")
     else:
         await bot.send_message(chat_id, f"<i><b>{link}</b>, у вас новое достижение: <b>{name}</b>\n{desc}. \nВаша награда: <b>${money}</b> и 💡 <b>{points}</b> очков</i>")

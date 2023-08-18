@@ -23,6 +23,14 @@ class Achievement():
 
 
 ACHIEVEMENTS = {
-
+    'cab_achieve': Achievement(
+        name='cab_achieve',
+        ru_name='🚖 Дорого-богато',
+        description='Прокатитесь на такси от самой первой'
+                    ' местности до последней в списке',
+        category='Путешествия',
+        money_reward=150,
+        xp_reward=15
+    )
 }
 '''Store all achievements available in Jivopolis'''

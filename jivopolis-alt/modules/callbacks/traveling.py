@@ -10,7 +10,7 @@ from ...misc.misc import remaining, isinterval
 from ...misc.constants import (MINIMUM_CAR_LEVEL, MAXIMUM_DRIVE_MENU_SLOTS,
                                MAP, REGIONAL_MAP, MINIMUM_TAXI_LEVEL)
 from ...database import cur
-from ...database.functions import buy, buybutton, itemdata
+from ...database.functions import buy, buybutton, itemdata, achieve
 
 from ...misc.config import (
     METRO, WALK, CITY,
@@ -887,6 +887,8 @@ async def taxi_goto_(call: CallbackQuery, place: str) -> None:
         user_id=user_id).commit()
     cur.update("userdata").add(balance=-cost).where(
         user_id=user_id).commit()
+    if cost == cabcost*(len(CITY)-1):
+        await achieve(user_id, call.message.chat.id, "cab_achieve")
 
     await city(call.message, call.from_user.id)
 

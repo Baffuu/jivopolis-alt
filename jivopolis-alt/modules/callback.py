@@ -622,8 +622,8 @@ async def callback_handler(call: CallbackQuery):
             
             case 'achievements':
                 await achievements(call)
-            case achcat if achcat.startswith('ach_cat_'):
-                await achievement_category(call, achcat.replace('ach_cat_', ''))
+            case achcat if achcat.startswith('ach_category_'):
+                await achievement_category(call, achcat.replace('ach_category_', ''))
 
             case "work":
                 await call.answer("🏗 Ведутся строительные работы. Ожидайте открытия вашей работы в ближайших обновлениях", True)

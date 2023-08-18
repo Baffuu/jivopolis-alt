@@ -500,9 +500,10 @@ async def achievements(call: CallbackQuery) -> None:
     '''
     markup = InlineKeyboardMarkup(row_width=1)
     categories = []
-    for achievement in ACHIEVEMENTS:
+    for key in ACHIEVEMENTS:
+        achievement = ACHIEVEMENTS[key]
         if achievement.category not in categories:
-            categories.add(
+            categories.append(
                 InlineKeyboardButton(
                     text=achievement.category,
                     callback_data=f"ach_category_{achievement.category}"
@@ -532,16 +533,17 @@ async def achievement_category(call: CallbackQuery, category: str) -> None:
     '''
     user_id = call.from_user.id
     achievements = [achievement for achievement in ACHIEVEMENTS
-                    if achievement.category == category]
+                    if ACHIEVEMENTS[achievement].category == category]
     achievement_str = ''
-    for ach in achievements:
+    for key in achievements:
+        ach = ACHIEVEMENTS[key]
         has_ach = cur.select(ach.name, "userdata").where(user_id=user_id).one()
         name = f"✔ {ach.ru_name}" if has_ach else ach.ru_name
         achievement_str += (
-            f'\n\n<b>{name}</b>\n{ach.description}\n\n<b>Награда:'
+            f'\n\n\n<b>{name}</b>\n{ach.description}.\n\n<b>Награда:'
         )
         if ach.money_reward:
-            achievement_str += f'\n\t${ach.money_reward}'
+            achievement_str += f'\n\t💵 ${ach.money_reward}'
         if ach.xp_reward:
             achievement_str += f'\n\t💡 {ach.xp_reward} очков'
         if ach.special_reward:
@@ -553,9 +555,15 @@ async def achievement_category(call: CallbackQuery, category: str) -> None:
                 where(user_id=user_id).one()
             achievement_str += f'\n\nПрогресс: {progress}/{ach.min_progress}'
 
-        achievement_str += "\b\n\n\n"
+        achievement_str += "</b>"
 
     await call.message.answer(
         f"💡 <i>Достижения из категории <b>{category}</b>:\n\nВыполненные"
-        f" достижения отмечаются символом ✔\n\n{achievement_str}</i>"
+        f" достижения отмечаются символом ✔{achievement_str}</i>",
+        reply_markup=InlineKeyboardMarkup().add(
+            InlineKeyboardButton(
+                text='◀ Назад',
+                callback_data='cancel_action'
+            )
+        )
     )

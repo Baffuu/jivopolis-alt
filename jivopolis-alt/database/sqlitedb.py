@@ -184,7 +184,9 @@ def create_userdata(cur: fyCursor) -> None:
     iron            INTEGER         DEFAULT 0               NOT NULL,
     gold            INTEGER         DEFAULT 0               NOT NULL,
     gem             INTEGER         DEFAULT 0               NOT NULL,
-    topaz           INTEGER         DEFAULT 0               NOT NULL
+    topaz           INTEGER         DEFAULT 0               NOT NULL,
+
+    cab_achieve     INTEGER         DEFAULT 0               NOT NULL
 )
 """)
 
