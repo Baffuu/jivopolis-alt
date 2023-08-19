@@ -2,7 +2,7 @@ from ... import bot
 from ...misc import ITEMS, ACHIEVEMENTS
 import sqlite3
 from ...database import cur
-from ...database.functions import tglog, get_embedded_link
+from ...database.functions import tglog, get_embedded_link, achieve
 
 from aiogram.utils.deep_linking import get_start_link
 from aiogram.types import (
@@ -50,7 +50,7 @@ async def put_mask_off(
         except sqlite3.OperationalError:
             await call.message.answer("‼️ Your mask does not exist")
         if not anon:
-            return await call.answer("🦹🏼 Ваша маска снята.", show_alert=True)
+            return await call.answer("🦹🏼 Ваша маска снята", show_alert=True)
 
 
 async def put_mask_on(call: CallbackQuery, item: str) -> None:
@@ -66,11 +66,12 @@ async def put_mask_on(call: CallbackQuery, item: str) -> None:
         cur.update("userdata").set(mask=ITEMS[item].emoji).where(
             user_id=user_id).commit()
 
+        await achieve(user_id, call.message.chat.id, "mask_achieve")
+
         return await call.answer(
             f"Отличный выбор! Ваша маска: {ITEMS[item].emoji}",
             show_alert=True
         )
-        # await achieve(a, message.chat.id, "msqrd")
     else:
         await call.answer(
             "🚫 У вас нет этого предмета",
@@ -503,14 +504,14 @@ async def achievements(call: CallbackQuery) -> None:
     for key in ACHIEVEMENTS:
         achievement = ACHIEVEMENTS[key]
         if achievement.category not in categories:
-            categories.append(
-                InlineKeyboardButton(
-                    text=achievement.category,
-                    callback_data=f"ach_category_{achievement.category}"
-                )
-            )
+            categories.append(achievement.category)
 
-    markup.add(*categories)
+    markup.add(*[
+                InlineKeyboardButton(
+                    text=category,
+                    callback_data=f"ach_category_{category}"
+                )
+                for category in categories])
     markup.add(
         InlineKeyboardButton(
             text="◀ Назад",
@@ -548,12 +549,15 @@ async def achievement_category(call: CallbackQuery, category: str) -> None:
             achievement_str += f'\n\t💡 {ach.xp_reward} очков'
         if ach.special_reward:
             emoji = ITEMS[ach.special_reward].emoji
-            achievement_str += f'\n\t1 {emoji}'
+            name = ITEMS[ach.special_reward].ru_name
+            achievement_str += f'\n\t1 {emoji} {name}'
 
         if not has_ach and ach.progress:
             progress = cur.select(ach.progress, "userdata").\
                 where(user_id=user_id).one()
-            achievement_str += f'\n\nПрогресс: {progress}/{ach.min_progress}'
+            achievement_str += (
+                f'\n\nПрогресс: {progress}/{ach.completion_progress}'
+            )
 
         achievement_str += "</b>"
 

@@ -9,7 +9,7 @@ from ...misc import (
 from ...misc.config import limited_items
 from ..start import StartCommand
 from ...database import cur
-from ...database.functions import itemdata
+from ...database.functions import itemdata, achieve
 
 from aiogram.types import (
     InlineKeyboardButton,
@@ -61,7 +61,7 @@ async def itemdesc(call: CallbackQuery, user_id: int):
             markup.add(
                 InlineKeyboardButton(
                     text='🚗 В путь!',
-                    callback_data='cardrive'
+                    callback_data='car_menu'
                 )
             )
         case 'lootbox':
@@ -336,12 +336,7 @@ async def sellitem(call: CallbackQuery, item: str) -> None:
         show_alert=True
     )
 
-    '''cur.execute('UPDATE userdata SET sold=sold+1 WHERE user_id=?', (a,))
-    conn.commit()
-    cursor.execute("SELECT sold FROM userdata WHERE user_id=?", (a,))
-    sold = cursor.fetchone()[0]
-    if sold>=10:
-        await achieve(a, call.message.chat.id, 'soldach')'''
+    await achieve(user_id, call.message.chat.id, "sell_achieve")
 
 
 async def sellresource(call: CallbackQuery, resource: str) -> None:

@@ -2,7 +2,7 @@ import contextlib
 import random
 import asyncio
 from ..filters import RequireBetaFilter
-from ..database.functions import check, earn, current_time
+from ..database.functions import check, earn, current_time, achieve
 from ..database import cur
 from ..misc import OfficialChats, get_embedded_link
 from ..misc.constants import SLOTMACHINE_TOKEN_COST, ERROR_MESSAGE
@@ -131,6 +131,8 @@ async def slot_machine(message: Message, user_id: int | None = None):
         case 64:  # 777
             rand = random.randint(225, 275)
             is_win = await _slots_win(user_id, chat_id, 3, rand)
+            await achieve(user_id, chat_id, "luck_achieve")
+            await achieve(user_id, chat_id, "jackpot_achieve")
         case _:
             is_win = False
     cur.update("userdata").set(last_gameclub=current_time()).where(

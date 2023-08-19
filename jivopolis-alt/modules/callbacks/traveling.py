@@ -214,7 +214,7 @@ async def buycall(call: CallbackQuery):
                     show_alert=True
                 )
 
-            # await achieve(a.id, call.message.chat.id, 'myauto')
+            await achieve(user_id, call.message.chat.id, 'auto_achieve')
         cost = ITEMS[item].cost
         assert cost is not None
 
@@ -1657,7 +1657,9 @@ async def flight(call: CallbackQuery):
         else:
             return
 
-        # await achieve(a, call.message.chat.id, 'flightach')
+        await achieve(
+            user_id, call.message.chat.id, "plane_achieve"
+        )
         await asyncio.sleep(sleep_time)
         await tostation(user_id, target_station=destination, line=destline)
 
@@ -2375,6 +2377,10 @@ async def go_byshuttle(call: CallbackQuery, destination: str):
 
     await asyncio.sleep(random.randint(BUS_TIME[0], BUS_TIME[1]))
     await tostation(user_id, target_station=destination)
+    if destination not in autostations:
+        await achieve(
+            user_id, call.message.chat.id, "shuttle_achieve"
+        )
     await buscall(call)
 
 
@@ -2605,6 +2611,9 @@ async def tram_crash(call: CallbackQuery):
         ' вернуться на остановку. Жаль, что деньги за билет никто не вернёт'
         '...</i>', reply_markup=markup
         )
+    await achieve(
+        call.from_user.id, call.message.chat.id, "tram_achieve"
+    )
 
 
 async def walk(call: CallbackQuery, destination: str):
@@ -2617,6 +2626,7 @@ async def walk(call: CallbackQuery, destination: str):
     user_id = call.from_user.id
     place = cur.select("current_place", "userdata").where(
         user_id=user_id).one()
+    await call.message.delete()
 
     # following code checks whether current location of the user
     # is in the walk list
@@ -2655,6 +2665,9 @@ async def walk(call: CallbackQuery, destination: str):
     )
 
     await asyncio.sleep(time_required)
+    await achieve(
+        call.from_user.id, call.message.chat.id, "walk_achieve"
+    )
     await tostation(call.from_user.id, target_station=destination)
 
     await city(call.message, call.from_user.id)

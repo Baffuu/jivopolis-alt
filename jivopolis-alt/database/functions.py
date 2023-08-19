@@ -392,9 +392,9 @@ async def achieve(user_id: int | str, chat_id : int | str, achievement: str) -> 
     :param chat_id (int) - Telegram Chat ID of chat in which messages will be sent 
     :param achievement (str) - Index of achievement 
     """
-    achieve = cur.select(achievement, "userdata").where(user_id=user_id).one()
-    
-    if achieve != 0:
+    has_ach = cur.select(achievement, "userdata").where(user_id=user_id).one()
+
+    if has_ach != 0:
         return
 
     achievement_data = ACHIEVEMENTS[achievement]
@@ -405,14 +405,18 @@ async def achieve(user_id: int | str, chat_id : int | str, achievement: str) -> 
     progress = achievement_data.progress
     min_progress = achievement_data.completion_progress
     link = await get_embedded_link(user_id)
+    print(achievement, progress)
 
     if progress:
+        cur.select(progress, "userdata").where(user_id=user_id).one()
         cur.update("userdata").add(**{progress: 1}).where(user_id=user_id).commit()
         current_progress = cur.select(progress, "userdata").where(user_id=user_id).one()
         if current_progress < min_progress:
             return
 
+    cur.select(achievement, "userdata").where(user_id=user_id).one()
     cur.update("userdata").set(**{achievement: 1}).where(user_id=user_id).commit()
+    cur.select(achievement, "userdata").where(user_id=user_id).one()
 
     if money:
         cur.update("userdata").add(balance=money).where(user_id=user_id).commit()
@@ -431,7 +435,15 @@ async def achieve(user_id: int | str, chat_id : int | str, achievement: str) -> 
         item_name = item.ru_name
         emoji = item.emoji
         cur.update("userdata").add(**{special_reward: 1}).where(user_id=user_id).commit()
-        await bot.send_message(chat_id, f"<i>За выполнение достижения вы получаете <b>{emoji}{item_name}</b></i>")
+        await bot.send_message(chat_id, f"<i>За выполнение достижения вы получаете <b>{emoji} {item_name}</b></i>")
+    
+    if achievement != "all_achieve":
+        for achievement in ACHIEVEMENTS:
+            has_ach = cur.select(achievement, "userdata").where(user_id=user_id).one()
+            if not has_ach and achievement != "all_achieve":
+                return
+        await achieve(user_id, chat_id, "all_achieve")
+
 
 
 async def cure(user_id: str, target_id: str, chat_id: str) -> None | Message: # function is useless now...

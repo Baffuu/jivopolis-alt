@@ -187,7 +187,19 @@ def create_userdata(cur: fyCursor) -> None:
     topaz           INTEGER         DEFAULT 0               NOT NULL,
 
     cab_achieve     INTEGER         DEFAULT 0               NOT NULL,
-    shuttle_achieve INTEGER         DEFAULT 0               NOT NULL
+    shuttle_achieve INTEGER         DEFAULT 0               NOT NULL,
+    plane_achieve   INTEGER         DEFAULT 0               NOT NULL,
+    walk_achieve    INTEGER         DEFAULT 0               NOT NULL,
+    walk_progress   INTEGER         DEFAULT 0               NOT NULL,
+    luck_achieve    INTEGER        DEFAULT 0               NOT NULL,
+    jackpot_progress INTEGER        DEFAULT 0               NOT NULL,
+    jackpot_achieve INTEGER         DEFAULT 0               NOT NULL,
+    all_achieve     INTEGER         DEFAULT 0               NOT NULL,
+    auto_achieve    INTEGER         DEFAULT 0               NOT NULL,
+    mask_achieve    INTEGER         DEFAULT 0               NOT NULL,
+    sell_progress   INTEGER         DEFAULT 0               NOT NULL,
+    sell_achieve    INTEGER         DEFAULT 0               NOT NULL,
+    tram_achieve    INTEGER         DEFAULT 0               NOT NULL
 )
 """)
 
