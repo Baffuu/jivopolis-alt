@@ -12,10 +12,10 @@ from typing import Union, Optional
 
 from . import cur, conn
 from .. import bot, logger, get_embedded_link, get_link, get_mask, tglog, utils
-from ..misc import current_time, ITEMS, constants
+from ..misc import current_time, ITEMS, constants, ACHIEVEMENTS
 from ..misc.config import (
-    limeteds, leveldesc,
-    levelrange, ach, ADMINS,
+    limited_items, leveldesc,
+    levelrange, ADMINS,
     clanitems
 )
 
@@ -76,9 +76,21 @@ async def can_interact(user_id: int | str) -> bool:
         await bot.send_message(
             user_id,
             '<i>☠️ Вы умерли. Попросите кого-нибудь вас воскресить</i>'
-        )       
+        )
+
+    in_prison = cur.select("prison_started", "userdata").where(
+        user_id=user_id).one() - current_time()
+    is_in_prison = in_prison > 0
+    if is_in_prison:
+        minutes = int(in_prison / 60)
+        seconds = int(in_prison % 60)
+        await bot.send_message(
+            user_id,
+            f'👮‍♂️<i> Вы находитесь в тюрьме. До выхода вам осталось {minutes}'
+            f' минут {seconds} секунд</i>'
+        )
     
-    return not (is_dead or is_banned)
+    return not (is_dead or is_banned or is_in_prison)
 
 
 async def check(user_id: int | str, chat_id: int | str) -> None | Message:
@@ -86,22 +98,15 @@ async def check(user_id: int | str, chat_id: int | str) -> None | Message:
     checks everything
     '''
     try:
-        cur.execute(
-            "UPDATE userdata SET "
-            f"lastseen={current_time()} WHERE user_id={user_id}"
-        )
+        cur.update("userdata").set(lastseen=current_time()).where(user_id=user_id).commit()
         conn.commit()
 
-        xp = cur.execute(
-            f"SELECT xp FROM userdata WHERE user_id={user_id}"
-        ).fetchone()[0]
+        xp = cur.select("xp", "userdata").where(user_id=user_id).one()
 
-        rank = cur.execute(
-            f"SELECT rank FROM userdata WHERE user_id={user_id}"
-        ).fetchone()[0]
+        rank = cur.select("rank", "userdata").where(user_id=user_id).one()
 
         if user_id in ADMINS and rank < 2:
-            cur.execute(f"UPDATE userdata SET rank=3 WHERE user_id={user_id}")
+            cur.update("userdata").set(rank=3).where(user_id=user_id).commit()
             conn.commit()
 
         lastgears = current_time() - cur.select("last_gears", "userdata").where(user_id=user_id).one()
@@ -112,36 +117,38 @@ async def check(user_id: int | str, chat_id: int | str) -> None | Message:
             cur.update("userdata").set(last_gears=current_time()).where(user_id=user_id).commit()
             conn.commit()
 
-        lvl = cur.execute(
-            f"SELECT level FROM userdata WHERE user_id={user_id}"
-        ).fetchone()[0]
+        lvl = cur.select("level", "userdata").where(user_id=user_id).one()
 
         if lvl >= len(levelrange)-1:
             return
         elif xp >= levelrange[lvl] and xp < levelrange[lvl+1]:
             return
-        for i in levelrange:
+        for index, points in enumerate(levelrange):
             if (
-                xp >= i 
-                and levelrange.index(i) >= len(levelrange) - 1 
-                and lvl != levelrange.index(i)
+                xp >= points
+                and (index == len(levelrange) - 1
+                or (xp < levelrange[index+1]
+                and index < len(levelrange) - 1))
+                and lvl != index
             ):
-                cur.execute(f"UPDATE userdata SET level={levelrange.index(i)} WHERE user_id={user_id}")
+                cur.update("userdata").set(level=index).where(user_id=user_id).commit()
                 conn.commit()
+                description = leveldesc[index] if len(leveldesc) > index else ""
                 try:
                     return await bot.send_message(
-                        user_id, 
-                        f"<i>&#128305; Теперь ваш уровень в Живополисе: <b>{levelrange.index(i)}</b>\nПоздравляем!\n{leveldesc[levelrange.index(i)]}</i>")
+                        user_id,
+                        f"<i>&#128305; Теперь ваш уровень в Живополисе: <b>{index}</b>\nПоздравляем!\n{description}</i>")
                 except Exception:
-                    return await bot.send_message(chat_id, f"<i>&#128305; Теперь ваш уровень в Живополисе: <b>{levelrange.index(i)}</b>\nПоздравляем!\n{leveldesc[levelrange.index(i)]}</i>")
-
-            if xp>=i and xp<levelrange[levelrange.index(i)] and lvl!=levelrange.index(i):
-                cur.execute("UPDATE userdata SET level=? WHERE user_id=?", (levelrange.index(i), user_id,))
+                    return await bot.send_message(chat_id, f"<i>&#128305; Теперь ваш уровень в Живополисе: <b>{index}</b>\nПоздравляем!\n{description}</i>")
+            '''
+            elif xp>=points and xp<levelrange[levelrange.index(i)] and lvl!=index:
+                cur.update("userdata").set(level=levelrange.index(i)).where(user_id=user_id).commit()
                 conn.commit()
                 try:
-                    return await bot.send_message(user_id, f"<i>&#128305; Теперь ваш уровень в Живополисе: <b>{levelrange.index(i)}</b>\nПоздравляем!\n{leveldesc[levelrange.index(i)]}</i>")
+                    return await bot.send_message(user_id, f"<i>&#128305; Теперь ваш уровень в Живополисе: <b>{index}</b>\nПоздравляем!\n{leveldesc[index]}</i>")
                 except Exception:
-                    return await bot.send_message(chat_id, f"<i>&#128305; Теперь ваш уровень в Живополисе: <b>{levelrange.index(i)}</b>\nПоздравляем!\n{leveldesc[levelrange.index(i)]}</i>")
+                    return await bot.send_message(chat_id, f"<i>&#128305; Теперь ваш уровень в Живополисе: <b>{index}</b>\nПоздравляем!\n{leveldesc[index]}</i>")
+            '''
 
     except Exception as e:
         logger.exception(e)
@@ -220,7 +227,7 @@ def buybutton(
             InlineKeyboardButton(
                 f'{itemob.emoji} {itemob.ru_name} - ${cost}', callback_data=f'buy24_{item}'
             )
-            if item in limeteds
+            if item in limited_items
             else None
         )
 
@@ -339,7 +346,7 @@ async def shoot(user_id: int | str, target_id: int | str, chat_id: int | str) ->
         await bot.send_message(target_id, f"<i>&#128299; Вас застрелил <b>{await get_embedded_link(user_id)}</b></i>")
 
         if random.choice([True, False]):
-            cur.execute(f"UPDATE userdata SET prison={current_time() + 1200} WHERE user_id={user_id}")
+            cur.execute(f"UPDATE userdata SET prison_started={current_time() + 1200} WHERE user_id={user_id}")
             conn.commit()
 
             await bot.send_message(
@@ -353,7 +360,31 @@ async def shoot(user_id: int | str, target_id: int | str, chat_id: int | str) ->
             await bot.send_message(chat_id, f"<i>&#10060; Вы выстрелили мимо. Возможно, это к лучшему.\nПистолет потрачен зря</i>")
 
 
-async def achieve(user_id: int | str, chat_id : int | str, achievement: str) -> None: #todo new ACHIEVEMENTS
+async def prison_sentence(message: Message, term: int, reason: str, caption: str="") -> None:
+    """
+    put a user in prison
+
+    :param message (Message) - user's message:
+    :param term (int) - term of prison sentence (in minutes):
+    :param reason (str) - the detention:
+    :param caption (str) - text before the sentence description:
+    """
+    cur.update("userdata").set(prison_started=current_time() + term*60).where(
+        user_id=message.from_user.id).commit()
+    await message.answer(
+        f"<i>{caption}\n\n👮‍♂️ Господин <b>{await get_embedded_link(message.from_user.id)}</b>, "
+        f"вы были арестованы за {reason}. Пройдёмте в отделение.\n\nВы были арестованы на "
+        f"<b>{term}</b> минут</i>",
+        reply_markup=InlineKeyboardMarkup().add(
+            InlineKeyboardButton(
+                text="😪 Скрыть сообщение",
+                callback_data="cancel_action"
+            )
+        )
+    )
+
+
+async def achieve(user_id: int | str, chat_id : int | str, achievement: str) -> None:  # todo new ACHIEVEMENTS
     """
     achieve a user 
     
@@ -361,121 +392,128 @@ async def achieve(user_id: int | str, chat_id : int | str, achievement: str) -> 
     :param chat_id (int) - Telegram Chat ID of chat in which messages will be sent 
     :param achievement (str) - Index of achievement 
     """
-    try:
-        achieve = cur.execute(f"SELECT {achievement} FROM userdata WHERE user_id={user_id}").fetchone()
-        
-        if achieve != 0:
+    has_ach = cur.select(achievement, "userdata").where(user_id=user_id).one()
+
+    if has_ach != 0:
+        return
+
+    achievement_data = ACHIEVEMENTS[achievement]
+    name = achievement_data.ru_name
+    desc = achievement_data.description
+    money = achievement_data.money_reward
+    points = achievement_data.xp_reward
+    progress = achievement_data.progress
+    min_progress = achievement_data.completion_progress
+    link = await get_embedded_link(user_id)
+    print(achievement, progress)
+
+    if progress:
+        cur.select(progress, "userdata").where(user_id=user_id).one()
+        cur.update("userdata").add(**{progress: 1}).where(user_id=user_id).commit()
+        current_progress = cur.select(progress, "userdata").where(user_id=user_id).one()
+        if current_progress < min_progress:
             return
 
-        index = ach[0].index(achievement)
-        name = ach[1][index]
-        desc = ach[2][index]
-        money = ach[3][index]
-        points = ach[4][index]
+    cur.select(achievement, "userdata").where(user_id=user_id).one()
+    cur.update("userdata").set(**{achievement: 1}).where(user_id=user_id).commit()
+    cur.select(achievement, "userdata").where(user_id=user_id).one()
 
-        cur.execute(f"UPDATE userdata SET {achievement} = 1 WHERE user_id = {user_id}")
-        conn.commit()
+    if money:
+        cur.update("userdata").add(balance=money).where(user_id=user_id).commit()
+    if points:
+        cur.update("userdata").add(xp=points).where(user_id=user_id).commit()
 
-        rasa = cur.execute(f"SELECT rasa FROM userdata WHERE user_id = {user_id}").fetchone()
-        nick = cur.execute(f"SELECT nick FROM userdata WHERE user_id = {user_id}").fetchone()
-
-        cur.execute(f"UPDATE userdata SET balance = balance + {money} WHERE user_id = {user_id}")
-        conn.commit()
-        cur.execute(f"UPDATE userdata SET points = points+{points} WHERE user_id = {user_id}")
-        conn.commit()
-
-        chat_type = await bot.get_chat(chat_id)
-        chat_type = chat_type.type
-
-        if chat_type == "private":
-            await bot.send_message(chat_id, f"<i>У вас новое достижение: <b>{name}</b>\n{desc}. \nВаша награда: <b>${money}</b> и &#128161; <b>{points}</b> очков</i>")
-        else:
-            await bot.send_message(chat_id, f"<i><b><a href=\"tg://user?id={user_id}\">{rasa}{nick}</a></b>, у вас новое достижение: <b>{name}</b>\n{desc}. \nВаша награда: <b>${money}</b> и &#128161; <b>{points}</b> очков</i>")
-    except Exception as e:
-        await bot.send_message(
-            chat_id, 
-            (
-                "&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. "
-                "Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт"
-                " в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появля"
-                "ется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную "
-                "(t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>"
-            ))
-        await bot.send_message(chat_id, f"<i><b>Текст ошибки: </b>{e}</i>")
+    chat = await bot.get_chat(chat_id)
+    if chat.type == "private":
+        await bot.send_message(chat_id, f"<i>У вас новое достижение: <b>{name}</b>\n{desc}. \nВаша награда: <b>${money}</b> и 💡 <b>{points}</b> очков</i>")
+    else:
+        await bot.send_message(chat_id, f"<i><b>{link}</b>, у вас новое достижение: <b>{name}</b>\n{desc}. \nВаша награда: <b>${money}</b> и 💡 <b>{points}</b> очков</i>")
+    
+    special_reward = achievement_data.special_reward
+    if special_reward:
+        item = ITEMS[special_reward]
+        item_name = item.ru_name
+        emoji = item.emoji
+        cur.update("userdata").add(**{special_reward: 1}).where(user_id=user_id).commit()
+        await bot.send_message(chat_id, f"<i>За выполнение достижения вы получаете <b>{emoji} {item_name}</b></i>")
+    
+    if achievement != "all_achieve":
+        for achievement in ACHIEVEMENTS:
+            has_ach = cur.select(achievement, "userdata").where(user_id=user_id).one()
+            if not has_ach and achievement != "all_achieve":
+                return
+        await achieve(user_id, chat_id, "all_achieve")
 
 
-async def cure(user_id: str, target_id: str, chat_id: str) -> None | Message: #function is useless now...
+
+async def cure(user_id: str, target_id: str, chat_id: str) -> None | Message: # function is useless now...
     '''
     to cure someone...
     '''
-    try:
-        nerr = 0
-        medicine = cur.execute(f"SELECT medicine FROM userdata WHERE user_id={user_id}").fetchone()
+    nerr = 0
+    medicine = cur.execute(f"SELECT medicine FROM userdata WHERE user_id={user_id}").fetchone()
 
-        if medicine < 1:
-            return await bot.send_message(chat_id, "<i>&#10060; У вас нет таблеток(</i>")
+    if medicine < 1:
+        return await bot.send_message(chat_id, "<i>&#10060; У вас нет таблеток(</i>")
 
-        health = cur.execute(f"SELECT health FROM userdata WHERE user_id={target_id}").fetchone()
+    health = cur.execute(f"SELECT health FROM userdata WHERE user_id={target_id}").fetchone()
 
-        nick = cur.execute(f"SELECT nick FROM userdata WHERE user_id={user_id}").fetchone()
-        mask = get_mask(user_id)
+    nick = cur.execute(f"SELECT nick FROM userdata WHERE user_id={user_id}").fetchone()
+    mask = get_mask(user_id)
 
-        target_nick = cur.execute(f"SELECT nick FROM userdata WHERE user_id={target_id}").fetchone()
-        target_mask = get_mask(target_id)
+    target_nick = cur.execute(f"SELECT nick FROM userdata WHERE user_id={target_id}").fetchone()
+    target_mask = get_mask(target_id)
 
-        if health > 0 and health < 100:
-            cur.execute(f"UPDATE userdata SET medicine=medicine-1 WHERE user_id={user_id}")
+    if health > 0 and health < 100:
+        cur.execute(f"UPDATE userdata SET medicine=medicine-1 WHERE user_id={user_id}")
+        conn.commit()
+
+        rand = random.randint(1, 100-health)
+
+        cur.execute(f"UPDATE userdata SET health=health+{rand} WHERE user_id={target_id}")
+        conn.commit()
+
+        if target_id == user_id:
+            return await bot.send_message(chat_id, "<i>&#128138; Успех! Вы вылечили себя</i>")
+        await bot.send_message(chat_id, f"<i>&#128138; Успех! Вы вылечили <b><a href=\"{await get_link(target_id)}\">{target_mask}{target_nick}</a></b></i>")
+        await bot.send_message(target_id, f"<i>&#128138; Вас вылечил <b><a href=\"{await get_link(user_id)}\">{mask}{nick}</a></b></i>")
+        nerr = 1
+
+    elif health >= 100:
+        if target_id != user_id:
+            return await bot.send_message(chat_id, f"<i>&#128138; <b><a href=\"{await get_link(target_id)}\">{target_mask}{target_nick}</a></b> полностью здоров, зачем вам тратить лекарства впустую?\nЛекарства <b>не потрачены</b></i>")   
+        else:                                   
+            return await bot.send_message(chat_id, f"<i>&#128138; Вы полностью здоровы, зачем вам тратить лекарства впустую?\nЛекарства <b>не потрачены</b></i>")
+    else:
+        if target_id == user_id:
+            return await bot.send_message(chat_id, "<i>&#10060; Вы не можете воскресить самого себя</i>")
+
+        cur.execute(f"UPDATE userdata SET medicine=medicine-1 WHERE user_id={user_id}")
+        conn.commit()
+
+        rand = random.randint(50,100)
+
+        cur.execute(f"UPDATE userdata SET health={rand} WHERE user_id={target_id}")
+        conn.commit()
+
+        await bot.send_message(chat_id, f"<i>&#128138; Успех! Вы воскресили <b><a href=\"{await get_link(target_id)}\">{target_mask}{target_nick}</a></b></i>")
+        nerr = 1
+        await bot.send_message(target_id, f"<i>&#128138; Вас воскресил <b><a href=\"{await get_link(user_id)}\">{mask}{nick}</a></b></i>")
+
+        await achieve(user_id, chat_id, "helper")
+
+    if nerr == 1:
+        cur.execute(f"UPDATE userdata SET cured=cured+1 WHERE user_id={user_id}")
+        conn.commit()
+
+        cured = cur.execute(f"SELECT cured FROM userdata WHERE user_id={user_id}").fetchone()
+
+        if cured >= 20:
+            await achieve(user_id, chat_id, "medquest")
+            cur.execute(f"UPDATE userdata SET medic=medic+1 WHERE user_id={user_id}")
             conn.commit()
+            await bot.send_message(chat_id, "<i>Вы получаете <b>🩺 Стетоскоп</b>. Эта маска будет показывать всем, что вы профессиональный врач, и вам можно доверять</i>")
 
-            rand = random.randint(1, 100-health)
-
-            cur.execute(f"UPDATE userdata SET health=health+{rand} WHERE user_id={target_id}")
-            conn.commit()
-
-            if target_id == user_id:
-                return await bot.send_message(chat_id, "<i>&#128138; Успех! Вы вылечили себя</i>")
-            await bot.send_message(chat_id, f"<i>&#128138; Успех! Вы вылечили <b><a href=\"{await get_link(target_id)}\">{target_mask}{target_nick}</a></b></i>")
-            await bot.send_message(target_id, f"<i>&#128138; Вас вылечил <b><a href=\"{await get_link(user_id)}\">{mask}{nick}</a></b></i>")
-            nerr = 1
-
-        elif health >= 100:
-            if target_id != user_id:
-                return await bot.send_message(chat_id, f"<i>&#128138; <b><a href=\"{await get_link(target_id)}\">{target_mask}{target_nick}</a></b> полностью здоров, зачем вам тратить лекарства впустую?\nЛекарства <b>не потрачены</b></i>")   
-            else:                                   
-                return await bot.send_message(chat_id, f"<i>&#128138; Вы полностью здоровы, зачем вам тратить лекарства впустую?\nЛекарства <b>не потрачены</b></i>")
-        else:
-            if target_id == user_id:
-                return await bot.send_message(chat_id, "<i>&#10060; Вы не можете воскресить самого себя</i>")
-
-            cur.execute(f"UPDATE userdata SET medicine=medicine-1 WHERE user_id={user_id}")
-            conn.commit()
-
-            rand = random.randint(50,100)
-
-            cur.execute(f"UPDATE userdata SET health={rand} WHERE user_id={target_id}")
-            conn.commit()
-
-            await bot.send_message(chat_id, f"<i>&#128138; Успех! Вы воскресили <b><a href=\"{await get_link(target_id)}\">{target_mask}{target_nick}</a></b></i>")
-            nerr = 1
-            await bot.send_message(target_id, f"<i>&#128138; Вас воскресил <b><a href=\"{await get_link(user_id)}\">{mask}{nick}</a></b></i>")
-
-            await achieve(user_id, chat_id, "helper")
-
-        if nerr == 1:
-            cur.execute(f"UPDATE userdata SET cured=cured+1 WHERE user_id={user_id}")
-            conn.commit()
-
-            cured = cur.execute(f"SELECT cured FROM userdata WHERE user_id={user_id}").fetchone()
-
-            if cured >= 20:
-                await achieve(user_id, chat_id, "medquest")
-                cur.execute(f"UPDATE userdata SET medic=medic+1 WHERE user_id={user_id}")
-                conn.commit()
-                await bot.send_message(chat_id, "<i>Вы получаете <b>🩺 Стетоскоп</b>. Эта маска будет показывать всем, что вы профессиональный врач, и вам можно доверять</i>")
-
-    except Exception as e:
-        await bot.send_message(chat_id, "&#10060; <i>При выполнении команды произошла ошибка. Проверьте, есть ли у вас аккаунт в Живополисе. Если вы выполняли действие над другим пользователем, проверьте, есть ли у этого пользователя аккаунт в Живополисе. Помните, что выполнение действий над ботом Живополиса невозможно.\nЕсли ошибка появляется даже когда у вас есть аккаунт, возможно, проблема в коде Живополиса. Сообщите о ней в Приёмную (t.me/zhivolab), и мы постараемся исправить проблему.\nИзвините за предоставленные неудобства</i>")
-        await bot.send_message(chat_id, f"<i><b>Текст ошибки: </b>{e}</i>")
 
 class profile_():
     def __init__(self, dont_init: bool = False, user_id: Optional[int] = None, message: Optional[Message] = None, called: bool = False) -> None:
@@ -510,15 +548,15 @@ class profile_():
             markup = self._add_setting_buttons(markup)
 
         PROFILE_TEXT = (
-            f"{await get_embedded_link(user_id)} {f'[{rank}]' or ''}"
-            f"\n🌟{level} 💖 {health} 💡{xp}  💸 {balance}"
-            f"\n{random.choice(constants.TIME_EMOJIS)} Был(-а) {lastseen}"
-            f"\n🎞 Aккаунт создан: {register_date} {inviter}"
+            f"<i><b>{await get_embedded_link(user_id)}</b> {f'[{rank}]' or ''}"
+            f"\n🌟<b>{level} 💖 {health} 💡{xp}  💸 {balance}</b>"
+            f"\n{random.choice(constants.TIME_EMOJIS)} Был(-а) <b>{lastseen}</b>"
+            f"\n🎞 Aккаунт создан: <b>{register_date} {inviter}</b>"
             f"\n\n<i>{description}</i>"
-            f"\n\n🛡 Клан: <b>{(HtmlDecoration().link(str(clan_name), str(clan_link)) if clan_type == 'public' else clan_name) if clan_id is not None else 'отсутствует'}</b>"
+            f"\n\n🛡 Клан: <b>{(HtmlDecoration().link(str(clan_name), str(clan_link)) if clan_type == 'public' else clan_name) if clan_id is not None else 'отсутствует'}</b></i>"
         )
         if photo:
-            return await message.reply_photo(photo, PROFILE_TEXT)
+            return await message.reply_photo(photo, PROFILE_TEXT, reply_markup=markup)
         await message.reply(PROFILE_TEXT, reply_markup=markup)
 
 

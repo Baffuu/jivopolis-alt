@@ -8,15 +8,15 @@ from ...misc import (
 )
 from ...misc.misc import remaining, isinterval
 from ...misc.constants import (MINIMUM_CAR_LEVEL, MAXIMUM_DRIVE_MENU_SLOTS,
-                               MAP, REGIONAL_MAP)
+                               MAP, REGIONAL_MAP, MINIMUM_TAXI_LEVEL)
 from ...database import cur
-from ...database.functions import buy, buybutton, itemdata
+from ...database.functions import buy, buybutton, itemdata, achieve
 
 from ...misc.config import (
     METRO, WALK, CITY,
     trains, villages, autostations,
-    limeteds,
-    lvlcab, cabcost, locations, REGTRAIN,
+    limited_items,
+    cabcost, locations, REGTRAIN,
     clanitems, LINES, LINES_GENITIVE, ticket_time, aircost,
     buscost, regbuscost, tramroute
 )
@@ -214,7 +214,7 @@ async def buycall(call: CallbackQuery):
                     show_alert=True
                 )
 
-            # await achieve(a.id, call.message.chat.id, 'myauto')
+            await achieve(user_id, call.message.chat.id, 'auto_achieve')
         cost = ITEMS[item].cost
         assert cost is not None
 
@@ -718,9 +718,9 @@ async def taxi_menu(message: Message, user_id: int):
     level = cur.select("level", "userdata").where(
         user_id=user_id).one()
 
-    if level < lvlcab:
+    if level < MINIMUM_TAXI_LEVEL:
         return await message.answer(
-            f'🚫 Данная функция доступна только с уровня {lvlcab}'
+            f'🚫 Данная функция доступна только с уровня {MINIMUM_TAXI_LEVEL}'
         )
 
     current_place = cur.select("current_place", "userdata").where(
@@ -766,9 +766,9 @@ async def taxi_page(call: CallbackQuery, menu: int):
     level = cur.select("level", "userdata").where(user_id=user_id).one()
     message = call.message
 
-    if level < lvlcab:
+    if level < MINIMUM_TAXI_LEVEL:
         return await message.answer(
-            f'🚫 Данная функция доступна только с уровня {lvlcab}'
+            f'🚫 Данная функция доступна только с уровня {MINIMUM_TAXI_LEVEL}'
         )
 
     current_place = cur.select("current_place", "userdata").where(
@@ -887,6 +887,8 @@ async def taxi_goto_(call: CallbackQuery, place: str) -> None:
         user_id=user_id).commit()
     cur.update("userdata").add(balance=-cost).where(
         user_id=user_id).commit()
+    if cost == cabcost*(len(CITY)-1):
+        await achieve(user_id, call.message.chat.id, "cab_achieve")
 
     await city(call.message, call.from_user.id)
 
@@ -1049,7 +1051,7 @@ async def gps_transport(call: CallbackQuery, place: str):
         else:
             text += f'\n🚐 Остановка маршрутных такси <b>{place}</b>'
     if place in CITY and current_place in CITY and place != current_place \
-            and level >= lvlcab:
+            and level >= MINIMUM_TAXI_LEVEL:
         cost = (cabcost*abs(CITY.index(place)-CITY.index(current_place)))//1
         text += '\n\n🚕 Вы можете доехать из местности ' +\
                 f'<b>{current_place}</b> до местности <b>{place}</b>' +\
@@ -1109,7 +1111,7 @@ async def buy24_(call: CallbackQuery, item: str) -> None:
 
     :raises ValueError if item doesn't seem to exists
     '''
-    if item not in ITEMS or item not in limeteds:
+    if item not in ITEMS or item not in limited_items:
         raise ValueError("no such item")
     items_left = cur.select(item, "globaldata").one()
 
@@ -1655,7 +1657,9 @@ async def flight(call: CallbackQuery):
         else:
             return
 
-        # await achieve(a, call.message.chat.id, 'flightach')
+        await achieve(
+            user_id, call.message.chat.id, "plane_achieve"
+        )
         await asyncio.sleep(sleep_time)
         await tostation(user_id, target_station=destination, line=destline)
 
@@ -2373,6 +2377,10 @@ async def go_byshuttle(call: CallbackQuery, destination: str):
 
     await asyncio.sleep(random.randint(BUS_TIME[0], BUS_TIME[1]))
     await tostation(user_id, target_station=destination)
+    if destination not in autostations:
+        await achieve(
+            user_id, call.message.chat.id, "shuttle_achieve"
+        )
     await buscall(call)
 
 
@@ -2603,6 +2611,9 @@ async def tram_crash(call: CallbackQuery):
         ' вернуться на остановку. Жаль, что деньги за билет никто не вернёт'
         '...</i>', reply_markup=markup
         )
+    await achieve(
+        call.from_user.id, call.message.chat.id, "tram_achieve"
+    )
 
 
 async def walk(call: CallbackQuery, destination: str):
@@ -2615,6 +2626,7 @@ async def walk(call: CallbackQuery, destination: str):
     user_id = call.from_user.id
     place = cur.select("current_place", "userdata").where(
         user_id=user_id).one()
+    await call.message.delete()
 
     # following code checks whether current location of the user
     # is in the walk list
@@ -2653,6 +2665,9 @@ async def walk(call: CallbackQuery, destination: str):
     )
 
     await asyncio.sleep(time_required)
+    await achieve(
+        call.from_user.id, call.message.chat.id, "walk_achieve"
+    )
     await tostation(call.from_user.id, target_station=destination)
 
     await city(call.message, call.from_user.id)

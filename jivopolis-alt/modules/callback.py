@@ -7,7 +7,7 @@ from .. import bot, logger, Dispatcher, tglog, utils
 from ..misc import ITEMS
 from ..misc.config import SUPPORT_LINK, villages, trains, CITY, tramroute
 from ..database import cur
-from ..database.functions import check, profile, eat
+from ..database.functions import check, profile, eat, current_time
 from ..filters import RequireBetaFilter
 from aiogram.utils.exceptions import (
     MessageCantBeDeleted,
@@ -55,6 +55,19 @@ async def callback_handler(call: CallbackQuery):
                 return await call.message.answer(
                     '<i>☠️ Вы умерли. Попросите кого-нибудь вас воскресить</i>'
                 )
+            return
+        
+        in_prison = cur.select("prison_started", "userdata").where(
+            user_id=call.from_user.id).one() - current_time()
+        is_in_prison = in_prison > 0
+        if is_in_prison:
+            minutes = int(in_prison / 60)
+            seconds = int(in_prison % 60)
+            return await call.answer(
+                f'👮‍♂️ Вы находитесь в тюрьме. До выхода вам осталось {minutes}'
+                f' минут {seconds} секунд',
+                show_alert=True
+            )
 
         match (call.data):
             case 'chats':
@@ -584,6 +597,34 @@ async def callback_handler(call: CallbackQuery):
 
             case "privacy_settings":
                 await privacy_settings(call)
+            case 'log-out':
+                await log_out(call)
+            case 'delete-account':
+                await delete_account(call)
+            case 'delete_account_confirm':
+                await delete_account_confirm(call)
+            case 'toggle_profile_type':
+                await toggle_profile_type(call)
+            case 'profile_settings':
+                await profile_settings(call)
+            case 'set_nick':
+                await set_nick(call)
+            case 'set_bio':
+                await set_bio(call)
+            case 'set_photo':
+                await set_photo(call)
+            case 'delete_nick':
+                await delete_nick(call)
+            case 'delete_bio':
+                await delete_bio(call)
+            case 'delete_photo':
+                await delete_photo(call)
+            
+            case 'achievements':
+                await achievements(call)
+            case achcat if achcat.startswith('ach_category_'):
+                await achievement_category(call, achcat.replace('ach_category_', ''))
+
             case "work":
                 await call.answer("🏗 Ведутся строительные работы. Ожидайте открытия вашей работы в ближайших обновлениях", True)
             case "airport":

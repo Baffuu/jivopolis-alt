@@ -5,7 +5,7 @@ from .traveling import state_balance
 
 from ... import bot, logger
 from ...database import cur, conn
-from ...misc.config import limeteds
+from ...misc.config import limited_items
 from ...misc import get_mask, get_link, OfficialChats, get_embedded_link, ITEMS
 
 from aiogram.types import (
@@ -267,7 +267,7 @@ async def economics(call: CallbackQuery) -> None:
 
     limits = ''
 
-    for item in limeteds:
+    for item in limited_items:
         limits += f'\n{ITEMS[item].emoji} {ITEMS[item].ru_name} - '
         item_left = cur.execute(f"SELECT {item} FROM globaldata").fetchone()[0]
 
@@ -304,16 +304,16 @@ async def economics(call: CallbackQuery) -> None:
 
 async def toggle_nonick(call: CallbackQuery) -> None:
     if await is_allowed_nonick(call.from_user.id):
-        turn = 0
-        change = "выключен"
+        new_mode = 0
+        new_mode_ru = "выключен"
     else:
-        turn = 1
-        change = "включён"
+        new_mode = 1
+        new_mode_ru = "включён"
 
-    cur.update("userdata").set(nonick_cmds=turn).where(
+    cur.update("userdata").set(nonick_cmds=new_mode).where(
         user_id=call.from_user.id).commit()
 
-    await call.answer(f"👁 Nonick теперь {change}", show_alert=True)
+    await call.answer(f"👁 Nonick теперь {new_mode_ru}", show_alert=True)
     with contextlib.suppress(MessageCantBeDeleted, MessageToDeleteNotFound):
         await call.message.delete()
     await user_settings(call)
@@ -349,6 +349,10 @@ async def user_settings(call: CallbackQuery):
         InlineKeyboardButton(
             text='🔐 Конфиденциальность',
             callback_data='privacy_settings'
+        ),
+        InlineKeyboardButton(
+            text='◀ Назад',
+            callback_data='cancel_action'
         )
     )
     await call.message.answer('<i><b>Настройки</b></i>', reply_markup=markup)

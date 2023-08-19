@@ -25,7 +25,7 @@ from .. import bot, Dispatcher, logger, tglog
 from ..filters import RequireBetaFilter
 from ..misc import get_mask, get_link, current_time, OfficialChats, constants
 from ..database import cur, insert_user
-from ..database.functions import check, profile
+from ..database.functions import check, profile, get_embedded_link
 from ..misc.config import levelrange, hellos, randomtext, SUPPORT_LINK
 
 Rase = namedtuple('Rase', ['emoji', 'ru_name', 'name', 'image_url'])
@@ -103,10 +103,22 @@ class StartCommand():
                 return await message.reply(
                     "<i> Вы умерли. Попросите кого-нибудь вас воскресить</i>"
                 )
+
+            in_prison = cur.select("prison_started", "userdata").where(
+                user_id=user_id).one() - current_time()
+            is_in_prison = in_prison > 0
+            if is_in_prison:
+                minutes = int(in_prison / 60)
+                seconds = int(in_prison % 60)
+                return await message.reply(
+                    '👮‍♂️<i> Вы находитесь в тюрьме. До выхода вам осталось '
+                    f'{minutes} минут {seconds} секунд</i>'
+                )
+
             if await group_support.IsInMarket().check(message):
                 await group_support.on_start_pressed(message)
             elif message.chat.type == ChatType.PRIVATE:
-                await self._private_start(user_id)
+                await self._private_start(user_id, message=message)
             elif message.chat.id == OfficialChats.CASINOCHAT:
                 await self._casino_start(message)
             elif message.chat.type in [ChatType.SUPERGROUP, ChatType.GROUP]:
@@ -122,24 +134,31 @@ class StartCommand():
     async def _private_start(
         self,
         user_id: str | int,
-        give_text: bool = False
+        give_text: bool = False,
+        message: Message | None = None
     ) -> str | None:
         nick = cur.select("nickname", "userdata").where(user_id=user_id).one()
+        if message:
+            id = message.get_args()
+            count = cur.select("count(*)", "userdata").where(user_id=id).one()
+            if int(count) >= 1:
+                return await profile(id, message)
 
-        cur.execute("""
-            SELECT * FROM userdata
+        leaderboard = cur.execute("""
+            SELECT user_id FROM userdata
             WHERE profile_type=\"public\" AND rank=0
             ORDER BY balance
             DESC LIMIT 10
-        """)
+        """).fetch()
 
         leaders = "&#127942; Лидеры Живополиса на данный момент:"
-
-        for row in cur:
-            leaders += (
-                f"\n<b><a href=\"{await get_link(row[1])}\">"
-                f"{get_mask(row[1])}{row[2]}</a> - ${row[4]}</b>"
-            )
+        if leaderboard:
+            for id in leaderboard:
+                balance = cur.select("balance", "userdata").where(
+                    user_id=id[0]).one()
+                leaders += (
+                    f"\n<b>{await get_embedded_link(id[0])} - ${balance}</b>"
+                )
 
         buttons = self._start_buttons(user_id)
         mask = get_mask(user_id)

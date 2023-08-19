@@ -1,7 +1,7 @@
 import contextlib
 
 from ..database import cur
-from ..database.functions import check, itemdata
+from ..database.functions import check, current_time, itemdata
 from ..misc import get_embedded_link, get_link, get_mask
 from aiogram.types import (
     InlineQuery,
@@ -49,6 +49,25 @@ async def inline_mode(query: InlineQuery):
                             "е, что это ошибка, обратитесь в <a href = "
                             f"'{OfficialChats.SUPPORTCHATLINK}'>"
                             "поддержку</a></i>"
+                        )
+                    )
+                ]
+            )
+
+        in_prison: int = cur.select("prison_started", "userdata").where(
+            user_id=user_id).one() - current_time()
+        if in_prison > 0:
+            return await bot.answer_inline_query(
+                query.id,
+                [
+                    InlineQueryResultArticle(
+                        id = 'prison',  # noqa: E251
+                        title = '👮‍♂️ Вы находитесь в тюрьме',  # noqa: E251, E501
+                        description = 'Подождите, пока срок закончится',  # noqa: E251, E501
+                        input_message_content =   # noqa: E251
+                        InputTextMessageContent(
+                            "<i>👮‍♂️ Вы находитесь в тюрьме. Подождите, пока "
+                            "ваш срок закончится</i>"
                         )
                     )
                 ]

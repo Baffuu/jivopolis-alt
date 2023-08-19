@@ -37,7 +37,22 @@ from .user_profile import (
     put_mask_off,
     put_mask_on,
     my_reflink,
-    privacy_settings
+    privacy_settings,
+    delete_account,
+    delete_account_confirm,
+    log_out,
+    toggle_profile_type,
+    profile_settings,
+    confirm_profile_setting,
+    set_nick,
+    set_bio,
+    set_photo,
+    delete_nick,
+    delete_bio,
+    delete_photo,
+    confirm_photo,
+    achievements,
+    achievement_category
 )
 
 from .traveling import (
@@ -156,7 +171,8 @@ from .clans import (
     use_clan_building,
     donate_cow,
     milk_cow_clan,
-    give_lootboxes
+    give_lootboxes,
+    rob_clan
 )
 
 from .shops import (
@@ -202,7 +218,22 @@ __all__ = [
     "put_mask_on",
     "my_reflink",
     "privacy_settings",
+    "delete_account",
+    "delete_account_confirm",
+    "log_out",
+    "toggle_profile_type",
+    "profile_settings",
+    "confirm_profile_setting",
+    "set_nick",
+    "set_bio",
+    "set_photo",
+    "delete_nick",
+    "delete_bio",
+    "delete_photo",
+    "confirm_photo",
+    "achievements",
     "buycall",
+    "achievement_category",
     "city",
     "car_menu",
     "goto_on_car",
@@ -320,5 +351,6 @@ __all__ = [
     "use_clan_building",
     "donate_cow",
     "milk_cow_clan",
-    "give_lootboxes"
+    "give_lootboxes",
+    "rob_clan"
 ]

@@ -10,7 +10,7 @@ from .bot import bot
 from .misc import tglog, ITEMS
 from .database import cur
 from .marketplace.marketplace import market
-from .misc.config import limeteds
+from .misc.config import limited_items
 
 from loguru import logger
 
@@ -28,7 +28,7 @@ async def refill_market():
 
     if lastfill < 86400:  # 1 day
         return
-    for item in limeteds:
+    for item in limited_items:
         cur.execute(
             f"UPDATE globaldata SET {item}={random.randint(5, 15)}"
         )

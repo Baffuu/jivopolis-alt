@@ -13,6 +13,8 @@ from aiogram.utils.exceptions import RetryAfter
 from aiogram.utils.text_decorations import HtmlDecoration
 from typing import Union, Iterable, Coroutine, Optional, Any
 
+from .misc import current_time
+
 DEFAULT_MESSAGE = "🌔"
 DEFAULT_SLEEP = 5
 
@@ -41,6 +43,19 @@ async def check_user(user_id: int | str, is_admin: bool = False) -> bool:
             )
         return False
 
+    in_prison = cur.select("prison_started", "userdata").where(
+        user_id=user_id).one() - current_time()
+    is_in_prison = in_prison > 0
+    if is_in_prison and not is_admin:
+        minutes = int(in_prison / 60)
+        seconds = int(in_prison % 60)
+        await bot.send_message(
+            user_id,
+            f'👮‍♂️<i> Вы находитесь в тюрьме. До выхода вам осталось {minutes}'
+            f' минут {seconds} секунд</i>'
+        )
+        return False
+
     rank = cur.execute(
         f"SELECT rank FROM userdata WHERE user_id = {user_id}"
     ).fetchone()[0]
@@ -57,9 +72,7 @@ async def check_user(user_id: int | str, is_admin: bool = False) -> bool:
 async def is_allowed_nonick(user_id: int) -> bool:
     return (
         bool(
-            cur.execute(
-                f"SELECT nonick_cmds FROM userdata WHERE user_id={user_id}"
-            ).fetchone()[0]
+            cur.select("nonick_cmds", "userdata").where(user_id=user_id).one()
         )
         if await check_user(user_id)
         else False
@@ -110,7 +123,8 @@ async def _answer_message(
     **kwargs: Any
 ) -> Union[Message, list[Message]]:
     message = await _italise(message) if italise else message  # type: ignore
-    editable = await _italise(editable) if italise else editable  # type: ignore # noqa: E501
+    if editable:
+        editable = await _italise(editable) if italise else editable  # type: ignore # noqa: E501
 
     if not message and not editable:
         raise AttributeError(

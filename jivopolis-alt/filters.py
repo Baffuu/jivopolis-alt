@@ -53,7 +53,7 @@ class RequireBetaFilter(BoundFilter):
         user: aiogram.types.User = None
     ):
         if (
-            (self.is_beta and rank > BETATEST_MINIMUM_RANK)
+            (self.is_beta and rank >= BETATEST_MINIMUM_RANK)
             or not self.is_beta
         ):
             return True

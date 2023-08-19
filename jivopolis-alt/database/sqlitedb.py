@@ -102,6 +102,7 @@ def create_userdata(cur: fyCursor) -> None:
     fox             INTEGER         DEFAULT 0               NOT NULL,
     gun             INTEGER         DEFAULT 0               NOT NULL,
     wolf            INTEGER         DEFAULT 0               NOT NULL,
+    parrot          INTEGER         DEFAULT 0               NOT NULL,
     vest            INTEGER         DEFAULT 0               NOT NULL,
     japanese_goblin INTEGER         DEFAULT 0               NOT NULL,
     ninja           INTEGER         DEFAULT 0               NOT NULL,
@@ -183,7 +184,22 @@ def create_userdata(cur: fyCursor) -> None:
     iron            INTEGER         DEFAULT 0               NOT NULL,
     gold            INTEGER         DEFAULT 0               NOT NULL,
     gem             INTEGER         DEFAULT 0               NOT NULL,
-    topaz           INTEGER         DEFAULT 0               NOT NULL
+    topaz           INTEGER         DEFAULT 0               NOT NULL,
+
+    cab_achieve     INTEGER         DEFAULT 0               NOT NULL,
+    shuttle_achieve INTEGER         DEFAULT 0               NOT NULL,
+    plane_achieve   INTEGER         DEFAULT 0               NOT NULL,
+    walk_achieve    INTEGER         DEFAULT 0               NOT NULL,
+    walk_progress   INTEGER         DEFAULT 0               NOT NULL,
+    luck_achieve    INTEGER        DEFAULT 0               NOT NULL,
+    jackpot_progress INTEGER        DEFAULT 0               NOT NULL,
+    jackpot_achieve INTEGER         DEFAULT 0               NOT NULL,
+    all_achieve     INTEGER         DEFAULT 0               NOT NULL,
+    auto_achieve    INTEGER         DEFAULT 0               NOT NULL,
+    mask_achieve    INTEGER         DEFAULT 0               NOT NULL,
+    sell_progress   INTEGER         DEFAULT 0               NOT NULL,
+    sell_achieve    INTEGER         DEFAULT 0               NOT NULL,
+    tram_achieve    INTEGER         DEFAULT 0               NOT NULL
 )
 """)
 
@@ -242,7 +258,8 @@ def create_clandata(cur: fyCursor) -> None:
     build_pharmacy  INTEGER         DEFAULT 0               NOT NULL,
     build_farm      INTEGER         DEFAULT 0               NOT NULL,
     cows            INTEGER         DEFAULT 0               NOT NULL,
-    last_lootbox    DATETIME        DEFAULT 0               NOT NULL
+    last_lootbox    DATETIME        DEFAULT 0               NOT NULL,
+    last_withdrawal DATETIME        DEFAULT 0               NOT NULL
 )
     """)
 
