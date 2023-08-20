@@ -18,6 +18,7 @@ from ..misc.config import (
     levelrange, ADMINS,
     clanitems
 )
+from ..misc.constants import OfficialChats
 
 from aiogram.types import (
     InlineKeyboardButton,
@@ -47,8 +48,7 @@ async def get_process(user_id: int | str) -> str:
             cur.update("userdata").set(process="login").where(
                 user_id=user_id).commit()
             return "login"
-        else:
-            return ""
+        return ""
 
 
 async def can_interact(user_id: int | str) -> bool:
@@ -140,15 +140,6 @@ async def check(user_id: int | str, chat_id: int | str) -> None | Message:
                         f"<i>&#128305; Теперь ваш уровень в Живополисе: <b>{index}</b>\nПоздравляем!\n{description}</i>")
                 except Exception:
                     return await bot.send_message(chat_id, f"<i>&#128305; Теперь ваш уровень в Живополисе: <b>{index}</b>\nПоздравляем!\n{description}</i>")
-            '''
-            elif xp>=points and xp<levelrange[levelrange.index(i)] and lvl!=index:
-                cur.update("userdata").set(level=levelrange.index(i)).where(user_id=user_id).commit()
-                conn.commit()
-                try:
-                    return await bot.send_message(user_id, f"<i>&#128305; Теперь ваш уровень в Живополисе: <b>{index}</b>\nПоздравляем!\n{leveldesc[index]}</i>")
-                except Exception:
-                    return await bot.send_message(chat_id, f"<i>&#128305; Теперь ваш уровень в Живополисе: <b>{index}</b>\nПоздравляем!\n{leveldesc[index]}</i>")
-            '''
 
     except Exception as e:
         logger.exception(e)
@@ -403,7 +394,6 @@ async def achieve(user_id: int | str, chat_id : int | str, achievement: str) -> 
     money = achievement_data.money_reward
     points = achievement_data.xp_reward
     progress = achievement_data.progress
-    min_progress = achievement_data.completion_progress
     link = await get_embedded_link(user_id)
     print(achievement, progress)
 
@@ -411,7 +401,7 @@ async def achieve(user_id: int | str, chat_id : int | str, achievement: str) -> 
         cur.select(progress, "userdata").where(user_id=user_id).one()
         cur.update("userdata").add(**{progress: 1}).where(user_id=user_id).commit()
         current_progress = cur.select(progress, "userdata").where(user_id=user_id).one()
-        if current_progress < min_progress:
+        if current_progress < achievement_data.completion_progress:
             return
 
     cur.select(achievement, "userdata").where(user_id=user_id).one()
@@ -424,13 +414,10 @@ async def achieve(user_id: int | str, chat_id : int | str, achievement: str) -> 
         cur.update("userdata").add(xp=points).where(user_id=user_id).commit()
 
     chat = await bot.get_chat(chat_id)
-    if chat.type == "private":
-        await bot.send_message(chat_id, f"<i>У вас новое достижение: <b>{name}</b>\n{desc}. \nВаша награда: <b>${money}</b> и 💡 <b>{points}</b> очков</i>")
-    else:
-        await bot.send_message(chat_id, f"<i><b>{link}</b>, у вас новое достижение: <b>{name}</b>\n{desc}. \nВаша награда: <b>${money}</b> и 💡 <b>{points}</b> очков</i>")
+    mention = "У вас новое достижение" if chat.type == "private" else f"<b>{link}</b>, у вас новое достижение"
+    await bot.send_message(chat_id, f"<i>{mention}: <b>{name}</b>\n{desc}. \nВаша награда: <b>${money}</b> и 💡 <b>{points}</b> очков</i>")
     
-    special_reward = achievement_data.special_reward
-    if special_reward:
+    if special_reward := achievement_data.special_reward:
         item = ITEMS[special_reward]
         item_name = item.ru_name
         emoji = item.emoji

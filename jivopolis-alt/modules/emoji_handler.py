@@ -60,9 +60,8 @@ async def dice_handler(message: Message):
             clan_id=message.chat.id).one()
 
         if count == 1:
-            dice = cur.select("filter_dice", "clandata").where(
-                clan_id=message.chat.id).one()
-            if dice:
+            if cur.select("filter_dice", "clandata").where(
+                    clan_id=message.chat.id).one():
                 with contextlib.suppress(Exception):
                     return await message.delete()
 

@@ -167,7 +167,7 @@ async def unmute_member(message: Message) -> None:
 
     try:
         permissions = ChatPermissions(
-            *[True for i in range(8)]
+            *[True for _ in range(8)]
         )
         await bot.restrict_chat_member(chat_id, other_id,
                                        permissions)
@@ -259,8 +259,7 @@ async def promote_member(message: Message, title_only: bool = False) -> None:
             await bot.promote_chat_member(
                 chat_id, other_id, False, True)
         await bot.set_chat_administrator_custom_title(
-            chat_id, other_id, custom_title=title if title else
-            "Модератор чата"
+            chat_id, other_id, custom_title=title or "Модератор чата"
         )
 
         await message.reply_to_message.reply(
@@ -364,9 +363,9 @@ async def moderate(message: Message) -> None:
     chat_id = message.chat.id
     text = message.text.split(" ", maxsplit=2)
     if re.fullmatch(r'!moderate<[-,0-9]+>', text[0]):
-        id = text[0].replace("!moderate<", "")[:-1]
+        provided_chat_id = text[0].replace("!moderate<", "")[:-1]
         try:
-            chat = await bot.get_chat(int(id))
+            chat = await bot.get_chat(int(provided_chat_id))
             chat_id = chat.id
         except Exception:
             return await message.reply(
@@ -450,7 +449,7 @@ async def moderate(message: Message) -> None:
                 permissions = (
                     ChatPermissions(True) if 't' in flags else
                     ChatPermissions(
-                        *[True for i in range(8)]
+                        *[True for _ in range(8)]
                     )
                 )
                 await bot.set_chat_permissions(
@@ -469,9 +468,7 @@ async def moderate(message: Message) -> None:
                     '😨 <i>Неизвестная команда</i>',
                     reply_markup=markup
                 )
-        reply_message = (
-            message.reply_to_message if message.reply_to_message else message
-        )
+        reply_message = message.reply_to_message or message
         await reply_message.reply(
             '<i>🤔 Действие выполнено</i>'
         )
