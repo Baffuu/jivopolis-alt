@@ -1089,7 +1089,7 @@ async def gps_transport(call: CallbackQuery, place: str):
     )
 
     if text == '':
-        return await call.answer(
+        await call.answer(
             text='😨 Такой местности, видимо, не существует.\n'
                  'Если вы считаете, что это ошибка, обратитесь '
                  'в Приёмную',

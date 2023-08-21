@@ -89,6 +89,8 @@ def create_userdata(cur: fyCursor) -> None:
     gears_today     INTEGER         DEFAULT 0               NOT NULL,
     task_message    INTEGER         DEFAULT 0               NOT NULL,
     last_milk       DATETIME        DEFAULT 0               NOT NULL,
+    last_fish       DATETIME        DEFAULT 0               NOT NULL,
+    last_mine       DATETIME        DEFAULT 0               NOT NULL,
 
     fyCoin          INTEGER         DEFAULT 0               NOT NULL,
     Mithereum       INTEGER         DEFAULT 0               NOT NULL,
@@ -179,6 +181,15 @@ def create_userdata(cur: fyCursor) -> None:
     hamster         INTEGER         DEFAULT 0               NOT NULL,
     fan             INTEGER         DEFAULT 0               NOT NULL,
     pickaxe         INTEGER         DEFAULT 0               NOT NULL,
+    fishing_rod     INTEGER         DEFAULT 0               NOT NULL,
+    beaver          INTEGER         DEFAULT 0               NOT NULL,
+    penguin         INTEGER         DEFAULT 0               NOT NULL,
+    seashell        INTEGER         DEFAULT 0               NOT NULL,
+    blue_fish       INTEGER         DEFAULT 0               NOT NULL,
+    tropical_fish   INTEGER         DEFAULT 0               NOT NULL,
+    blowfish        INTEGER         DEFAULT 0               NOT NULL,
+    shrimp          INTEGER         DEFAULT 0               NOT NULL,
+    fried_shrimp    INTEGER         DEFAULT 0               NOT NULL,
 
     cobble          INTEGER         DEFAULT 0               NOT NULL,
     iron            INTEGER         DEFAULT 0               NOT NULL,
@@ -191,7 +202,7 @@ def create_userdata(cur: fyCursor) -> None:
     plane_achieve   INTEGER         DEFAULT 0               NOT NULL,
     walk_achieve    INTEGER         DEFAULT 0               NOT NULL,
     walk_progress   INTEGER         DEFAULT 0               NOT NULL,
-    luck_achieve    INTEGER        DEFAULT 0               NOT NULL,
+    luck_achieve    INTEGER         DEFAULT 0               NOT NULL,
     jackpot_progress INTEGER        DEFAULT 0               NOT NULL,
     jackpot_achieve INTEGER         DEFAULT 0               NOT NULL,
     all_achieve     INTEGER         DEFAULT 0               NOT NULL,
@@ -199,7 +210,9 @@ def create_userdata(cur: fyCursor) -> None:
     mask_achieve    INTEGER         DEFAULT 0               NOT NULL,
     sell_progress   INTEGER         DEFAULT 0               NOT NULL,
     sell_achieve    INTEGER         DEFAULT 0               NOT NULL,
-    tram_achieve    INTEGER         DEFAULT 0               NOT NULL
+    tram_achieve    INTEGER         DEFAULT 0               NOT NULL,
+    fish_achieve    INTEGER         DEFAULT 0               NOT NULL,
+    fish_progress   INTEGER         DEFAULT 0               NOT NULL
 )
 """)
 

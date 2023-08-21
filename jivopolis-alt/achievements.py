@@ -49,6 +49,18 @@ ACHIEVEMENTS = {
         progress="sell_progress",
         completion_progress=10
     ),
+    'fish_achieve': Achievement(
+        name='fish_achieve',
+        ru_name='🐚 Охотник за сокровищами',
+        description='Получите 3 ракушки в результате рыбалок. Рыбачить '
+                    'можно в посёлке Морской',
+        category='👾 Игровой процесс',
+        money_reward=400,
+        xp_reward=27,
+        progress="fish_progress",
+        completion_progress=3,
+        special_reward="beaver"
+    ),
     'luck_achieve': Achievement(
         name='luck_achieve',
         ru_name='🍀 Удача в придачу',

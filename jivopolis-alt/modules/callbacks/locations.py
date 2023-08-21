@@ -1,8 +1,11 @@
 import contextlib
 import random
 import asyncio
+from datetime import datetime
+import pytz
 
 from ...database import cur
+from ...database.functions import achieve
 
 from aiogram.types import (
     InlineKeyboardButton,
@@ -15,6 +18,7 @@ from ...misc import current_time, get_time_units
 from ...misc.config import countries, capitals
 
 from ...resources import RESOURCES
+from ...items import ITEMS
 
 
 async def farm(call: CallbackQuery):
@@ -137,8 +141,8 @@ async def mineshaft(call: CallbackQuery):
 
     await call.message.answer(
         '<i>⛏ <b>Добро пожаловать в Шахту!</b>\n\n'
-        'Здесь вы можете подоить свою корову и получить молоко. '
-        'Процесс добычи занимает не более 1 минуту, при этом у вас '
+        'Здесь вы можете копать полезные материалы. '
+        'Процесс добычи занимает не более 1 минуты, при этом у вас '
         'забирается одна кирка. А взамен вы получаете полезные '
         'ископаемые для продажи и опыт.\n\n'
         f'⛏ У вас <b>{pickaxe}</b> кирок</i>',
@@ -166,6 +170,12 @@ async def go_mining(call: CallbackQuery):
                 show_alert=True
             )
 
+    if current_time() - cur.select("last_mine", "userdata").where(
+            user_id=user_id).one() < 60:
+        return await call.answer(
+            "😠 Пользоваться шахтой можно не чаще чем раз в минуту"
+        )
+
     if pickaxe < 1:
         return await call.answer(
                 text=(
@@ -180,6 +190,8 @@ async def go_mining(call: CallbackQuery):
     )
 
     cur.update("userdata").add(pickaxe=-1).where(user_id=user_id).commit()
+    cur.update("userdata").add(last_mine=current_time()).where(
+        user_id=user_id).commit()
     await asyncio.sleep(random.randint(30, 60))
 
     text = ''
@@ -395,20 +407,19 @@ async def play_gears(call: CallbackQuery):
         reply_markup=markup
     )
 
-    for seconds in range(0, 10):
+    for seconds in range(10):
         if (
             cur.select("task_message", "userdata").where(
-                user_id=user_id).one() != task_message['message_id']
+                user_id=user_id).one() == task_message['message_id']
         ):
-            await task_message.edit_text(
-                f'<i>{question}\n\nОтветьте на вопрос, пока все квадратики не '
-                f'заполнятся:\n{"🔳"*seconds}{"⬜"*(9-seconds)}\n\n'
-                '💲 Награда за верный ответ: <b>$15</b></i>',
-                reply_markup=markup
-            )
-            await asyncio.sleep(1)
-        else:
             return
+        await task_message.edit_text(
+            f'<i>{question}\n\nОтветьте на вопрос, пока все квадратики не '
+            f'заполнятся:\n{"🔳"*seconds}{"⬜"*(9-seconds)}\n\n'
+            '💲 Награда за верный ответ: <b>$15</b></i>',
+            reply_markup=markup
+        )
+        await asyncio.sleep(1)
 
     if (
         cur.select("task_message", "userdata").where(
@@ -680,20 +691,19 @@ async def play_math(call: CallbackQuery):
         reply_markup=markup
     )
 
-    for seconds in range(0, 10):
+    for seconds in range(10):
         if (
             cur.select("task_message", "userdata").where(
-                user_id=user_id).one() != task_message['message_id']
+                user_id=user_id).one() == task_message['message_id']
         ):
-            await task_message.edit_text(
-                f'<i>{question}\n\nОтветьте на вопрос, пока все квадратики не '
-                f'заполнятся:\n{"🔳"*seconds}{"⬜"*(9-seconds)}\n\n'
-                '💡 Награда за верный ответ: <b>4 очка</b></i>',
-                reply_markup=markup
-            )
-            await asyncio.sleep(1)
-        else:
             return
+        await task_message.edit_text(
+            f'<i>{question}\n\nОтветьте на вопрос, пока все квадратики не '
+            f'заполнятся:\n{"🔳"*seconds}{"⬜"*(9-seconds)}\n\n'
+            '💡 Награда за верный ответ: <b>4 очка</b></i>',
+            reply_markup=markup
+        )
+        await asyncio.sleep(1)
 
     if (
         cur.select("task_message", "userdata").where(
@@ -892,10 +902,7 @@ async def play_geo(call: CallbackQuery):
     if random.uniform(0, 1) < 0.4:
         capital = country
     else:
-        if country >= 6:
-            lower_border = country - 6
-        else:
-            lower_border = 0
+        lower_border = country - 6 if country >= 6 else 0
         if country <= len(countries) - 7:
             upper_border = country + 6
         else:
@@ -924,20 +931,19 @@ async def play_geo(call: CallbackQuery):
         reply_markup=markup
     )
 
-    for seconds in range(0, 7):
+    for seconds in range(7):
         if (
             cur.select("task_message", "userdata").where(
-                user_id=user_id).one() != task_message['message_id']
+                user_id=user_id).one() == task_message['message_id']
         ):
-            await task_message.edit_text(
-                f'<i>{question}\n\nОтветьте на вопрос, пока все квадратики не '
-                f'заполнятся:\n{"🔳"*seconds}{"⬜"*(6-seconds)}\n\n'
-                '💡 Награда за верный ответ: <b>4 очка</b></i>',
-                reply_markup=markup
-            )
-            await asyncio.sleep(1)
-        else:
             return
+        await task_message.edit_text(
+            f'<i>{question}\n\nОтветьте на вопрос, пока все квадратики не '
+            f'заполнятся:\n{"🔳"*seconds}{"⬜"*(6-seconds)}\n\n'
+            '💡 Награда за верный ответ: <b>4 очка</b></i>',
+            reply_markup=markup
+        )
+        await asyncio.sleep(1)
 
     if (
         cur.select("task_message", "userdata").where(
@@ -1089,3 +1095,158 @@ async def answer_geo(call: CallbackQuery,
         reply_markup=markup
     )
     await call.answer('Раунд закончен')
+
+
+async def fishing(call: CallbackQuery):
+    '''
+    Callback for fishing menu
+
+    :param call - callback:
+    '''
+    user_id = call.from_user.id
+    rods = cur.select("fishing_rod", "userdata").where(
+        user_id=user_id).one()
+    current_place = cur.select("current_place", "userdata").where(
+        user_id=user_id).one()
+
+    if current_place != 'Морской':
+        return await call.answer(
+                text=(
+                    '🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
+                    'местности'
+                ),
+                show_alert=True
+            )
+
+    markup = InlineKeyboardMarkup(row_width=1)
+    markup.add(
+        InlineKeyboardButton(
+            text='🛍 Купить снасти',
+            callback_data='rod_shop'
+        ),
+        InlineKeyboardButton(
+            text='🎣 Рыбачить',
+            callback_data='go_fishing'
+        ),
+        InlineKeyboardButton(
+            text='◀ Вернуться в город',
+            callback_data='city'
+        )
+    )
+
+    await call.message.answer(
+        '<i>🐟 <b>Добро пожаловать на рыбалку!</b>\n\n'
+        'Здесь вы можете поймать еду или сокровища, если повезёт. '
+        'Процесс рыбалки занимает не более 30 секунд, при этом у вас '
+        'забирается одна удочка. А взамен вы получаете полезные '
+        'предметы и опыт.\n\n'
+        f'🎣 У вас <b>{rods}</b> удочек</i>',
+        reply_markup=markup
+    )
+
+
+async def go_fishing(call: CallbackQuery):
+    '''
+    Callback for fishing
+
+    :param call - callback:
+    '''
+    user_id = call.from_user.id
+    rod = cur.select("fishing_rod", "userdata").where(
+        user_id=user_id).one()
+    current_place = cur.select("current_place", "userdata").where(
+        user_id=user_id).one()
+
+    if current_place != 'Морской':
+        return await call.answer(
+                text=(
+                    '🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
+                    'местности'
+                ),
+                show_alert=True
+            )
+
+    if current_time() - cur.select("last_fish", "userdata").where(
+            user_id=user_id).one() < 60:
+        return await call.answer(
+            "😠 Рыбачить можно не чаще чем раз в минуту"
+        )
+
+    if rod < 1:
+        return await call.answer(
+                text=(
+                    '❌ У вас нет удочек. Их можно купить в магазине рядом'
+                ),
+                show_alert=True
+            )
+
+    await call.answer(
+        text='🎣 Рыбалка началась... Подождите 15-30 секунд',
+        show_alert=True
+    )
+
+    cur.update("userdata").add(fishing_rod=-1).where(user_id=user_id).commit()
+    cur.update("userdata").set(last_fish=current_time()).where(
+        user_id=user_id).commit()
+    await asyncio.sleep(random.randint(15, 30))
+
+    text = ''
+    luck = 0
+    for key in ITEMS:
+        item = ITEMS[key]
+        if "FISHING" not in item.tags:
+            continue
+        chance = float(item.tags[1].replace("CHANCE_", "")) / 100
+        current_hour = datetime.now(pytz.timezone('Europe/Minsk')).hour
+        if random.uniform(0, 0.6 if current_hour == 14 else 1) < chance:
+            if random.randint(0, 1) == 0:
+                continue
+            name = item.ru_name
+            emoji = item.emoji
+            text += f'\n{emoji} {name}'
+            if chance < 5:
+                luck = 2
+            elif chance < 50:
+                luck = 1
+            cur.update("userdata").add(**{key: 1}).where(
+                user_id=user_id).commit()
+            if key == "seashell":
+                await achieve(
+                    user_id, call.message.chat.id, "fish_achieve"
+                )
+
+    points = random.randint(1, 2)
+    cur.update("userdata").add(xp=points).where(
+                user_id=user_id).commit()
+
+    if text == '':
+        text = (
+            '😓 Вы не поймали ничего.'
+        )
+    else:
+        match (luck):
+            case 0:
+                additional_text = 'Вам сегодня не везёт. Вот, что вы поймали:'
+            case 1:
+                additional_text = 'Вы сегодня в ударе! Вот, что вы поймали:'
+            case 2:
+                additional_text = 'Вам сильно повезло! Вот, что вы поймали:'
+        text = f'<b>{additional_text}</b>\n{text}'
+
+    markup = InlineKeyboardMarkup(row_width=1)
+    markup.add(
+        InlineKeyboardButton(
+            text='🎣 Заново',
+            callback_data='go_fishing'
+        ),
+        InlineKeyboardButton(
+            text='◀ Вернуться',
+            callback_data='fishing'
+        )
+    )
+    with contextlib.suppress(Exception):
+        await call.message.delete()
+    await call.message.answer(
+        f'<i>{text}\n\n💡 Полученные очки опыта: <b>{points}</b></i>',
+        reply_markup=markup
+    )

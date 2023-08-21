@@ -254,6 +254,13 @@ async def callback_handler(call: CallbackQuery):
                     items=['pickaxe x1', 'pickaxe x2', 'pickaxe x5', 'pickaxe x10'],
                     text='⛏ Добро пожаловать в магазин шахтёра! Здесь вы можете купить себе несколько кирок для шахты'
                 )
+            case 'rod_shop':
+                await shop(
+                    call,
+                    place='Морской',
+                    items=['fishing_rod x1', 'fishing_rod x2', 'fishing_rod x5', 'fishing_rod x10'],
+                    text='🎣 Добро пожаловать в магазин снастей! Здесь вы можете купить пару удочек для рыбалки'
+                )
 
             case 'metro_tickets':
                 await shop(
@@ -305,6 +312,10 @@ async def callback_handler(call: CallbackQuery):
                 await go_mining(call)
             case 'resource_market':
                 await resource_market(call)
+            case 'fishing':
+                await fishing(call)
+            case 'go_fishing':
+                await go_fishing(call)
             case 'factory':
                 await factory(call)
             case 'play_gears':

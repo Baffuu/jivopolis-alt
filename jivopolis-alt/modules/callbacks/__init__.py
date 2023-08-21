@@ -128,7 +128,9 @@ from .locations import (
     play_math,
     answer_math,
     play_geo,
-    answer_geo
+    answer_geo,
+    fishing,
+    go_fishing
 )
 
 from .clans import (
@@ -292,6 +294,8 @@ __all__ = [
     "mineshaft",
     "go_mining",
     "resource_market",
+    "fishing",
+    "go_fishing",
     "factory",
     "play_gears",
     "answer_gears",

@@ -50,11 +50,12 @@ async def get_embedded_link(
 async def get_embedded_clan_link(
     clan_id: str | int
 ) -> str:
-    type = cur.select("clan_type", "clandata").where(clan_id=clan_id).one()
+    clan_type = cur.select("clan_type", "clandata").where(
+        clan_id=clan_id).one()
     name = cur.select("clan_name", "clandata").where(clan_id=clan_id).one()
     link = cur.select("link", "clandata").where(clan_id=clan_id).one()
     return (
-        f"<a href='{link}'>{name}</a>" if type == 'public' else name
+        f"<a href='{link}'>{name}</a>" if clan_type == 'public' else name
     )
 
 
@@ -252,6 +253,11 @@ def get_building(place: str) -> InlineKeyboardButton | None:
             button = InlineKeyboardButton(
                 text="⛏ Магазин шахтёра",
                 callback_data="pickaxe_shop"
+            )
+        case "Морской":
+            button = InlineKeyboardButton(
+                text="🎣 Рыболовная тоня",
+                callback_data="fishing"
             )
         case "Генерала Шелби":
             button = InlineKeyboardButton(
