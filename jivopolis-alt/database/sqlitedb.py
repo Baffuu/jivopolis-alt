@@ -91,6 +91,7 @@ def create_userdata(cur: fyCursor) -> None:
     last_milk       DATETIME        DEFAULT 0               NOT NULL,
     last_fish       DATETIME        DEFAULT 0               NOT NULL,
     last_mine       DATETIME        DEFAULT 0               NOT NULL,
+    last_proc       DATETIME        DEFAULT 0               NOT NULL,
 
     fyCoin          INTEGER         DEFAULT 0               NOT NULL,
     Mithereum       INTEGER         DEFAULT 0               NOT NULL,
@@ -192,6 +193,7 @@ def create_userdata(cur: fyCursor) -> None:
     fried_shrimp    INTEGER         DEFAULT 0               NOT NULL,
 
     cobble          INTEGER         DEFAULT 0               NOT NULL,
+    coal            INTEGER         DEFAULT 0               NOT NULL,
     iron            INTEGER         DEFAULT 0               NOT NULL,
     gold            INTEGER         DEFAULT 0               NOT NULL,
     gem             INTEGER         DEFAULT 0               NOT NULL,
@@ -212,7 +214,8 @@ def create_userdata(cur: fyCursor) -> None:
     sell_achieve    INTEGER         DEFAULT 0               NOT NULL,
     tram_achieve    INTEGER         DEFAULT 0               NOT NULL,
     fish_achieve    INTEGER         DEFAULT 0               NOT NULL,
-    fish_progress   INTEGER         DEFAULT 0               NOT NULL
+    fish_progress   INTEGER         DEFAULT 0               NOT NULL,
+    proc_achieve    INTEGER         DEFAULT 0               NOT NULL
 )
 """)
 

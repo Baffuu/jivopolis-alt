@@ -130,7 +130,9 @@ from .locations import (
     play_geo,
     answer_geo,
     fishing,
-    go_fishing
+    go_fishing,
+    resource_factory,
+    process_resources
 )
 
 from .clans import (
@@ -296,6 +298,8 @@ __all__ = [
     "resource_market",
     "fishing",
     "go_fishing",
+    "resource_factory",
+    "process_resources",
     "factory",
     "play_gears",
     "answer_gears",

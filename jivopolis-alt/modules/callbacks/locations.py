@@ -173,7 +173,8 @@ async def go_mining(call: CallbackQuery):
     if current_time() - cur.select("last_mine", "userdata").where(
             user_id=user_id).one() < 60:
         return await call.answer(
-            "😠 Пользоваться шахтой можно не чаще чем раз в минуту"
+            "😠 Пользоваться шахтой можно не чаще чем раз в минуту",
+            show_alert=True
         )
 
     if pickaxe < 1:
@@ -196,18 +197,18 @@ async def go_mining(call: CallbackQuery):
 
     text = ''
     luck = 0
-    for resource in RESOURCES:
-        name = RESOURCES[resource].ru_name
-        chance = RESOURCES[resource].chance
-        maximum = RESOURCES[resource].maximum
-        if random.uniform(0, 1) < chance:
-            amount = random.randint(1, maximum)
-            text += f'\n{name} - <b>{amount}</b>'
-            if resource in ['iron', 'gold']:
+    for key in RESOURCES:
+        resource = RESOURCES[key]
+        if not resource.chance:
+            continue
+        if random.uniform(0, 1) < resource.chance:
+            amount = random.randint(1, resource.maximum)
+            text += f'\n{resource.ru_name} - <b>{amount}</b>'
+            if key in ['iron', 'gold']:
                 luck = 1
-            elif resource in ['gem', 'topaz']:
+            elif key in ['gem', 'topaz']:
                 luck = 2
-            cur.update("userdata").add(**{resource: amount}).where(
+            cur.update("userdata").add(**{key: amount}).where(
                 user_id=user_id).commit()
 
     points = random.randint(2, 4)
@@ -1242,6 +1243,145 @@ async def go_fishing(call: CallbackQuery):
         InlineKeyboardButton(
             text='◀ Вернуться',
             callback_data='fishing'
+        )
+    )
+    with contextlib.suppress(Exception):
+        await call.message.delete()
+    await call.message.answer(
+        f'<i>{text}\n\n💡 Полученные очки опыта: <b>{points}</b></i>',
+        reply_markup=markup
+    )
+
+
+async def resource_factory(call: CallbackQuery):
+    '''
+    Callback for resource factory menu
+
+    :param call - callback:
+    '''
+    user_id = call.from_user.id
+    current_place = cur.select("current_place", "userdata").where(
+        user_id=user_id).one()
+
+    if current_place != 'Уголь':
+        return await call.answer(
+                text=(
+                    '🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
+                    'местности'
+                ),
+                show_alert=True
+            )
+
+    markup = InlineKeyboardMarkup(row_width=1)
+    markup.add(
+        InlineKeyboardButton(
+            text='🔁 Начать переработку',
+            callback_data='process_resources'
+        ),
+        InlineKeyboardButton(
+            text='◀ Вернуться в город',
+            callback_data='city'
+        )
+    )
+
+    cobble = cur.select("cobble", "userdata").where(user_id=user_id).one()
+    balance = cur.select("balance", "userdata").where(user_id=user_id).one()
+    await call.message.answer(
+        '<i>🏭 <b>Добро пожаловать на перерабатывающий завод!</b>\n\n'
+        'Здесь вы можете переработать булыжник, добытый в шахте, в '
+        'более полезные материалы, например железо, золото и уголь.'
+        '\nМожно переработать ровно 100 единиц булыжника за раз, это стоит'
+        ' <b>$200</b> и длится 100 секунд\n\n'
+        f'У вас <b>{cobble}</b> единиц булыжника и <b>${balance}</b></i>',
+        reply_markup=markup
+    )
+
+
+async def process_resources(call: CallbackQuery):
+    '''
+    Callback for fishing
+
+    :param call - callback:
+    '''
+    user_id = call.from_user.id
+    current_place = cur.select("current_place", "userdata").where(
+        user_id=user_id).one()
+
+    if current_place != 'Уголь':
+        return await call.answer(
+                text=(
+                    '🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
+                    'местности'
+                ),
+                show_alert=True
+            )
+
+    if current_time() - cur.select("last_proc", "userdata").where(
+            user_id=user_id).one() < 120:
+        return await call.answer(
+            "😠 Пользоваться заводом можно не чаще чем раз в 2 минуты",
+            show_alert=True
+        )
+
+    balance = cur.select("balance", "userdata").where(
+        user_id=user_id).one()
+    cobble = cur.select("cobble", "userdata").where(
+        user_id=user_id).one()
+    if cobble < 100:
+        return await call.answer(
+                text=(
+                    '❌ У вас недостаточно булыжника'
+                ),
+                show_alert=True
+            )
+    elif balance < 200:
+        return await call.answer(
+                text=(
+                    '❌ У вас недостаточно денег на балансе'
+                ),
+                show_alert=True
+            )
+
+    await call.answer(
+        text='🏭 Переработка началась... Подождите 100 секунд',
+        show_alert=True
+    )
+
+    cur.update("userdata").set(last_proc=current_time()).where(
+        user_id=user_id).commit()
+    await asyncio.sleep(100)
+
+    coal = random.randint(1, 10)
+    text = f'😉 Обработка завершена. Получено:\n\nУголь - <b>{coal}</b>'
+    cur.update("userdata").add(coal=coal).where(user_id=user_id).commit()
+
+    points = random.randint(1, 2)
+    cur.update("userdata").add(xp=points).where(
+        user_id=user_id).commit()
+    cur.update("userdata").add(balance=-200).where(
+        user_id=user_id).commit()
+    cur.update("userdata").add(cobble=-100).where(
+        user_id=user_id).commit()
+
+    if iron := random.randint(0, 5):
+        text += f'\nЖелезо - <b>{iron}</b>'
+        cur.update("userdata").add(iron=iron).where(user_id=user_id).commit()
+    if random.randint(1, 15) == 1:
+        text += '\nЗолото - <b>1</b>'
+        cur.update("userdata").add(gold=1).where(user_id=user_id).commit()
+        await achieve(
+            user_id, call.message.chat.id, "proc_achieve"
+        )
+
+    markup = InlineKeyboardMarkup(row_width=1)
+    markup.add(
+        InlineKeyboardButton(
+            text='🏭 Обработать ещё',
+            callback_data='process_resources'
+        ),
+        InlineKeyboardButton(
+            text='◀ Вернуться',
+            callback_data='resource_factory'
         )
     )
     with contextlib.suppress(Exception):

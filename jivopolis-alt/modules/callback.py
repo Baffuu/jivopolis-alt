@@ -312,6 +312,10 @@ async def callback_handler(call: CallbackQuery):
                 await go_mining(call)
             case 'resource_market':
                 await resource_market(call)
+            case 'resource_factory':
+                await resource_factory(call)
+            case 'process_resources':
+                await process_resources(call)
             case 'fishing':
                 await fishing(call)
             case 'go_fishing':
