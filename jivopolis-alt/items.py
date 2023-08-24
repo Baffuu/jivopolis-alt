@@ -38,7 +38,8 @@ ITEMS = {
         emoji='🦭',
         cost=1000,
         type='mask',
-        description='очень любят баны'
+        description='очень любят баны',
+        tags=['OSCAR_SHOP_TOPAZ']
     ),
 
     'lootbox': Item(
@@ -56,7 +57,8 @@ ITEMS = {
         emoji='🐄',
         type='mask',
         type_param='can_get_milk',
-        description='даёт молоко, но только на ферме'
+        description='даёт молоко, но только на ферме',
+        tags=['OSCAR_SHOP_GOLD']
     ),
 
 

@@ -70,6 +70,7 @@ def create_userdata(cur: fyCursor) -> None:
     last_box        DATETIME        DEFAULT 0               NOT NULL,
     total_jackpots  INTEGER         DEFAULT 0               NOT NULL,
     last_gameclub   INTEGER         DEFAULT 0               NOT NULL,
+    oscar_purchases INTEGER         DEFAULT 0               NOT NULL,
 
     current_place   TEXT            DEFAULT \"Вокзальная\"  NOT NULL,
     line            INTEGER         DEFAULT 2               NOT NULL,
@@ -216,7 +217,8 @@ def create_userdata(cur: fyCursor) -> None:
     tram_achieve    INTEGER         DEFAULT 0               NOT NULL,
     fish_achieve    INTEGER         DEFAULT 0               NOT NULL,
     fish_progress   INTEGER         DEFAULT 0               NOT NULL,
-    proc_achieve    INTEGER         DEFAULT 0               NOT NULL
+    proc_achieve    INTEGER         DEFAULT 0               NOT NULL,
+    oscar_achieve   INTEGER         DEFAULT 0               NOT NULL
 )
 """)
 

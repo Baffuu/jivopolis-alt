@@ -12,11 +12,11 @@ from typing import Union, Optional
 
 from . import cur, conn
 from .. import bot, logger, get_embedded_link, get_link, get_mask, tglog, utils
-from ..misc import current_time, ITEMS, constants, ACHIEVEMENTS
+from ..misc import current_time, ITEMS, constants, ACHIEVEMENTS, RESOURCES
 from ..misc.config import (
     limited_items, leveldesc,
     levelrange, ADMINS,
-    clanitems
+    clanitems, oscar_levels
 )
 from ..misc.constants import OfficialChats
 
@@ -755,3 +755,81 @@ async def buy(call: CallbackQuery, item: str, user_id: int, cost: Optional[int] 
         cur.execute(f"UPDATE globaldata SET treasury=treasury+{cost*amount//2}"); conn.commit()
     else:
         await call.answer('🚫 У вас недостаточно денег', show_alert = True)
+
+
+async def buy_in_oscar_shop(call: CallbackQuery, item: str):
+    '''
+    Buy an item in Oscar's shop.
+    
+    :param call (aiogram.types.CallbackQuery) - callback:
+    :param item (str) - item that will be bought:
+    '''
+    user_id = call.from_user.id
+    if item not in ITEMS:
+        raise ValueError("no such item")
+    item_data = ITEMS[item]
+    if not item_data.tags[0].startswith("OSCAR_SHOP_"):
+        raise ValueError("this item isn't sold in Oscar's shop")
+    if cur.select("current_place", "userdata").where(
+            user_id=user_id).one() != "Попережье":
+        return await call.answer(
+                text=(
+                    '🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
+                    'местности'
+                ),
+                show_alert=True
+            )
+
+    currency = item_data.tags[0].replace("OSCAR_SHOP_", "")
+    if cur.select("oscar_purchases", "userdata").where(
+            user_id=user_id).one() < oscar_levels[currency]:
+        return await call.answer(
+            "😑 Вы ещё не достигли такого уровня в ларьке. "
+            "Покупайте больше товаров у дяди Оскара!"
+        )
+
+    cost = ITEMS[item].cost // RESOURCES[currency].cost
+    if not cost or cost < 0:
+        return
+
+    balance = cur.select(currency, "userdata").where(user_id=user_id).one()
+    if balance < cost:
+        await call.answer('😥 У вас недостаточно ресурсов', show_alert = True)
+
+        cur.update("userdata").add(**{item: 1}).where(user_id=user_id).commit()
+        cur.update("userdata").add(**{currency: -cost}).where(user_id=user_id).commit()
+
+        await call.answer(f'Покупка прошла успешно. Ваш баланс: ${balance-cost*amount}', show_alert = True)
+        await increase_oscar_level(call)
+
+
+async def increase_oscar_level(call: CallbackQuery):
+    '''
+    Increase Oscar's shop level if needed
+    
+    :param call (aiogram.types.CallbackQuery) - callback:
+    '''
+    user_id = call.from_user.id
+    cur.update("userdata").add(oscar_purchases=1).where(user_id=user_id).commit()
+    purchases = cur.select("oscar_purchases", "userdata").where(
+                    user_id=user_id).one()
+    for level in oscar_levels:
+        if oscar_levels[level] == purchases:
+            level_name = RESOURCES[level].ru_name
+            await call.message.answer(
+                "🥳 <i>Ваши отношения с дядей Оскаром улучшены до уровня "
+                f"<b>{level_name}</b></i>",
+                reply_markup=InlineKeyboardMarkup().add(
+                    cancel_button("👌 Хорошо")
+                )
+            )
+
+
+def cancel_button(text: str="◀ Назад", cancel_process: bool=False) -> InlineKeyboardButton:
+    '''
+    An inline button which deletes the call message.
+    '''
+    return InlineKeyboardButton(
+        text=text,
+        callback_data="cancel_process" if cancel_process else "cancel_action"
+    )
