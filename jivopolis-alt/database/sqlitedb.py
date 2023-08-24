@@ -92,6 +92,7 @@ def create_userdata(cur: fyCursor) -> None:
     last_fish       DATETIME        DEFAULT 0               NOT NULL,
     last_mine       DATETIME        DEFAULT 0               NOT NULL,
     last_proc       DATETIME        DEFAULT 0               NOT NULL,
+    fish_message    INTEGER         DEFAULT 0               NOT NULL,
 
     fyCoin          INTEGER         DEFAULT 0               NOT NULL,
     Mithereum       INTEGER         DEFAULT 0               NOT NULL,

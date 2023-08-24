@@ -320,6 +320,8 @@ async def callback_handler(call: CallbackQuery):
                 await fishing(call)
             case 'go_fishing':
                 await go_fishing(call)
+            case 'fish_result':
+                await fish_result(call)
             case 'factory':
                 await factory(call)
             case 'play_gears':

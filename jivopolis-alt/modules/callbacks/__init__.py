@@ -131,6 +131,7 @@ from .locations import (
     answer_geo,
     fishing,
     go_fishing,
+    fish_result,
     resource_factory,
     process_resources
 )
@@ -298,6 +299,7 @@ __all__ = [
     "resource_market",
     "fishing",
     "go_fishing",
+    "fish_result",
     "resource_factory",
     "process_resources",
     "factory",

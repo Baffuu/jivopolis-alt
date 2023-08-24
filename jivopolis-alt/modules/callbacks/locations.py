@@ -1170,7 +1170,8 @@ async def go_fishing(call: CallbackQuery):
     if current_time() - cur.select("last_fish", "userdata").where(
             user_id=user_id).one() < 60:
         return await call.answer(
-            "😠 Рыбачить можно не чаще чем раз в минуту"
+            "😠 Рыбачить можно не чаще чем раз в минуту",
+            show_alert=True
         )
 
     if rod < 1:
@@ -1189,7 +1190,32 @@ async def go_fishing(call: CallbackQuery):
     cur.update("userdata").add(fishing_rod=-1).where(user_id=user_id).commit()
     cur.update("userdata").set(last_fish=current_time()).where(
         user_id=user_id).commit()
-    await asyncio.sleep(random.randint(15, 30))
+    await asyncio.sleep(random.randint(13, 28))
+    msg = await call.message.answer(
+        "🐟 <i><b>Клюёт!</b> У вас есть 2 секунды, чтобы нажать на кнопку</i>",
+        reply_markup=InlineKeyboardMarkup().add(
+            InlineKeyboardButton(
+                text="🎣 Потянуть за удочку",
+                callback_data="fish_result"
+            )
+        )
+    )
+    await asyncio.sleep(2)
+    if cur.select("fish_message", "userdata").where(
+            user_id=user_id).one() != msg['message_id']:
+        await msg.edit_text("😥 <i>Добыча уплыла, вы не успели её поймать</i>")
+
+
+async def fish_result(call: CallbackQuery):
+    '''
+    Callback for fishing result.
+
+    :param call - callback:
+    '''
+    user_id = call.from_user.id
+
+    cur.update("userdata").set(fish_message=call.message.message_id).where(
+        user_id=user_id).commit()
 
     text = ''
     luck = 0
