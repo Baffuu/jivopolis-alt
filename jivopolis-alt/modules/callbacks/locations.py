@@ -15,7 +15,7 @@ from aiogram.types import (
 
 from ...misc import current_time, get_time_units
 
-from ...misc.config import countries, capitals
+from ...misc.config import countries, capitals, oscar_levels
 
 from ...resources import RESOURCES
 from ...items import ITEMS
@@ -1414,5 +1414,55 @@ async def process_resources(call: CallbackQuery):
         await call.message.delete()
     await call.message.answer(
         f'<i>{text}\n\n💡 Полученные очки опыта: <b>{points}</b></i>',
+        reply_markup=markup
+    )
+
+
+async def oscar_shop(call: CallbackQuery):
+    '''
+    Callback for Oscar's shop
+
+    :param call - callback:
+    '''
+    user_id = call.from_user.id
+    current_place = cur.select("current_place", "userdata").where(
+        user_id=user_id).one()
+
+    if current_place != 'Попережье':
+        return await call.answer(
+                text=(
+                    '🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
+                    'местности'
+                ),
+                show_alert=True
+            )
+
+    markup = InlineKeyboardMarkup(row_width=1)
+    purchases = cur.select("oscar_purchases", "userdata").where(
+        user_id=user_id).one()
+    for lvl in oscar_levels:
+        if purchases >= oscar_levels[lvl]:
+            level = RESOURCES[lvl].ru_name
+            markup.add(
+                InlineKeyboardButton(
+                    text=f"🛍 Отдел {level}",
+                    callback_data=f"oscar_dept_{lvl}"
+                )
+            )
+        else:
+            break
+
+    markup.add(
+        InlineKeyboardButton(
+            text='◀ Вернуться в город',
+            callback_data='city'
+        )
+    )
+
+    await call.message.answer(
+        '<i>👋 <b>Добро пожаловать в лавку дяди Оскара!</b>\n\n'
+        'Здесь вы можете купить некоторые полезные товары за ресурсы,'
+        ' добытые в шахте.\n\nУровень ваших отношений с дядей Оскаром: '
+        f'<b>{level}</b> (совершено <b>{purchases}</b> покупок)</i>',
         reply_markup=markup
     )

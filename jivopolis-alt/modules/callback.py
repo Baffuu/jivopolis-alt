@@ -340,6 +340,8 @@ async def callback_handler(call: CallbackQuery):
                 await play_math(call)
             case 'play_geo':
                 await play_geo(call)
+            case 'oscar_shop':
+                await oscar_shop(call)
             case ansmath if ansgears.startswith("answer_math "):
                 arguments = ansgears.split(' ')
                 await answer_math(
