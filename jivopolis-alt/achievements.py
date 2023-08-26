@@ -70,6 +70,15 @@ ACHIEVEMENTS = {
         money_reward=200,
         xp_reward=10
     ),
+    'oscar_achieve': Achievement(
+        name='oscar_achieve',
+        ru_name='🏆 Дайте мне Оскар',
+        description='Прокачайте свои отношения с Оскаром (владельцем лавки'
+                    ' в Попережье) до уровня Топаз',
+        category='👾 Игровой процесс',
+        money_reward=200,
+        xp_reward=17
+    ),
     'luck_achieve': Achievement(
         name='luck_achieve',
         ru_name='🍀 Удача в придачу',

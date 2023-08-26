@@ -134,7 +134,8 @@ from .locations import (
     fish_result,
     resource_factory,
     process_resources,
-    oscar_shop
+    oscar_shop,
+    oscar_dept
 )
 
 from .clans import (
@@ -312,6 +313,7 @@ __all__ = [
     "play_geo",
     "answer_geo",
     "oscar_shop",
+    "oscar_dept",
     "create_clan",
     "joinclan",
     "leaveclan",

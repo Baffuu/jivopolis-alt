@@ -5,7 +5,7 @@ from datetime import datetime
 import pytz
 
 from ...database import cur
-from ...database.functions import achieve
+from ...database.functions import achieve, cancel_button
 
 from aiogram.types import (
     InlineKeyboardButton,
@@ -1441,16 +1441,15 @@ async def oscar_shop(call: CallbackQuery):
     purchases = cur.select("oscar_purchases", "userdata").where(
         user_id=user_id).one()
     for lvl in oscar_levels:
-        if purchases >= oscar_levels[lvl]:
-            level = RESOURCES[lvl].ru_name
-            markup.add(
-                InlineKeyboardButton(
-                    text=f"🛍 Отдел {level}",
-                    callback_data=f"oscar_dept_{lvl}"
-                )
-            )
-        else:
+        if purchases < oscar_levels[lvl]:
             break
+        level = RESOURCES[lvl].ru_name
+        markup.add(
+            InlineKeyboardButton(
+                text=f"🛍 Отдел {level}",
+                callback_data=f"oscar_dept_{lvl}"
+            )
+        )
 
     markup.add(
         InlineKeyboardButton(
@@ -1464,5 +1463,60 @@ async def oscar_shop(call: CallbackQuery):
         'Здесь вы можете купить некоторые полезные товары за ресурсы,'
         ' добытые в шахте.\n\nУровень ваших отношений с дядей Оскаром: '
         f'<b>{level}</b> (совершено <b>{purchases}</b> покупок)</i>',
+        reply_markup=markup
+    )
+
+
+async def oscar_dept(call: CallbackQuery, dept: str):
+    '''
+    Callback for Oscar's shop department
+
+    :param call - callback:
+    :param dept - level name:
+    '''
+    user_id = call.from_user.id
+    current_place = cur.select("current_place", "userdata").where(
+        user_id=user_id).one()
+
+    if current_place != 'Попережье':
+        return await call.answer(
+                text=(
+                    '🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
+                    'местности'
+                ),
+                show_alert=True
+            )
+
+    if cur.select("oscar_purchases", "userdata").where(
+            user_id=user_id).one() < oscar_levels[dept]:
+        return await call.answer(
+            "😑 Вы ещё не достигли такого уровня в ларьке. "
+            "Покупайте больше товаров у дяди Оскара!"
+        )
+
+    level_name = RESOURCES[dept].ru_name
+    markup = InlineKeyboardMarkup(row_width=1)
+    oscar_items = filter(
+        lambda x: f"OSCAR_SHOP_{dept.upper()}" in ITEMS[x].tags,
+        ITEMS
+    )
+    for item in oscar_items:
+        cost = ITEMS[item].cost // RESOURCES[dept].cost
+        name = ITEMS[item].ru_name
+        emoji = ITEMS[item].emoji
+        markup.add(
+            InlineKeyboardButton(
+                f"{emoji} {name} - {level_name} x{cost}",
+                callback_data=f"oscar_buy_{item}"
+            )
+        )
+
+    markup.add(cancel_button())
+    count = cur.select(dept, "userdata").where(user_id=user_id).one()
+
+    await call.message.answer(
+        '<i>👋 <b>Добро пожаловать в лавку дяди Оскара!</b>\n'
+        f'Отдел <b>{level_name}</b>.\n\nЧто хотите купить? У вас '
+        f'<b>{count}</b> единиц ресурса {level_name}</i>',
         reply_markup=markup
     )

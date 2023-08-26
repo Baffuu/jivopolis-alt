@@ -780,7 +780,7 @@ async def buy_in_oscar_shop(call: CallbackQuery, item: str):
                 show_alert=True
             )
 
-    currency = item_data.tags[0].replace("OSCAR_SHOP_", "")
+    currency = item_data.tags[0].replace("OSCAR_SHOP_", "").lower()
     if cur.select("oscar_purchases", "userdata").where(
             user_id=user_id).one() < oscar_levels[currency]:
         return await call.answer(
@@ -794,13 +794,20 @@ async def buy_in_oscar_shop(call: CallbackQuery, item: str):
 
     balance = cur.select(currency, "userdata").where(user_id=user_id).one()
     if balance < cost:
-        await call.answer('😥 У вас недостаточно ресурсов', show_alert = True)
+        return await call.answer('😥 У вас недостаточно ресурсов', show_alert = True)
 
-        cur.update("userdata").add(**{item: 1}).where(user_id=user_id).commit()
-        cur.update("userdata").add(**{currency: -cost}).where(user_id=user_id).commit()
+    cur.update("userdata").add(**{item: 1}).where(user_id=user_id).commit()
+    cur.update("userdata").add(**{currency: -cost}).where(user_id=user_id).commit()
+    if ITEMS[item].type == 'car':
+        await achieve(
+            user_id, call.message.chat.id, 'auto_achieve'
+        )
 
-        await call.answer(f'Покупка прошла успешно. Ваш баланс: ${balance-cost*amount}', show_alert = True)
-        await increase_oscar_level(call)
+    await call.answer(
+        f'Покупка прошла успешно. У вас {balance-cost} единиц ресурса',
+        show_alert = True
+    )
+    await increase_oscar_level(call)
 
 
 async def increase_oscar_level(call: CallbackQuery):
@@ -816,7 +823,11 @@ async def increase_oscar_level(call: CallbackQuery):
     for level in oscar_levels:
         if oscar_levels[level] == purchases:
             level_name = RESOURCES[level].ru_name
-            await call.message.answer(
+            if level == 'topaz':
+                await achieve(
+                    user_id, call.message.chat.id, 'oscar_achieve'
+                )
+            return await call.message.answer(
                 "🥳 <i>Ваши отношения с дядей Оскаром улучшены до уровня "
                 f"<b>{level_name}</b></i>",
                 reply_markup=InlineKeyboardMarkup().add(

@@ -39,7 +39,7 @@ ITEMS = {
         cost=1000,
         type='mask',
         description='очень любят баны',
-        tags=['OSCAR_SHOP_TOPAZ']
+        tags=['OSCAR_SHOP_GOLD']
     ),
 
     'lootbox': Item(
@@ -47,7 +47,9 @@ ITEMS = {
         ru_name='Лутбокс',
         emoji='📦',
         type='lootbox',
-        description='в нём может быть что-то интересное'
+        cost=750,
+        description='в нём может быть что-то интересное',
+        tags=['OSCAR_SHOP_TOPAZ']
     ),
 
     'cow': Item(
@@ -142,7 +144,8 @@ ITEMS = {
         emoji='💊',
         cost=500,
         type='medicine',
-        description='принимайте, только если у вас есть рецепт от врача'
+        description='принимайте, только если у вас есть рецепт от врача',
+        tags=['OSCAR_SHOP_GOLD']
     ),
 
     'fireworks': Item(
@@ -611,7 +614,8 @@ ITEMS = {
         ru_name='Красная машина',
         cost=10000,
         type='car',
-        description='врум-врум'
+        description='врум-врум',
+        tags=['OSCAR_SHOP_GEM']
     ),
 
 
@@ -621,7 +625,8 @@ ITEMS = {
         ru_name='Синяя машина',
         cost=15000,
         type='car',
-        description='отличается от красной только ценой'
+        description='отличается от красной только ценой',
+        tags=['OSCAR_SHOP_GEM']
     ),
 
 
@@ -976,7 +981,8 @@ ITEMS = {
         ru_name='Пингвин',
         cost=900,
         type='mask',
-        description='нут-нут'
+        description='нут-нут',
+        tags=['OSCAR_SHOP_GOLD']
     ),
 
 

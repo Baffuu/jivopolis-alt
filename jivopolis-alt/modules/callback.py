@@ -7,7 +7,7 @@ from .. import bot, logger, Dispatcher, tglog, utils
 from ..misc import ITEMS
 from ..misc.config import SUPPORT_LINK, villages, trains, CITY, tramroute
 from ..database import cur
-from ..database.functions import check, profile, eat, current_time
+from ..database.functions import check, profile, eat, current_time, buy_in_oscar_shop
 from ..filters import RequireBetaFilter
 from aiogram.utils.exceptions import (
     MessageCantBeDeleted,
@@ -342,6 +342,10 @@ async def callback_handler(call: CallbackQuery):
                 await play_geo(call)
             case 'oscar_shop':
                 await oscar_shop(call)
+            case oscardept if oscardept.startswith('oscar_dept_'):
+                await oscar_dept(call, oscardept.replace('oscar_dept_', ''))
+            case oscarbuy if oscarbuy.startswith('oscar_buy_'):
+                await buy_in_oscar_shop(call, oscarbuy.replace('oscar_buy_', ''))
             case ansmath if ansgears.startswith("answer_math "):
                 arguments = ansgears.split(' ')
                 await answer_math(
