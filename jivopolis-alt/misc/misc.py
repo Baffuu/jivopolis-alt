@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from .config import intervals
 
 from typing import Union, Tuple, Optional
@@ -87,7 +87,8 @@ def get_mask(user_id: int | str) -> Union[str, None]:
 
 def current_time() -> float:
     '''returns current Unix time in seconds'''
-    return (datetime.now()-datetime.fromtimestamp(0)).total_seconds()
+    return (datetime.now(timezone.utc) -
+            datetime.fromtimestamp(0, timezone.utc)).total_seconds()
 
 
 def isinterval(type: str) -> bool:

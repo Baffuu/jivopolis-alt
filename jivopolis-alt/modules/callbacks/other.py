@@ -1,10 +1,14 @@
 import time
 import contextlib
 from math import floor
+from datetime import datetime, timezone
 from .traveling import state_balance
 
 from ... import bot, logger
 from ...database import cur, conn
+from ...database.functions import (
+    get_weather, str_weather, month, current_time, cancel_button
+)
 from ...misc.config import limited_items
 from ...misc import get_mask, get_link, OfficialChats, get_embedded_link, ITEMS
 
@@ -180,11 +184,13 @@ async def cellphone_menu(call: CallbackQuery) -> None:
     if phone < 1:
         return await call.answer(
             "Вам нужен телефон. Его можно купить в магазине на ул. Генерала "
-            "Шелби и одноимённой станции метро",
+            "Шелби и одноимённой станции метро или в торговом центре в "
+            "Максиграде",
             show_alert=True
         )
 
     markup = InlineKeyboardMarkup(row_width=1)
+    weather = str_weather(get_weather())
 
     markup.add(
         InlineKeyboardButton(
@@ -199,6 +205,59 @@ async def cellphone_menu(call: CallbackQuery) -> None:
             text="🚂 ЖивГорТранс: Билеты",
             callback_data="tickets"
         ),
+        InlineKeyboardButton(
+            text=f"{weather[0]} Прогноз погоды",
+            callback_data="weather_forecast"
+        ),
+        InlineKeyboardMarkup(
+            text="◀ Назад",
+            callback_data="cancel_action"
+        )
+    )
+
+    now = datetime.now(timezone.utc)
+
+    # a function that adds 0 to the beginning of a number
+    # if it has less than 2 digits
+    def f(x):
+        return x if len(str(x)) > 1 else f"0{x}"
+
+    str_date = f"{f(now.day)}.{f(now.month)}.{now.year}"
+    str_time = f"{f(now.hour)}:{f(now.minute)}"
+    await call.message.answer(
+        "<i>📱 Телефон - это удобная и современная вещь.\n\n"
+        f"Сейчас: <b>{str_time}</b> (UTC), <b>{str_date}</b>\n"
+        f"Погода в данный момент: <b>{weather}</b></i>",
+        reply_markup=markup
+    )
+
+
+async def radio_menu(call: CallbackQuery) -> None:
+    '''
+    Callback for radio menu
+
+    :param call - callback:
+    :param user_id:
+    '''
+    radio = cur.select("radio", "userdata").where(
+        user_id=call.from_user.id).one()
+
+    if radio < 1:
+        return await call.answer(
+            "Вам нужен приёмник. Его можно купить в магазине на ул. Генерала "
+            "Шелби и одноимённой станции метро или в торговом центре в "
+            "Максиграде",
+            show_alert=True
+        )
+
+    markup = InlineKeyboardMarkup(row_width=1)
+    weather = str_weather(get_weather())
+
+    markup.add(
+        InlineKeyboardButton(
+            text=f"1. {weather[0]} Прогноз погоды",
+            callback_data="weather_forecast"
+        ),
         InlineKeyboardMarkup(
             text="◀ Назад",
             callback_data="cancel_action"
@@ -206,8 +265,44 @@ async def cellphone_menu(call: CallbackQuery) -> None:
     )
 
     await call.message.answer(
-        "<i>📱 Телефон - это удобная и современная вещь</i>",
+        "<i>📻 К какой радиостанции хотите подключиться?</i>",
         reply_markup=markup
+    )
+
+
+async def weather_forecast(call: CallbackQuery) -> None:
+    '''
+    Callback for weather forecast phone app
+
+    :param user_id:
+    '''
+    phone = cur.select("phone+radio", "userdata").where(
+        user_id=call.from_user.id).one()
+
+    if phone < 1:
+        return await call.answer(
+            'Вам нужен телефон или радио. Их можно купить в магазине'
+            ' на ул. Генерала Шелби и одноимённой станции метро или в '
+            'торговом центре в Максиграде',
+            show_alert=True
+        )
+
+    weather_texts = ''
+    int_time = current_time()
+    for _ in range(6):
+        now = datetime.fromtimestamp(int_time)
+        weather_texts += (
+            f"\n<b>{now.day} {month(now.month)}</b> - "
+            f"{str_weather(get_weather(int_time))}"
+        )
+        int_time += 86400
+
+    await call.message.answer(
+        f"<i><b>Погода на ближайшие 7 дней:</b>\n{weather_texts}\n\n"
+        "<b>!!</b> Погода изменяется в 00:00 UTC каждый день</i>",
+        reply_markup=InlineKeyboardMarkup().add(
+            cancel_button()
+        )
     )
 
 

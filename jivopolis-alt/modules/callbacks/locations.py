@@ -1,11 +1,9 @@
 import contextlib
 import random
 import asyncio
-from datetime import datetime
-import pytz
 
 from ...database import cur
-from ...database.functions import achieve, cancel_button
+from ...database.functions import achieve, cancel_button, get_weather, Weather
 
 from aiogram.types import (
     InlineKeyboardButton,
@@ -1224,8 +1222,18 @@ async def fish_result(call: CallbackQuery):
         if "FISHING" not in item.tags:
             continue
         chance = float(item.tags[1].replace("CHANCE_", "")) / 100
-        current_hour = datetime.now(pytz.timezone('Europe/Minsk')).hour
-        if random.uniform(0, 0.6 if current_hour == 14 else 1) < chance:
+        match (get_weather()):
+            case Weather.SUNNY:
+                upper_bound = 0.9
+            case Weather.RAINING:
+                upper_bound = 0.75
+            case Weather.THUNDERSTORM:
+                upper_bound = 0.6
+            case Weather.HURRICANE:
+                upper_bound = 0.5
+            case _:
+                upper_bound = 1
+        if random.uniform(0, upper_bound) < chance:
             if random.randint(0, 1) == 0:
                 continue
             name = item.ru_name

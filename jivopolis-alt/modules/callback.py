@@ -138,7 +138,7 @@ async def callback_handler(call: CallbackQuery):
                 await shop(
                     call,
                     place=['Генерала Шелби', 'Площадь Максима'],
-                    items=['phone'],
+                    items=['phone', 'radio'],
                     text='📱 Добро пожаловать в магазин техники имени Шелби'
                 )
             case 'candy_shop':
@@ -364,8 +364,12 @@ async def callback_handler(call: CallbackQuery):
                 await my_reflink(call)
             case 'cellphone_menu':
                 await cellphone_menu(call)
+            case 'radio_menu':
+                await radio_menu(call)
             case 'delivery_app':
                 await delivery_menu(call)
+            case 'weather_forecast':
+                await weather_forecast(call)
             case 'central_market_menu':
                 await central_market_menu(call)
             case 'central_market_food':

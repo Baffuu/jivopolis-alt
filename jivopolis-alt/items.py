@@ -861,6 +861,16 @@ ITEMS = {
     ),
 
 
+    'radio': Item(
+        emoji='📻',
+        name='radio',
+        ru_name='Радиоприёмник',
+        cost=250,
+        type='radio',
+        description='если не хватает денег на смартфон'
+    ),
+
+
     'trolleytoken': Item(
         emoji='🚎',
         name='trolleytoken',

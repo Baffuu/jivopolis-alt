@@ -5,8 +5,9 @@
 import random
 import asyncio
 
-from datetime import datetime
+from datetime import datetime, timezone
 from math import floor
+from enum import Enum
 import sqlite3
 from typing import Union, Optional
 
@@ -844,3 +845,74 @@ def cancel_button(text: str="◀ Назад", cancel_process: bool=False) -> Inl
         text=text,
         callback_data="cancel_process" if cancel_process else "cancel_action"
     )
+
+
+Weather = Enum('Weather', ['SUNNY', 'CLOUDY', 'RAINING', 'SNOWY', 'THUNDERSTORM', 'HURRICANE'])
+
+
+def get_weather(time: int = -1) -> Weather:
+    '''
+    Get weather depending on given time.
+
+    :param time - time (current time by default):
+    '''
+    date_time = (
+        datetime.now(timezone.utc) if time == -1 else datetime.fromtimestamp(time)
+    )
+    weather_index = int(date_time.year * 0.1 + date_time.month + date_time.day) % 100
+    if weather_index % 3 == 0:
+        return Weather.CLOUDY
+    elif weather_index % 4 == 0:
+        return Weather.SNOWY if date_time.month in [1, 2, 12] else Weather.RAINING
+    elif weather_index % 5 == 0:
+        return Weather.THUNDERSTORM
+    elif weather_index % 7 == 0:
+        return Weather.HURRICANE
+    else:
+        return Weather.SUNNY
+
+
+def str_weather(weather: Weather) -> str:
+    match (weather):
+        case Weather.SUNNY:
+            return "☀ Ясно"
+        case Weather.CLOUDY:
+            return "⛅ Облачно"
+        case Weather.RAINING:
+            return "🌧 Дождь"
+        case Weather.SNOWY:
+            return "🌨 Снег"
+        case Weather.THUNDERSTORM:
+            return "⛈ Гроза"
+        case Weather.HURRICANE:
+            return "🌪 Ураган"
+
+
+def month(month_number: int) -> str:
+    match month_number:
+        case 1:
+            return "января"
+        case 2:
+            return "февраля"
+        case 3:
+            return "марта"
+        case 4:
+            return "апреля"
+        case 5:
+            return "мая"
+        case 6:
+            return "июня"
+        case 7:
+            return "июля"
+        case 8:
+            return "августа"
+        case 9:
+            return "сентября"
+        case 10:
+            return "октября"
+        case 11:
+            return "ноября"
+        case 12:
+            return "декабря"
+        case _:
+            return ""
