@@ -24,7 +24,7 @@ async def update():
 async def refill_market():
     lastfill = time.time() - cur.execute(
         "SELECT lastfill FROM globaldata"
-    ).fetchone()[0]
+    ).one()
 
     if lastfill < 86400:  # 1 day
         return
@@ -43,7 +43,7 @@ async def refill_market():
 async def update_crypto():
     lastupdate = time.time() - cur.execute(
         "SELECT lastcrypto FROM globaldata"
-    ).fetchone()[0]
+    ).one()
 
     if lastupdate < 60 * 60 * 4:  # 4 hours
         return
