@@ -18,7 +18,7 @@ from . import (
 from .. import Dispatcher, marketplace
 
 
-async def register_all(dp: Dispatcher) -> tuple[ModuleType]:  # -> None:
+async def register_all(dp: Dispatcher) -> tuple[ModuleType]:
     """
     function to register all bot hadlers
 

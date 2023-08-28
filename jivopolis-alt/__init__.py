@@ -21,11 +21,11 @@ from .misc import *  # noqa: F401, F403
 # * todo: remove star import above
 
 
-def _debug_only(record):  # type: ignore
+def _debug_only(record):
     return record["level"].name == "DEBUG"
 
 
-def _not_debug(record):  # type: ignore
+def _not_debug(record):
     return record["level"].name != "DEBUG"
 
 

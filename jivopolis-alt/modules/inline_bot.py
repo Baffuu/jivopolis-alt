@@ -78,12 +78,12 @@ async def inline_mode(query: InlineQuery):
                 query.id,
                 [
                     InlineQueryResultArticle(
-                        id = 'dead',  # noqa: E251
-                        title = '☠️ Вы умерли',  # noqa: E251
-                        description = 'Попросите кого-нибудь вас воскресить',  # noqa: E251, E501
-                        input_message_content = InputTextMessageContent(  # noqa: E251, E501
+                        id='dead',
+                        title='☠️ Вы умерли',
+                        description='Попросите кого-нибудь вас воскресить',
+                        input_message_content=InputTextMessageContent(
                             '<i>☠️ Вы умерли. Попросите кого-нибудь вас воскресить</i>'  # noqa: E501
-                            )
+                        )
                     )
                 ]
             )

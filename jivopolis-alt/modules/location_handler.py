@@ -9,12 +9,13 @@ async def delete_location(message: Message):
     count = cur.select("count(*)", "clandata").where(
             clan_id=message.chat.id).one()
 
-    if count == 1:
-        dice = cur.select("filter_location", "clandata").where(
-            clan_id=message.chat.id).one()
-        if dice:
-            with contextlib.suppress(Exception):
-                return await message.delete()
+    if count == 1 and (
+                cur.select("filter_location", "clandata")
+                .where(clan_id=message.chat.id)
+                .one()
+            ):
+        with contextlib.suppress(Exception):
+            return await message.delete()
 
 
 def register(dp: Dispatcher):

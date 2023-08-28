@@ -9,24 +9,26 @@ async def delete_files(message: Message):
     count = cur.select("count(*)", "clandata").where(
             clan_id=message.chat.id).one()
 
-    if count == 1:
-        dice = cur.select("filter_document", "clandata").where(
-            clan_id=message.chat.id).one()
-        if dice:
-            with contextlib.suppress(Exception):
-                return await message.delete()
+    if count == 1 and (
+                cur.select("filter_document", "clandata")
+                .where(clan_id=message.chat.id)
+                .one()
+            ):
+        with contextlib.suppress(Exception):
+            return await message.delete()
 
 
 async def delete_gifs(message: Message):
     count = cur.select("count(*)", "clandata").where(
             clan_id=message.chat.id).one()
 
-    if count == 1:
-        dice = cur.select("filter_gif", "clandata").where(
-            clan_id=message.chat.id).one()
-        if dice:
-            with contextlib.suppress(Exception):
-                return await message.delete()
+    if count == 1 and (
+                cur.select("filter_gif", "clandata")
+                .where(clan_id=message.chat.id)
+                .one()
+            ):
+        with contextlib.suppress(Exception):
+            return await message.delete()
 
 
 def register(dp: Dispatcher):
