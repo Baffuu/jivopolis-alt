@@ -107,6 +107,13 @@ async def itemdesc(call: CallbackQuery, user_id: int):
                     callback_data='cellphone_menu'
                 )
             )
+        case 'radio':
+            markup.add(
+                InlineKeyboardButton(
+                    text='📻 Использовать',
+                    callback_data='radio_menu'
+                )
+            )
 
     description = item.description or (
                 '〰 описание предмета отсутствует. Обратитесь в приёмную,'

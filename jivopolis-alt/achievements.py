@@ -49,6 +49,36 @@ ACHIEVEMENTS = {
         progress="sell_progress",
         completion_progress=10
     ),
+    'fish_achieve': Achievement(
+        name='fish_achieve',
+        ru_name='🐚 Охотник за сокровищами',
+        description='Получите 3 ракушки в результате рыбалок. Рыбачить '
+                    'можно в посёлке Морской',
+        category='👾 Игровой процесс',
+        money_reward=400,
+        xp_reward=27,
+        progress="fish_progress",
+        completion_progress=3,
+        special_reward="beaver"
+    ),
+    'proc_achieve': Achievement(
+        name='proc_achieve',
+        ru_name='🧙‍♂️ Философский камень',
+        description='Превратите булыжник в золото с помощью завода в '
+                    'местности Уголь',
+        category='👾 Игровой процесс',
+        money_reward=200,
+        xp_reward=10
+    ),
+    'oscar_achieve': Achievement(
+        name='oscar_achieve',
+        ru_name='🏆 Дайте мне Оскар',
+        description='Прокачайте свои отношения с Оскаром (владельцем лавки'
+                    ' в Попережье) до уровня Топаз',
+        category='👾 Игровой процесс',
+        money_reward=200,
+        xp_reward=17
+    ),
     'luck_achieve': Achievement(
         name='luck_achieve',
         ru_name='🍀 Удача в придачу',
@@ -56,7 +86,7 @@ ACHIEVEMENTS = {
                     'казино в Игровом клубе',
         category='🎮 Развлечения',
         money_reward=50,
-        xp_reward=10
+        xp_reward=7
     ),
     'jackpot_achieve': Achievement(
         name='jackpot_achieve',

@@ -18,6 +18,13 @@ RESOURCES = {
         maximum=9,
         cost=10
     ),
+    'coal': Resource(
+        name='coal',
+        ru_name='Уголь',
+        chance=0,
+        maximum=0,
+        cost=34
+    ),
     'iron': Resource(
         name='iron',
         ru_name='Железо',

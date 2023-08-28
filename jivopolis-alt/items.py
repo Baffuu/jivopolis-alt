@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Literal, Union, Optional, Any
 
 
@@ -11,6 +11,9 @@ class Item():
     type: Optional[str] = None
     type_param: Optional[Union[str, int, list[Any]]] = None
     description: Optional[str] = None
+
+    # list of item tags
+    tags: list[str] = field(default_factory=list)
 
     @property
     def price(self) -> Union[int, Literal['no cost']]:
@@ -35,7 +38,8 @@ ITEMS = {
         emoji='🦭',
         cost=1000,
         type='mask',
-        description='очень любят баны'
+        description='очень любят баны',
+        tags=['OSCAR_SHOP_GOLD']
     ),
 
     'lootbox': Item(
@@ -43,7 +47,9 @@ ITEMS = {
         ru_name='Лутбокс',
         emoji='📦',
         type='lootbox',
-        description='в нём может быть что-то интересное'
+        cost=750,
+        description='в нём может быть что-то интересное',
+        tags=['OSCAR_SHOP_TOPAZ']
     ),
 
     'cow': Item(
@@ -53,7 +59,8 @@ ITEMS = {
         emoji='🐄',
         type='mask',
         type_param='can_get_milk',
-        description='даёт молоко, но только на ферме'
+        description='даёт молоко, но только на ферме',
+        tags=['OSCAR_SHOP_GOLD']
     ),
 
 
@@ -137,7 +144,8 @@ ITEMS = {
         emoji='💊',
         cost=500,
         type='medicine',
-        description='принимайте, только если у вас есть рецепт от врача'
+        description='принимайте, только если у вас есть рецепт от врача',
+        tags=['OSCAR_SHOP_GOLD']
     ),
 
     'fireworks': Item(
@@ -606,7 +614,8 @@ ITEMS = {
         ru_name='Красная машина',
         cost=10000,
         type='car',
-        description='врум-врум'
+        description='врум-врум',
+        tags=['OSCAR_SHOP_GEM']
     ),
 
 
@@ -616,7 +625,8 @@ ITEMS = {
         ru_name='Синяя машина',
         cost=15000,
         type='car',
-        description='отличается от красной только ценой'
+        description='отличается от красной только ценой',
+        tags=['OSCAR_SHOP_GEM']
     ),
 
 
@@ -851,6 +861,16 @@ ITEMS = {
     ),
 
 
+    'radio': Item(
+        emoji='📻',
+        name='radio',
+        ru_name='Радиоприёмник',
+        cost=250,
+        type='radio',
+        description='если не хватает денег на смартфон'
+    ),
+
+
     'trolleytoken': Item(
         emoji='🚎',
         name='trolleytoken',
@@ -881,6 +901,7 @@ ITEMS = {
         description='милота... Надеюсь, он проживёт больше недели'
     ),
 
+
     "fyCoin": Item(
         name="fyCoin",
         ru_name="fyCoin",
@@ -891,6 +912,7 @@ ITEMS = {
                     'рабочего в Живополисе'
     ),
 
+
     "Mithereum": Item(
         name="Mithereum",
         ru_name="Mithereum",
@@ -899,6 +921,7 @@ ITEMS = {
         type="crypto",
         description='возможно, это поможет вам разбогатеть'
     ),
+
 
     "Gather": Item(
         name="Gather",
@@ -909,6 +932,7 @@ ITEMS = {
         description='вкладывайтесь с умом!'
     ),
 
+
     "Recegon": Item(
         name="Recegon",
         ru_name="Recegon",
@@ -918,6 +942,7 @@ ITEMS = {
         description='как же хорошо жить в XXI веке...'
     ),
 
+
     "fan": Item(
         name="fan",
         ru_name="Веep",
@@ -926,6 +951,7 @@ ITEMS = {
         type="mask",
         description='хорошая защита от жары. Наверное'
     ),
+
 
     "pickaxe": Item(
         name="pickaxe",
@@ -946,6 +972,108 @@ ITEMS = {
         type='mask',
         description='легенда гласит, что именно ради этой маски '
                     'создававался Живополис'
+    ),
+
+
+    'beaver': Item(
+        emoji='🦫',
+        name='beaver',
+        ru_name='Бобр',
+        cost=900,
+        type='mask',
+        description='дерево грызть, дерево грызть нужно каждый день'
+    ),
+
+
+    'penguin': Item(
+        emoji='🐧',
+        name='penguin',
+        ru_name='Пингвин',
+        cost=900,
+        type='mask',
+        description='нут-нут',
+        tags=['OSCAR_SHOP_GOLD']
+    ),
+
+
+    'seashell': Item(
+        emoji='🐚',
+        name='seashell',
+        ru_name='Ракушка',
+        cost=900,
+        type='mask',
+        description='ракушка',
+        tags=["FISHING", "CHANCE_5"]
+    ),
+
+
+    'blue_fish': Item(
+        emoji='🐟',
+        name='blue_fish',
+        ru_name='Рыба',
+        cost=100,
+        type='food',
+        type_param=5,
+        description='буль-буль',
+        tags=["FISHING", "CHANCE_80"]
+    ),
+
+
+    'tropical_fish': Item(
+        emoji='🐠',
+        name='tropical_fish',
+        ru_name='Тропическая рыба',
+        cost=150,
+        type='food',
+        type_param=7,
+        description='существует 2700 вариантов, встречающихся в дикой природе',
+        tags=["FISHING", "CHANCE_60"]
+    ),
+
+
+    'blowfish': Item(
+        emoji='🐡',
+        name='blowfish',
+        ru_name='Рыба фугу',
+        cost=50,
+        type='food',
+        type_param=1000,
+        description='важно уметь правильно приготовить',
+        tags=["FISHING", "CHANCE_70"]
+    ),
+
+
+    'shrimp': Item(
+        emoji='🦐',
+        name='shrimp',
+        ru_name='Креветка',
+        cost=300,
+        type='food',
+        type_param=10,
+        description='не забудьте пожарить!',
+        tags=["FISHING", "CHANCE_40"]
+    ),
+
+
+    'fried_shrimp': Item(
+        emoji='🍤',
+        name='fried_shrimp',
+        ru_name='Жареная креветка',
+        cost=500,
+        type='food',
+        type_param=15,
+        description='вот теперь можно есть'
+    ),
+
+
+    'fishing_rod': Item(
+        emoji='🎣',
+        name='fishing_rod',
+        ru_name='Удочка',
+        cost=75,
+        type='tool',
+        type_param=15,
+        description='отправляйтесь в посёлок Морской на рыбалку!'
     )
 }
 '''Store all items in Jivopolis'''

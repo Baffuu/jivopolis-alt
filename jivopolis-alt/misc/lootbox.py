@@ -103,7 +103,7 @@ LOOTBOX = {
 '''stores all strings for lootboxes'''
 
 RARE_MASKS = ['cactus']
-EPIC_MASKS = ['tulip', 'moyai']
+EPIC_MASKS = ['tulip', 'moyai', 'penguin']
 LEGENDARY_MASKS = ['fan']
 
 

@@ -208,8 +208,8 @@ async def log_out(call: CallbackQuery):
     user_id = call.from_user.id
 
     embedded_link = await get_embedded_link(user_id)
-    id = cur.select("id", "userdata").where(user_id=user_id).one()
-    cur.update("userdata").set(user_id=0).where(id=id).commit()
+    unique_id = cur.select("id", "userdata").where(user_id=user_id).one()
+    cur.update("userdata").set(user_id=0).where(id=unique_id).commit()
 
     markup = InlineKeyboardMarkup(row_width=1).add(
         InlineKeyboardButton(

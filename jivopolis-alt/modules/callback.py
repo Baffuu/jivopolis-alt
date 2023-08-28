@@ -7,7 +7,7 @@ from .. import bot, logger, Dispatcher, tglog, utils
 from ..misc import ITEMS
 from ..misc.config import SUPPORT_LINK, villages, trains, CITY, tramroute
 from ..database import cur
-from ..database.functions import check, profile, eat, current_time
+from ..database.functions import check, profile, eat, current_time, buy_in_oscar_shop
 from ..filters import RequireBetaFilter
 from aiogram.utils.exceptions import (
     MessageCantBeDeleted,
@@ -138,7 +138,7 @@ async def callback_handler(call: CallbackQuery):
                 await shop(
                     call,
                     place=['Генерала Шелби', 'Площадь Максима'],
-                    items=['phone'],
+                    items=['phone', 'radio'],
                     text='📱 Добро пожаловать в магазин техники имени Шелби'
                 )
             case 'candy_shop':
@@ -254,6 +254,13 @@ async def callback_handler(call: CallbackQuery):
                     items=['pickaxe x1', 'pickaxe x2', 'pickaxe x5', 'pickaxe x10'],
                     text='⛏ Добро пожаловать в магазин шахтёра! Здесь вы можете купить себе несколько кирок для шахты'
                 )
+            case 'rod_shop':
+                await shop(
+                    call,
+                    place='Морской',
+                    items=['fishing_rod x1', 'fishing_rod x2', 'fishing_rod x5', 'fishing_rod x10'],
+                    text='🎣 Добро пожаловать в магазин снастей! Здесь вы можете купить пару удочек для рыбалки'
+                )
 
             case 'metro_tickets':
                 await shop(
@@ -305,6 +312,16 @@ async def callback_handler(call: CallbackQuery):
                 await go_mining(call)
             case 'resource_market':
                 await resource_market(call)
+            case 'resource_factory':
+                await resource_factory(call)
+            case 'process_resources':
+                await process_resources(call)
+            case 'fishing':
+                await fishing(call)
+            case 'go_fishing':
+                await go_fishing(call)
+            case 'fish_result':
+                await fish_result(call)
             case 'factory':
                 await factory(call)
             case 'play_gears':
@@ -323,6 +340,12 @@ async def callback_handler(call: CallbackQuery):
                 await play_math(call)
             case 'play_geo':
                 await play_geo(call)
+            case 'oscar_shop':
+                await oscar_shop(call)
+            case oscardept if oscardept.startswith('oscar_dept_'):
+                await oscar_dept(call, oscardept.replace('oscar_dept_', ''))
+            case oscarbuy if oscarbuy.startswith('oscar_buy_'):
+                await buy_in_oscar_shop(call, oscarbuy.replace('oscar_buy_', ''))
             case ansmath if ansgears.startswith("answer_math "):
                 arguments = ansgears.split(' ')
                 await answer_math(
@@ -341,8 +364,12 @@ async def callback_handler(call: CallbackQuery):
                 await my_reflink(call)
             case 'cellphone_menu':
                 await cellphone_menu(call)
+            case 'radio_menu':
+                await radio_menu(call)
             case 'delivery_app':
                 await delivery_menu(call)
+            case 'weather_forecast':
+                await weather_forecast(call)
             case 'central_market_menu':
                 await central_market_menu(call)
             case 'central_market_food':

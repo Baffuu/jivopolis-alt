@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from .config import intervals
 
 from typing import Union, Tuple, Optional
@@ -50,11 +50,12 @@ async def get_embedded_link(
 async def get_embedded_clan_link(
     clan_id: str | int
 ) -> str:
-    type = cur.select("clan_type", "clandata").where(clan_id=clan_id).one()
+    clan_type = cur.select("clan_type", "clandata").where(
+        clan_id=clan_id).one()
     name = cur.select("clan_name", "clandata").where(clan_id=clan_id).one()
     link = cur.select("link", "clandata").where(clan_id=clan_id).one()
     return (
-        f"<a href='{link}'>{name}</a>" if type == 'public' else name
+        f"<a href='{link}'>{name}</a>" if clan_type == 'public' else name
     )
 
 
@@ -86,7 +87,8 @@ def get_mask(user_id: int | str) -> Union[str, None]:
 
 def current_time() -> float:
     '''returns current Unix time in seconds'''
-    return (datetime.now()-datetime.fromtimestamp(0)).total_seconds()
+    return (datetime.now(timezone.utc) -
+            datetime.fromtimestamp(0, timezone.utc)).total_seconds()
 
 
 def isinterval(type: str) -> bool:
@@ -252,6 +254,21 @@ def get_building(place: str) -> InlineKeyboardButton | None:
             button = InlineKeyboardButton(
                 text="⛏ Магазин шахтёра",
                 callback_data="pickaxe_shop"
+            )
+        case "Морской":
+            button = InlineKeyboardButton(
+                text="🎣 Рыболовная тоня",
+                callback_data="fishing"
+            )
+        case "Уголь":
+            button = InlineKeyboardButton(
+                text="🏭 Ресурсоперерабатывающий завод",
+                callback_data="resource_factory"
+            )
+        case "Попережье":
+            button = InlineKeyboardButton(
+                text="🛍 Лавка дяди Оскара",
+                callback_data="oscar_shop"
             )
         case "Генерала Шелби":
             button = InlineKeyboardButton(

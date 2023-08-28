@@ -5,19 +5,21 @@
 import random
 import asyncio
 
-from datetime import datetime
+from datetime import datetime, timezone
 from math import floor
+from enum import Enum
 import sqlite3
 from typing import Union, Optional
 
 from . import cur, conn
 from .. import bot, logger, get_embedded_link, get_link, get_mask, tglog, utils
-from ..misc import current_time, ITEMS, constants, ACHIEVEMENTS
+from ..misc import current_time, ITEMS, constants, ACHIEVEMENTS, RESOURCES
 from ..misc.config import (
     limited_items, leveldesc,
     levelrange, ADMINS,
-    clanitems
+    clanitems, oscar_levels
 )
+from ..misc.constants import OfficialChats
 
 from aiogram.types import (
     InlineKeyboardButton,
@@ -47,8 +49,7 @@ async def get_process(user_id: int | str) -> str:
             cur.update("userdata").set(process="login").where(
                 user_id=user_id).commit()
             return "login"
-        else:
-            return ""
+        return ""
 
 
 async def can_interact(user_id: int | str) -> bool:
@@ -140,15 +141,6 @@ async def check(user_id: int | str, chat_id: int | str) -> None | Message:
                         f"<i>&#128305; Теперь ваш уровень в Живополисе: <b>{index}</b>\nПоздравляем!\n{description}</i>")
                 except Exception:
                     return await bot.send_message(chat_id, f"<i>&#128305; Теперь ваш уровень в Живополисе: <b>{index}</b>\nПоздравляем!\n{description}</i>")
-            '''
-            elif xp>=points and xp<levelrange[levelrange.index(i)] and lvl!=index:
-                cur.update("userdata").set(level=levelrange.index(i)).where(user_id=user_id).commit()
-                conn.commit()
-                try:
-                    return await bot.send_message(user_id, f"<i>&#128305; Теперь ваш уровень в Живополисе: <b>{index}</b>\nПоздравляем!\n{leveldesc[index]}</i>")
-                except Exception:
-                    return await bot.send_message(chat_id, f"<i>&#128305; Теперь ваш уровень в Живополисе: <b>{index}</b>\nПоздравляем!\n{leveldesc[index]}</i>")
-            '''
 
     except Exception as e:
         logger.exception(e)
@@ -403,7 +395,6 @@ async def achieve(user_id: int | str, chat_id : int | str, achievement: str) -> 
     money = achievement_data.money_reward
     points = achievement_data.xp_reward
     progress = achievement_data.progress
-    min_progress = achievement_data.completion_progress
     link = await get_embedded_link(user_id)
     print(achievement, progress)
 
@@ -411,7 +402,7 @@ async def achieve(user_id: int | str, chat_id : int | str, achievement: str) -> 
         cur.select(progress, "userdata").where(user_id=user_id).one()
         cur.update("userdata").add(**{progress: 1}).where(user_id=user_id).commit()
         current_progress = cur.select(progress, "userdata").where(user_id=user_id).one()
-        if current_progress < min_progress:
+        if current_progress < achievement_data.completion_progress:
             return
 
     cur.select(achievement, "userdata").where(user_id=user_id).one()
@@ -424,13 +415,10 @@ async def achieve(user_id: int | str, chat_id : int | str, achievement: str) -> 
         cur.update("userdata").add(xp=points).where(user_id=user_id).commit()
 
     chat = await bot.get_chat(chat_id)
-    if chat.type == "private":
-        await bot.send_message(chat_id, f"<i>У вас новое достижение: <b>{name}</b>\n{desc}. \nВаша награда: <b>${money}</b> и 💡 <b>{points}</b> очков</i>")
-    else:
-        await bot.send_message(chat_id, f"<i><b>{link}</b>, у вас новое достижение: <b>{name}</b>\n{desc}. \nВаша награда: <b>${money}</b> и 💡 <b>{points}</b> очков</i>")
+    mention = "У вас новое достижение" if chat.type == "private" else f"<b>{link}</b>, у вас новое достижение"
+    await bot.send_message(chat_id, f"<i>{mention}: <b>{name}</b>\n{desc}. \nВаша награда: <b>${money}</b> и 💡 <b>{points}</b> очков</i>")
     
-    special_reward = achievement_data.special_reward
-    if special_reward:
+    if special_reward := achievement_data.special_reward:
         item = ITEMS[special_reward]
         item_name = item.ru_name
         emoji = item.emoji
@@ -768,3 +756,163 @@ async def buy(call: CallbackQuery, item: str, user_id: int, cost: Optional[int] 
         cur.execute(f"UPDATE globaldata SET treasury=treasury+{cost*amount//2}"); conn.commit()
     else:
         await call.answer('🚫 У вас недостаточно денег', show_alert = True)
+
+
+async def buy_in_oscar_shop(call: CallbackQuery, item: str):
+    '''
+    Buy an item in Oscar's shop.
+    
+    :param call (aiogram.types.CallbackQuery) - callback:
+    :param item (str) - item that will be bought:
+    '''
+    user_id = call.from_user.id
+    if item not in ITEMS:
+        raise ValueError("no such item")
+    item_data = ITEMS[item]
+    if not item_data.tags[0].startswith("OSCAR_SHOP_"):
+        raise ValueError("this item isn't sold in Oscar's shop")
+    if cur.select("current_place", "userdata").where(
+            user_id=user_id).one() != "Попережье":
+        return await call.answer(
+                text=(
+                    '🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
+                    'местности'
+                ),
+                show_alert=True
+            )
+
+    currency = item_data.tags[0].replace("OSCAR_SHOP_", "").lower()
+    if cur.select("oscar_purchases", "userdata").where(
+            user_id=user_id).one() < oscar_levels[currency]:
+        return await call.answer(
+            "😑 Вы ещё не достигли такого уровня в ларьке. "
+            "Покупайте больше товаров у дяди Оскара!"
+        )
+
+    cost = ITEMS[item].cost // RESOURCES[currency].cost
+    if not cost or cost < 0:
+        return
+
+    balance = cur.select(currency, "userdata").where(user_id=user_id).one()
+    if balance < cost:
+        return await call.answer('😥 У вас недостаточно ресурсов', show_alert = True)
+
+    cur.update("userdata").add(**{item: 1}).where(user_id=user_id).commit()
+    cur.update("userdata").add(**{currency: -cost}).where(user_id=user_id).commit()
+    if ITEMS[item].type == 'car':
+        await achieve(
+            user_id, call.message.chat.id, 'auto_achieve'
+        )
+
+    await call.answer(
+        f'Покупка прошла успешно. У вас {balance-cost} единиц ресурса',
+        show_alert = True
+    )
+    await increase_oscar_level(call)
+
+
+async def increase_oscar_level(call: CallbackQuery):
+    '''
+    Increase Oscar's shop level if needed
+    
+    :param call (aiogram.types.CallbackQuery) - callback:
+    '''
+    user_id = call.from_user.id
+    cur.update("userdata").add(oscar_purchases=1).where(user_id=user_id).commit()
+    purchases = cur.select("oscar_purchases", "userdata").where(
+                    user_id=user_id).one()
+    for level in oscar_levels:
+        if oscar_levels[level] == purchases:
+            level_name = RESOURCES[level].ru_name
+            if level == 'topaz':
+                await achieve(
+                    user_id, call.message.chat.id, 'oscar_achieve'
+                )
+            return await call.message.answer(
+                "🥳 <i>Ваши отношения с дядей Оскаром улучшены до уровня "
+                f"<b>{level_name}</b></i>",
+                reply_markup=InlineKeyboardMarkup().add(
+                    cancel_button("👌 Хорошо")
+                )
+            )
+
+
+def cancel_button(text: str="◀ Назад", cancel_process: bool=False) -> InlineKeyboardButton:
+    '''
+    An inline button which deletes the call message.
+    '''
+    return InlineKeyboardButton(
+        text=text,
+        callback_data="cancel_process" if cancel_process else "cancel_action"
+    )
+
+
+Weather = Enum('Weather', ['SUNNY', 'CLOUDY', 'RAINING', 'SNOWY', 'THUNDERSTORM', 'HURRICANE'])
+
+
+def get_weather(time: int = -1) -> Weather:
+    '''
+    Get weather depending on given time.
+
+    :param time - time (current time by default):
+    '''
+    date_time = (
+        datetime.now(timezone.utc) if time == -1 else datetime.fromtimestamp(time)
+    )
+    weather_index = int(date_time.year * 0.1 + date_time.month + date_time.day) % 100
+    if weather_index % 3 == 0:
+        return Weather.CLOUDY
+    elif weather_index % 4 == 0:
+        return Weather.SNOWY if date_time.month in [1, 2, 12] else Weather.RAINING
+    elif weather_index % 5 == 0:
+        return Weather.THUNDERSTORM
+    elif weather_index % 7 == 0:
+        return Weather.HURRICANE
+    else:
+        return Weather.SUNNY
+
+
+def str_weather(weather: Weather) -> str:
+    match (weather):
+        case Weather.SUNNY:
+            return "☀ Ясно"
+        case Weather.CLOUDY:
+            return "⛅ Облачно"
+        case Weather.RAINING:
+            return "🌧 Дождь"
+        case Weather.SNOWY:
+            return "🌨 Снег"
+        case Weather.THUNDERSTORM:
+            return "⛈ Гроза"
+        case Weather.HURRICANE:
+            return "🌪 Ураган"
+
+
+def month(month_number: int) -> str:
+    match month_number:
+        case 1:
+            return "января"
+        case 2:
+            return "февраля"
+        case 3:
+            return "марта"
+        case 4:
+            return "апреля"
+        case 5:
+            return "мая"
+        case 6:
+            return "июня"
+        case 7:
+            return "июля"
+        case 8:
+            return "августа"
+        case 9:
+            return "сентября"
+        case 10:
+            return "октября"
+        case 11:
+            return "ноября"
+        case 12:
+            return "декабря"
+        case _:
+            return ""
