@@ -239,7 +239,10 @@ def create_globaldata(cur: fyCursor) -> None:
     soup            INTEGER,
     meat_on_bone    INTEGER,
     pita            INTEGER,
-    tea             INTEGER
+    tea             INTEGER,
+    weather         TEXT            DEFAULT \"0000000\"     NOT NULL,
+    last_weather    DATETIME        DEFAULT 0               NOT NULL
+
 )""")
 
 

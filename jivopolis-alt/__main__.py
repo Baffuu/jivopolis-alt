@@ -28,8 +28,9 @@ def _setup_callbacks(executor: 'Executor', on_startup=None, on_shutdown=None):
 async def on_startup(dp: Dispatcher):
     try:
         from .database import cur, conn
-        cur.execute("INSERT INTO globaldata(treasury) VALUES (0)")
-        conn.commit()
+        if not cur.select("count(*)", "globaldata").one():
+            cur.execute("INSERT INTO globaldata(treasury) VALUES (0)")
+            conn.commit()
         try:
             await tglog('🔰 Бот успешно перезагружен.', "#restart")
         except ChatNotFound:

@@ -288,14 +288,12 @@ async def weather_forecast(call: CallbackQuery) -> None:
         )
 
     weather_texts = ''
-    int_time = current_time()
-    for _ in range(6):
-        now = datetime.fromtimestamp(int_time)
+    for day in range(6):
+        now = datetime.fromtimestamp(current_time() + 8600*day)
         weather_texts += (
             f"\n<b>{now.day} {month(now.month)}</b> - "
-            f"{str_weather(get_weather(int_time))}"
+            f"{str_weather(get_weather(day))}"
         )
-        int_time += 86400
 
     await call.message.answer(
         f"<i><b>Погода на ближайшие 7 дней:</b>\n{weather_texts}\n\n"

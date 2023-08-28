@@ -5,9 +5,9 @@
 import random
 import asyncio
 
-from datetime import datetime, timezone
+from datetime import datetime
 from math import floor
-from enum import Enum
+from enum import IntEnum
 import sqlite3
 from typing import Union, Optional
 
@@ -847,29 +847,22 @@ def cancel_button(text: str="◀ Назад", cancel_process: bool=False) -> Inl
     )
 
 
-Weather = Enum('Weather', ['SUNNY', 'CLOUDY', 'RAINING', 'SNOWY', 'THUNDERSTORM', 'HURRICANE'])
+class Weather(IntEnum):
+    SUNNY = 0
+    CLOUDY = 1
+    RAINING = 2
+    SNOWY = 3
+    THUNDERSTORM = 4
+    HURRICANE = 5
 
 
-def get_weather(time: int = -1) -> Weather:
+def get_weather(day: int = 0) -> Weather:
     '''
     Get weather depending on given time.
 
-    :param time - time (current time by default):
+    :param day - day to check the weather:
     '''
-    date_time = (
-        datetime.now(timezone.utc) if time == -1 else datetime.fromtimestamp(time)
-    )
-    weather_index = int(date_time.year * 0.1 + date_time.month + date_time.day) % 100
-    if weather_index % 3 == 0:
-        return Weather.CLOUDY
-    elif weather_index % 4 == 0:
-        return Weather.SNOWY if date_time.month in [1, 2, 12] else Weather.RAINING
-    elif weather_index % 5 == 0:
-        return Weather.THUNDERSTORM
-    elif weather_index % 7 == 0:
-        return Weather.HURRICANE
-    else:
-        return Weather.SUNNY
+    return Weather(int(cur.select("weather", "globaldata").one()[day]))
 
 
 def str_weather(weather: Weather) -> str:
@@ -916,3 +909,105 @@ def month(month_number: int) -> str:
             return "декабря"
         case _:
             return ""
+
+
+async def damage_player(user_id: int|str, chat_id: int|str, damage: int,
+                        message: Optional[str] = None):
+    '''
+    Damage a player.
+
+    :param user_id - user to check:
+    :param chat_id - chat to send the result:
+    :param damage - amount or health points to be substracted:
+    :param message - message sent to the chat:
+    '''
+    cur.update("userdata").add(health=-damage).where(user_id=user_id).commit()
+    if message:
+        await bot.send_message(
+            chat_id,
+            f"<i>{message}.\n\n💔 Вам был нанесён урон в <b>{damage}</b> единиц здоровья</i>"
+        )
+    await check_death(user_id, chat_id)
+
+
+async def check_death(user_id: int|str, chat_id: int|str):
+    '''
+    Check whether the player is dead.
+
+    :param user_id - user to check:
+    :param chat_id - chat to send the result:
+    '''
+    if cur.select("health", "userdata").where(user_id=user_id).one() <= 0:
+        await bot.send_message(
+            chat_id,
+            "<i>☠ Вы умерли. Попросите кого-нибудь вас воскресить</i>"
+        )
+
+
+async def weather_damage(user_id: int|str, chat_id: int|str):
+    '''
+    Damage a player due to the weather.
+
+    :param user_id - user to check:
+    :param chat_id - chat to send the result:
+    '''
+    match get_weather():
+        case Weather.RAINING:
+            chance = 1
+            message = "💧 Вы поскользнулись на мокрой земле и упали"
+            damage = random.randint(1, 10)
+        case Weather.SNOWY:
+            chance = 3
+            message = "❄ Вы поскользнулись на льду и упали"
+            damage = random.randint(5, 20)
+        case Weather.THUNDERSTORM:
+            chance = 7
+            message = "⚡ В вас попала молния"
+            damage = random.randint(60, 100)
+        case Weather.HURRICANE:
+            chance = 20
+            message = "🌀 Вы пострадали из-за урагана"
+            damage = random.randint(40, 100)
+        case _:
+            return
+    if random.uniform(0, 100) <= chance:
+        await damage_player(user_id, chat_id, damage, message)
+
+
+async def update_weather():
+    '''
+    Update weather for the next 7 days
+    '''
+    if current_time() - cur.select("last_weather", "globaldata").one() < 86400:
+        return
+
+    # get weather for 6 days starting from today
+    current_weather = cur.select("weather", "globaldata").one()[1:]
+
+    # check whether the 7th day is in winter
+    is_winter = datetime.fromtimestamp(current_time() + 86400*6).month in [1, 2, 12]
+
+    # get weather for the 7th day
+    random_index = random.randint(1, 100)
+    if random_index <= 2:
+        weather_day7 = Weather['HURRICANE']
+    elif random_index <= 3 if is_winter else 10:
+        weather_day7 = Weather['THUNDERSTORM']
+    elif random_index <= 25:
+        weather_day7 = Weather['SNOWY' if is_winter else 'RAINING']
+    elif random_index <= 60:
+        weather_day7 = Weather['SUNNY']
+    else:
+        weather_day7 = Weather['CLOUDY']
+    
+    today = datetime.now()
+    today_morning = datetime(today.year, today.month, today.day, 0, 0, 0)
+    cur.update("globaldata").set(last_weather=time_seconds(today_morning)).commit()
+    cur.update("globaldata").set(weather=current_weather + str(weather_day7)).commit()
+
+
+def time_seconds(time: datetime) -> int:
+    '''
+    Convert datetime to seconds integer.
+    '''
+    return (time - datetime.fromtimestamp(0)).total_seconds()

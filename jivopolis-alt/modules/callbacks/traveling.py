@@ -10,7 +10,9 @@ from ...misc.misc import remaining, isinterval
 from ...misc.constants import (MINIMUM_CAR_LEVEL, MAXIMUM_DRIVE_MENU_SLOTS,
                                MAP, REGIONAL_MAP, MINIMUM_TAXI_LEVEL)
 from ...database import cur
-from ...database.functions import buy, buybutton, itemdata, achieve
+from ...database.functions import (
+    buy, buybutton, itemdata, achieve, weather_damage
+)
 
 from ...misc.config import (
     METRO, WALK, CITY,
@@ -180,6 +182,9 @@ async def city(message: Message, user_id: str | int):
         f"&#127963; <b>{place}</b></i>",
         reply_markup=markup
     )
+
+    await asyncio.sleep(3)
+    await weather_damage(user_id, message.chat.id)
 
 
 async def buycall(call: CallbackQuery):

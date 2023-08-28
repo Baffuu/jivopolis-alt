@@ -1,10 +1,21 @@
 
 # flake8: noqa
-from .callbacks import *
-from ..filters import RequireBetaFilter
 
-from aiogram.types import CallbackQuery
-from aiogram import Dispatcher
+import contextlib
+
+from .callbacks import *
+from .. import bot, logger, Dispatcher, tglog, utils
+from ..misc import ITEMS
+from ..misc.config import SUPPORT_LINK, villages, trains, CITY, tramroute
+from ..database import cur
+from ..database.functions import check, profile, eat, current_time, buy_in_oscar_shop
+from ..filters import RequireBetaFilter
+from aiogram.utils.exceptions import (
+    MessageCantBeDeleted,
+    MessageToDeleteNotFound
+)
+
+from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
 
 async def callback_handler(call: CallbackQuery):
     '''

@@ -235,13 +235,15 @@ async def check_current(user_id: int | str, place: str, call: CallbackQuery):
         user_id=user_id).one()
 
     if current_place != place:
-        return await call.answer(
+        await call.answer(
             text=(
                 '🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
                 'местности'
             ),
             show_alert=True
         )
+        return False
+    return True
 
 
 async def check_places(user_id: int | str, call: CallbackQuery, *places: str):
