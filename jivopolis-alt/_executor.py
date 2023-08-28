@@ -1,5 +1,5 @@
 # type: ignore
-# flake8: noqa
+
 """
 Changed aiogram executor
 """
@@ -16,7 +16,11 @@ from aiohttp.web_app import Application
 
 from aiogram.bot.api import log
 from aiogram.dispatcher.dispatcher import Dispatcher
-from aiogram.dispatcher.webhook import BOT_DISPATCHER_KEY, DEFAULT_ROUTE_NAME, WebhookRequestHandler
+from aiogram.dispatcher.webhook import (
+    BOT_DISPATCHER_KEY,
+    DEFAULT_ROUTE_NAME,
+    WebhookRequestHandler
+)
 
 APP_EXECUTOR_KEY = 'APP_EXECUTOR'
 
@@ -28,8 +32,9 @@ def _setup_callbacks(executor: 'Executor', on_startup=None, on_shutdown=None):
         executor.on_shutdown(on_shutdown)
 
 
-def start_polling(dispatcher, *, loop=None, skip_updates=False, reset_webhook=True,
-                  on_startup=None, on_shutdown=None, timeout=20, relax=0.1, fast=True,
+def start_polling(dispatcher, *, loop=None, skip_updates=False,
+                  reset_webhook=True, on_startup=None, on_shutdown=None,
+                  timeout=20, relax=0.1, fast=True,
                   allowed_updates: Optional[List[str]] = None):
     """
     Start bot in long-polling mode
@@ -45,7 +50,7 @@ def start_polling(dispatcher, *, loop=None, skip_updates=False, reset_webhook=Tr
     :param fast:
     :param allowed_updates:
     """
-    
+
     executor = Executor(dispatcher, skip_updates=skip_updates, loop=loop)
     _setup_callbacks(executor, on_startup, on_shutdown)
 
@@ -58,10 +63,13 @@ def start_polling(dispatcher, *, loop=None, skip_updates=False, reset_webhook=Tr
     )
 
 
-def set_webhook(dispatcher: Dispatcher, webhook_path: str, *, loop: Optional[asyncio.AbstractEventLoop] = None,
-                skip_updates: bool = None, on_startup: Optional[Callable] = None,
+def set_webhook(dispatcher: Dispatcher, webhook_path: str, *,
+                loop: Optional[asyncio.AbstractEventLoop] = None,
+                skip_updates: bool = None,
+                on_startup: Optional[Callable] = None,
                 on_shutdown: Optional[Callable] = None, check_ip: bool = False,
-                retry_after: Optional[Union[str, int]] = None, route_name: str = DEFAULT_ROUTE_NAME,
+                retry_after: Optional[Union[str, int]] = None,
+                route_name: str = DEFAULT_ROUTE_NAME,
                 web_app: Optional[Application] = None):
     """
     Set webhook for bot
@@ -73,12 +81,13 @@ def set_webhook(dispatcher: Dispatcher, webhook_path: str, *, loop: Optional[asy
     :param on_startup: Optional[Callable] (default: None)
     :param on_shutdown: Optional[Callable] (default: None)
     :param check_ip: bool (default: False)
-    :param retry_after: Optional[Union[str, int]] See https://tools.ietf.org/html/rfc7231#section-7.1.3 (default: None)
+    :param retry_after: Optional[Union[str, int]] See https://tools.ietf.org/html/rfc7231#section-7.1.3 (default: None) # noqa
     :param route_name: str (default: 'webhook_handler')
     :param web_app: Optional[Application] (default: None)
     :return:
     """
-    executor = Executor(dispatcher, skip_updates=skip_updates, check_ip=check_ip, retry_after=retry_after,
+    executor = Executor(dispatcher, skip_updates=skip_updates,
+                        check_ip=check_ip, retry_after=retry_after,
                         loop=loop)
     _setup_callbacks(executor, on_startup, on_shutdown)
 
@@ -87,7 +96,8 @@ def set_webhook(dispatcher: Dispatcher, webhook_path: str, *, loop: Optional[asy
 
 
 def start_webhook(dispatcher, webhook_path, *, loop=None, skip_updates=None,
-                  on_startup=None, on_shutdown=None, check_ip=False, retry_after=None, route_name=DEFAULT_ROUTE_NAME,
+                  on_startup=None, on_shutdown=None, check_ip=False,
+                  retry_after=None, route_name=DEFAULT_ROUTE_NAME,
                   **kwargs):
     """
     Start bot in webhook mode
@@ -139,7 +149,8 @@ class Executor:
     Main executor class
     """
 
-    def __init__(self, dispatcher, skip_updates=None, check_ip=False, retry_after=None, loop=None):
+    def __init__(self, dispatcher, skip_updates=None, check_ip=False,
+                 retry_after=None, loop=None):
         if loop is not None:
             self._loop = loop
 
@@ -240,7 +251,8 @@ class Executor:
 
         # self.loop.set_task_factory(context.task_factory)
 
-    def _prepare_webhook(self, path=None, handler=WebhookRequestHandler, route_name=DEFAULT_ROUTE_NAME, app=None):
+    def _prepare_webhook(self, path=None, handler=WebhookRequestHandler,
+                         route_name=DEFAULT_ROUTE_NAME, app=None):
         self._check_frozen()
         self._freeze = True
 
@@ -270,7 +282,8 @@ class Executor:
             app.on_startup.append(functools.partial(_wrap_callback, callback))
 
         # for callback in self._on_shutdown_webhook:
-        #     app.on_shutdown.append(functools.partial(_wrap_callback, callback))
+        #     app.on_shutdown.append(functools.partial(_wrap_callback,
+        # callback))
 
         async def _on_shutdown(_):
             await self._shutdown_webhook()
@@ -281,24 +294,30 @@ class Executor:
         app[self._identity] = datetime.datetime.now()
         app['_check_ip'] = self.check_ip
 
-    def set_webhook(self, webhook_path: Optional[str] = None, request_handler: Any = WebhookRequestHandler,
-                    route_name: str = DEFAULT_ROUTE_NAME, web_app: Optional[Application] = None):
+    def set_webhook(self, webhook_path: Optional[str] = None,
+                    request_handler: Any = WebhookRequestHandler,
+                    route_name: str = DEFAULT_ROUTE_NAME,
+                    web_app: Optional[Application] = None):
         """
         Set webhook for bot
 
         :param webhook_path: Optional[str] (default: None)
         :param request_handler: Any (default: WebhookRequestHandler)
-        :param route_name: str Name of webhook handler route (default: 'webhook_handler')
+        :param route_name: str Name of webhook handler route (default:
+        'webhook_handler')
         :param web_app: Optional[Application] (default: None)
         :return:
         """
-        self._prepare_webhook(webhook_path, request_handler, route_name, web_app)
+        self._prepare_webhook(webhook_path, request_handler, route_name,
+                              web_app)
         self.loop.run_until_complete(self._startup_webhook())
 
     def run_app(self, **kwargs):
         web.run_app(self._web_app, **kwargs)
 
-    def start_webhook(self, webhook_path=None, request_handler=WebhookRequestHandler, route_name=DEFAULT_ROUTE_NAME,
+    def start_webhook(self, webhook_path=None,
+                      request_handler=WebhookRequestHandler,
+                      route_name=DEFAULT_ROUTE_NAME,
                       **kwargs):
         """
         Start bot in webhook mode
@@ -309,10 +328,13 @@ class Executor:
         :param kwargs:
         :return:
         """
-        self.set_webhook(webhook_path=webhook_path, request_handler=request_handler, route_name=route_name)
+        self.set_webhook(webhook_path=webhook_path,
+                         request_handler=request_handler,
+                         route_name=route_name)
         self.run_app(**kwargs)
 
-    def start_polling(self, reset_webhook=None, timeout=20, relax=0.1, fast=True,
+    def start_polling(self, reset_webhook=None, timeout=20, relax=0.1,
+                      fast=True,
                       allowed_updates: Optional[List[str]] = None):
         """
         Start bot in long-polling mode
@@ -325,8 +347,9 @@ class Executor:
 
         try:
             loop.run_until_complete(self._startup_polling())
-            loop.create_task(self.dispatcher.start_polling(reset_webhook=reset_webhook, timeout=timeout,
-                                                           relax=relax, fast=fast, allowed_updates=allowed_updates))
+            loop.create_task(self.dispatcher.start_polling(
+                reset_webhook=reset_webhook, timeout=timeout,
+                relax=relax, fast=fast, allowed_updates=allowed_updates))
             loop.run_forever()
         except (KeyboardInterrupt, SystemExit):
             # loop.stop()
