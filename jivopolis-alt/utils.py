@@ -228,3 +228,31 @@ def uptime() -> timedelta:
 
 def ping(start: int) -> float:
     return round((time.perf_counter_ns() - start) / 10**6, 3)
+
+
+async def check_current(user_id: int | str, place: str, call: CallbackQuery):
+    current_place = cur.select("current_place", "userdata").where(
+        user_id=user_id).one()
+
+    if current_place != place:
+        return await call.answer(
+            text=(
+                '🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
+                'местности'
+            ),
+            show_alert=True
+        )
+
+
+async def check_places(user_id: int | str, call: CallbackQuery, *places: str):
+    current_place = cur.select("current_place", "userdata").where(
+        user_id=user_id).one()
+
+    if current_place not in places:
+        return await call.answer(
+            text=(
+                '🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
+                'местности'
+            ),
+            show_alert=True
+        )

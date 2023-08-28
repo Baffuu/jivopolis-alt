@@ -1024,8 +1024,8 @@ async def gps_transport(call: CallbackQuery, place: str):
     :param place - selected location:
     '''
     user_id = call.from_user.id
-    current_place = cur.select("current_place", "userdata").\
-        where(user_id=user_id).one()
+    current_place = cur.select("current_place", "userdata").where(
+        user_id=user_id).one()
     level = cur.select("level", "userdata").where(user_id=user_id).one()
     markup = InlineKeyboardMarkup()
 
@@ -2702,10 +2702,9 @@ async def local_clans(call: CallbackQuery):
         return await call.message.answer(
             '😪 <i>В вашей местности нет кланов</i>',
             reply_markup=markup)
-    else:
-        text = f'🏬 Кланы в местности {place}'
-        cur.execute(f"SELECT * FROM clandata WHERE HQ_place = '{place}"
-                    "' AND clan_type = 'public' LIMIT 40")
+    text = f'🏬 Кланы в местности {place}'
+    cur.execute(f"SELECT * FROM clandata WHERE HQ_place = '{place}"
+                "' AND clan_type = 'public' LIMIT 40")
     clans = ''.join(
         [
             f'\n{row[7]}. {await get_embedded_clan_link(row[1])}'
@@ -2783,10 +2782,9 @@ async def find_address(message: Message) -> None:
         return await message.answer(
             '😪 <i>По этому адресу нет кланов</i>',
             reply_markup=markup)
-    else:
-        text = f'🏬 Кланы по адресу {place}, {address}'
-        cur.execute(f"SELECT * FROM clandata WHERE HQ_place = '{place}"
-                    f"' AND clan_type = 'public' AND address = {address}")
+    text = f'🏬 Кланы по адресу {place}, {address}'
+    cur.execute(f"SELECT * FROM clandata WHERE HQ_place = '{place}"
+                f"' AND clan_type = 'public' AND address = {address}")
     clans = ''.join(
         [
             f'\n{row[7]}. {await get_embedded_clan_link(row[1])}'

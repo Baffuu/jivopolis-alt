@@ -2,6 +2,8 @@ import contextlib
 import random
 import asyncio
 
+from ... import utils
+
 from ...database import cur
 from ...database.functions import achieve, cancel_button, get_weather, Weather
 
@@ -28,20 +30,10 @@ async def farm(call: CallbackQuery):
     user_id = call.from_user.id
     cow = cur.select("cow", "userdata").where(user_id=user_id).one()
     milk = cur.select("milk", "userdata").where(user_id=user_id).one()
-    current_place = cur.select("current_place", "userdata").where(
-        user_id=user_id).one()
 
-    if current_place != 'Роща':
-        return await call.answer(
-                text=(
-                    '🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
-                    'местности'
-                ),
-                show_alert=True
-            )
+    await utils.check_current(user_id, "Роща", call)
 
-    markup = InlineKeyboardMarkup(row_width=1)
-    markup.add(
+    markup = InlineKeyboardMarkup(row_width=1).add(
         InlineKeyboardButton(
             text='🥛 Подоить корову',
             callback_data='milk_cow'
@@ -71,17 +63,8 @@ async def milk_cow(call: CallbackQuery):
     '''
     user_id = call.from_user.id
     cow = cur.select("cow", "userdata").where(user_id=user_id).one()
-    current_place = cur.select("current_place", "userdata").where(
-        user_id=user_id).one()
 
-    if current_place != 'Роща':
-        return await call.answer(
-                text=(
-                    '🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
-                    'местности'
-                ),
-                show_alert=True
-            )
+    await utils.check_current(user_id, "Роща", call)
 
     if cow < 1:
         return await call.answer(
@@ -113,17 +96,8 @@ async def mineshaft(call: CallbackQuery):
     '''
     user_id = call.from_user.id
     pickaxe = cur.select("pickaxe", "userdata").where(user_id=user_id).one()
-    current_place = cur.select("current_place", "userdata").where(
-        user_id=user_id).one()
 
-    if current_place != 'Посёлок Горный':
-        return await call.answer(
-                text=(
-                    '🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
-                    'местности'
-                ),
-                show_alert=True
-            )
+    await utils.check_current(user_id, "Посёлок Горный", call)
 
     markup = InlineKeyboardMarkup(row_width=1)
     markup.add(
@@ -156,17 +130,8 @@ async def go_mining(call: CallbackQuery):
     '''
     user_id = call.from_user.id
     pickaxe = cur.select("pickaxe", "userdata").where(user_id=user_id).one()
-    current_place = cur.select("current_place", "userdata").where(
-        user_id=user_id).one()
 
-    if current_place != 'Посёлок Горный':
-        return await call.answer(
-                text=(
-                    '🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
-                    'местности'
-                ),
-                show_alert=True
-            )
+    await utils.check_current(user_id, "Посёлок Горный", call)
 
     if current_time() - cur.select("last_mine", "userdata").where(
             user_id=user_id).one() < 60:
@@ -214,9 +179,7 @@ async def go_mining(call: CallbackQuery):
                 user_id=user_id).commit()
 
     if text == '':
-        text = (
-            '😓 Вы не добыли никаких ископаемых.'
-        )
+        text = '😓 Вы не добыли никаких ископаемых.'
     else:
         match (luck):
             case 0:
@@ -227,8 +190,7 @@ async def go_mining(call: CallbackQuery):
                 additional_text = 'Вам крупно повезло! Вот, что вы добыли:'
         text = f'<b>{additional_text}</b>\n{text}'
 
-    markup = InlineKeyboardMarkup(row_width=1)
-    markup.add(
+    markup = InlineKeyboardMarkup(row_width=1).add(
         InlineKeyboardButton(
             text='⛏ Заново',
             callback_data='go_mining'
@@ -310,20 +272,11 @@ async def factory(call: CallbackQuery):
     '''
     user_id = call.from_user.id
     times = cur.select("gears_today", "userdata").where(user_id=user_id).one()
-    current_place = cur.select("current_place", "userdata").where(
-        user_id=user_id).one()
 
-    if current_place not in ['Ридипольский завод', 'Котайский электрозавод']:
-        return await call.answer(
-                text=(
-                    '🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
-                    'местности'
-                ),
-                show_alert=True
-            )
+    await utils.check_places(user_id, call, 'Ридипольский завод',
+                             'Котайский электрозавод')
 
-    markup = InlineKeyboardMarkup(row_width=1)
-    markup.add(
+    markup = InlineKeyboardMarkup(row_width=1).add(
         InlineKeyboardButton(
             text='⚙ Шестерёнки',
             callback_data='play_gears'
@@ -352,41 +305,30 @@ async def play_gears(call: CallbackQuery):
     user_id = call.from_user.id
     times = cur.select("gears_today", "userdata").where(user_id=user_id).one()
     balance = cur.select("balance", "userdata").where(user_id=user_id).one()
-    current_place = cur.select("current_place", "userdata").where(
-        user_id=user_id).one()
 
-    if current_place not in ['Ридипольский завод', 'Котайский электрозавод']:
-        return await call.answer(
-                text=(
-                    '🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
-                    'местности'
-                ),
-                show_alert=True
-            )
+    await utils.check_places(user_id, call, 'Ридипольский завод',
+                             'Котайский электрозавод')
 
     if balance < 10:
         return await call.answer(
-                text=(
-                    '❌ Вам нужно хотя бы $10, чтобы начать игру'
-                ),
-                show_alert=True
-            )
+            text='❌ Вам нужно хотя бы $10, чтобы начать игру',
+            show_alert=True
+        )
 
     if times >= 10:
         return await call.answer(
-                text=(
-                    '❌ В Шестерёнки можно играть не более 10 раз в день'
-                ),
-                show_alert=True
-            )
+            text=(
+                '❌ В Шестерёнки можно играть не более 10 раз в день'
+            ),
+            show_alert=True
+        )
     cur.update("userdata").add(gears_today=1).where(user_id=user_id).commit()
 
     direction = random.choice(['left', 'right'])
     arrow = '↩' if direction == 'left' else '↪'
     amount = random.randint(2, 7)
 
-    markup = InlineKeyboardMarkup(row_width=2)
-    markup.add(
+    markup = InlineKeyboardMarkup(row_width=2).add(
         InlineKeyboardButton(
             text='↩',
             callback_data=f'answer_gears left {direction} {amount}'
@@ -407,10 +349,8 @@ async def play_gears(call: CallbackQuery):
     )
 
     for seconds in range(10):
-        if (
-            cur.select("task_message", "userdata").where(
-                user_id=user_id).one() == task_message['message_id']
-        ):
+        if cur.select("task_message", "userdata").where(
+                user_id=user_id).one() == task_message['message_id']:
             return
         await task_message.edit_text(
             f'<i>{question}\n\nОтветьте на вопрос, пока все квадратики не '
@@ -420,13 +360,13 @@ async def play_gears(call: CallbackQuery):
         )
         await asyncio.sleep(1)
 
-    if (
-        cur.select("task_message", "userdata").where(
-            user_id=user_id).one() != task_message['message_id']
-    ):
+    if cur.select("task_message", "userdata").where(
+            user_id=user_id).one() != task_message['message_id']:
         no_answer_markup = InlineKeyboardMarkup(row_width=2)
-        if (amount % 2 == 1 and dir == 'left') or (
-                amount % 2 == 0 and dir == 'right'):
+        if (
+            (amount % 2 == 1 and dir == 'left')
+            or (amount % 2 == 0 and dir == 'right')
+        ):
             correct_answer = '↩'
             no_answer_markup.add(
                 InlineKeyboardButton(
@@ -481,33 +421,25 @@ async def answer_gears(call: CallbackQuery,
     user_id = call.from_user.id
     times = cur.select("gears_today", "userdata").where(user_id=user_id).one()
     balance = cur.select("balance", "userdata").where(user_id=user_id).one()
-    current_place = cur.select("current_place", "userdata").where(
-        user_id=user_id).one()
 
-    if current_place not in ['Ридипольский завод', 'Котайский электрозавод']:
-        return await call.answer(
-                text=(
-                    '🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
-                    'местности'
-                ),
-                show_alert=True
-            )
+    await utils.check_places(user_id, call, 'Ридипольский завод',
+                             'Котайский электрозавод')
 
     if balance < 10:
         return await call.answer(
-                text=(
-                    '❌ Вам нужно хотя бы $10, чтобы начать игру'
-                ),
-                show_alert=True
-            )
+            text=(
+                '❌ Вам нужно хотя бы $10, чтобы начать игру'
+            ),
+            show_alert=True
+        )
 
     if times >= 10:
         return await call.answer(
-                text=(
-                    '❌ В Шестерёнки можно играть не более 10 раз в день'
-                ),
-                show_alert=True
-            )
+            text=(
+                '❌ В Шестерёнки можно играть не более 10 раз в день'
+            ),
+            show_alert=True
+        )
 
     cur.update("userdata").set(task_message=call.message.message_id).where(
         user_id=user_id).commit()
@@ -537,8 +469,7 @@ async def answer_gears(call: CallbackQuery,
         reward = -10
         reward_text = 'Вы ответили неверно.\n💲 Штраф: $10'
 
-    markup = InlineKeyboardMarkup(row_width=2)
-    markup.add(
+    markup = InlineKeyboardMarkup(row_width=2).add(
         InlineKeyboardButton(
             text=left_text,
             callback_data='late_answer'
@@ -573,19 +504,10 @@ async def university(call: CallbackQuery):
     user_id = call.from_user.id
     current_place = cur.select("current_place", "userdata").where(
         user_id=user_id).one()
+    await utils.check_places(user_id, call, 'Университет',
+                             'Ридипольская гимназия', 'Средняя школа Жабинки')
 
-    if current_place not in ['Университет', 'Ридипольская гимназия',
-                             'Средняя школа Жабинки']:
-        return await call.answer(
-                text=(
-                    '🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
-                    'местности'
-                ),
-                show_alert=True
-            )
-
-    markup = InlineKeyboardMarkup(row_width=1)
-    markup.add(
+    markup = InlineKeyboardMarkup(row_width=1).add(
         InlineKeyboardButton(
             text='🗺 География',
             callback_data='play_geo'
@@ -626,27 +548,19 @@ async def play_math(call: CallbackQuery):
     last_math = cur.select("last_math", "userdata").where(
         user_id=user_id).one()
     balance = cur.select("balance", "userdata").where(user_id=user_id).one()
-    current_place = cur.select("current_place", "userdata").where(
-        user_id=user_id).one()
 
-    if current_place not in ['Ридипольская гимназия', 'Средняя школа Жабинки']:
-        return await call.answer(
-                text=(
-                    '🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
-                    'местности'
-                ),
-                show_alert=True
-            )
+    await utils.check_places(user_id, call, 'Ридипольская гимназия',
+                             'Средняя школа Жабинки')
 
     if balance < 10:
         return await call.answer(
-                text=(
-                    '❌ Вам нужно хотя бы $10, чтобы начать игру'
-                ),
-                show_alert=True
-            )
+            text=(
+                '❌ Вам нужно хотя бы $10, чтобы начать игру'
+            ),
+            show_alert=True
+        )
 
-    if current_time() - last_math < 3600*4:
+    if current_time() - last_math < 3600 * 4:
         hours, minutes, seconds = get_time_units(
             20 * 3600 + current_time() - last_math)
         return await call.answer(
@@ -772,17 +686,9 @@ async def answer_math(call: CallbackQuery,
     '''
     user_id = call.from_user.id
     balance = cur.select("balance", "userdata").where(user_id=user_id).one()
-    current_place = cur.select("current_place", "userdata").where(
-        user_id=user_id).one()
 
-    if current_place not in ['Ридипольская гимназия', 'Средняя школа Жабинки']:
-        return await call.answer(
-                text=(
-                    '🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
-                    'местности'
-                ),
-                show_alert=True
-            )
+    await utils.check_places(user_id, call, 'Ридипольская гимназия',
+                             'Средняя школа Жабинки')
 
     if balance < 10:
         return await call.answer(
@@ -803,36 +709,34 @@ async def answer_math(call: CallbackQuery,
     right_text = 'Нет'
 
     if correct_answer == answer:
-        if answer == 'yes':
-            left_text = 'Да✅'
-        else:
-            right_text = 'Нет✅'
+        emoji = "✅"
         reward_text = 'Вы ответили верно.\n💡 Награда: 4 очка'
+
         cur.update("userdata").add(xp=4).where(user_id=user_id).commit()
     else:
-        if answer == 'yes':
-            left_text = 'Да❌'
-        else:
-            right_text = 'Нет❌'
+        emoji = "❌"
         reward_text = 'Вы ответили неверно.\n💲 Штраф: $10'
+
         cur.update("userdata").add(balance=-10).where(
             user_id=user_id).commit()
         cur.update("userdata").add(last_math=current_time()).where(
             user_id=user_id).commit()
 
+    left_text += f' {emoji}' if answer == 'yes' else ""
+    right_text += f" {emoji}" if answer == "no" else ""
+
     if correct_answer == 'yes':
         question = (
-                f'<b>Верно ли утверждение?</b>\n\n{number_1}{operator}'
-                f'{number_2}={suggestion}'
-            )
+            f'<b>Верно ли утверждение?</b>\n\n{number_1}{operator}'
+            f'{number_2}={suggestion}'
+        )
     else:
         question = (
-                f'<b>Верно ли утверждение?</b>\n\n{number_1}{operator}'
-                f'{number_2}=<s>{suggestion}</s> <b>{correct_number}</b>'
-            )
+            f'<b>Верно ли утверждение?</b>\n\n{number_1}{operator}'
+            f'{number_2}=<s>{suggestion}</s> <b>{correct_number}</b>'
+        )
 
-    markup = InlineKeyboardMarkup(row_width=2)
-    markup.add(
+    markup = InlineKeyboardMarkup(row_width=2).add(
         InlineKeyboardButton(
             text=left_text,
             callback_data='late_answer'
@@ -865,37 +769,28 @@ async def play_geo(call: CallbackQuery):
     last_geography = cur.select("last_geography", "userdata").where(
         user_id=user_id).one()
     balance = cur.select("balance", "userdata").where(user_id=user_id).one()
-    current_place = cur.select("current_place", "userdata").where(
-        user_id=user_id).one()
 
-    if current_place != 'Университет':
-        return await call.answer(
-                text=(
-                    '🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
-                    'местности'
-                ),
-                show_alert=True
-            )
+    await utils.check_current(user_id, "Университет", call)
 
     if balance < 10:
         return await call.answer(
-                text=(
-                    '❌ Вам нужно хотя бы $10, чтобы начать игру'
-                ),
-                show_alert=True
-            )
+            text=(
+                '❌ Вам нужно хотя бы $10, чтобы начать игру'
+            ),
+            show_alert=True
+        )
 
-    if current_time() - last_geography < 3600*4:
+    if current_time() - last_geography < 3600 * 4:
         hours, minutes, seconds = get_time_units(
             20 * 3600 + current_time() - last_geography)
         return await call.answer(
-                text=(
-                    '❌ Вы были наказаны за неверный ответ. Вы сможете'
-                    f' играть только через {hours} часов {minutes} минут'
-                    f' {seconds} секунд'
-                ),
-                show_alert=True
-            )
+            text=(
+                '❌ Вы были наказаны за неверный ответ. Вы сможете'
+                f' играть только через {hours} часов {minutes} минут'
+                f' {seconds} секунд'
+            ),
+            show_alert=True
+        )
 
     country = random.randint(0, len(countries) - 1)
     if random.uniform(0, 1) < 0.4:
@@ -908,8 +803,7 @@ async def play_geo(call: CallbackQuery):
             upper_border = len(countries) - 1
         capital = random.randint(lower_border, upper_border)
 
-    markup = InlineKeyboardMarkup(row_width=2)
-    markup.add(
+    markup = InlineKeyboardMarkup(row_width=2).add(
         InlineKeyboardButton(
             text='Да',
             callback_data=f'answer_geo yes {country} {capital}'
@@ -944,10 +838,8 @@ async def play_geo(call: CallbackQuery):
         )
         await asyncio.sleep(1)
 
-    if (
-        cur.select("task_message", "userdata").where(
-            user_id=user_id).one() != task_message['message_id']
-    ):
+    if cur.select("task_message", "userdata").where(
+            user_id=user_id).one() != task_message['message_id']:
         no_answer_markup = InlineKeyboardMarkup(row_width=2)
         if (capital == country):
             answer = 'Да'
@@ -1011,25 +903,16 @@ async def answer_geo(call: CallbackQuery,
     '''
     user_id = call.from_user.id
     balance = cur.select("balance", "userdata").where(user_id=user_id).one()
-    current_place = cur.select("current_place", "userdata").where(
-        user_id=user_id).one()
 
-    if current_place != 'Университет':
-        return await call.answer(
-                text=(
-                    '🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
-                    'местности'
-                ),
-                show_alert=True
-            )
+    await utils.check_current(user_id, "Университет", call)
 
     if balance < 10:
         return await call.answer(
-                text=(
-                    '❌ Вам нужно хотя бы $10, чтобы начать игру'
-                ),
-                show_alert=True
-            )
+            text=(
+                '❌ Вам нужно хотя бы $10, чтобы начать игру'
+            ),
+            show_alert=True
+        )
 
     cur.update("userdata").set(task_message=call.message.message_id).where(
         user_id=user_id).commit()
@@ -1060,20 +943,19 @@ async def answer_geo(call: CallbackQuery,
 
     if correct_answer == 'yes':
         question = (
-                '<b>Верно ли утверждение?</b>\n\n'
-                f'Столица государства {countries[country]} - '
-                f'<b>{capitals[capital]}</b>'
-            )
+            '<b>Верно ли утверждение?</b>\n\n'
+            f'Столица государства {countries[country]} - '
+            f'<b>{capitals[capital]}</b>'
+        )
     else:
         question = (
-                '<b>Верно ли утверждение?</b>\n\nСтолица государства '
-                f'{countries[country]} - <s>{capitals[capital]}</s> '
-                f'<b>{capitals[country]}</b>.\n\n<b>{capitals[capital]}</b> - '
-                f'столица государства <b>{countries[capital]}</b>'
-            )
+            '<b>Верно ли утверждение?</b>\n\nСтолица государства '
+            f'{countries[country]} - <s>{capitals[capital]}</s> '
+            f'<b>{capitals[country]}</b>.\n\n<b>{capitals[capital]}</b> - '
+            f'столица государства <b>{countries[capital]}</b>'
+        )
 
-    markup = InlineKeyboardMarkup(row_width=2)
-    markup.add(
+    markup = InlineKeyboardMarkup(row_width=2).add(
         InlineKeyboardButton(
             text=left_text,
             callback_data='late_answer'
@@ -1105,20 +987,10 @@ async def fishing(call: CallbackQuery):
     user_id = call.from_user.id
     rods = cur.select("fishing_rod", "userdata").where(
         user_id=user_id).one()
-    current_place = cur.select("current_place", "userdata").where(
-        user_id=user_id).one()
 
-    if current_place != 'Морской':
-        return await call.answer(
-                text=(
-                    '🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
-                    'местности'
-                ),
-                show_alert=True
-            )
+    await utils.check_current(user_id, "Морской", call)
 
-    markup = InlineKeyboardMarkup(row_width=1)
-    markup.add(
+    markup = InlineKeyboardMarkup(row_width=1).add(
         InlineKeyboardButton(
             text='🛍 Купить снасти',
             callback_data='rod_shop'
@@ -1153,17 +1025,8 @@ async def go_fishing(call: CallbackQuery):
     user_id = call.from_user.id
     rod = cur.select("fishing_rod", "userdata").where(
         user_id=user_id).one()
-    current_place = cur.select("current_place", "userdata").where(
-        user_id=user_id).one()
 
-    if current_place != 'Морской':
-        return await call.answer(
-                text=(
-                    '🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
-                    'местности'
-                ),
-                show_alert=True
-            )
+    await utils.check_current(user_id, "Морской", call)
 
     if current_time() - cur.select("last_fish", "userdata").where(
             user_id=user_id).one() < 60:
@@ -1174,11 +1037,11 @@ async def go_fishing(call: CallbackQuery):
 
     if rod < 1:
         return await call.answer(
-                text=(
-                    '❌ У вас нет удочек. Их можно купить в магазине рядом'
-                ),
-                show_alert=True
-            )
+            text=(
+                '❌ У вас нет удочек. Их можно купить в магазине рядом'
+            ),
+            show_alert=True
+        )
 
     await call.answer(
         text='🎣 Рыбалка началась... Подождите 15-30 секунд',
@@ -1255,9 +1118,7 @@ async def fish_result(call: CallbackQuery):
                 user_id=user_id).commit()
 
     if text == '':
-        text = (
-            '😓 Вы не поймали ничего.'
-        )
+        text = '😓 Вы не поймали ничего.'
     else:
         match (luck):
             case 0:
@@ -1268,8 +1129,7 @@ async def fish_result(call: CallbackQuery):
                 additional_text = 'Вам сильно повезло! Вот, что вы поймали:'
         text = f'<b>{additional_text}</b>\n{text}'
 
-    markup = InlineKeyboardMarkup(row_width=1)
-    markup.add(
+    markup = InlineKeyboardMarkup(row_width=1).add(
         InlineKeyboardButton(
             text='🎣 Заново',
             callback_data='go_fishing'
@@ -1294,20 +1154,10 @@ async def resource_factory(call: CallbackQuery):
     :param call - callback:
     '''
     user_id = call.from_user.id
-    current_place = cur.select("current_place", "userdata").where(
-        user_id=user_id).one()
 
-    if current_place != 'Уголь':
-        return await call.answer(
-                text=(
-                    '🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
-                    'местности'
-                ),
-                show_alert=True
-            )
+    await utils.check_current(user_id, "Уголь", call)
 
-    markup = InlineKeyboardMarkup(row_width=1)
-    markup.add(
+    markup = InlineKeyboardMarkup(row_width=1).add(
         InlineKeyboardButton(
             text='🔁 Начать переработку',
             callback_data='process_resources'
@@ -1338,17 +1188,8 @@ async def process_resources(call: CallbackQuery):
     :param call - callback:
     '''
     user_id = call.from_user.id
-    current_place = cur.select("current_place", "userdata").where(
-        user_id=user_id).one()
 
-    if current_place != 'Уголь':
-        return await call.answer(
-                text=(
-                    '🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
-                    'местности'
-                ),
-                show_alert=True
-            )
+    await utils.check_current(user_id, "Уголь", call)
 
     if current_time() - cur.select("last_proc", "userdata").where(
             user_id=user_id).one() < 120:
@@ -1433,17 +1274,8 @@ async def oscar_shop(call: CallbackQuery):
     :param call - callback:
     '''
     user_id = call.from_user.id
-    current_place = cur.select("current_place", "userdata").where(
-        user_id=user_id).one()
 
-    if current_place != 'Попережье':
-        return await call.answer(
-                text=(
-                    '🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
-                    'местности'
-                ),
-                show_alert=True
-            )
+    await utils.check_current(user_id, "Попережье", call)
 
     markup = InlineKeyboardMarkup(row_width=1)
     purchases = cur.select("oscar_purchases", "userdata").where(
@@ -1483,17 +1315,8 @@ async def oscar_dept(call: CallbackQuery, dept: str):
     :param dept - level name:
     '''
     user_id = call.from_user.id
-    current_place = cur.select("current_place", "userdata").where(
-        user_id=user_id).one()
 
-    if current_place != 'Попережье':
-        return await call.answer(
-                text=(
-                    '🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
-                    'местности'
-                ),
-                show_alert=True
-            )
+    await utils.check_current(user_id, "Попережье", call)
 
     if cur.select("oscar_purchases", "userdata").where(
             user_id=user_id).one() < oscar_levels[dept]:
