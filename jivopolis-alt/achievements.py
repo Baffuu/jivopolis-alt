@@ -79,6 +79,25 @@ ACHIEVEMENTS = {
         money_reward=200,
         xp_reward=17
     ),
+    'rescue_achieve': Achievement(
+        name='rescue_achieve',
+        ru_name='💊 Аркадий Паровозов',
+        description='Воскресите мёртвого игрока с помощью таблетки',
+        category='👾 Игровой процесс',
+        money_reward=100,
+        xp_reward=5
+    ),
+    'heal_achieve': Achievement(
+        name='heal_achieve',
+        ru_name='🩺 Профессиональный Айболит',
+        description='Вылечите таблетками 20 людей',
+        category='👾 Игровой процесс',
+        progress='heal_progress',
+        completion_progress=20,
+        money_reward=500,
+        xp_reward=20,
+        special_reward='stethoscope'
+    ),
     'luck_achieve': Achievement(
         name='luck_achieve',
         ru_name='🍀 Удача в придачу',

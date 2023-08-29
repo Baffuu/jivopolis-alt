@@ -2673,7 +2673,10 @@ async def walk(call: CallbackQuery, destination: str):
         f'<b>{destination}</b> займёт <b>{time_required}</b> секунд</i>'
     )
 
-    await asyncio.sleep(time_required)
+    for _ in range(3):
+        await asyncio.sleep(time_required / 3)
+        if await weather_damage(call.from_user.id, call.message.chat.id):
+            return
     await achieve(
         call.from_user.id, call.message.chat.id, "walk_achieve"
     )
