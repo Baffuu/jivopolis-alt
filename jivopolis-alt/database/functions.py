@@ -272,43 +272,29 @@ async def eat(call: CallbackQuery, food: str) -> None | bool | Message:
             return await bot.send_message(chat_id, "<i>&#9760; Вы умерли</i>")
 
 
-async def poison(user: User, target_id: int | str, chat_id: int| str) -> None | Message | bool:
+async def poison(message: Message) -> None | Message | bool:
     '''
     to use poison on a user 
     
-    :param user (aiogram.types.User) - user that is poisoning another user 
-    :param target_id (int) - telegram user ID of user that will be poisoned 
-    :chat_id chat_id (int) - telegram chat ID to which messages will be sent 
+    :param message = user:
     '''
+    user_id = message.from_user.id
+    target_id = message.reply_to_message.from_user.id
+    chat_id = message.chat.id
 
-    try:
-        my_health = cur.select("health", "userdata").where(user_id=user.id).one()
+    if not cur.select("poison", "userdata").where(user_id=user_id).one():
+        return await bot.send_message(chat_id, "<i>😥 У вас нет яда. Возможно, это к лучшему</i>")
 
-        if my_health < 0:
-            return await bot.send_message(chat_id, "<i>&#9760; Вы умерли. Попросите кого-нибудь вас воскресить</i>")
+    cur.update("userdata").add(poison=-1).where(user_id=user_id).commit()
 
-        poison = cur.execute(f"SELECT poison FROM userdata WHERE user_id={user.id}").one()
+    if random.choice([True, False]):
+        return await bot.send_message(chat_id, "<i>😵‍💫 Неудача. Возможно, это к лучшему.\nЯд потрачен зря</i>")
+    cur.update("userdata").add(health=-random.randint(50, 200)).where(user_id=target_id).commit()
 
-        if poison < 1:
-            return await bot.send_message(chat_id, "<i>&#10060; У вас нет яда. Возможно, это к лучшему</i>")
-
-        cur.execute(f"UPDATE userdata SET poison=poison-1 WHERE user_id={user.id}")
-        conn.commit()
-
-        random_damage = random.randint(50, 200)
-        if random.choice([True, False]):
-            cur.execute(f"UPDATE userdata SET health=health-{random_damage} WHERE user_id={target_id}")
-            conn.commit()
-
-            await tglog(f"<i><b>{await get_embedded_link(user.id)}</b> отравил <b>{await get_embedded_link(target_id)}\"</b></i>.", "#user_poison")
-            await bot.send_message(chat_id, f"<i>🧪 Вы отравили <b>{await get_embedded_link(target_id)}</b></i>")
-            await bot.send_message(target_id, f"<i>🧪 Вас отравил <b>{await get_embedded_link(user.id)}</b></i>")
-        else:
-            return await bot.send_message(chat_id, "<i>😵‍💫 Неудача. Возможно, это к лучшему.\nЯд потрачен зря</i>")
-
-    except Exception as e:
-        await bot.send_message(chat_id, constants.ERROR_MESSAGE.format(e))
-        return logger.exception(e)
+    await tglog(f"<i><b>{await get_embedded_link(user_id)}</b> отравил <b>{await get_embedded_link(target_id)}</b></i>", "#user_poison")
+    await bot.send_message(chat_id, f"<i>🧪 Вы отравили <b>{await get_embedded_link(target_id)}</b></i>")
+    await bot.send_message(target_id, f"<i>🧪 Вас отравил <b>{await get_embedded_link(user_id)}</b></i>")
+    await check_death(target_id, target_id)
 
 
 async def shoot(message: Message) -> None | Message:
@@ -327,14 +313,15 @@ async def shoot(message: Message) -> None | Message:
 
     if random.choice([True, False]):
         cur.update("userdata").add(health=-random.randint(100,200)).where(user_id=target_id).commit()
-        conn.commit()
 
         await tglog(f"<i><b>{await get_embedded_link(user_id)}</b> застрелил <b>{await get_embedded_link(target_id)}</b></i>", "#user_gunshoot")
         await bot.send_message(chat_id, f"<i>😨 Вы застрелили <b>{await get_embedded_link(target_id)}</b></i>")
         await bot.send_message(target_id, f"<i>😓 Вас застрелил <b>{await get_embedded_link(user_id)}</b></i>")
+        await check_death(target_id, target_id)
 
         if random.choice([True, True, False]):
-            await prison_sentence(message, 20, "убийство огнестрельным оружием")
+            return await prison_sentence(message, 20, "убийство огнестрельным оружием")
+        await achieve(user_id, chat_id, "shoot_achieve")
     else:
         await bot.send_message(chat_id, f"<i>😥 Вы выстрелили мимо. Возможно, это к лучшему.\nПистолет потрачен зря</i>")
 
@@ -363,7 +350,7 @@ async def prison_sentence(message: Message, term: int, reason: str, caption: str
     )
 
 
-async def achieve(user_id: int | str, chat_id : int | str, achievement: str) -> None:  # todo new ACHIEVEMENTS
+async def achieve(user_id: int | str, chat_id : int | str, achievement: str) -> None:
     """
     achieve a user 
     
@@ -381,10 +368,9 @@ async def achieve(user_id: int | str, chat_id : int | str, achievement: str) -> 
     desc = achievement_data.description
     money = achievement_data.money_reward
     points = achievement_data.xp_reward
-    progress = achievement_data.progress
     link = await get_embedded_link(user_id)
 
-    if progress:
+    if progress := achievement_data.progress:
         cur.select(progress, "userdata").where(user_id=user_id).one()
         cur.update("userdata").add(**{progress: 1}).where(user_id=user_id).commit()
         current_progress = cur.select(progress, "userdata").where(user_id=user_id).one()
@@ -467,8 +453,8 @@ async def cure(user_id: str, target_id: str, chat_id: str) -> None | Message:
 class profile_():
     def __init__(self, dont_init: bool = False, user_id: Optional[int] = None, message: Optional[Message] = None, called: bool = False) -> None:
         if (
-            dont_init 
-            or not user_id 
+            dont_init
+            or not user_id
             or not message
         ):
             return
