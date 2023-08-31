@@ -231,7 +231,6 @@ async def eat(call: CallbackQuery, food: str) -> None | bool | Message:
     
     :raise ValueError if food does not exists
     '''
-
     user_id = call.from_user.id
     chat_id = call.message.chat.id
 
@@ -239,37 +238,30 @@ async def eat(call: CallbackQuery, food: str) -> None | bool | Message:
         heal = int(ITEMS[food].type_param) # type: ignore    
     else:
         raise ValueError('no such food')
-
-    health = cur.execute(f"SELECT health FROM userdata WHERE user_id={user_id}").one()
     
     if heal == 1000:
         heal = random.randint(-100,10)
-    if heal == 900:
+    elif heal == 900:
         heal = random.randint(-10,5)
+    health = cur.select("health", "userdata").where(user_id=user_id).one()
 
     if health + heal > 100:
         return await call.answer('🧘 Вы недостаточно голодны для такой пищи', show_alert = True)
-            
-    health = cur.execute(f"SELECT health FROM userdata WHERE user_id={user_id}").one()
-    food_amount = cur.execute(f"SELECT {food} FROM userdata WHERE user_id={user_id}").one()
+
+    food_amount = cur.select(food, "userdata").where(user_id=user_id).one()
 
     if food_amount < 1:
         return await call.answer(text="🚫 У вас нет такой еды", show_alert = True)
 
-    cur.execute(f"UPDATE userdata SET {food}={food}-1 WHERE user_id={user_id}")
-    conn.commit()
-
-    cur.execute(f"UPDATE userdata SET health=health+{heal} WHERE user_id={user_id}")
-    conn.commit()
+    cur.update("userdata").add(**{food: -1}).where(user_id=user_id).commit()
+    # cur.update("userdata").add(health=heal).where(user_id=user_id).commit()
+    cur.execute("UPDATE userdata SET health=health+? WHERE user_id=?", heal, user_id).commit()
 
     if heal > 0:
         await call.answer(f"❤ +{heal} HP на здоровье!", show_alert = True)
     else:
         await call.answer("🤢 Зачем я это съел? Теперь мне нехорошо", show_alert = True)
-        health = cur.execute(f"SELECT health FROM userdata WHERE user_id={user_id}").one()
-
-        if health < 1:
-            return await bot.send_message(chat_id, "<i>&#9760; Вы умерли</i>")
+        await check_death(user_id, chat_id)
 
 
 async def poison(message: Message) -> None | Message | bool:
