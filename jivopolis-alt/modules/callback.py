@@ -134,6 +134,13 @@ async def callback_handler(call: CallbackQuery):
             case cheque if cheque.startswith('check_'):
                 await get_cheque(call, call.from_user.id)
 
+            case 'darkweb':
+                await shop(
+                    call,
+                    item_qualification='key',
+                    items=['gun', 'poison'],
+                    text='🤫 Тсс...'
+                )
             case 'phone_shop':
                 await shop(
                     call,

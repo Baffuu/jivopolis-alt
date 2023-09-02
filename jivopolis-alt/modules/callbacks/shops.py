@@ -19,6 +19,7 @@ from aiogram.types import (
 async def shop(
     call: CallbackQuery,
     place: Optional[str | list] = None,
+    item_qualification: Optional[str] = None,
     items: Optional[list] = None,
     text: str = 'Что бы вы хотели купить?'
 ) -> None:
@@ -38,6 +39,18 @@ async def shop(
             text=(
                 '🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
                 'местности'
+            ),
+            show_alert=True
+        )
+
+    if (item_qualification is not None and not
+        cur.select(item_qualification, "userdata").where(
+            user_id=call.from_user.id).one()):
+        qual_item = ITEMS[item_qualification]
+        return await call.answer(
+            text=(
+                '😣 Для использования этого магазина вам нужен предмет '
+                f'{qual_item.emoji} {qual_item.ru_name}'
             ),
             show_alert=True
         )
