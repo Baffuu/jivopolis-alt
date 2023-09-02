@@ -288,8 +288,8 @@ async def weather_forecast(call: CallbackQuery) -> None:
         )
 
     weather_texts = ''
-    for day in range(6):
-        now = datetime.fromtimestamp(current_time() + 8600*day)
+    for day in range(7):
+        now = datetime.fromtimestamp(current_time() + 86400*day)
         weather_texts += (
             f"\n<b>{now.day} {month(now.month)}</b> - "
             f"{str_weather(get_weather(day))}"
@@ -302,6 +302,19 @@ async def weather_forecast(call: CallbackQuery) -> None:
             cancel_button()
         )
     )
+
+
+def weather_forecast_radio_program() -> None:
+    '''
+    Callback for weather forecast phone radio program text
+    '''
+    weather_texts = ''
+    for day in range(7):
+        now = datetime.fromtimestamp(current_time() + 86400*day)
+        weather_texts += (
+            f"\n<b>{now.day} {month(now.month)}</b> - "
+            f"{str_weather(get_weather(day))}"
+        )
 
 
 async def give_state(call: CallbackQuery, amount) -> None:

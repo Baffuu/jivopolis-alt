@@ -932,7 +932,7 @@ async def update_weather():
     random_index = random.randint(1, 100)
     if random_index <= 2:
         weather_day7 = Weather['HURRICANE']
-    elif random_index <= 3 if is_winter else 10:
+    elif random_index <= (3 if is_winter else 7):
         weather_day7 = Weather['THUNDERSTORM']
     elif random_index <= 25:
         weather_day7 = Weather['SNOWY' if is_winter else 'RAINING']
