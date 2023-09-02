@@ -377,6 +377,10 @@ async def callback_handler(call: CallbackQuery):
                 await delivery_menu(call)
             case 'weather_forecast':
                 await weather_forecast(call)
+            case 'weather_forecast_radio':
+                await radio_frequency(
+                    call, 71, weather_forecast_radio_program()
+                )
             case 'central_market_menu':
                 await central_market_menu(call)
             case 'central_market_food':
