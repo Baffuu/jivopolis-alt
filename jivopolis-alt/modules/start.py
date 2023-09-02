@@ -193,7 +193,6 @@ class StartCommand():
 
     def _start_buttons(self, user_id) -> list[InlineKeyboardButton]:
         rank = cur.select("rank", "userdata").where(user_id=user_id).one()
-        phone = cur.select("phone", "userdata").where(user_id=user_id).one()
         mailbox = cur.select("last_box", from_="userdata").where(
             user_id=user_id).one()
         box = cur.select("lootbox", from_="userdata").where(
@@ -242,11 +241,20 @@ class StartCommand():
                 )
             ]
 
+        phone = cur.select("phone", "userdata").where(user_id=user_id).one()
         if phone > 0:
             buttons.append(
                 InlineKeyboardButton(
                     text="📱 Телефон",
                     callback_data="cellphone_menu"
+                )
+            )
+        radio = cur.select("radio", "userdata").where(user_id=user_id).one()
+        if radio > 0:
+            buttons.append(
+                InlineKeyboardButton(
+                    text="📻 Радио",
+                    callback_data="radio_menu"
                 )
             )
 

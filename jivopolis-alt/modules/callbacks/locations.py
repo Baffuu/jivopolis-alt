@@ -5,7 +5,9 @@ import asyncio
 from ... import utils
 
 from ...database import cur
-from ...database.functions import achieve, cancel_button, get_weather, Weather
+from ...database.functions import (
+    achieve, cancel_button, get_weather, Weather, weather_damage
+)
 
 from aiogram.types import (
     InlineKeyboardButton,
@@ -1021,6 +1023,7 @@ async def fishing(call: CallbackQuery):
         f'🎣 У вас <b>{rods}</b> удочек</i>',
         reply_markup=markup
     )
+    await weather_damage(user_id, call.message.chat.id)
 
 
 async def go_fishing(call: CallbackQuery):
@@ -1059,7 +1062,11 @@ async def go_fishing(call: CallbackQuery):
     cur.update("userdata").add(fishing_rod=-1).where(user_id=user_id).commit()
     cur.update("userdata").set(last_fish=current_time()).where(
         user_id=user_id).commit()
-    await asyncio.sleep(random.randint(13, 28))
+    await asyncio.sleep(random.randint(7, 14))
+    if await weather_damage(user_id, call.message.chat.id):
+        return
+    await asyncio.sleep(random.randint(7, 14))
+
     msg = await call.message.answer(
         "🐟 <i><b>Клюёт!</b> У вас есть 2 секунды, чтобы нажать на кнопку</i>",
         reply_markup=InlineKeyboardMarkup().add(
