@@ -261,7 +261,7 @@ class StartCommand():
         if rank >= constants.ADMINPANEL_MINIMUM_RANK:
             buttons.append(
                 InlineKeyboardButton(
-                    text="👑 Админская панель",
+                    text="👑 Admin panel",
                     callback_data="adminpanel"
                 )
             )

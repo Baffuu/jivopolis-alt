@@ -36,28 +36,28 @@ class sqlrun():
                     user_id=message.from_user.id).commit()
 
                 await message.answer(
-                    "<i>🪐 Запрос отправлен мегаадминам на проверку. Вам "
-                    "придётся подождать, пока кто-нибудь примет или отклон"
-                    "ит запрос.\n\n❗️При повторной отправке любого другого"
-                    " запроса текущий будет стёрт.</i>"
+                    "<i>🪐 Query's been sent to megaadmins for a review. "
+                    "You'll have to wait until one of them approves or decline"
+                    "s it.\n\n❗️If you make a new SQL query, the current one "
+                    "will be vanished</i>"
                 )
 
                 await bot.send_message(
                     OfficialChats.MEGACHAT,
                     (
                         f"<i><a href=\"tg://user?id={message.from_user.id}\""
-                        f">{message.from_user.full_name}</a> хочет выполнить "
-                        f"запрос:\n\n<code>{request}</code></i>"
+                        f">{message.from_user.full_name}</a> wants to make an "
+                        f"SQL query:\n\n<code>{request}</code></i>"
                     ),
                     reply_markup=InlineKeyboardMarkup(row_width=1).add(
                             InlineKeyboardButton(
-                                text="🔰 Подтвердить",
+                                text="🔰 Approve",
                                 callback_data=(
                                     f"sqlrun:approve:{message.from_user.id}"
                                 )
                             ),
                             InlineKeyboardButton(
-                                text="📛 Отклонить",
+                                text="📛 Decline",
                                 callback_data=(
                                     f"sqlrun:decline:{message.from_user.id}"
                                 )
@@ -201,9 +201,9 @@ async def globan_cmd(message: Message):
         """)
         await bot.send_message(
             message.chat.id,
-            f'👨‍🔬 Аккаунт <a href ="tg://user?id={args}>пользователя</a> '
-            'насильно создан. | <a href="tg://user?id='
-            f'{message.from_user.id}>{admin_nick}</a>'
+            f'<i>👨‍🔬 Account of a <a href ="tg://user?id={args}>user</a> '
+            'was created successfully. | <a href="tg://user?id='
+            f'{message.from_user.id}>{admin_nick}</a></i>'
         )
         await tglog(
             f'👨‍🔬 Аккаунт <a href ="tg://user?id={args}">пользователя</a> '
@@ -218,7 +218,7 @@ async def globan_cmd(message: Message):
     await bot.send_message(
         message.chat.id,
         f'🥷 <a href="{await get_link(args)}">{user_nick}</a> [<code>id: '
-        f'{args}</code>] был успешно забанен. | <a href = '
+        f'{args}</code>] has been successfully banned. | <a href = '
         f'"{await get_link(message.from_user.id)}">{admin_nick}</a>'
     )
     await tglog(
@@ -242,7 +242,7 @@ async def getall_cmd(message: Message) -> None:
         with contextlib.suppress(sqlite3.OperationalError):
             cur.update("userdata").add(**{item: args}).where(
                 user_id=message.from_user.id).commit()
-    await message.reply('🪄 Я дал вам все предметы в Живополисе')
+    await message.reply("<i>🪄 I've given you all items in Jivopolis</i>")
 
 
 async def execute_cmd(message: Message):
