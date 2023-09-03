@@ -89,6 +89,62 @@ async def chats(user_id: int, message: Message) -> None:
     )
 
 
+async def infomenu(call: CallbackQuery):
+    '''
+    Information menu.
+
+    :param call:
+    '''
+    await call.message.answer(
+        "<i>ℹ Информация и помощь</i>",
+        reply_markup=InlineKeyboardMarkup(row_width=1).add(
+            InlineKeyboardButton(
+                text="💬 Чаты",
+                callback_data="chats"
+            ),
+            InlineKeyboardButton(
+                text="📊 Экономика",
+                callback_data="economics"
+            ),
+            InlineKeyboardButton(
+                text="❓ Помощь",
+                callback_data="help"
+            ),
+            cancel_button()
+        )
+    )
+
+
+async def gadgets_menu(call: CallbackQuery):
+    '''
+    Phone and radio menu.
+
+    :param call:
+    '''
+    markup = InlineKeyboardMarkup()
+    if cur.select("phone", "userdata").where(
+            user_id=call.from_user.id).one():
+        markup.add(
+            InlineKeyboardButton(
+                text="📱 Телефон",
+                callback_data="cellphone_menu"
+            )
+        )
+    if cur.select("radio", "userdata").where(
+            user_id=call.from_user.id).one():
+        markup.add(
+            InlineKeyboardButton(
+                text="📻 Радио",
+                callback_data="radio_menu"
+            )
+        )
+
+    await call.message.answer(
+        "<i>📱 Гаджеты</i>",
+        reply_markup=markup.add(cancel_button())
+    )
+
+
 async def my_refferals(message: Message, user_id: int):
     '''
     Callback for user refferals

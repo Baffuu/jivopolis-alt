@@ -216,10 +216,6 @@ class StartCommand():
                     callback_data="mailbox"
                 ),
                 InlineKeyboardButton(
-                    text="💬 Чаты",
-                    callback_data="chats"
-                ),
-                InlineKeyboardButton(
                     text="🤵 Работать",
                     callback_data="work"
                 ),
@@ -232,25 +228,28 @@ class StartCommand():
                     callback_data="user_settings"
                 ),
                 InlineKeyboardButton(
-                    text="📊 Экономика",
-                    callback_data="economics"
-                ),
-                InlineKeyboardButton(
-                    text="❓ Помощь",
-                    callback_data="help"
+                    text="ℹ Информация",
+                    callback_data="information_menu"
                 )
             ]
 
         phone = cur.select("phone", "userdata").where(user_id=user_id).one()
-        if phone > 0:
+        radio = cur.select("radio", "userdata").where(user_id=user_id).one()
+        if phone and radio:
+            buttons.append(
+                InlineKeyboardButton(
+                    text="📱 Гаджеты",
+                    callback_data="gadget_menu"
+                )
+            )
+        elif phone:
             buttons.append(
                 InlineKeyboardButton(
                     text="📱 Телефон",
                     callback_data="cellphone_menu"
                 )
             )
-        radio = cur.select("radio", "userdata").where(user_id=user_id).one()
-        if radio > 0:
+        elif radio:
             buttons.append(
                 InlineKeyboardButton(
                     text="📻 Радио",

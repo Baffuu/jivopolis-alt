@@ -1,5 +1,7 @@
 from .other import (
+    infomenu,
     chats,
+    gadgets_menu,
     my_refferals,
     get_cheque,
     cellphone_menu,
@@ -200,6 +202,8 @@ from .shops import (
 
 __all__ = [
     "chats",
+    "infomenu",
+    "gadgets_menu",
     "my_refferals",
     "get_cheque",
     "cellphone_menu",

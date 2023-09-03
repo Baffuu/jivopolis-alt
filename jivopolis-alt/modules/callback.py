@@ -72,6 +72,10 @@ async def callback_handler(call: CallbackQuery):
         match (call.data):
             case 'chats':
                 await chats(call.from_user.id, call.message)
+            case 'information_menu':
+                await infomenu(call)
+            case 'gadget_menu':
+                await gadgets_menu(call)
             case 'adminpanel':
                 await adminpanel(call, call.from_user.id)
             case 'itemsinfo_table':
