@@ -8,7 +8,7 @@ from .. import bot, logger, Dispatcher, tglog, utils
 from ..misc import ITEMS
 from ..misc.config import SUPPORT_LINK, villages, trains, CITY, tramroute
 from ..database import cur
-from ..database.functions import check, profile, eat, current_time, buy_in_oscar_shop
+from ..database.functions import check, profile, eat, current_time, buy_in_oscar_shop, set_ride_status
 from ..filters import RequireBetaFilter
 from aiogram.utils.exceptions import (
     MessageCantBeDeleted,
@@ -56,7 +56,15 @@ async def callback_handler(call: CallbackQuery):
                     '<i>☠️ Вы умерли. Попросите кого-нибудь вас воскресить</i>'
                 )
             return
-        
+
+        ride_status = cur.select("is_in_ride", "userdata").where(
+            user_id=call.from_user.id).one()
+        if ride_status and not call.data.startswith('exit_'):
+            return await call.answer(
+                "😡 Не пользуйтесь ботом во время поездки!",
+                show_alert=True
+            )
+
         in_prison = cur.select("prison_started", "userdata").where(
             user_id=call.from_user.id).one() - current_time()
         is_in_prison = in_prison > 0
@@ -570,21 +578,25 @@ async def callback_handler(call: CallbackQuery):
                 )
                 await call.message.answer(f"<i>{answer}</i>", reply_markup = markup)
             case "exit_metro":
+                set_ride_status(call.from_user.id, 0)
                 cur.update("userdata").set(left_transport=call.message.message_id).where(user_id=call.from_user.id).commit()
                 with contextlib.suppress(MessageToDeleteNotFound, MessageCantBeDeleted):
                     await call.message.delete()
                 await metrocall(call)
             case "exit_regtrain":
+                set_ride_status(call.from_user.id, 0)
                 cur.update("userdata").set(left_transport=call.message.message_id).where(user_id=call.from_user.id).commit()
                 with contextlib.suppress(MessageToDeleteNotFound, MessageCantBeDeleted):
                     await call.message.delete()
                 await regtraincall(call)
             case "exit_trolleybus":
+                set_ride_status(call.from_user.id, 0)
                 cur.update("userdata").set(left_transport=call.message.message_id).where(user_id=call.from_user.id).commit()
                 with contextlib.suppress(MessageToDeleteNotFound, MessageCantBeDeleted):
                     await call.message.delete()
                 await trolleybuscall(call)
             case "exit_tram":
+                set_ride_status(call.from_user.id, 0)
                 cur.update("userdata").set(left_transport=call.message.message_id).where(user_id=call.from_user.id).commit()
                 with contextlib.suppress(MessageToDeleteNotFound, MessageCantBeDeleted):
                     await call.message.delete()

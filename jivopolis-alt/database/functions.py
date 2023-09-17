@@ -90,8 +90,18 @@ async def can_interact(user_id: int | str) -> bool:
             f'👮‍♂️<i> Вы находитесь в тюрьме. До выхода вам осталось {minutes}'
             f' минут {seconds} секунд</i>'
         )
+
+    is_in_ride = bool(
+        cur.select("is_in_ride", "userdata").where(
+            user_id=user_id).one()
+    )
+    if is_in_ride:
+        await bot.send_message(
+            user_id,
+            '<i>😡 Не пользуйтесь ботом во время поездки!</i>'
+        )
     
-    return not (is_dead or is_banned or is_in_prison)
+    return not (is_dead or is_banned or is_in_prison or is_in_ride)
 
 
 async def check(user_id: int | str, chat_id: int | str) -> None | Message:
@@ -952,3 +962,10 @@ def time_seconds(time: datetime) -> int:
     Convert datetime to seconds integer.
     '''
     return (time - datetime.fromtimestamp(0)).total_seconds()
+
+
+def set_ride_status(user_id: int | str, status: int = 1):
+    '''
+    Sets user's ride status.
+    '''
+    cur.update("userdata").set(is_in_ride = status).where(user_id = user_id).commit()
