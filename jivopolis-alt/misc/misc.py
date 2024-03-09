@@ -80,7 +80,7 @@ def get_mask(user_id: int | str) -> Union[str, None]:
         logger.exception(e)
         return cur.execute(
             f"SELECT rase FROM userdata WHERE user_id = {user_id}"
-        ).fetchone()[0]
+        ).one()
     except Exception as e:
         return logger.exception(e)
 

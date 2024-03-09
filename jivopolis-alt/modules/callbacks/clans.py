@@ -2295,19 +2295,18 @@ async def rob_clan(message: Message):
             message, term=10, reason="попытку обворовать клан",
             caption="Видимо, кому-то придётся поучиться взламывать..."
         )
-    else:
-        if balance < 45:
-            return await message.reply(
-                "😣 <i>В клане почти нет денег :(</i>",
-                reply_markup=markup
-            )
-        rob_sum = random.randint(1, 45)
-        cur.update("clandata").add(clan_balance=-rob_sum).where(
-            clan_id=chat_id).commit()
-        cur.update("userdata").add(balance=rob_sum).where(
-            user_id=message.from_user.id).commit()
-
-        await message.answer(
-            f"<i>😎 Крутой <b>{await get_embedded_link(message.from_user.id)}"
-            f"</b> взломал клан и забрал <b>${rob_sum}</b></i>"
+    if balance < 45:
+        return await message.reply(
+            "😣 <i>В клане почти нет денег :(</i>",
+            reply_markup=markup
         )
+    rob_sum = random.randint(1, 45)
+    cur.update("clandata").add(clan_balance=-rob_sum).where(
+        clan_id=chat_id).commit()
+    cur.update("userdata").add(balance=rob_sum).where(
+        user_id=message.from_user.id).commit()
+
+    await message.answer(
+        f"<i>😎 Крутой <b>{await get_embedded_link(message.from_user.id)}"
+        f"</b> взломал клан и забрал <b>${rob_sum}</b></i>"
+    )

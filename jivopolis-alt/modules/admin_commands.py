@@ -81,8 +81,9 @@ class sqlrun():
         except Exception as e:
             await message.answer(
                 "<b>🧯 <i>ERROR WHILE SQLQ:</i>\n\n:"
-                f"{utils.get_full_class_name(e)}</b>\n<code>{e}</code>"
+                f"{utils.get_full_class_name(e)}</b>: <code>{e}</code>"
             )
+            logger.exception(e)
 
     def _check_request(self, message: Message, args: str):
         approve_cmds = [

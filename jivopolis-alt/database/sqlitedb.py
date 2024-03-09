@@ -221,7 +221,7 @@ def create_userdata(cur: fyCursor) -> None:
     proc_achieve    INTEGER         DEFAULT 0               NOT NULL,
     oscar_achieve   INTEGER         DEFAULT 0               NOT NULL
 )
-""")
+""").commit()
 
 
 def create_globaldata(cur: fyCursor) -> None:
@@ -240,7 +240,7 @@ def create_globaldata(cur: fyCursor) -> None:
     meat_on_bone    INTEGER,
     pita            INTEGER,
     tea             INTEGER
-)""")
+)""").commit()
 
 
 def create_clandata(cur: fyCursor) -> None:
@@ -281,7 +281,7 @@ def create_clandata(cur: fyCursor) -> None:
     last_lootbox    DATETIME        DEFAULT 0               NOT NULL,
     last_withdrawal DATETIME        DEFAULT 0               NOT NULL
 )
-    """)
+    """).commit()
 
 
 def create_cryptodata(cur: fyCursor) -> None:
@@ -304,7 +304,7 @@ def create_cryptodata(cur: fyCursor) -> None:
         hours_20 INTEGER,
         hours_24 INTEGER
     )
-    """)
+    """).commit()
     from ..items import ITEMS
 
     for i in [item for item in ITEMS if ITEMS[item].type == "crypto"]:

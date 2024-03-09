@@ -82,9 +82,9 @@ async def is_allowed_nonick(user_id: int) -> bool:
 def user_exists(user_id: str | int) -> bool:
     """returns `True` if user with such user_id exists, else `False`"""
     return (
-        cur.execute(
+        int(cur.execute(
             f"SELECT count(*) FROM userdata WHERE user_id={user_id}"
-        ).fetchone()[0]
+        ).one())
         > 0
     )
 
