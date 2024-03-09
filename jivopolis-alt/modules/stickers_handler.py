@@ -6,7 +6,7 @@ from ..misc.moder import (
 )
 from .callbacks import lootbox_button, rob_clan
 from ..database import cur
-from ..utils import check_user
+from ..database.functions import cure, shoot, poison, can_interact
 
 from aiogram.types import Message
 import contextlib
@@ -17,19 +17,17 @@ async def sticker_handler(message: Message):
         count = cur.select("count(*)", "clandata").where(
             clan_id=message.chat.id).one()
 
-        if count == 1:
-            filter = cur.select("filter_sticker", "clandata").where(
-                clan_id=message.chat.id).one()
-            if filter:
-                with contextlib.suppress(Exception):
-                    return await message.delete()
+        if count == 1 and cur.select("filter_sticker", "clandata").where(
+                    clan_id=message.chat.id).one():
+            with contextlib.suppress(Exception):
+                return await message.delete()
 
-        feature_emojis = ['📦', '🖥']
+        feature_emojis = ['📦', '🖥', '💊', '🔫', '🧪']
 
-        if message.sticker.emoji in feature_emojis or \
-                message.chat.type == 'private':
-            if not await check_user(message.from_user.id):
-                return
+        if ((message.sticker.emoji in feature_emojis
+                or message.chat.type == 'private') and
+                not await can_interact(message.from_user.id)):
+            return
 
         match (message.sticker.emoji):
             case '📦':
@@ -51,6 +49,19 @@ async def sticker_handler(message: Message):
             case '📌':
                 if message.reply_to_message:
                     return await pin_message(message)
+            case '💊':
+                if message.reply_to_message:
+                    return await cure(
+                        message.from_user.id,
+                        message.reply_to_message.from_user.id,
+                        message.chat.id
+                    )
+            case '🔫':
+                if message.reply_to_message:
+                    return await shoot(message)
+            case '🧪':
+                if message.reply_to_message:
+                    return await poison(message)
 
     except Exception as e:
         logger.exception(e)

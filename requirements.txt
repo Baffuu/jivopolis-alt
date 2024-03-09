@@ -3,3 +3,4 @@ loguru==0.6.0
 fyCursor==0.1.5.3
 uvloop
 ujson
+gtts

@@ -9,6 +9,7 @@ import contextlib
 from .bot import bot
 from .misc import tglog, ITEMS
 from .database import cur
+from .database.functions import update_weather
 from .marketplace.marketplace import market
 from .misc.config import limited_items
 
@@ -19,6 +20,7 @@ async def update():
     await refill_market()
     await update_crypto()
     await remove_old_products()
+    await update_weather()
 
 
 async def refill_market():

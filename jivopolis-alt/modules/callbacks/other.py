@@ -1,5 +1,7 @@
 import time
 import contextlib
+from gtts import gTTS
+import os
 from math import floor
 from datetime import datetime, timezone
 from .traveling import state_balance
@@ -82,6 +84,62 @@ async def chats(user_id: int, message: Message) -> None:
             "те на кнопку \"Выбрать расу\"\n" if info is None else ""
         ),
         reply_markup=markup
+    )
+
+
+async def infomenu(call: CallbackQuery):
+    '''
+    Information menu.
+
+    :param call:
+    '''
+    await call.message.answer(
+        "<i>ℹ Информация и помощь</i>",
+        reply_markup=InlineKeyboardMarkup(row_width=1).add(
+            InlineKeyboardButton(
+                text="💬 Чаты",
+                callback_data="chats"
+            ),
+            InlineKeyboardButton(
+                text="📊 Экономика",
+                callback_data="economics"
+            ),
+            InlineKeyboardButton(
+                text="❓ Помощь",
+                callback_data="help"
+            ),
+            cancel_button()
+        )
+    )
+
+
+async def gadgets_menu(call: CallbackQuery):
+    '''
+    Phone and radio menu.
+
+    :param call:
+    '''
+    markup = InlineKeyboardMarkup()
+    if cur.select("phone", "userdata").where(
+            user_id=call.from_user.id).one():
+        markup.add(
+            InlineKeyboardButton(
+                text="📱 Телефон",
+                callback_data="cellphone_menu"
+            )
+        )
+    if cur.select("radio", "userdata").where(
+            user_id=call.from_user.id).one():
+        markup.add(
+            InlineKeyboardButton(
+                text="📻 Радио",
+                callback_data="radio_menu"
+            )
+        )
+
+    await call.message.answer(
+        "<i>📱 Гаджеты</i>",
+        reply_markup=markup.add(cancel_button())
     )
 
 
@@ -253,8 +311,8 @@ async def radio_menu(call: CallbackQuery) -> None:
 
     markup.add(
         InlineKeyboardButton(
-            text=f"1. {weather[0]} Прогноз погоды",
-            callback_data="weather_forecast"
+            text=f"71.0 {weather[0]} Прогноз погоды",
+            callback_data="weather_forecast_radio"
         ),
         InlineKeyboardMarkup(
             text="◀ Назад",
@@ -286,14 +344,12 @@ async def weather_forecast(call: CallbackQuery) -> None:
         )
 
     weather_texts = ''
-    int_time = current_time()
-    for _ in range(6):
-        now = datetime.fromtimestamp(int_time)
+    for day in range(7):
+        now = datetime.fromtimestamp(current_time() + 86400*day)
         weather_texts += (
             f"\n<b>{now.day} {month(now.month)}</b> - "
-            f"{str_weather(get_weather(int_time))}"
+            f"{str_weather(get_weather(day))}"
         )
-        int_time += 86400
 
     await call.message.answer(
         f"<i><b>Погода на ближайшие 7 дней:</b>\n{weather_texts}\n\n"
@@ -302,6 +358,49 @@ async def weather_forecast(call: CallbackQuery) -> None:
             cancel_button()
         )
     )
+
+
+async def radio_frequency(call: CallbackQuery, frequency: int,
+                          speech: str) -> None:
+    '''
+    Callback for weather forecast phone radio program text
+
+    :param call - callback:
+    :param frequency - radio station frequency:
+    :param speech - radio station text:
+    '''
+    now = datetime.now(timezone.utc)
+    file_name = f"radio_{frequency}.mp3"
+    speech = (
+        f"Слушайте Голос Котая! Вас встречает радиостанция {frequency}...\n"
+        f"В Котае {now.day} {month(now.month)}, {now.hour} часов {now.minute}"
+        f" минут...\n{speech}...\n\nДо встречи!"
+    )
+    gTTS(speech, lang='ru').save(file_name)
+
+    with open(file_name, "rb") as audio_file:
+        await call.message.answer_audio(
+            audio_file,
+            caption=f"<i>В эфире Голос Котая, частота <b>{frequency}.0</b>\n\n"
+                    f"<code>{speech}</code></i>",
+            reply_markup=InlineKeyboardMarkup().add(cancel_button())
+        )
+    os.remove(file_name)
+
+
+def weather_forecast_radio_program() -> None:
+    '''
+    Callback for weather forecast phone radio program text
+    '''
+    weather_texts = 'Прогноз погоды на ближайшие семь дней...\n'
+    for day in range(7):
+        now = datetime.fromtimestamp(current_time() + 86400*day)
+        weather_texts += (
+            f"\n{now.day} {month(now.month)} - "
+            f"{str_weather(get_weather(day))[2:]}..."
+        )
+
+    return weather_texts
 
 
 async def give_state(call: CallbackQuery, amount) -> None:

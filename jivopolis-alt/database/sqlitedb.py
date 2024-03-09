@@ -65,6 +65,7 @@ def create_userdata(cur: fyCursor) -> None:
     clan_id         INTEGER,
     last_steal      DATETIME        DEFAULT 0               NOT NULL,
     is_ready        INTEGER         DEFAULT 0               NOT NULL,
+    is_in_ride      INTEGER         DEFAULT 0               NOT NULL,
 
     nonick_cmds     INTEGER         DEFAULT 0               NOT NULL,
     last_box        DATETIME        DEFAULT 0               NOT NULL,
@@ -219,7 +220,11 @@ def create_userdata(cur: fyCursor) -> None:
     fish_achieve    INTEGER         DEFAULT 0               NOT NULL,
     fish_progress   INTEGER         DEFAULT 0               NOT NULL,
     proc_achieve    INTEGER         DEFAULT 0               NOT NULL,
-    oscar_achieve   INTEGER         DEFAULT 0               NOT NULL
+    oscar_achieve   INTEGER         DEFAULT 0               NOT NULL,
+    heal_progress   INTEGER         DEFAULT 0               NOT NULL,
+    heal_achieve    INTEGER         DEFAULT 0               NOT NULL,
+    rescue_achieve  INTEGER         DEFAULT 0               NOT NULL,
+    shoot_achieve   INTEGER         DEFAULT 0               NOT NULL
 )
 """).commit()
 
@@ -239,8 +244,11 @@ def create_globaldata(cur: fyCursor) -> None:
     soup            INTEGER,
     meat_on_bone    INTEGER,
     pita            INTEGER,
-    tea             INTEGER
-)""").commit()
+    tea             INTEGER,
+    weather         TEXT            DEFAULT \"0000000\"     NOT NULL,
+    last_weather    DATETIME        DEFAULT 0               NOT NULL
+
+)""")
 
 
 def create_clandata(cur: fyCursor) -> None:

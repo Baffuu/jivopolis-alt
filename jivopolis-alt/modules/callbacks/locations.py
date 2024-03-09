@@ -5,7 +5,9 @@ import asyncio
 from ... import utils
 
 from ...database import cur
-from ...database.functions import achieve, cancel_button, get_weather, Weather
+from ...database.functions import (
+    achieve, cancel_button, get_weather, Weather, weather_damage
+)
 
 from aiogram.types import (
     InlineKeyboardButton,
@@ -31,7 +33,8 @@ async def farm(call: CallbackQuery):
     cow = cur.select("cow", "userdata").where(user_id=user_id).one()
     milk = cur.select("milk", "userdata").where(user_id=user_id).one()
 
-    await utils.check_current(user_id, "Роща", call)
+    if not await utils.check_current(user_id, "Роща", call):
+        return
 
     markup = InlineKeyboardMarkup(row_width=1).add(
         InlineKeyboardButton(
@@ -64,7 +67,8 @@ async def milk_cow(call: CallbackQuery):
     user_id = call.from_user.id
     cow = cur.select("cow", "userdata").where(user_id=user_id).one()
 
-    await utils.check_current(user_id, "Роща", call)
+    if not await utils.check_current(user_id, "Роща", call):
+        return
 
     if cow < 1:
         return await call.answer(
@@ -97,7 +101,8 @@ async def mineshaft(call: CallbackQuery):
     user_id = call.from_user.id
     pickaxe = cur.select("pickaxe", "userdata").where(user_id=user_id).one()
 
-    await utils.check_current(user_id, "Посёлок Горный", call)
+    if not await utils.check_current(user_id, "Посёлок Горный", call):
+        return
 
     markup = InlineKeyboardMarkup(row_width=1)
     markup.add(
@@ -131,7 +136,8 @@ async def go_mining(call: CallbackQuery):
     user_id = call.from_user.id
     pickaxe = cur.select("pickaxe", "userdata").where(user_id=user_id).one()
 
-    await utils.check_current(user_id, "Посёлок Горный", call)
+    if not await utils.check_current(user_id, "Посёлок Горный", call):
+        return
 
     if current_time() - cur.select("last_mine", "userdata").where(
             user_id=user_id).one() < 60:
@@ -770,7 +776,8 @@ async def play_geo(call: CallbackQuery):
         user_id=user_id).one()
     balance = cur.select("balance", "userdata").where(user_id=user_id).one()
 
-    await utils.check_current(user_id, "Университет", call)
+    if not await utils.check_current(user_id, "Университет", call):
+        return
 
     if balance < 10:
         return await call.answer(
@@ -904,7 +911,8 @@ async def answer_geo(call: CallbackQuery,
     user_id = call.from_user.id
     balance = cur.select("balance", "userdata").where(user_id=user_id).one()
 
-    await utils.check_current(user_id, "Университет", call)
+    if not await utils.check_current(user_id, "Университет", call):
+        return
 
     if balance < 10:
         return await call.answer(
@@ -988,7 +996,8 @@ async def fishing(call: CallbackQuery):
     rods = cur.select("fishing_rod", "userdata").where(
         user_id=user_id).one()
 
-    await utils.check_current(user_id, "Морской", call)
+    if not await utils.check_current(user_id, "Морской", call):
+        return
 
     markup = InlineKeyboardMarkup(row_width=1).add(
         InlineKeyboardButton(
@@ -1014,6 +1023,7 @@ async def fishing(call: CallbackQuery):
         f'🎣 У вас <b>{rods}</b> удочек</i>',
         reply_markup=markup
     )
+    await weather_damage(user_id, call.message.chat.id)
 
 
 async def go_fishing(call: CallbackQuery):
@@ -1026,7 +1036,8 @@ async def go_fishing(call: CallbackQuery):
     rod = cur.select("fishing_rod", "userdata").where(
         user_id=user_id).one()
 
-    await utils.check_current(user_id, "Морской", call)
+    if not await utils.check_current(user_id, "Морской", call):
+        return
 
     if current_time() - cur.select("last_fish", "userdata").where(
             user_id=user_id).one() < 60:
@@ -1051,7 +1062,11 @@ async def go_fishing(call: CallbackQuery):
     cur.update("userdata").add(fishing_rod=-1).where(user_id=user_id).commit()
     cur.update("userdata").set(last_fish=current_time()).where(
         user_id=user_id).commit()
-    await asyncio.sleep(random.randint(13, 28))
+    await asyncio.sleep(random.randint(7, 14))
+    if await weather_damage(user_id, call.message.chat.id):
+        return
+    await asyncio.sleep(random.randint(7, 14))
+
     msg = await call.message.answer(
         "🐟 <i><b>Клюёт!</b> У вас есть 2 секунды, чтобы нажать на кнопку</i>",
         reply_markup=InlineKeyboardMarkup().add(
@@ -1155,7 +1170,8 @@ async def resource_factory(call: CallbackQuery):
     '''
     user_id = call.from_user.id
 
-    await utils.check_current(user_id, "Уголь", call)
+    if not await utils.check_current(user_id, "Уголь", call):
+        return
 
     markup = InlineKeyboardMarkup(row_width=1).add(
         InlineKeyboardButton(
@@ -1189,7 +1205,8 @@ async def process_resources(call: CallbackQuery):
     '''
     user_id = call.from_user.id
 
-    await utils.check_current(user_id, "Уголь", call)
+    if not await utils.check_current(user_id, "Уголь", call):
+        return
 
     if current_time() - cur.select("last_proc", "userdata").where(
             user_id=user_id).one() < 120:
@@ -1275,7 +1292,8 @@ async def oscar_shop(call: CallbackQuery):
     '''
     user_id = call.from_user.id
 
-    await utils.check_current(user_id, "Попережье", call)
+    if not await utils.check_current(user_id, "Попережье", call):
+        return
 
     markup = InlineKeyboardMarkup(row_width=1)
     purchases = cur.select("oscar_purchases", "userdata").where(
@@ -1316,7 +1334,8 @@ async def oscar_dept(call: CallbackQuery, dept: str):
     '''
     user_id = call.from_user.id
 
-    await utils.check_current(user_id, "Попережье", call)
+    if not await utils.check_current(user_id, "Попережье", call):
+        return
 
     if cur.select("oscar_purchases", "userdata").where(
             user_id=user_id).one() < oscar_levels[dept]:

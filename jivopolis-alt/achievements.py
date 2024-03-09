@@ -79,12 +79,31 @@ ACHIEVEMENTS = {
         money_reward=200,
         xp_reward=17
     ),
+    'rescue_achieve': Achievement(
+        name='rescue_achieve',
+        ru_name='💊 Аркадий Паровозов',
+        description='Воскресите мёртвого игрока с помощью таблетки',
+        category='👾 Игровой процесс',
+        money_reward=100,
+        xp_reward=5
+    ),
+    'heal_achieve': Achievement(
+        name='heal_achieve',
+        ru_name='🩺 Профессиональный Айболит',
+        description='Вылечите таблетками 20 людей',
+        category='👾 Игровой процесс',
+        progress='heal_progress',
+        completion_progress=20,
+        money_reward=500,
+        xp_reward=20,
+        special_reward='stethoscope'
+    ),
     'luck_achieve': Achievement(
         name='luck_achieve',
         ru_name='🍀 Удача в придачу',
         description='Поймайте джекпот, играя в '
                     'казино в Игровом клубе',
-        category='🎮 Развлечения',
+        category='🌚 Развлечения и криминал',
         money_reward=50,
         xp_reward=7
     ),
@@ -93,12 +112,22 @@ ACHIEVEMENTS = {
         ru_name='🎰 Профессиональный игрок',
         description='10 раз поймайте джекпот, играя'
                     ' в казино в Игровом клубе',
-        category='🎮 Развлечения',
+        category='🌚 Развлечения и криминал',
         money_reward=500,
         xp_reward=32,
         progress='jackpot_progress',
         completion_progress=10,
         special_reward="key"
+    ),
+    'shoot_achieve': Achievement(
+        name='shoot_achieve',
+        ru_name='😎 Криминальный район',
+        description='Выстрелите в игрока из пистолета, при '
+                    'этом не промахнитесь и не попадите '
+                    'в тюрьму',
+        category='🌚 Развлечения и криминал',
+        money_reward=100,
+        xp_reward=5
     ),
     'cab_achieve': Achievement(
         name='cab_achieve',

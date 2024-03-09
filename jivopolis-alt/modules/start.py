@@ -193,7 +193,6 @@ class StartCommand():
 
     def _start_buttons(self, user_id) -> list[InlineKeyboardButton]:
         rank = cur.select("rank", "userdata").where(user_id=user_id).one()
-        phone = cur.select("phone", "userdata").where(user_id=user_id).one()
         mailbox = cur.select("last_box", from_="userdata").where(
             user_id=user_id).one()
         box = cur.select("lootbox", from_="userdata").where(
@@ -217,10 +216,6 @@ class StartCommand():
                     callback_data="mailbox"
                 ),
                 InlineKeyboardButton(
-                    text="💬 Чаты",
-                    callback_data="chats"
-                ),
-                InlineKeyboardButton(
                     text="🤵 Работать",
                     callback_data="work"
                 ),
@@ -233,27 +228,39 @@ class StartCommand():
                     callback_data="user_settings"
                 ),
                 InlineKeyboardButton(
-                    text="📊 Экономика",
-                    callback_data="economics"
-                ),
-                InlineKeyboardButton(
-                    text="❓ Помощь",
-                    callback_data="help"
+                    text="ℹ Информация",
+                    callback_data="information_menu"
                 )
             ]
 
-        if phone > 0:
+        phone = cur.select("phone", "userdata").where(user_id=user_id).one()
+        radio = cur.select("radio", "userdata").where(user_id=user_id).one()
+        if phone and radio:
+            buttons.append(
+                InlineKeyboardButton(
+                    text="📱 Гаджеты",
+                    callback_data="gadget_menu"
+                )
+            )
+        elif phone:
             buttons.append(
                 InlineKeyboardButton(
                     text="📱 Телефон",
                     callback_data="cellphone_menu"
                 )
             )
+        elif radio:
+            buttons.append(
+                InlineKeyboardButton(
+                    text="📻 Радио",
+                    callback_data="radio_menu"
+                )
+            )
 
         if rank >= constants.ADMINPANEL_MINIMUM_RANK:
             buttons.append(
                 InlineKeyboardButton(
-                    text="👑 Админская панель",
+                    text="👑 Admin panel",
                     callback_data="adminpanel"
                 )
             )

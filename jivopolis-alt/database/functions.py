@@ -5,9 +5,9 @@
 import random
 import asyncio
 
-from datetime import datetime, timezone
+from datetime import datetime
 from math import floor
-from enum import Enum
+from enum import IntEnum
 import sqlite3
 from typing import Union, Optional
 
@@ -90,8 +90,18 @@ async def can_interact(user_id: int | str) -> bool:
             f'👮‍♂️<i> Вы находитесь в тюрьме. До выхода вам осталось {minutes}'
             f' минут {seconds} секунд</i>'
         )
+
+    is_in_ride = bool(
+        cur.select("is_in_ride", "userdata").where(
+            user_id=user_id).one()
+    )
+    if is_in_ride:
+        await bot.send_message(
+            user_id,
+            '<i>😡 Не пользуйтесь ботом во время поездки!</i>'
+        )
     
-    return not (is_dead or is_banned or is_in_prison)
+    return not (is_dead or is_banned or is_in_prison or is_in_ride)
 
 
 async def check(user_id: int | str, chat_id: int | str) -> None | Message:
@@ -231,7 +241,6 @@ async def eat(call: CallbackQuery, food: str) -> None | bool | Message:
     
     :raise ValueError if food does not exists
     '''
-
     user_id = call.from_user.id
     chat_id = call.message.chat.id
 
@@ -239,117 +248,84 @@ async def eat(call: CallbackQuery, food: str) -> None | bool | Message:
         heal = int(ITEMS[food].type_param) # type: ignore    
     else:
         raise ValueError('no such food')
-
-    health = cur.execute(f"SELECT health FROM userdata WHERE user_id={user_id}").one()
     
     if heal == 1000:
         heal = random.randint(-100,10)
-    if heal == 900:
+    elif heal == 900:
         heal = random.randint(-10,5)
+    health = cur.select("health", "userdata").where(user_id=user_id).one()
 
     if health + heal > 100:
         return await call.answer('🧘 Вы недостаточно голодны для такой пищи', show_alert = True)
-            
-    health = cur.execute(f"SELECT health FROM userdata WHERE user_id={user_id}").one()
-    food_amount = cur.execute(f"SELECT {food} FROM userdata WHERE user_id={user_id}").one()
+
+    food_amount = cur.select(food, "userdata").where(user_id=user_id).one()
 
     if food_amount < 1:
         return await call.answer(text="🚫 У вас нет такой еды", show_alert = True)
 
-    cur.execute(f"UPDATE userdata SET {food}={food}-1 WHERE user_id={user_id}")
-    conn.commit()
-
-    cur.execute(f"UPDATE userdata SET health=health+{heal} WHERE user_id={user_id}")
-    conn.commit()
+    cur.update("userdata").add(**{food: -1}).where(user_id=user_id).commit()
+    # cur.update("userdata").add(health=heal).where(user_id=user_id).commit()
+    cur.execute("UPDATE userdata SET health=health+? WHERE user_id=?", heal, user_id).commit()
 
     if heal > 0:
         await call.answer(f"❤ +{heal} HP на здоровье!", show_alert = True)
     else:
         await call.answer("🤢 Зачем я это съел? Теперь мне нехорошо", show_alert = True)
-        health = cur.execute(f"SELECT health FROM userdata WHERE user_id={user_id}").one()
-
-        if health < 1:
-            return await bot.send_message(chat_id, "<i>&#9760; Вы умерли</i>")
+        await check_death(user_id, chat_id)
 
 
-async def poison(user: User, target_id: int | str, chat_id: int| str) -> None | Message | bool:
+async def poison(message: Message) -> None | Message | bool:
     '''
     to use poison on a user 
     
-    :param user (aiogram.types.User) - user that is poisoning another user 
-    :param target_id (int) - telegram user ID of user that will be poisoned 
-    :chat_id chat_id (int) - telegram chat ID to which messages will be sent 
+    :param message = user:
     '''
+    user_id = message.from_user.id
+    target_id = message.reply_to_message.from_user.id
+    chat_id = message.chat.id
 
-    try:
-        my_health = cur.select("health", "userdata").where(user_id=user.id).one()
+    if not cur.select("poison", "userdata").where(user_id=user_id).one():
+        return await bot.send_message(chat_id, "<i>😥 У вас нет яда. Возможно, это к лучшему</i>")
 
-        if my_health < 0:
-            return await bot.send_message(chat_id, "<i>&#9760; Вы умерли. Попросите кого-нибудь вас воскресить</i>")
+    cur.update("userdata").add(poison=-1).where(user_id=user_id).commit()
 
-        poison = cur.execute(f"SELECT poison FROM userdata WHERE user_id={user.id}").one()
+    if random.choice([True, False]):
+        return await bot.send_message(chat_id, "<i>😵‍💫 Неудача. Возможно, это к лучшему.\nЯд потрачен зря</i>")
+    cur.update("userdata").add(health=-random.randint(50, 200)).where(user_id=target_id).commit()
 
-        if poison < 1:
-            return await bot.send_message(chat_id, "<i>&#10060; У вас нет яда. Возможно, это к лучшему</i>")
-
-        cur.execute(f"UPDATE userdata SET poison=poison-1 WHERE user_id={user.id}")
-        conn.commit()
-
-        random_damage = random.randint(50, 200)
-        if random.choice([True, False]):
-            cur.execute(f"UPDATE userdata SET health=health-{random_damage} WHERE user_id={target_id}")
-            conn.commit()
-
-            await tglog(f"<i><b>{await get_embedded_link(user.id)}</b> отравил <b>{await get_embedded_link(target_id)}\"</b></i>.", "#user_poison")
-            await bot.send_message(chat_id, f"<i>🧪 Вы отравили <b>{await get_embedded_link(target_id)}</b></i>")
-            await bot.send_message(target_id, f"<i>🧪 Вас отравил <b>{await get_embedded_link(user.id)}</b></i>")
-        else:
-            return await bot.send_message(chat_id, "<i>😵‍💫 Неудача. Возможно, это к лучшему.\nЯд потрачен зря</i>")
-
-    except Exception as e:
-        await bot.send_message(chat_id, constants.ERROR_MESSAGE.format(e))
-        return logger.exception(e)
+    await tglog(f"<i><b>{await get_embedded_link(user_id)}</b> отравил <b>{await get_embedded_link(target_id)}</b></i>", "#user_poison")
+    await bot.send_message(chat_id, f"<i>🧪 Вы отравили <b>{await get_embedded_link(target_id)}</b></i>")
+    await bot.send_message(target_id, f"<i>🧪 Вас отравил <b>{await get_embedded_link(user_id)}</b></i>")
+    await check_death(target_id, target_id)
 
 
-async def shoot(user_id: int | str, target_id: int | str, chat_id: int | str) -> None | Message: #function is useless now...
+async def shoot(message: Message) -> None | Message:
     '''
     shoot a person
     
-    :param user_id (int) - Telegram User ID of user that is shooting another user 
-    :param target_id (int) - Telegram User ID of user that will be shooted
-    
-    :param chat_id (int) - Telegram Chat ID of chat in which messages will be sent 
+    :param message - message of the user:
     '''
-    gun = cur.execute(f"SELECT gun FROM userdata WHERE user_id={user_id}").fetchone()
+    user_id = message.from_user.id
+    target_id = message.reply_to_message.from_user.id
+    chat_id = message.chat.id
+    if not cur.select("gun", "userdata").where(user_id=user_id).one():
+        return await bot.send_message(chat_id, "<i>🙅‍♂️ У вас нет пистолета. Возможно, это к лучшему</i>")
 
-    if gun < 1:
-        return await bot.send_message(chat_id, "<i>&#10060; У вас нет пистолета. Возможно, это к лучшему</i>")
+    cur.update("userdata").add(gun=-1).where(user_id=user_id).commit()
 
-    cur.execute(f"UPDATE userdata SET gun=gun-1 WHERE user_id={user_id}")
-    conn.commit()
-
-    rand = random.randint(100,200)
     if random.choice([True, False]):
-        cur.execute(f"UPDATE userdata SET health=health-{rand} WHERE user_id={target_id}")
-        conn.commit()
+        cur.update("userdata").add(health=-random.randint(100,200)).where(user_id=target_id).commit()
 
-        await tglog(f"<i><b>{await get_embedded_link(user_id)}</a></b> застрелил <b>{await get_embedded_link(target_id)}</b>", "#user_gunshoot")
-        await bot.send_message(chat_id, f"<i>&#128299; Вы застрелили <b>{await get_embedded_link(target_id)}</b></i>")
-        await bot.send_message(target_id, f"<i>&#128299; Вас застрелил <b>{await get_embedded_link(user_id)}</b></i>")
+        await tglog(f"<i><b>{await get_embedded_link(user_id)}</b> застрелил <b>{await get_embedded_link(target_id)}</b></i>", "#user_gunshoot")
+        await bot.send_message(chat_id, f"<i>😨 Вы застрелили <b>{await get_embedded_link(target_id)}</b></i>")
+        await bot.send_message(target_id, f"<i>😓 Вас застрелил <b>{await get_embedded_link(user_id)}</b></i>")
+        await check_death(target_id, target_id)
 
-        if random.choice([True, False]):
-            cur.execute(f"UPDATE userdata SET prison_started={current_time() + 1200} WHERE user_id={user_id}")
-            conn.commit()
-
-            await bot.send_message(
-                chat_id, 
-                (
-                    f"<i>&#128110; Господин <b>{await get_embedded_link(target_id)}</b>, вы задержаны за убийство огнестрельным оружием. "
-                    "Пройдёмте в отделение.\n\nВы были арестованы на <b>20 минут</b></i>"
-                )
-            )
-        else:
-            await bot.send_message(chat_id, f"<i>&#10060; Вы выстрелили мимо. Возможно, это к лучшему.\nПистолет потрачен зря</i>")
+        if random.choice([True, True, False]):
+            return await prison_sentence(message, 20, "убийство огнестрельным оружием")
+        await achieve(user_id, chat_id, "shoot_achieve")
+    else:
+        await bot.send_message(chat_id, f"<i>😥 Вы выстрелили мимо. Возможно, это к лучшему.\nПистолет потрачен зря</i>")
 
 
 async def prison_sentence(message: Message, term: int, reason: str, caption: str="") -> None:
@@ -376,7 +352,7 @@ async def prison_sentence(message: Message, term: int, reason: str, caption: str
     )
 
 
-async def achieve(user_id: int | str, chat_id : int | str, achievement: str) -> None:  # todo new ACHIEVEMENTS
+async def achieve(user_id: int | str, chat_id : int | str, achievement: str) -> None:
     """
     achieve a user 
     
@@ -394,11 +370,9 @@ async def achieve(user_id: int | str, chat_id : int | str, achievement: str) -> 
     desc = achievement_data.description
     money = achievement_data.money_reward
     points = achievement_data.xp_reward
-    progress = achievement_data.progress
     link = await get_embedded_link(user_id)
-    print(achievement, progress)
 
-    if progress:
+    if progress := achievement_data.progress:
         cur.select(progress, "userdata").where(user_id=user_id).one()
         cur.update("userdata").add(**{progress: 1}).where(user_id=user_id).commit()
         current_progress = cur.select(progress, "userdata").where(user_id=user_id).one()
@@ -434,80 +408,55 @@ async def achieve(user_id: int | str, chat_id : int | str, achievement: str) -> 
 
 
 
-async def cure(user_id: str, target_id: str, chat_id: str) -> None | Message: # function is useless now...
+async def cure(user_id: str, target_id: str, chat_id: str) -> None | Message:
     '''
-    to cure someone...
+    Cure a player.
+
+    :param user_id - id of the user trying to heal:
+    :param target_id - id of the user being healed:
+    :param chat_id - id of the chat where the healing is executed:
     '''
-    nerr = 0
-    medicine = cur.execute(f"SELECT medicine FROM userdata WHERE user_id={user_id}").fetchone()
+    if target_id == user_id:  # executes if the user is trying to heal themselves
+        return await bot.send_message(chat_id, "<i>😠 Нельзя вылечить самого себя</i>")
 
-    if medicine < 1:
-        return await bot.send_message(chat_id, "<i>&#10060; У вас нет таблеток(</i>")
+    if cur.select("pill", "userdata").where(user_id=user_id).one() < 1:  # executes if the user has no pills
+        return await bot.send_message(chat_id, "<i>😥 У вас нет таблеток :(</i>")
 
-    health = cur.execute(f"SELECT health FROM userdata WHERE user_id={target_id}").fetchone()
+    health = cur.select("health", "userdata").where(user_id=target_id).one()
+    target_link = f"<b>{await get_embedded_link(target_id)}</b>"
 
-    nick = cur.execute(f"SELECT nick FROM userdata WHERE user_id={user_id}").fetchone()
-    mask = get_mask(user_id)
+    if health > 0 and health < 100:  # executes if the target user is injured but alive
+        print(cur.select("health", "userdata").where(user_id=target_id).one())  # idk what it is but the code doesn't work without it
+        cur.update("userdata").add(health=random.randint(1, 100-health)).where(user_id=target_id).commit()
+        print(cur.select("health", "userdata").where(user_id=target_id).one())  # idk what it is but the code doesn't work without it
 
-    target_nick = cur.execute(f"SELECT nick FROM userdata WHERE user_id={target_id}").fetchone()
-    target_mask = get_mask(target_id)
+        await bot.send_message(chat_id, f"<i>🎉 Успех! Вы вылечили {target_link}</i>")
+        await bot.send_message(target_id, f"<i>😎 Вас вылечил <b>{await get_embedded_link(user_id)}</b></i>")
 
-    if health > 0 and health < 100:
-        cur.execute(f"UPDATE userdata SET medicine=medicine-1 WHERE user_id={user_id}")
-        conn.commit()
+    elif health >= 100:  # executes if the target user is already healthy
+        return await bot.send_message(chat_id, f"<i>🤨 Пациент полностью здоров, зачем вам тратить лекарства впустую?\nЛекарства <b>не потрачены</b></i>")
 
-        rand = random.randint(1, 100-health)
+    else:  # executes if the target user is dead
+        print(cur.select("health", "userdata").where(user_id=target_id).one())  # idk what it is but the code doesn't work without it
+        cur.update("userdata").add(health=random.randint(50, 100)).where(user_id=target_id).commit()
+        print(cur.select("health", "userdata").where(user_id=target_id).one())  # idk what it is but the code doesn't work without it
 
-        cur.execute(f"UPDATE userdata SET health=health+{rand} WHERE user_id={target_id}")
-        conn.commit()
+        await bot.send_message(chat_id, f"<i>🎉 Успех! Вы воскресили {target_link}</i>")
+        await bot.send_message(target_id, f"<i>😎 Вас воскресил <b>{await get_embedded_link(user_id)}</b></i>")
 
-        if target_id == user_id:
-            return await bot.send_message(chat_id, "<i>&#128138; Успех! Вы вылечили себя</i>")
-        await bot.send_message(chat_id, f"<i>&#128138; Успех! Вы вылечили <b><a href=\"{await get_link(target_id)}\">{target_mask}{target_nick}</a></b></i>")
-        await bot.send_message(target_id, f"<i>&#128138; Вас вылечил <b><a href=\"{await get_link(user_id)}\">{mask}{nick}</a></b></i>")
-        nerr = 1
+        await achieve(user_id, chat_id, "rescue_achieve")
 
-    elif health >= 100:
-        if target_id != user_id:
-            return await bot.send_message(chat_id, f"<i>&#128138; <b><a href=\"{await get_link(target_id)}\">{target_mask}{target_nick}</a></b> полностью здоров, зачем вам тратить лекарства впустую?\nЛекарства <b>не потрачены</b></i>")   
-        else:                                   
-            return await bot.send_message(chat_id, f"<i>&#128138; Вы полностью здоровы, зачем вам тратить лекарства впустую?\nЛекарства <b>не потрачены</b></i>")
-    else:
-        if target_id == user_id:
-            return await bot.send_message(chat_id, "<i>&#10060; Вы не можете воскресить самого себя</i>")
-
-        cur.execute(f"UPDATE userdata SET medicine=medicine-1 WHERE user_id={user_id}")
-        conn.commit()
-
-        rand = random.randint(50,100)
-
-        cur.execute(f"UPDATE userdata SET health={rand} WHERE user_id={target_id}")
-        conn.commit()
-
-        await bot.send_message(chat_id, f"<i>&#128138; Успех! Вы воскресили <b><a href=\"{await get_link(target_id)}\">{target_mask}{target_nick}</a></b></i>")
-        nerr = 1
-        await bot.send_message(target_id, f"<i>&#128138; Вас воскресил <b><a href=\"{await get_link(user_id)}\">{mask}{nick}</a></b></i>")
-
-        await achieve(user_id, chat_id, "helper")
-
-    if nerr == 1:
-        cur.execute(f"UPDATE userdata SET cured=cured+1 WHERE user_id={user_id}")
-        conn.commit()
-
-        cured = cur.execute(f"SELECT cured FROM userdata WHERE user_id={user_id}").fetchone()
-
-        if cured >= 20:
-            await achieve(user_id, chat_id, "medquest")
-            cur.execute(f"UPDATE userdata SET medic=medic+1 WHERE user_id={user_id}")
-            conn.commit()
-            await bot.send_message(chat_id, "<i>Вы получаете <b>🩺 Стетоскоп</b>. Эта маска будет показывать всем, что вы профессиональный врач, и вам можно доверять</i>")
-
+    print(cur.select("pill", "userdata").where(user_id=user_id).one())  # idk what it is but the code doesn't work without it
+    cur.update("userdata").add(pill=-1).where(user_id=user_id).commit()
+    print(cur.select("pill", "userdata").where(user_id=user_id).one())  # idk what it is but the code doesn't work without it
+    await achieve(user_id, chat_id, "heal_achieve")
+    
 
 class profile_():
     def __init__(self, dont_init: bool = False, user_id: Optional[int] = None, message: Optional[Message] = None, called: bool = False) -> None:
         if (
-            dont_init 
-            or not user_id 
+            dont_init
+            or not user_id
             or not message
         ):
             return
@@ -847,29 +796,22 @@ def cancel_button(text: str="◀ Назад", cancel_process: bool=False) -> Inl
     )
 
 
-Weather = Enum('Weather', ['SUNNY', 'CLOUDY', 'RAINING', 'SNOWY', 'THUNDERSTORM', 'HURRICANE'])
+class Weather(IntEnum):
+    SUNNY = 0
+    CLOUDY = 1
+    RAINING = 2
+    SNOWY = 3
+    THUNDERSTORM = 4
+    HURRICANE = 5
 
 
-def get_weather(time: int = -1) -> Weather:
+def get_weather(day: int = 0) -> Weather:
     '''
     Get weather depending on given time.
 
-    :param time - time (current time by default):
+    :param day - day to check the weather:
     '''
-    date_time = (
-        datetime.now(timezone.utc) if time == -1 else datetime.fromtimestamp(time)
-    )
-    weather_index = int(date_time.year * 0.1 + date_time.month + date_time.day) % 100
-    if weather_index % 3 == 0:
-        return Weather.CLOUDY
-    elif weather_index % 4 == 0:
-        return Weather.SNOWY if date_time.month in [1, 2, 12] else Weather.RAINING
-    elif weather_index % 5 == 0:
-        return Weather.THUNDERSTORM
-    elif weather_index % 7 == 0:
-        return Weather.HURRICANE
-    else:
-        return Weather.SUNNY
+    return Weather(int(cur.select("weather", "globaldata").one()[day]))
 
 
 def str_weather(weather: Weather) -> str:
@@ -916,3 +858,114 @@ def month(month_number: int) -> str:
             return "декабря"
         case _:
             return ""
+
+
+async def damage_player(user_id: int|str, chat_id: int|str, damage: int,
+                        message: Optional[str] = None):
+    '''
+    Damage a player.
+
+    :param user_id - user to check:
+    :param chat_id - chat to send the result:
+    :param damage - amount or health points to be substracted:
+    :param message - message sent to the chat:
+    '''
+    cur.update("userdata").add(health=-damage).where(user_id=user_id).commit()
+    if message:
+        await bot.send_message(
+            chat_id,
+            f"<i>{message}.\n\n💔 Вам был нанесён урон в <b>{damage}</b> единиц здоровья</i>"
+        )
+    await check_death(user_id, chat_id)
+
+
+async def check_death(user_id: int|str, chat_id: int|str):
+    '''
+    Check whether the player is dead.
+
+    :param user_id - user to check:
+    :param chat_id - chat to send the result:
+    '''
+    if cur.select("health", "userdata").where(user_id=user_id).one() <= 0:
+        await bot.send_message(
+            chat_id,
+            "<i>☠ Вы умерли. Попросите кого-нибудь вас воскресить</i>"
+        )
+
+
+async def weather_damage(user_id: int|str, chat_id: int|str) -> bool | None:
+    '''
+    Damage a player due to the weather.
+
+    :param user_id - user to check:
+    :param chat_id - chat to send the result:
+    '''
+    match get_weather():
+        case Weather.RAINING:
+            chance = 1
+            message = "💧 Вы поскользнулись на мокрой земле и упали"
+            damage = random.randint(1, 10)
+        case Weather.SNOWY:
+            chance = 3
+            message = "❄ Вы поскользнулись на льду и упали"
+            damage = random.randint(5, 20)
+        case Weather.THUNDERSTORM:
+            chance = 7
+            message = "⚡ В вас попала молния"
+            damage = random.randint(60, 100)
+        case Weather.HURRICANE:
+            chance = 20
+            message = "🌀 Вы пострадали из-за урагана"
+            damage = random.randint(40, 100)
+        case _:
+            return False
+    if random.uniform(0, 100) <= chance:
+        await damage_player(user_id, chat_id, damage, message)
+        return True
+    return False
+
+
+async def update_weather():
+    '''
+    Update weather for the next 7 days
+    '''
+    if current_time() - cur.select("last_weather", "globaldata").one() < 86400:
+        return
+
+    # get weather for 6 days starting from today
+    current_weather = cur.select("weather", "globaldata").one()[1:]
+
+    # check whether the 7th day is in winter
+    is_winter = datetime.fromtimestamp(current_time() + 86400*6).month in [1, 2, 12]
+
+    # get weather for the 7th day
+    random_index = random.randint(1, 100)
+    if random_index <= 2:
+        weather_day7 = Weather['HURRICANE']
+    elif random_index <= (3 if is_winter else 7):
+        weather_day7 = Weather['THUNDERSTORM']
+    elif random_index <= 25:
+        weather_day7 = Weather['SNOWY' if is_winter else 'RAINING']
+    elif random_index <= 60:
+        weather_day7 = Weather['SUNNY']
+    else:
+        weather_day7 = Weather['CLOUDY']
+    
+    today = datetime.now()
+    today_morning = datetime(today.year, today.month, today.day, 0, 0, 0)
+    cur.update("globaldata").set(last_weather=time_seconds(today_morning)).commit()
+    cur.update("globaldata").set(weather=current_weather + str(weather_day7)).commit()
+
+
+def time_seconds(time: datetime) -> int:
+    '''
+    Convert datetime to seconds integer.
+    '''
+    return (time - datetime.fromtimestamp(0)).total_seconds()
+
+
+def set_ride_status(user_id: int | str, status: int = 1):
+    '''
+    Sets user's ride status.
+    '''
+    cur.update("userdata").set(is_in_ride = status).where(user_id = user_id).commit()

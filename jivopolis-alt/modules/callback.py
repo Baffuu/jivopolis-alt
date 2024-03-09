@@ -1,10 +1,21 @@
 
 # flake8: noqa
-from .callbacks import *
-from ..filters import RequireBetaFilter
 
-from aiogram.types import CallbackQuery
-from aiogram import Dispatcher
+import contextlib
+
+from .callbacks import *
+from .. import bot, logger, Dispatcher, tglog, utils
+from ..misc import ITEMS
+from ..misc.config import SUPPORT_LINK, villages, trains, CITY, tramroute
+from ..database import cur
+from ..database.functions import check, profile, eat, current_time, buy_in_oscar_shop, set_ride_status
+from ..filters import RequireBetaFilter
+from aiogram.utils.exceptions import (
+    MessageCantBeDeleted,
+    MessageToDeleteNotFound
+)
+
+from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
 
 async def callback_handler(call: CallbackQuery):
     '''
@@ -45,7 +56,15 @@ async def callback_handler(call: CallbackQuery):
                     '<i>☠️ Вы умерли. Попросите кого-нибудь вас воскресить</i>'
                 )
             return
-        
+
+        ride_status = cur.select("is_in_ride", "userdata").where(
+            user_id=call.from_user.id).one()
+        if ride_status and not call.data.startswith('exit_'):
+            return await call.answer(
+                "😡 Не пользуйтесь ботом во время поездки!",
+                show_alert=True
+            )
+
         in_prison = cur.select("prison_started", "userdata").where(
             user_id=call.from_user.id).one() - current_time()
         is_in_prison = in_prison > 0
@@ -61,6 +80,10 @@ async def callback_handler(call: CallbackQuery):
         match (call.data):
             case 'chats':
                 await chats(call.from_user.id, call.message)
+            case 'information_menu':
+                await infomenu(call)
+            case 'gadget_menu':
+                await gadgets_menu(call)
             case 'adminpanel':
                 await adminpanel(call, call.from_user.id)
             case 'itemsinfo_table':
@@ -123,6 +146,13 @@ async def callback_handler(call: CallbackQuery):
             case cheque if cheque.startswith('check_'):
                 await get_cheque(call, call.from_user.id)
 
+            case 'darkweb':
+                await shop(
+                    call,
+                    item_qualification='key',
+                    items=['gun', 'poison'],
+                    text='🤫 Тсс...'
+                )
             case 'phone_shop':
                 await shop(
                     call,
@@ -359,6 +389,10 @@ async def callback_handler(call: CallbackQuery):
                 await delivery_menu(call)
             case 'weather_forecast':
                 await weather_forecast(call)
+            case 'weather_forecast_radio':
+                await radio_frequency(
+                    call, 71, weather_forecast_radio_program()
+                )
             case 'central_market_menu':
                 await central_market_menu(call)
             case 'central_market_food':
@@ -544,21 +578,25 @@ async def callback_handler(call: CallbackQuery):
                 )
                 await call.message.answer(f"<i>{answer}</i>", reply_markup = markup)
             case "exit_metro":
+                set_ride_status(call.from_user.id, 0)
                 cur.update("userdata").set(left_transport=call.message.message_id).where(user_id=call.from_user.id).commit()
                 with contextlib.suppress(MessageToDeleteNotFound, MessageCantBeDeleted):
                     await call.message.delete()
                 await metrocall(call)
             case "exit_regtrain":
+                set_ride_status(call.from_user.id, 0)
                 cur.update("userdata").set(left_transport=call.message.message_id).where(user_id=call.from_user.id).commit()
                 with contextlib.suppress(MessageToDeleteNotFound, MessageCantBeDeleted):
                     await call.message.delete()
                 await regtraincall(call)
             case "exit_trolleybus":
+                set_ride_status(call.from_user.id, 0)
                 cur.update("userdata").set(left_transport=call.message.message_id).where(user_id=call.from_user.id).commit()
                 with contextlib.suppress(MessageToDeleteNotFound, MessageCantBeDeleted):
                     await call.message.delete()
                 await trolleybuscall(call)
             case "exit_tram":
+                set_ride_status(call.from_user.id, 0)
                 cur.update("userdata").set(left_transport=call.message.message_id).where(user_id=call.from_user.id).commit()
                 with contextlib.suppress(MessageToDeleteNotFound, MessageCantBeDeleted):
                     await call.message.delete()

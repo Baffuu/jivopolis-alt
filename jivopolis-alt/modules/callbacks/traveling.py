@@ -10,7 +10,9 @@ from ...misc.misc import remaining, isinterval
 from ...misc.constants import (MINIMUM_CAR_LEVEL, MAXIMUM_DRIVE_MENU_SLOTS,
                                MAP, REGIONAL_MAP, MINIMUM_TAXI_LEVEL)
 from ...database import cur
-from ...database.functions import buy, buybutton, itemdata, achieve
+from ...database.functions import (
+    buy, buybutton, itemdata, achieve, weather_damage, set_ride_status
+)
 
 from ...misc.config import (
     METRO, WALK, CITY,
@@ -68,6 +70,7 @@ async def city(message: Message, user_id: str | int):
     :param message:
     :param user_id:
     '''
+    set_ride_status(user_id, 0)
     place = cur.select("current_place", "userdata").where(
         user_id=user_id).one()
     line = cur.select("line", "userdata").where(user_id=user_id).one()
@@ -180,6 +183,9 @@ async def city(message: Message, user_id: str | int):
         f"&#127963; <b>{place}</b></i>",
         reply_markup=markup
     )
+
+    await asyncio.sleep(3)
+    await weather_damage(user_id, message.chat.id)
 
 
 async def buycall(call: CallbackQuery):
@@ -362,6 +368,7 @@ async def goto_on_car(call: CallbackQuery):
         )
 
     await call.message.answer('<i>Скоро приедем!</i>')
+    set_ride_status(user_id)
 
     with contextlib.suppress(Exception):
         await call.message.delete()
@@ -879,6 +886,7 @@ async def taxi_goto_(call: CallbackQuery, place: str) -> None:
         )
 
     await call.message.answer('<i>Скоро приедем!</i>')
+    set_ride_status(user_id)
 
     with contextlib.suppress(Exception):
         await bot.delete_message(call.message.chat.id, call.message.message_id)
@@ -1458,6 +1466,7 @@ async def metro_forward(call: CallbackQuery, already_onboard: bool = False):
 
     with contextlib.suppress(Exception):
         await call.message.delete()
+    set_ride_status(user_id)
     await asyncio.sleep(random.randint(METRO_TIME[0], METRO_TIME[1]))
     await tostation(user_id, target_station=METRO[line][index+1])
     if index+2 == len(METRO[line]):
@@ -1521,6 +1530,7 @@ async def metro_back(call: CallbackQuery, already_onboard: bool = False):
 
     with contextlib.suppress(Exception):
         await call.message.delete()
+    set_ride_status(user_id)
     await asyncio.sleep(random.randint(METRO_TIME[0], METRO_TIME[1]))
     await tostation(user_id, target_station=METRO[line][index-1])
     if index == 1:
@@ -1572,6 +1582,7 @@ async def airport(call: CallbackQuery):
     :param call - callback:
     '''
     user_id = call.from_user.id
+    set_ride_status(user_id, 0)
     place = cur.select("current_place", "userdata").where(
         user_id=user_id).one()
     markup = InlineKeyboardMarkup()
@@ -1660,6 +1671,7 @@ async def flight(call: CallbackQuery):
             destline = 1
         else:
             return
+        set_ride_status(user_id)
 
         await achieve(
             user_id, call.message.chat.id, "plane_achieve"
@@ -1744,6 +1756,7 @@ async def regtraincall(call: CallbackQuery):
     :param call - callback:
     '''
     user_id = call.from_user.id
+    set_ride_status(user_id, 0)
     place = cur.select("current_place", "userdata").where(
         user_id=user_id).one()
     index = REGTRAIN[1].index(place)
@@ -1807,6 +1820,7 @@ async def regtrain_forward(call: CallbackQuery, already_onboard: bool = False):
 
     with contextlib.suppress(Exception):
         await call.message.delete()
+    set_ride_status(user_id)
     await asyncio.sleep(random.randint(REGTRAIN_TIME[0], REGTRAIN_TIME[1]))
     await tostation(user_id, target_station=REGTRAIN[1][index+1])
     if index+2 == len(REGTRAIN[1]):
@@ -1851,6 +1865,7 @@ async def regtrain_back(call: CallbackQuery, already_onboard: bool = False):
 
     with contextlib.suppress(Exception):
         await call.message.delete()
+    set_ride_status(user_id)
     await asyncio.sleep(random.randint(REGTRAIN_TIME[0], REGTRAIN_TIME[1]))
     await tostation(user_id, target_station=REGTRAIN[1][index-1])
     if index == 1:
@@ -1937,6 +1952,7 @@ async def trolleybuscall(call: CallbackQuery):
     :param call - callback:
     '''
     user_id = call.from_user.id
+    set_ride_status(user_id, 0)
     place = cur.select("current_place", "userdata").where(
         user_id=user_id).one()
     index = CITY.index(place)
@@ -2006,6 +2022,7 @@ async def trolleybus_forward(call: CallbackQuery,
 
     with contextlib.suppress(Exception):
         await call.message.delete()
+    set_ride_status(user_id)
     await asyncio.sleep(random.randint(TROLLEYBUS_TIME[0], TROLLEYBUS_TIME[1]))
     await tostation(user_id, target_station=CITY[index+1])
     if index+2 == len(CITY):
@@ -2050,6 +2067,7 @@ async def trolleybus_back(call: CallbackQuery, already_onboard: bool = False):
 
     with contextlib.suppress(Exception):
         await call.message.delete()
+    set_ride_status(user_id)
     await asyncio.sleep(random.randint(TROLLEYBUS_TIME[0], TROLLEYBUS_TIME[1]))
     await tostation(user_id, target_station=CITY[index-1])
     if index == 1:
@@ -2079,6 +2097,7 @@ async def businessclass_lounge(call: CallbackQuery):
     :param call - callback:
     '''
     user_id = call.from_user.id
+    set_ride_status(user_id, 0)
     place = cur.select("current_place", "userdata").where(
         user_id=user_id).one()
     token = cur.select("traintoken", "userdata").where(
@@ -2163,6 +2182,7 @@ async def go_bytrain(call: CallbackQuery, destination: str):
 
     with contextlib.suppress(Exception):
         await call.message.delete()
+    set_ride_status(user_id)
 
     index = trains[0].index(destination)
     await call.message.answer_photo(
@@ -2184,6 +2204,7 @@ async def buscall(call: CallbackQuery):
     :param call - callback:
     '''
     user_id = call.from_user.id
+    set_ride_status(user_id, 0)
     place = cur.select("current_place", "userdata").where(
         user_id=user_id).one()
     balance = cur.select("balance", "userdata").where(
@@ -2239,6 +2260,7 @@ async def regbuscall(call: CallbackQuery):
     :param call - callback:
     '''
     user_id = call.from_user.id
+    set_ride_status(user_id, 0)
     place = cur.select("current_place", "userdata").where(
         user_id=user_id).one()
     balance = cur.select("balance", "userdata").where(
@@ -2319,6 +2341,7 @@ async def go_bybus(call: CallbackQuery, destination: str):
 
     with contextlib.suppress(Exception):
         await call.message.delete()
+    set_ride_status(user_id)
 
     await call.message.answer_photo(
         'https://telegra.ph/file/34226b77d11cbd7e19b7b.jpg',
@@ -2372,6 +2395,7 @@ async def go_byshuttle(call: CallbackQuery, destination: str):
 
     with contextlib.suppress(Exception):
         await call.message.delete()
+    set_ride_status(user_id)
 
     await call.message.answer_photo(
         'https://telegra.ph/file/8da21dc03e8f266e0845a.jpg',
@@ -2452,6 +2476,7 @@ async def tramcall(call: CallbackQuery):
     :param call - callback:
     '''
     user_id = call.from_user.id
+    set_ride_status(user_id, 0)
     place = cur.select("current_place", "userdata").where(
         user_id=user_id).one()
     index = tramroute.index(place)
@@ -2521,6 +2546,7 @@ async def tram_forward(call: CallbackQuery,
 
     with contextlib.suppress(Exception):
         await call.message.delete()
+    set_ride_status(user_id)
     await asyncio.sleep(random.randint(TRAM_TIME[0], TRAM_TIME[1])/2)
     if random.uniform(0, 1) < TRAM_CRASH_CHANCE/100:
         await tram_crash(call)
@@ -2570,8 +2596,10 @@ async def tram_back(call: CallbackQuery,
 
     with contextlib.suppress(Exception):
         await call.message.delete()
+        set_ride_status(user_id)
     await asyncio.sleep(random.randint(TRAM_TIME[0], TRAM_TIME[1])/2)
     if random.uniform(0, 1) < TRAM_CRASH_CHANCE/100:
+        set_ride_status(user_id, 0)
         await tram_crash(call)
         return await call.answer('😣')
     await asyncio.sleep(random.randint(TRAM_TIME[0], TRAM_TIME[1])/2)
@@ -2602,6 +2630,7 @@ async def tram_crash(call: CallbackQuery):
 
     :param call - callback:
     '''
+    set_ride_status(call.from_user.id, 0)
     markup = InlineKeyboardMarkup()
     markup.add(
         InlineKeyboardButton(
@@ -2667,8 +2696,12 @@ async def walk(call: CallbackQuery, destination: str):
         '<i>🚶 Как же хорошо пройтись пешочком... Путешествие до местности '
         f'<b>{destination}</b> займёт <b>{time_required}</b> секунд</i>'
     )
+    set_ride_status(user_id)
 
-    await asyncio.sleep(time_required)
+    for _ in range(3):
+        await asyncio.sleep(time_required / 3)
+        if await weather_damage(call.from_user.id, call.message.chat.id):
+            return
     await achieve(
         call.from_user.id, call.message.chat.id, "walk_achieve"
     )

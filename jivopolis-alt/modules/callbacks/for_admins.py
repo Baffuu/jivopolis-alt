@@ -35,19 +35,19 @@ async def adminpanel(call: CallbackQuery, user_id: int) -> None:
     markup = InlineKeyboardMarkup(row_width=1)
     markup.add(
         InlineKeyboardButton(
-            text='❓ Помощь',
+            text='❓ Admin help',
             callback_data='adminhelp'
         ),
         InlineKeyboardButton(
-            text='💼 Информация по предметам',
+            text='💼 Item info',
             callback_data='itemsinfo_table'
         ),
         InlineKeyboardButton(
-            text='📁 Файлы Живополиса',
+            text='📁 Source code',
             callback_data='backup'
         ),
         InlineKeyboardButton(
-            text='💬 Админские чаты',
+            text='💬 Admin chats',
             callback_data='adminchats'
         )
     )
@@ -55,12 +55,12 @@ async def adminpanel(call: CallbackQuery, user_id: int) -> None:
     if rank > 2:
         markup.add(
             InlineKeyboardButton(
-                text='♻️ Перезапустить бота',
+                text='♻️ Restart bot',
                 callback_data='restart_bot'
             )
         )
     await call.message.answer(
-        "<i>Эти функции доступны админам. Только тсс</i>",
+        "<i>These features are admin only. Shhh...</i>",
         reply_markup=markup
     )
 
@@ -92,8 +92,8 @@ async def itemsinfo_table(call: CallbackQuery, user_id: int) -> None:
     markup.add(*items)
 
     await call.message.answer(
-        "<i>Здесь вы можете получить секретную информацию обо всех предметах в"
-        " Живополисе</i>",
+        "<i>Here you can get some secret info about all items in"
+        " Jivopolis</i>",
         reply_markup=markup
     )
 
@@ -118,19 +118,9 @@ async def itemsinfo_item(call: CallbackQuery, user_id: int) -> None:
             show_alert=True
         )
 
-    match (ITEMS[item].type):
-        case 'food':
-            itemtype = 'еда'
-        case 'mask':
-            itemtype = 'маска'
-        case 'car':
-            itemtype = 'машина'
-        case _:
-            itemtype = 'undefined'
-
     await call.answer(
-        f'{ITEMS[item].emoji}{ITEMS[item].ru_name}\nКод: {item}\nТип:'
-        f' {itemtype}\nСтоимость: ${ITEMS[item].price}',
+        f'{ITEMS[item].emoji}{ITEMS[item].ru_name}\nColumn: {item}\nType:'
+        f' {ITEMS[item].type}\nPrice: ${ITEMS[item].price}',
         show_alert=True
     )
 
@@ -146,16 +136,16 @@ async def adminhelp(call: CallbackQuery, user_id: int) -> None:
 
     if rank < 2:
         return await call.answer(
-            "👨‍⚖️ Сударь, эта команда доступна только администраторам. ",
+            "👨‍⚖️ Сударь, эта команда доступна только администраторам",
             show_alert=True
         )
 
     return await call.message.answer(
         (
-            "<i><b>Статьи для админов</b>\nАдминская документация: https://"
+            "<i><b>Admin articles</b>\nAdmin documentation: https://"
             "telegra.ph/Administratorskaya-dokumentaciya-ZHivopolisa-01-03\n"
-            "Пособие по использованию /sqlrun: https://telegra.ph/Administra"
-            "torskaya-dokumentaciya-ZHivopolisa-Komanda-sqlrun-07-25</i>",
+            "<code>.sqlrun</code> usage: https://telegra.ph/Administra"
+            "torskaya-dokumentaciya-ZHivopolisa-Komanda-sqlrun-07-25</i>"
         )
     )
 
@@ -173,7 +163,7 @@ async def sqlapprove(call: CallbackQuery) -> None:
 
         if rank < 3:
             return call.answer(
-                '👨‍⚖️ Сударь, эта команда доступна только администраторам.',
+                '👨‍⚖️ Сударь, эта команда доступна только администраторам',
                 how_alert=True)
 
         request: str = cur.select("sql", "userdata").where(
@@ -187,7 +177,7 @@ async def sqlapprove(call: CallbackQuery) -> None:
 
         await bot.send_message(
             user_id,
-            f'✅ <i>Ваш запрос был подтверждёn:\n\n<code>{request}</code></i>'
+            f'✅ <i>Your query has been approved:\n\n<code>{request}</code></i>'
         )
 
         cur.execute(request)
@@ -198,24 +188,26 @@ async def sqlapprove(call: CallbackQuery) -> None:
             await _selection(call, request_user_id, user_id, cur.fetchall())
         except Exception as e:
             await call.message.answer(
-                '<i><b>Произошла незначительная ошибка при обработке '
-                f'запроса:</b> {e}</i>'
+                '<i><b>An insignificant error has occured during SQL query:'
+                f'</b> {e}</i>'
             )
-            await call.message.answer('<i>Запрос обработан</i>')
+            await call.message.answer('<i>Query has been processed</i>')
 
             if request_user_id != user_id:
                 await bot.send_message(
                     request_user_id,
-                    '<i>Запрос обработан</i>'
+                    '<i>Query has been processed</i>'
                 )
 
     except Exception as e:
-        await call.message.answer(f'<i><b>Запрос не обработан: \n</b>{e}</i>')
+        await call.message.answer(
+            f'<i><b>Query was never processed: \n</b>{e}</i>'
+        )
 
         if request_user_id != user_id:
             await bot.send_message(
                 request_user_id,
-                f'<i><b>Запрос не обработан: \n</b>{e}</i>'
+                f'<i><b>Query was never processed: \n</b>{e}</i>'
             )
 
 
@@ -231,12 +223,12 @@ async def _selection(
         for slot in row:
             rval = f"{rval}\n{str(slot)}"
 
-    await call.message.answer(f'<i><b>Значения: \n</b>{rval}</i>')
+    await call.message.answer(f'<i><b>Values: \n</b>{rval}</i>')
 
     if request_user_id != user_id:
         await bot.send_message(
             request_user_id,
-            f'<i><b>Значения: \n</b>{rval}</i>'
+            f'<i><b>Values: \n</b>{rval}</i>'
         )
 
 
@@ -254,7 +246,7 @@ async def sqldecline(call: CallbackQuery) -> None:
 
         if rank < 3:
             return call.answer(
-                '👨‍⚖️ Сударь, эта команда доступна только администраторам.',
+                '👨‍⚖️ Сударь, эта команда доступна только администраторам',
                 show_alert=True
             )
 
@@ -264,10 +256,10 @@ async def sqldecline(call: CallbackQuery) -> None:
         cur.update("userdata").set(sql=None).where(
             user_id=request_user_id).commit()
 
-        await call.answer('Запрос отклонён', show_alert=True)
+        await call.answer('Query declined', show_alert=True)
         await bot.send_message(request_user_id,
-                               '❌ <i>Ваш запрос был отклонён '
-                               f'создателем:\n\n<code>{request}</code></i>')
+                               '❌ <i>Your request was declined by a megaadmin:'
+                               f'\n\n<code>{request}</code></i>')
         return await bot.delete_message(call.message.chat.id,
                                         call.message.message_id)
 
@@ -286,23 +278,23 @@ async def adminchats(call: CallbackQuery) -> None:
         return await call.answer("👨‍⚖️ Сударь, эта команда доступна только"
                                  " администраторам.", show_alert=True)
     if rank > 0:
-        markup.add(InlineKeyboardButton('👾 Тестирование Живополиса',
+        markup.add(InlineKeyboardButton('👾 Jivopolis testing',
                                         OfficialChats.BETATEST_CHATLINK),
-                   InlineKeyboardButton('📣 Администрация Живополиса',
+                   InlineKeyboardButton('📣 Jivopolis staff',
                                         OfficialChats.JIVADM_CHATLINK),
                    InlineKeyboardButton('👨‍🔧 LOG CHAT',
                                         OfficialChats.LOGCHATLINK))
     if rank > 1:
-        markup.add(InlineKeyboardButton('🧞 Администрация Baffu', BAFFUADM))
+        markup.add(InlineKeyboardButton('🧞 Baffu staff', BAFFUADM))
     if rank > 2:
-        markup.add(InlineKeyboardButton('🦹🏼 МегаЧат', MEGACHATLINK))
+        markup.add(InlineKeyboardButton('🦹🏼 Megaadmins', MEGACHATLINK))
 
     await call.message.answer_sticker(
         'CAACAgIAAxkBAAIEN2QE3dP0FVb2HNOHw1QC2TMpUEpsAAK7IAACEkDwSZtWAAEk4'
         '1obpC4E'
     )
-    await call.message.answer("<i><b>🧑‍💻 Админские чаты живополиса:</b>\n"
-                              "💻 Разработка Живополиса: "
+    await call.message.answer("<i><b>🧑‍💻 Jivopolis admin-only chats:</b>\n"
+                              "💻 Jivopolis development: "
                               "https://t.me/+k2LZEIyZtpRiMjcy</i>",
                               reply_markup=markup)
 
@@ -317,8 +309,8 @@ async def restart(call: CallbackQuery) -> None:
                                      " только администраторам.",
                                      show_alert=True)
 
-        await call.answer("🌀 Перезагрузка...")
+        await call.answer("🌀 Restarting...")
         os.execv(sys.executable, ['python3'] + sys.argv)
 
     except Exception as e:
-        await call.message.answer(f'<i><b>♨️ Ошибка: </b>{e}</i>')
+        await call.message.answer(f'<i><b>♨️ Error: </b>{e}</i>')

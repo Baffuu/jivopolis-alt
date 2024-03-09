@@ -7,7 +7,9 @@ from ...misc import get_embedded_link, get_time_units
 from ...misc.config import addon_prices, addon_descriptions, filter_names
 from ...misc.constants import MINIMUM_PUBLIC_CLAN_LEVEL
 from ...database import cur, insert_clan
-from ...database.functions import buybutton, current_time, prison_sentence
+from ...database.functions import (
+    buybutton, current_time, prison_sentence, weather_damage
+)
 from ..start import StartCommand
 from ...clanbuildings import CLAN_BUILDINGS
 
@@ -661,6 +663,9 @@ async def clan_hq(call: CallbackQuery):
             '<i>😪 Штаб-квартира вашего клана снесена</i>',
             reply_markup=markup
         )
+
+    await weather_damage(call.from_user.id,
+                         call.message.chat.id)
 
 
 async def set_clan_name(call: CallbackQuery) -> None:
