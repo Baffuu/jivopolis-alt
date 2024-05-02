@@ -39,27 +39,25 @@ async def chats(user_id: int, message: Message) -> None:
 
     match(rase):
         case "🐱":
-            chat = "Расовый чат Котов"
-            url = "https://t.me/joinchat/mWs48dy5cAo1ZmEy"
+            info = ("Расовый чат Котов",
+                    "https://t.me/joinchat/mWs48dy5cAo1ZmEy")
         case "🐶":
-            chat = "Расовый чат Собак"
-            url = "https://t.me/joinchat/yQ8X_uD1MydmNWIy"
+            info = ("Расовый чат Собак",
+                    "https://t.me/joinchat/yQ8X_uD1MydmNWIy")
         case "&#129437":
-            chat = "Расовый чат Енотов"
-            url = "https://t.me/joinchat/vuVCKuUIB2gxZTYy"
+            info = ("Расовый чат Енотов",
+                    "https://t.me/joinchat/vuVCKuUIB2gxZTYy")
         case "&#128056;":
-            chat = "Расовый чат Жаб"
-            url = "https://t.me/joinchat/ACneINZ0hl43YTUy"
+            info = ("Расовый чат Жаб",
+                    "https://t.me/joinchat/ACneINZ0hl43YTUy")
         case "&#129417;":
-            chat = "Расовый чат Сов"
-            url = "https://t.me/joinchat/nCt9oB_cX8I3NzMy"
+            info = ("Расовый чат Сов",
+                    "https://t.me/joinchat/nCt9oB_cX8I3NzMy")
         case _:
-            url = None
-            chat = None
+            info = None
 
-    if chat:
-        assert url is not None
-        markup.add(InlineKeyboardButton(text=chat, url=url))
+    if info is not None:
+        markup.add(InlineKeyboardButton(text=info[0], url=info[1]))
     else:
         markup.add(
             InlineKeyboardButton(
@@ -81,9 +79,9 @@ async def chats(user_id: int, message: Message) -> None:
         ".me/chatzhivopolisa\n&#128163; Чат для флуда: https://t.me/jivopolis"
         "_flood\n&#128176; Рынок Живополиса: t.me/jivopolis_bazar\n&#128572; "
         "Посольство Живополиса в Котостане: https://t.me/posolstvo_jivopolis_"
-        "in_kotostan\n{0}</i>".format(
+        "in_kotostan\n{0}".format(
             "Вы ещё не выбрали себе расу. Чтобы выбрать, нажми"
-            "те на кнопку \"Выбрать расу\"\n" if chat == "" else ""
+            "те на кнопку \"Выбрать расу\"\n" if info is None else ""
         ),
         reply_markup=markup
     )
