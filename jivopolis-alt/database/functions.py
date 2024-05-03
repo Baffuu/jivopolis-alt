@@ -721,7 +721,7 @@ async def buy_in_oscar_shop(call: CallbackQuery, item: str):
     if not item_data.tags[0].startswith("OSCAR_SHOP_"):
         raise ValueError("this item isn't sold in Oscar's shop")
     if cur.select("current_place", "userdata").where(
-            user_id=user_id).one() != "Попережье":
+            user_id=user_id).one() != "Деревня Остинт":
         return await call.answer(
                 text=(
                     '🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
@@ -910,9 +910,12 @@ async def weather_damage(user_id: int|str, chat_id: int|str) -> bool | None:
             message = "❄ Вы поскользнулись на льду и упали"
             damage = random.randint(5, 20)
         case Weather.THUNDERSTORM:
-            chance = 7
+            chance = 90
             message = "⚡ В вас попала молния"
             damage = random.randint(60, 100)
+            await achieve(
+                user_id, chat_id, "lightning_achieve"
+            )
         case Weather.HURRICANE:
             chance = 20
             message = "🌀 Вы пострадали из-за урагана"

@@ -224,7 +224,8 @@ def create_userdata(cur: fyCursor) -> None:
     heal_progress   INTEGER         DEFAULT 0               NOT NULL,
     heal_achieve    INTEGER         DEFAULT 0               NOT NULL,
     rescue_achieve  INTEGER         DEFAULT 0               NOT NULL,
-    shoot_achieve   INTEGER         DEFAULT 0               NOT NULL
+    shoot_achieve   INTEGER         DEFAULT 0               NOT NULL,
+    lightning_achieve INTEGER       DEFAULT 0               NOT NULL
 )
 """).commit()
 

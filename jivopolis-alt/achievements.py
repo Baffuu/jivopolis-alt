@@ -149,7 +149,7 @@ ACHIEVEMENTS = {
     ),
     'plane_achieve': Achievement(
         name='plane_achieve',
-        ru_name='✈ 5 минут, полёт нормальный',
+        ru_name='✈ Пять минут, полёт нормальный',
         description='Полетите куда-нибудь на самолёте',
         category='🚖 Путешествия',
         money_reward=200,
@@ -157,7 +157,7 @@ ACHIEVEMENTS = {
     ),
     'tram_achieve': Achievement(
         name='tram_achieve',
-        ru_name='🚋 Упс...',
+        ru_name='🚋 Якая неспадзяванка...',
         description='Попадите в аварию при попытке покататься '
                     'на трамвае в Борисове',
         category='🚖 Путешествия',
@@ -173,6 +173,15 @@ ACHIEVEMENTS = {
         xp_reward=10,
         progress='walk_progress',
         completion_progress=20
+    ),
+    'lightning_achieve': Achievement(
+        name='lightning_achieve',
+        ru_name='⚡ Между нами молния',
+        description='Получите удар молнией, выйдя в город '
+                    'во время грозы',
+        category='👾 Игровой процесс',
+        money_reward=150,
+        xp_reward=8
     ),
     'all_achieve': Achievement(
         name='all_achieve',
