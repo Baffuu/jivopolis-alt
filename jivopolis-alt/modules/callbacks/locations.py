@@ -279,7 +279,7 @@ async def factory(call: CallbackQuery):
     user_id = call.from_user.id
     times = cur.select("gears_today", "userdata").where(user_id=user_id).one()
 
-    await utils.check_places(user_id, call, 'Ридипольский завод',
+    await utils.check_places(user_id, call, 'Борисовский завод',
                              'Котайский электрозавод')
 
     markup = InlineKeyboardMarkup(row_width=1).add(
@@ -312,7 +312,7 @@ async def play_gears(call: CallbackQuery):
     times = cur.select("gears_today", "userdata").where(user_id=user_id).one()
     balance = cur.select("balance", "userdata").where(user_id=user_id).one()
 
-    await utils.check_places(user_id, call, 'Ридипольский завод',
+    await utils.check_places(user_id, call, 'Борисовский завод',
                              'Котайский электрозавод')
 
     if balance < 10:
@@ -428,7 +428,7 @@ async def answer_gears(call: CallbackQuery,
     times = cur.select("gears_today", "userdata").where(user_id=user_id).one()
     balance = cur.select("balance", "userdata").where(user_id=user_id).one()
 
-    await utils.check_places(user_id, call, 'Ридипольский завод',
+    await utils.check_places(user_id, call, 'Борисовский завод',
                              'Котайский электрозавод')
 
     if balance < 10:
@@ -511,7 +511,7 @@ async def university(call: CallbackQuery):
     current_place = cur.select("current_place", "userdata").where(
         user_id=user_id).one()
     await utils.check_places(user_id, call, 'Университет',
-                             'Ридипольская гимназия', 'Средняя школа Жабинки')
+                             'Борисовская гимназия', 'Средняя школа Смиловичей')
 
     markup = InlineKeyboardMarkup(row_width=1).add(
         InlineKeyboardButton(
@@ -531,9 +531,9 @@ async def university(call: CallbackQuery):
     match(current_place):
         case 'Университет':
             school_name = 'Университет'
-        case 'Ридипольская гимназия':
+        case 'Борисовская гимназия':
             school_name = 'Гимназию'
-        case 'Средняя школа Жабинки':
+        case 'Средняя школа Смиловичей':
             school_name = 'Школу'
 
     await call.message.answer(
@@ -555,8 +555,8 @@ async def play_math(call: CallbackQuery):
         user_id=user_id).one()
     balance = cur.select("balance", "userdata").where(user_id=user_id).one()
 
-    await utils.check_places(user_id, call, 'Ридипольская гимназия',
-                             'Средняя школа Жабинки')
+    await utils.check_places(user_id, call, 'Борисовская гимназия',
+                             'Средняя школа Смиловичей')
 
     if balance < 10:
         return await call.answer(
@@ -693,8 +693,8 @@ async def answer_math(call: CallbackQuery,
     user_id = call.from_user.id
     balance = cur.select("balance", "userdata").where(user_id=user_id).one()
 
-    await utils.check_places(user_id, call, 'Ридипольская гимназия',
-                             'Средняя школа Жабинки')
+    await utils.check_places(user_id, call, 'Борисовская гимназия',
+                             'Средняя школа Смиловичей')
 
     if balance < 10:
         return await call.answer(
@@ -1292,7 +1292,7 @@ async def oscar_shop(call: CallbackQuery):
     '''
     user_id = call.from_user.id
 
-    if not await utils.check_current(user_id, "Попережье", call):
+    if not await utils.check_current(user_id, "Деревня Остинт", call):
         return
 
     markup = InlineKeyboardMarkup(row_width=1)
@@ -1334,7 +1334,7 @@ async def oscar_dept(call: CallbackQuery, dept: str):
     '''
     user_id = call.from_user.id
 
-    if not await utils.check_current(user_id, "Попережье", call):
+    if not await utils.check_current(user_id, "Деревня Остинт", call):
         return
 
     if cur.select("oscar_purchases", "userdata").where(

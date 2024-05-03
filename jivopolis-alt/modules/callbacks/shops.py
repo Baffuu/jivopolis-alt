@@ -179,7 +179,7 @@ async def ticket_shop(call: CallbackQuery) -> None:
             callback_data='train_tickets'
         ),
         InlineKeyboardButton(
-            text='🚋 Ридипольский трамвай',
+            text='🚋 Борисовский трамвай',
             callback_data='tram_tickets'
         ),
         InlineKeyboardButton(

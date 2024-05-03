@@ -1041,7 +1041,7 @@ async def gps_transport(call: CallbackQuery, place: str):
     if place in CITY:
         text += f'\n🚎 Остановка троллейбуса <b>{place}</b>'
     if place in tramroute:
-        text += f'\n🚋 Остановка Ридипольского трамвая <b>{place}</b>'
+        text += f'\n🚋 Остановка Борисовского трамвая <b>{place}</b>'
     for index, line in enumerate(METRO):
         if place in line:
             if index in [0, 2]:
@@ -1588,8 +1588,8 @@ async def airport(call: CallbackQuery):
     markup = InlineKeyboardMarkup()
 
     match (place):
-        case 'Аэропорт Ридиполь':
-            airport = 'Ридиполь'
+        case 'Аэропорт Борисов':
+            airport = 'Борисов'
             markup.add(
                 InlineKeyboardButton(
                     text='🛫 До Национального аэропорта',
@@ -1649,7 +1649,7 @@ async def flight(call: CallbackQuery):
 
         sleep_time = random.randint(AIRPLANE_TIME[0], AIRPLANE_TIME[1])
 
-        if place == 'Аэропорт Ридиполь':
+        if place == 'Аэропорт Борисов':
             await bot.send_photo(
                 call.message.chat.id,
                 'https://telegra.ph/file/d34459cedf14cb4b4a19a.jpg',
@@ -1664,10 +1664,10 @@ async def flight(call: CallbackQuery):
             await bot.send_photo(
                 call.message.chat.id,
                 'https://telegra.ph/file/d34459cedf14cb4b4a19a.jpg',
-                '<i>Наш самолёт направляется к <b>Аэропорту Ридиполь</b>. Путе'
+                '<i>Наш самолёт направляется к <b>Аэропорту Борисов</b>. Путе'
                 'шествие займёт не более 2 минут. Удачного полёта!</i>'
             )
-            destination = 'Аэропорт Ридиполь'
+            destination = 'Аэропорт Борисов'
             destline = 1
         else:
             return
