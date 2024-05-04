@@ -225,7 +225,12 @@ def create_userdata(cur: fyCursor) -> None:
     heal_achieve    INTEGER         DEFAULT 0               NOT NULL,
     rescue_achieve  INTEGER         DEFAULT 0               NOT NULL,
     shoot_achieve   INTEGER         DEFAULT 0               NOT NULL,
-    lightning_achieve INTEGER       DEFAULT 0               NOT NULL
+    lightning_achieve INTEGER       DEFAULT 0               NOT NULL,
+    courier_achieve INTEGER         DEFAULT 0               NOT NULL,
+
+    last_delivery   INTEGER         DEFAULT 0               NOT NULL,
+    last_owlpizza   INTEGER         DEFAULT 0               NOT NULL,
+    delivery_place  TEXT            DEFAULT \"\"            NOT NULL
 )
 """).commit()
 

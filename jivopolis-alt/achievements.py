@@ -174,6 +174,15 @@ ACHIEVEMENTS = {
         progress='walk_progress',
         completion_progress=20
     ),
+    'courier_achieve': Achievement(
+        name='courier_achieve',
+        ru_name='🛵 Здоров, работяги!',
+        description='Устройтесь на работу курьером в Жодинской '
+                    'пиццерии и отвезите заказ в местность Борисовский завод',
+        category='🚖 Путешествия',
+        money_reward=75,
+        xp_reward=9
+    ),
     'lightning_achieve': Achievement(
         name='lightning_achieve',
         ru_name='⚡ Между нами молния',

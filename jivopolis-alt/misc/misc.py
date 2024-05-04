@@ -287,12 +287,17 @@ def get_building(place: str) -> InlineKeyboardButton | None:
             )
         case "Площадь Админов":
             button = InlineKeyboardButton(
-                "📊 Биржа",
+                text="📊 Биржа",
                 callback_data="exchange_center"
+            )
+        case "Жодино":
+            button = InlineKeyboardButton(
+                text="🍕 OwlPizza",
+                callback_data="owlpizza"
             )
         case "Админская улица":
             button = InlineKeyboardButton(
-                "☕️ Подать админам на чай",
+                text="☕️ Подать админам на чай",
                 callback_data="donate"
             )
         case _:

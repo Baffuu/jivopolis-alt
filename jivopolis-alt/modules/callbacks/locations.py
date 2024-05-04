@@ -17,7 +17,7 @@ from aiogram.types import (
 
 from ...misc import current_time, get_time_units
 
-from ...misc.config import countries, capitals, oscar_levels
+from ...misc.config import countries, capitals, oscar_levels, tramroute
 
 from ...resources import RESOURCES
 from ...items import ITEMS
@@ -123,6 +123,161 @@ async def mineshaft(call: CallbackQuery):
         'забирается одна кирка. А взамен вы получаете полезные '
         'ископаемые для продажи и опыт.\n\n'
         f'⛏ У вас <b>{pickaxe}</b> кирок</i>',
+        reply_markup=markup
+    )
+
+
+async def owlpizza(call: CallbackQuery):
+    '''
+    Callback for Owlpizza pizza shop menu
+
+    :param call - callback:
+    '''
+    user_id = call.from_user.id
+
+    place = cur.select("current_place", "userdata").where(
+        user_id=user_id).one()
+
+    if place != 'Жодино':
+        return await call.answer(
+            text=(
+                '🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
+                'местности'
+            ),
+            show_alert=True
+        )
+
+    markup = InlineKeyboardMarkup(row_width=1)
+    markup.add(
+        InlineKeyboardButton(
+            text='🍕 Заказать пиццу',
+            callback_data='owlpizza_order'
+        ),
+        InlineKeyboardButton(
+            text='🛵 Работать доставщиком пиццы',
+            callback_data='owlpizza_work'
+        ),
+        InlineKeyboardButton(
+            text='◀ Вернуться в город',
+            callback_data='city'
+        )
+    )
+
+    await call.message.answer(
+        '<i>🍕 <b>Добро пожаловать в нашу пиццерию!</b>\n\n'
+        'Здесь вы можете купить пиццу или устроиться на работу курьером</i>',
+        reply_markup=markup
+    )
+
+
+async def owlpizza_work(call: CallbackQuery):
+    '''
+    Callback for Owlpizza delivery work menu
+
+    :param call - callback:
+    '''
+    user_id = call.from_user.id
+
+    place = cur.select("current_place", "userdata").where(
+        user_id=user_id).one()
+
+    if place != 'Жодино':
+        return await call.answer(
+            text=(
+                '🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
+                'местности'
+            ),
+            show_alert=True
+        )
+
+    markup = InlineKeyboardMarkup(row_width=1)
+    markup.add(
+        InlineKeyboardButton(
+            text='✔ Начать работу',
+            callback_data='owlpizza_startwork'
+        ),
+        InlineKeyboardButton(
+            text='◀ Вернуться',
+            callback_data='cancel_action'
+        )
+    )
+
+    await call.message.answer(
+        '<i>🛵 <b>Условия работы</b>\n\nНе позднее чем через'
+        ' <b>7 минут</b> после начала работы вы обязаны прибыть в местность'
+        ', которая будет указана. Вам понадобится поездка на трамвае'
+        ', поэтому заранее позаботьтесь о билетах.\n\nПо прибытии'
+        ' на место назначения зайдите в Город. При правильном выполнении '
+        'задания вы можете получить от <b>$150</b> до <b>$300</b>. '
+        'Но помните, что опоздание даже на секунду критично!\n\n'
+        'Если вы согласны, нажмите "Начать работу". Удачи!\n\n'
+        '<u>Примечание.</u> Все возможные адреса доставки находятся в '
+        'границах Борисовского района.\n\nРаботать курьером можно раз '
+        'в 2 часа</i>',
+        reply_markup=markup
+    )
+
+
+async def owlpizza_startwork(call: CallbackQuery):
+    '''
+    Callback for pizza delivery work start
+
+    :param call - callback:
+    '''
+    user_id = call.from_user.id
+
+    place = cur.select("current_place", "userdata").where(
+        user_id=user_id).one()
+
+    if place != 'Жодино':
+        return await call.answer(
+            text=(
+                '🦥 Не пытайтесь обмануть Живополис, вы уже уехали из этой '
+                'местности'
+            ),
+            show_alert=True
+        )
+
+    lastdel = cur.select("last_delivery", "userdata").where(
+        user_id=user_id).one()
+
+    if lastdel:
+        return await call.answer(
+            text=(
+                '🦥 Вы же уже работаете... Отвозите заказ скорее!'
+            ),
+            show_alert=True
+        )
+
+    last = cur.select("last_owlpizza", "userdata").where(
+        user_id=user_id).one()
+    if last + 3600*2 > current_time():
+        return await call.answer(
+            text=(
+                '🙅‍♂️ Работать курьером можно раз в 2 часа'
+            ),
+            show_alert=True
+        )
+
+    difference = random.randint(2, 6)*random.choice([1, -1])
+    destination = tramroute[tramroute.index('Жодино')+difference]
+    cur.update("userdata").set(delivery_place=destination).where(
+        user_id=user_id).commit()
+    cur.update("userdata").set(last_delivery=current_time()+7*60).where(
+        user_id=user_id).commit()
+    cur.update("userdata").set(last_owlpizza=current_time()).where(
+        user_id=user_id).commit()
+
+    markup = InlineKeyboardMarkup(row_width=1)
+    markup.add(
+        InlineKeyboardButton(
+            text='🛵 Скорее в город!',
+            callback_data='city'
+        )
+    )
+    await call.message.answer(
+        f'<i>Адрес доставки - <b>{destination}</b> (Борисовский район).'
+        ' У вас 7 минут, поторопитесь на трамвай или электричку!</i>',
         reply_markup=markup
     )
 
@@ -511,7 +666,8 @@ async def university(call: CallbackQuery):
     current_place = cur.select("current_place", "userdata").where(
         user_id=user_id).one()
     await utils.check_places(user_id, call, 'Университет',
-                             'Борисовская гимназия', 'Средняя школа Смиловичей')
+                             'Борисовская гимназия',
+                             'Средняя школа Смиловичей')
 
     markup = InlineKeyboardMarkup(row_width=1).add(
         InlineKeyboardButton(

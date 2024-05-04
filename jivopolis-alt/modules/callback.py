@@ -644,8 +644,14 @@ async def callback_handler(call: CallbackQuery):
 
             case gpscat if gpscat.startswith("gps_category_"):
                 await gps_category(call, category=gpscat.replace("gps_category_", ""))
+            case nogpscat if gpscat.startswith("nogps_category_"):
+                await gps_category(call, category=gpscat.replace("nogps_category_", ""),
+                                   nogps=True)
             case gpsloc if gpsloc.startswith("gps_location_"):
                 await gps_location(call, index=int(gpsloc.replace("gps_location_", "")))
+            case gpsloc if gpsloc.startswith("nogps_location_"):
+                await gps_location(call, index=int(gpsloc.replace("nogps_location_", "")),
+                                   nogps=True)
             case access if access.startswith("gps_transport_"):
                 await gps_transport(call, place=access.replace("gps_transport_", ""))
 
@@ -678,7 +684,19 @@ async def callback_handler(call: CallbackQuery):
                 await achievements(call)
             case achcat if achcat.startswith('ach_category_'):
                 await achievement_category(call, achcat.replace('ach_category_', ''))
-
+            case 'owlpizza_order':
+                await shop(
+                    call,
+                    place='Жодино',
+                    items=['pizza x1', 'pizza x2', 'pizza x3', 'pizza x5'],
+                    text='🍕 Добро пожаловать в лучшую в Живополисе пиццерию <b>OwlPizza</b>!'
+                )
+            case 'owlpizza':
+                await owlpizza(call)
+            case 'owlpizza_work':
+                await owlpizza_work(call)
+            case 'owlpizza_startwork':
+                await owlpizza_startwork(call)
             case "work":
                 await call.answer("🏗 Ведутся строительные работы. Ожидайте открытия вашей работы в ближайших обновлениях", True)
             case "airport":

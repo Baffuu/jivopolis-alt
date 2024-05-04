@@ -11,7 +11,8 @@ from ...misc.constants import (MINIMUM_CAR_LEVEL, MAXIMUM_DRIVE_MENU_SLOTS,
                                MAP, REGIONAL_MAP, MINIMUM_TAXI_LEVEL)
 from ...database import cur
 from ...database.functions import (
-    buy, buybutton, itemdata, achieve, weather_damage, set_ride_status
+    buy, buybutton, itemdata, achieve, weather_damage, set_ride_status,
+    current_time
 )
 
 from ...misc.config import (
@@ -183,6 +184,36 @@ async def city(message: Message, user_id: str | int):
         f"&#127963; <b>{place}</b></i>",
         reply_markup=markup
     )
+
+    lastdel = cur.select("last_delivery", "userdata").where(
+        user_id=user_id).one()
+    destination = cur.select("delivery_place", "userdata").where(
+        user_id=user_id).one()
+    if lastdel:
+        if lastdel >= current_time() and destination == place:
+            wage = random.randint(150, 300)
+            await message.answer(
+                '<i>🙂 Вы успешно завершили работу. Ваша зарплата '
+                f'- <b>${wage}</b></i>'
+            )
+            cur.update("userdata").add(balance=wage).where(
+                user_id=user_id).commit()
+            cur.update("userdata").set(last_delivery=0).where(
+                user_id=user_id).commit()
+            if destination == "Борисовский завод":
+                await achieve(user_id, message.chat.id, "courier_achieve")
+        elif lastdel < current_time():
+            await message.answer(
+                '<i>😟 Вы не успели доставить заказ и провалили миссию</i>'
+            )
+            cur.update("userdata").set(last_delivery=0).where(
+                user_id=user_id).commit()
+        else:
+            await message.answer(
+                '<i>🛵 Напоминание: вы должны доставить пиццу в местность'
+                f'<b>{destination}</b> через менее чем <b>'
+                f'{int((lastdel - current_time()) // 60) + 1} минут</b></i>'
+            )
 
     await asyncio.sleep(3)
     await weather_damage(user_id, message.chat.id)
@@ -945,17 +976,19 @@ async def gps_menu(call: CallbackQuery) -> None:
     await call.message.answer('<i>Выберите категорию</i>', reply_markup=markup)
 
 
-async def gps_category(call: CallbackQuery, category: str):
+async def gps_category(call: CallbackQuery, category: str,
+                       nogps: bool = False):
     '''
     Callback for list of locations for chosen category
 
     :param call - callback:
     :param category - category of locations:
+    :param nogps - True if no phone is required to open the category:
     '''
     user_id = call.from_user.id
     phone = cur.select("phone", "userdata").where(user_id=user_id).one()
 
-    if phone < 1:
+    if phone < 1 and not nogps:
         return await call.answer(
             'Чтобы пользоваться GPS, вам нужен телефон. Его можно купить в маг'
             'азине на ул. Генерала Шелби и одноимённой станции метро или в ТЦ '
@@ -963,10 +996,12 @@ async def gps_category(call: CallbackQuery, category: str):
             show_alert=True
         )
 
+    gps_name = 'nogps' if nogps else 'gps'
+
     markup = InlineKeyboardMarkup(row_width=2)
     locationlist = [
         InlineKeyboardButton(
-            text=location, callback_data=f'gps_location_{index}'
+            text=location, callback_data=f'{gps_name}_location_{index}'
         )
         for index, location in enumerate(locations[0])
         if locations[3][index] == category
@@ -978,10 +1013,13 @@ async def gps_category(call: CallbackQuery, category: str):
             callback_data='cancel_action'
         )
     )
-    await call.message.answer('<i>Выберите локацию</i>', reply_markup=markup)
+    text = "ℹ Информация о местах, в которых можно"\
+           " поработать" if nogps else "Выберите локацию"
+
+    await call.message.answer(f"<i>{text}</i>", reply_markup=markup)
 
 
-async def gps_location(call: CallbackQuery, index: int):
+async def gps_location(call: CallbackQuery, index: int, nogps: bool = False):
     '''
     Callback for a GPS location
 
@@ -991,7 +1029,7 @@ async def gps_location(call: CallbackQuery, index: int):
     user_id = call.from_user.id
     phone = cur.select("phone", "userdata").where(user_id=user_id).one()
 
-    if phone < 1:
+    if phone < 1 and not nogps:
         return await call.answer(
             'Чтобы пользоваться GPS, вам нужен телефон. Его можно купить в маг'
             'азине на ул. Генерала Шелби и одноимённой станции метро или в ТЦ '
@@ -1488,6 +1526,7 @@ async def metro_forward(call: CallbackQuery, already_onboard: bool = False):
         message = await call.message.answer(f'<i>{announcement}</i>',
                                             reply_markup=markup)
         await asyncio.sleep(25)
+        await message.delete()
         if not cur.select("left_transport", "userdata").\
                 where(user_id=user_id).one() == message['message_id']:
             await metro_forward(call, True)
@@ -1552,6 +1591,7 @@ async def metro_back(call: CallbackQuery, already_onboard: bool = False):
         message = await call.message.answer(f'<i>{announcement}</i>',
                                             reply_markup=markup)
         await asyncio.sleep(25)
+        await message.delete()
         if not cur.select("left_transport", "userdata").\
                 where(user_id=user_id).one() == message['message_id']:
             await metro_back(call, True)
@@ -1600,7 +1640,7 @@ async def airport(call: CallbackQuery):
             airport = 'Национальный аэропорт Живополис'
             markup.add(
                 InlineKeyboardButton(
-                    text='🛫 До Ридиполя',
+                    text='🛫 До Борисова',
                     callback_data='flight'
                 )
             )
@@ -1838,6 +1878,7 @@ async def regtrain_forward(call: CallbackQuery, already_onboard: bool = False):
                 f'Следующая остановка: <b>{REGTRAIN[1][index+2]}</b></i>',
                 reply_markup=markup)
         await asyncio.sleep(25)
+        await message.delete()
         if not cur.select("left_transport", "userdata").\
                 where(user_id=user_id).one() == message['message_id']:
             await regtrain_forward(call, True)
@@ -1883,6 +1924,7 @@ async def regtrain_back(call: CallbackQuery, already_onboard: bool = False):
                 f'Следующая остановка: <b>{REGTRAIN[0][index-2]}</b></i>',
                 reply_markup=markup)
         await asyncio.sleep(25)
+        await message.delete()
         if not cur.select("left_transport", "userdata").\
                 where(user_id=user_id).one() == message['message_id']:
             await regtrain_back(call, True)
@@ -2040,6 +2082,7 @@ async def trolleybus_forward(call: CallbackQuery,
                 f'Следующая остановка: <b>{CITY[index+2]}</b></i>',
                 reply_markup=markup)
         await asyncio.sleep(25)
+        await message.delete()
         if not cur.select("left_transport", "userdata").\
                 where(user_id=user_id).one() == message['message_id']:
             await trolleybus_forward(call, True)
@@ -2085,6 +2128,7 @@ async def trolleybus_back(call: CallbackQuery, already_onboard: bool = False):
                 f'Следующая остановка: <b>{CITY[index-2]}</b></i>',
                 reply_markup=markup)
         await asyncio.sleep(25)
+        await message.delete()
         if not cur.select("left_transport", "userdata").\
                 where(user_id=user_id).one() == message['message_id']:
             await trolleybus_back(call, True)
@@ -2568,6 +2612,7 @@ async def tram_forward(call: CallbackQuery,
                 f'Следующая остановка: <b>{tramroute[index+2]}</b></i>',
                 reply_markup=markup)
         await asyncio.sleep(25)
+        await message.delete()
         if not cur.select("left_transport", "userdata").\
                 where(user_id=user_id).one() == message['message_id']:
             await tram_forward(call, True)
@@ -2619,6 +2664,7 @@ async def tram_back(call: CallbackQuery,
                 f'Следующая остановка: <b>{tramroute[index-2]}</b></i>',
                 reply_markup=markup)
         await asyncio.sleep(25)
+        await message.delete()
         if not cur.select("left_transport", "userdata").\
                 where(user_id=user_id).one() == message['message_id']:
             await tram_forward(call, True)

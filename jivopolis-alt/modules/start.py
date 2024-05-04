@@ -217,7 +217,7 @@ class StartCommand():
                 ),
                 InlineKeyboardButton(
                     text="🤵 Работать",
-                    callback_data="work"
+                    callback_data="nogps_category_Заработок"
                 ),
                 InlineKeyboardButton(
                     text="🃏 Профиль",

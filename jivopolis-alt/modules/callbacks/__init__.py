@@ -141,7 +141,10 @@ from .locations import (
     resource_factory,
     process_resources,
     oscar_shop,
-    oscar_dept
+    oscar_dept,
+    owlpizza,
+    owlpizza_work,
+    owlpizza_startwork
 )
 
 from .clans import (
@@ -326,6 +329,9 @@ __all__ = [
     "answer_geo",
     "oscar_shop",
     "oscar_dept",
+    "owlpizza",
+    "owlpizza_work",
+    "owlpizza_startwork",
     "create_clan",
     "joinclan",
     "leaveclan",
