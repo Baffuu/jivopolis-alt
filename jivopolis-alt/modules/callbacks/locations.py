@@ -525,8 +525,8 @@ async def play_gears(call: CallbackQuery):
             user_id=user_id).one() != task_message['message_id']:
         no_answer_markup = InlineKeyboardMarkup(row_width=2)
         if (
-            (amount % 2 == 1 and dir == 'left')
-            or (amount % 2 == 0 and dir == 'right')
+            (amount % 2 == 1 and direction == 'left')
+            or (amount % 2 == 0 and direction == 'right')
         ):
             correct_answer = '↩'
             no_answer_markup.add(
