@@ -315,7 +315,7 @@ async def go_mining(call: CallbackQuery):
     )
 
     cur.update("userdata").add(pickaxe=-1).where(user_id=user_id).commit()
-    cur.update("userdata").add(last_mine=current_time()).where(
+    cur.update("userdata").set(last_mine=current_time()).where(
         user_id=user_id).commit()
     await asyncio.sleep(random.randint(30, 60))
 
