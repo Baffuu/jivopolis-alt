@@ -52,7 +52,7 @@ RASES = {
     "🐸": Rase(
         emoji="🐸",
         name="frog",
-        ru_name="Лягушка",
+        ru_name="Жаба",
         image_url="https://telegra.ph/file/debe702d527967f9afd9a.jpg"
     ),
     "🦉": Rase(
@@ -545,13 +545,13 @@ class StartCommand():
         rase = RASES[rase]
         await call.answer('Отличный выбор!')
 
-        cur.update("userdata").set(rase=rase.emoji).where(
-            user_id=user_id).commit()
+        cur.execute(f"UPDATE userdata SET rase=\"{rase.emoji}\" "
+                    f"WHERE user_id={user_id};").commit()
 
         await bot.send_photo(
             user_id,
             rase.image_url,
-            f"Ты: {rase.emoji} {rase.ru_name}"
+            f"<i>Ты: {rase.emoji} <b>{rase.ru_name}</b></i>"
         )
         await call.message.delete()
         await self._continue_registration(user_id)
@@ -592,8 +592,10 @@ class StartCommand():
             "#user_signup"
         )
 
-        cur.update("userdata").set(register_date=current_time()).where(
-            user_id=user.id).commit()
+        cur.execute(f"UPDATE userdata SET register_date={current_time()} "
+                    f"WHERE user_id={user.id};").commit()
+        cur.execute(f"UPDATE userdata SET lastseen={current_time()} "
+                    f"WHERE user_id={user.id};").commit()
 
         await self._continue_registration(user.id)
 

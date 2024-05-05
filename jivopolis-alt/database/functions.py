@@ -645,7 +645,7 @@ class profile_():
     def _get_rank_name(self, rank):
         match (rank):
             case 0:
-                rank = None
+                rank = "🙍‍♂️ Игрок"
             case 1:
                 rank = "⚜️ VIP"
             case 2:
@@ -910,7 +910,7 @@ async def weather_damage(user_id: int|str, chat_id: int|str) -> bool | None:
             message = "❄ Вы поскользнулись на льду и упали"
             damage = random.randint(5, 20)
         case Weather.THUNDERSTORM:
-            chance = 90
+            chance = 7
             message = "⚡ В вас попала молния"
             damage = random.randint(60, 100)
             await achieve(
