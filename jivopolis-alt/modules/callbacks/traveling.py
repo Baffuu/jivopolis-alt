@@ -421,7 +421,8 @@ async def local_people(call: CallbackQuery):
         user_id=call.from_user.id).one()
     count = cur.execute(
             f"SELECT count(*) FROM userdata WHERE current_place='{place}'"
-            " AND profile_type='public'").fetchall()[0][0]
+            f" AND profile_type='public' AND NOT user_id={call.from_user.id}"
+        ).one()
 
     markup = InlineKeyboardMarkup().add(
         InlineKeyboardButton(
@@ -430,7 +431,7 @@ async def local_people(call: CallbackQuery):
         )
     )
 
-    if count <= 1:
+    if count < 1:
         return await call.message.answer(
             "<i>👤 Вы стоите один, оглядываясь по сторонам…\n"
             "\n😓 В вашей местности не найдено людей. Помимо вас, "
@@ -439,12 +440,14 @@ async def local_people(call: CallbackQuery):
         )
 
     cur.execute(f"SELECT * FROM userdata WHERE current_place = '{place}' "
-                "AND profile_type = 'public' LIMIT 40")
+                "AND profile_type = 'public' AND NOT "
+                f"user_id={call.from_user.id} LIMIT 40")
 
     users = ''.join(
         [
             f'\n{index}. {await get_embedded_link(row[1])}'
             for index, row in enumerate(cur.fetchall(), start=1)
+            if row[1] and row[1] != call.from_user.id
         ]
     )
 
