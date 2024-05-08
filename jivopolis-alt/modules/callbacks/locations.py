@@ -821,7 +821,7 @@ async def play_math(call: CallbackQuery):
         )
 
         cur.update("userdata").add(balance=-10).where(user_id=user_id).commit()
-        cur.update("userdata").add(last_math=current_time()).where(
+        cur.update("userdata").set(last_math=current_time()).where(
             user_id=user_id).commit()
 
         await task_message.edit_text(
@@ -881,7 +881,7 @@ async def answer_math(call: CallbackQuery,
 
         cur.update("userdata").add(balance=-10).where(
             user_id=user_id).commit()
-        cur.update("userdata").add(last_math=current_time()).where(
+        cur.update("userdata").set(last_math=current_time()).where(
             user_id=user_id).commit()
 
     left_text += f' {emoji}' if answer == 'yes' else ""
@@ -1042,7 +1042,7 @@ async def play_geo(call: CallbackQuery):
         )
 
         cur.update("userdata").add(balance=-10).where(user_id=user_id).commit()
-        cur.update("userdata").add(last_geography=current_time()).where(
+        cur.update("userdata").set(last_geography=current_time()).where(
             user_id=user_id).commit()
 
         await task_message.edit_text(
@@ -1102,7 +1102,7 @@ async def answer_geo(call: CallbackQuery,
         reward_text = 'Вы ответили неверно.\n💲 Штраф: $10'
         cur.update("userdata").add(balance=-10).where(
             user_id=user_id).commit()
-        cur.update("userdata").add(last_math=current_time()).where(
+        cur.update("userdata").set(last_math=current_time()).where(
             user_id=user_id).commit()
 
     if correct_answer == 'yes':
