@@ -79,7 +79,7 @@ async def chats(user_id: int, message: Message) -> None:
         ".me/chatzhivopolisa\n&#128163; Чат для флуда: https://t.me/jivopolis"
         "_flood\n&#128176; Рынок Живополиса: t.me/jivopolis_bazar\n&#128572; "
         "Посольство Живополиса в Котостане: https://t.me/posolstvo_jivopolis_"
-        "in_kotostan\n{0}".format(
+        "in_kotostan\n{0}</i>".format(
             "Вы ещё не выбрали себе расу. Чтобы выбрать, нажми"
             "те на кнопку \"Выбрать расу\"\n" if info is None else ""
         ),
