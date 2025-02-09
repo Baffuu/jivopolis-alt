@@ -1,36 +1,92 @@
-from aiogram.utils import executor
+# type: ignore
+import asyncio
+import time
+
+from . import dp, Dispatcher, logger, FiltersFactory
+from .misc import tglog
+from ._async_sched import AsyncScheduler
+from ._world_updater import update as _update
+from .filters import RequireBetaFilter
+
+from aiogram.utils.executor import Executor
 from aiogram.utils.exceptions import ChatNotFound
 
-from .config import log_chat
-from . import bot, dp, Dispatcher, logger
 
-from .database.sqlitedb import connect_database
+async def update():
+    await _update()
+    scheduler.enter(60, 1, update)
+    logger.debug("World was updated")
 
-async def on_startup(dp : Dispatcher):
+
+def _setup_callbacks(executor: 'Executor', on_startup=None, on_shutdown=None):
+    if on_startup is not None:
+        executor.on_startup(on_startup)
+    if on_shutdown is not None:
+        executor.on_shutdown(on_shutdown)
+
+
+async def on_startup(dp: Dispatcher):
     try:
-        connect_database()
-        
-        from .database.sqlitedb import cur, conn
-        cur.execute("INSERT INTO globaldata(treasury) VALUES (0)")
-        conn.commit()
-
+        from .database import cur, conn
+        if not cur.select("count(*)", "globaldata").one():
+            cur.execute("INSERT INTO globaldata(treasury) VALUES (0)")
+            conn.commit()
         try:
-            await bot.send_message(log_chat, '<i>🔰 Бот успешно перезагружен. #restart</i>')
+            await tglog('🔰 Бот успешно перезагружен.', "#restart")
         except ChatNotFound:
-            logger.warning('log chat not found :(\nprobably you forgot to add bot to the chat')
-        logger.info('bot connected')
+            logger.warning(
+                'Log chat not found :(\nprobably you forgot to add bot to the'
+                ' chat'
+            )
+
+        logger.info('Bot connected')
 
         from . import modules
         await modules.register_all(dp)
-        #await asyncio.gather(asyncio.create_task(update_loop()))
     except Exception as e:
         return logger.exception(e)
 
-async def on_shutdown(dp: Dispatcher):
-    from .database.sqlitedb import cur, conn
-    cur.close(); conn.close()
-    await bot.send_message(log_chat, '<i>❗️ Выключаюсь… #shutdown</i>')
-    return logger.warning('Goodbye...')
+
+async def on_shutdown(_: Dispatcher):
+    from .database import cur, conn
+    cur.close()
+    conn.close()
+    await tglog('❗️ Выключаюсь…', '#shutdown')
+
+
+def main():
+    """main entrypoint"""
+    FiltersFactory.bind(
+        RequireBetaFilter,
+        event_handlers=[
+            dp.message_handlers,
+            dp.callback_query_handlers
+        ]
+    )
+    global scheduler
+    scheduler = AsyncScheduler(time.time, asyncio.sleep)
+    scheduler.enter(10, 1, update)
+
+    loop = asyncio.new_event_loop()
+    loop.create_task(scheduler.run())
+
+    executor = Executor(dp, loop=loop)
+    _setup_callbacks(executor, on_startup, on_shutdown)
+
+    try:
+        loop.run_until_complete(executor._startup_polling())
+        loop.create_task(dp.start_polling(
+            reset_webhook=None, timeout=20,
+            relax=0.1, fast=True, allowed_updates=None)
+        )
+        loop.run_forever()
+    except (KeyboardInterrupt, SystemExit):
+        # loop.stop()
+        pass
+    finally:
+        loop.run_until_complete(executor._shutdown_polling())
+        logger.warning("Goodbye!")
+
 
 if __name__ == '__main__':
-    executor.start_polling(dispatcher=dp, on_startup=on_startup, on_shutdown=on_shutdown, skip_updates=True)
+    main()

@@ -1,149 +1,617 @@
-from ...database.functions import cur, conn, get_mask, log_chat, get_link, limeteds, ITEMS
-from ..callbacks.traveling import state_balance
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, Message, CallbackQuery
 import time
+import contextlib
+from gtts import gTTS
+import os
 from math import floor
+from datetime import datetime, timezone
+from .traveling import state_balance
+
 from ... import bot, logger
-async def chats(user_id: int, message: Message):
-    rase = cur.execute(f"SELECT rase FROM userdata WHERE user_id = {user_id}").fetchone()[0]
+from ...database import cur, conn
+from ...database.functions import (
+    get_weather, str_weather, month, current_time, cancel_button
+)
+from ...misc.config import limited_items
+from ...misc import get_mask, get_link, OfficialChats, get_embedded_link, ITEMS
+
+from aiogram.types import (
+    InlineKeyboardMarkup,
+    InlineKeyboardButton,
+    Message, CallbackQuery
+)
+from aiogram.utils.exceptions import (
+    MessageCantBeDeleted,
+    MessageToDeleteNotFound
+)
+from ..._world_updater import get_crypto
+from ...utils import is_allowed_nonick
+
+
+async def chats(user_id: int, message: Message) -> None:
+    '''
+    Callback for chats
+
+    :param user_id:
+    :param message:
+    '''
+    rase = cur.select("rase", "userdata").where(user_id=user_id).one()
     markup = InlineKeyboardMarkup()
 
     match(rase):
         case "🐱":
-            chat = "Расовый чат Котов"
-            url = "https://t.me/joinchat/mWs48dy5cAo1ZmEy"
+            info = ("Расовый чат Котов",
+                    "https://t.me/joinchat/mWs48dy5cAo1ZmEy")
         case "🐶":
-            chat = "Расовый чат Собак"
-            url = "https://t.me/joinchat/yQ8X_uD1MydmNWIy"
+            info = ("Расовый чат Собак",
+                    "https://t.me/joinchat/yQ8X_uD1MydmNWIy")
         case "&#129437":
-            chat = "Расовый чат Енотов"
-            url = "https://t.me/joinchat/vuVCKuUIB2gxZTYy"
+            info = ("Расовый чат Енотов",
+                    "https://t.me/joinchat/vuVCKuUIB2gxZTYy")
         case "&#128056;":
-            chat = "Расовый чат Жаб"
-            url = "https://t.me/joinchat/ACneINZ0hl43YTUy"
+            info = ("Расовый чат Жаб",
+                    "https://t.me/joinchat/ACneINZ0hl43YTUy")
         case "&#129417;":
-            chat = "Расовый чат Сов"
-            url = "https://t.me/joinchat/nCt9oB_cX8I3NzMy"
+            info = ("Расовый чат Сов",
+                    "https://t.me/joinchat/nCt9oB_cX8I3NzMy")
         case _:
-            chat = None
+            info = None
 
-    if chat:
-        markup.add(InlineKeyboardButton(text=chat, url=url))
+    if info is not None:
+        markup.add(InlineKeyboardButton(text=info[0], url=info[1]))
     else:
-        markup.add(InlineKeyboardButton(text="Выбрать расу", callback_data="change_rase"))
-            
-    markup.add(InlineKeyboardButton(text="🎮 Игровой клуб", url="https://t.me/+2UuPwVyac6lkYjRi"))
-    await message.answer("<i><b>Официальные чаты Живополиса</b>\n&#128221; Приёмная для идей и вопросов: https://t.me/zhivolab\n&#128172; Чат для общения: https://t.me/chatzhivopolisa\n&#128163; Чат для флуда: https://t.me/jivopolis_flood\n&#128176; Рынок Живополиса: t.me/jivopolis_bazar\n&#128572; Посольство Живополиса в Котостане: https://t.me/posolstvo_jivopolis_in_kotostan\n{0}</i>".format("Вы ещё не выбрали себе расу. Чтобы выбрать, нажмите на кнопку \"Выбрать расу\"\n" if chat=="" else ""), parse_mode = "html", reply_markup = markup)
+        markup.add(
+            InlineKeyboardButton(
+                text="Выбрать расу",
+                callback_data="change_rase"
+            )
+        )
 
-#todo async def change_rase(user_id: int, message: Message)
+    markup.add(
+        InlineKeyboardButton(
+            text="🎮 Игровой клуб",
+            url="https://t.me/+2UuPwVyac6lkYjRi"
+        )
+    )
+
+    await message.answer(
+        "<i><b>Официальные чаты Живополиса</b>\n&#128221; Приёмная для идей и"
+        "вопросов:https://t.me/zhivolab\n&#128172; Чат для общения: https://t"
+        ".me/chatzhivopolisa\n&#128163; Чат для флуда: https://t.me/jivopolis"
+        "_flood\n&#128176; Рынок Живополиса: t.me/jivopolis_bazar\n&#128572; "
+        "Посольство Живополиса в Котостане: https://t.me/posolstvo_jivopolis_"
+        "in_kotostan\n{0}</i>".format(
+            "Вы ещё не выбрали себе расу. Чтобы выбрать, нажми"
+            "те на кнопку \"Выбрать расу\"\n" if info is None else ""
+        ),
+        reply_markup=markup
+    )
+
+
+async def infomenu(call: CallbackQuery):
+    '''
+    Information menu.
+
+    :param call:
+    '''
+    await call.message.answer(
+        "<i>ℹ Информация и помощь</i>",
+        reply_markup=InlineKeyboardMarkup(row_width=1).add(
+            InlineKeyboardButton(
+                text="💬 Чаты",
+                callback_data="chats"
+            ),
+            InlineKeyboardButton(
+                text="📊 Экономика",
+                callback_data="economics"
+            ),
+            InlineKeyboardButton(
+                text="❓ Помощь",
+                callback_data="help"
+            ),
+            cancel_button()
+        )
+    )
+
+
+async def gadgets_menu(call: CallbackQuery):
+    '''
+    Phone and radio menu.
+
+    :param call:
+    '''
+    markup = InlineKeyboardMarkup()
+    if cur.select("phone", "userdata").where(
+            user_id=call.from_user.id).one():
+        markup.add(
+            InlineKeyboardButton(
+                text="📱 Телефон",
+                callback_data="cellphone_menu"
+            )
+        )
+    if cur.select("radio", "userdata").where(
+            user_id=call.from_user.id).one():
+        markup.add(
+            InlineKeyboardButton(
+                text="📻 Радио",
+                callback_data="radio_menu"
+            )
+        )
+
+    await call.message.answer(
+        "<i>📱 Гаджеты</i>",
+        reply_markup=markup.add(cancel_button())
+    )
+
 
 async def my_refferals(message: Message, user_id: int):
+    '''
+    Callback for user refferals
+
+    :param message:
+    :param user_id:
+    '''
     user_mask = get_mask(user_id)
-    nick = cur.execute(f"SELECT nickname FROM userdata WHERE user_id = {user_id}").fetchone()[0]
-    count = cur.execute(f"SELECT count(*) FROM userdata WHERE inviter_id = {user_id}").fetchone()[0]
+    nick = cur.select("nickname", "userdata").where(user_id=user_id).one()
+    count = cur.select("count(*)", "userdata").where(inviter_id=user_id).one()
     markup = InlineKeyboardMarkup()
-    markup.add(InlineKeyboardButton(text="🖇 Реферальная ссылка", callback_data="reflink"))
-    
+    markup.add(
+        InlineKeyboardButton(
+            text="🖇 Реферальная ссылка",
+            callback_data="reflink"
+        )
+    )
+
     if count < 1:
-        return await message.answer(f"<i><b><a href=\"tg://user?id={user_id}\">{user_mask}{nick}</a></b>, вы пока никого не пригласили в Живополис :(</i>", parse_mode = "html", reply_markup=markup)
-        
-    cur.execute(f"""
-    SELECT * FROM userdata 
-    WHERE refid = {user_id}
-    ORDER BY -lastseen 
-    LIMIT 100""")
+        return await message.answer(
+            f"<i><b><a href=\"tg://user?id={user_id}\">{user_mask}{nick}</a></"
+            "b>, вы пока никого не пригласили в Живополис :(</i>",
+            reply_markup=markup
+        )
 
-    ref_num = 0
-    users: str 
+    cur.execute(
+        f"""
+            SELECT * FROM userdata
+            WHERE refid = {user_id}
+            ORDER BY -lastseen
+            LIMIT 100
+        """
+    )
 
-    for row in cur:
-        ref_num += 1
+    users = str()
+
+    for ref_num, row in enumerate(cur, start=1):
         mask = get_mask(row[1])
-        users+=f"\n{ref_num}. <a href = \"{get_link(row[1])}\">{mask}{row[7]}</a>"
-    await message.answer(f"<i>&#128100; Пользователи, привлечённые <b><a href=\"tg://user?id={user_id}\">{user_mask}{nick}</a></b>: <b>{users}</b></i>", parse_mode = "html", reply_markup=markup)
+        users += (
+            f"\n{ref_num}. <a href = \""
+            f"{await get_link(row[1])}\">{mask}{row[7]}</a>"
+        )
 
-async def get_cheque(call: CallbackQuery, user_id: int):
+    await message.answer(
+        text=(
+            "<i>&#128100; Пользователи, привлечённые <b><a href=\"tg://user"
+            f"?id={user_id}\">{user_mask}{nick}</a></b>: <b>{users}</b></i>"
+        ),
+        reply_markup=markup
+    )
+
+
+async def get_cheque(call: CallbackQuery, user_id: int) -> None:
     money = int(call.data[6:])
     mask = get_mask(user_id)
-    nick = cur.execute(f"SELECT nickname FROM userdata WHERE user_id={user_id}").fetchone()[0]
-    
-    cur.execute(f"UPDATE userdata SET balance = balance + {money} WHERE user_id={user_id}"); conn.commit()
-    
-    if call.message != None:
-        await bot.edit_message_text(chat_id = call.message.chat.id, message_id = call.message.message_id, text = f"<i><b><a href=\"{get_link(user_id)}\">{mask}{nick}</a></b> забрал <b>${money}</b></i>")
+    nick = cur.select("nickname", "userdata").where(user_id=user_id).one()
+
+    cur.update("userdata").add(balance=money).where(user_id=user_id).commit()
+
+    if not call.message:
+        await bot.edit_message_text(
+            inline_message_id=call.inline_message_id,
+            text=(
+                f"<i><b><a href=\"{await get_link(user_id)}\">{mask}{nick}</a"
+                f"></b> забрал <b>${money}</b></i>"
+            )
+        )
     else:
-        await bot.edit_message_text(inline_message_id = call.inline_message_id, text = f"<i><b><a href=\"{get_link(user_id)}\">{mask}{nick}</a></b> забрал <b>${money}</b></i>")
+        await bot.edit_message_text(
+            chat_id=call.message.chat.id,
+            message_id=call.message.message_id,
+            text=(
+                f"<i><b><a href=\"{await get_link(user_id)}\">{mask}{nick}<"
+                f"/a></b> забрал <b>${money}</b></i>"
+            )
+        )
     if money > 0:
-        await bot.send_message(log_chat, f"<i><b><a href=\"{get_link}\">{mask}{nick}</a></b> забрал <b>${money}</b>\n#user_getcheck</i>")
+        await bot.send_message(
+            OfficialChats.LOGCHAT,
+            f"<i><b>{await get_embedded_link(user_id)}</b> забрал <b>${money}<"
+            "/b>\n#user_getcheck</i>"
+        )
 
-async def cellphone_menu(call: CallbackQuery):
-    a = call.from_user.id
-    phone = cur.execute(f"SELECT phone FROM userdata WHERE user_id={call.from_user.id}").fetchone()[0]
-    
-    if phone<1:
-        return await call.answer("Вам нужен телефон. Его можно купить в магазине на ул. Генерала Шелби и одноимённой станции метро", show_alert = True)
-        
-    markup = InlineKeyboardMarkup(row_width = 1)
 
-    markup.add(InlineKeyboardButton(text="📡 GPS", callback_data="gps"),
-    InlineKeyboardButton(text="🚚 МиГ.Доставка", callback_data="delivery_app"),
-    InlineKeyboardButton(text="🚂 ЖивГорТранс: Билеты", callback_data="tickets"),
-    InlineKeyboardMarkup(text="◀ Назад", callback_data="cancel_action"))
+async def cellphone_menu(call: CallbackQuery) -> None:
+    '''
+    Callback for cell phone menu
 
-    await call.message.answer("<i>📱 Телефон - это удобная и современная вещь</i>", parse_mode="html", reply_markup = markup)
+    :param call - callback:
+    :param user_id:
+    '''
+    phone = cur.select("phone", "userdata").where(
+        user_id=call.from_user.id).one()
 
-async def give_state(call: CallbackQuery, amount):
+    if phone < 1:
+        return await call.answer(
+            "Вам нужен телефон. Его можно купить в магазине на ул. Генерала "
+            "Шелби и одноимённой станции метро или в торговом центре в "
+            "Максиграде",
+            show_alert=True
+        )
+
+    markup = InlineKeyboardMarkup(row_width=1)
+    weather = str_weather(get_weather())
+
+    markup.add(
+        InlineKeyboardButton(
+            text="📡 GPS",
+            callback_data="gps"
+        ),
+        InlineKeyboardButton(
+            text="🚚 МиГ.Доставка",
+            callback_data="delivery_app"
+        ),
+        InlineKeyboardButton(
+            text="🚂 ЖивГорТранс: Билеты",
+            callback_data="tickets"
+        ),
+        InlineKeyboardButton(
+            text=f"{weather[0]} Прогноз погоды",
+            callback_data="weather_forecast"
+        ),
+        InlineKeyboardMarkup(
+            text="◀ Назад",
+            callback_data="cancel_action"
+        )
+    )
+
+    now = datetime.now(timezone.utc)
+
+    # a function that adds 0 to the beginning of a number
+    # if it has less than 2 digits
+    def f(x):
+        return x if len(str(x)) > 1 else f"0{x}"
+
+    str_date = f"{f(now.day)}.{f(now.month)}.{now.year}"
+    str_time = f"{f(now.hour)}:{f(now.minute)}"
+    await call.message.answer(
+        "<i>📱 Телефон - это удобная и современная вещь.\n\n"
+        f"Сейчас: <b>{str_time}</b> (UTC), <b>{str_date}</b>\n"
+        f"Погода в данный момент: <b>{weather}</b></i>",
+        reply_markup=markup
+    )
+
+
+async def radio_menu(call: CallbackQuery) -> None:
+    '''
+    Callback for radio menu
+
+    :param call - callback:
+    :param user_id:
+    '''
+    radio = cur.select("radio", "userdata").where(
+        user_id=call.from_user.id).one()
+
+    if radio < 1:
+        return await call.answer(
+            "Вам нужен приёмник. Его можно купить в магазине на ул. Генерала "
+            "Шелби и одноимённой станции метро или в торговом центре в "
+            "Максиграде",
+            show_alert=True
+        )
+
+    markup = InlineKeyboardMarkup(row_width=1)
+    weather = str_weather(get_weather())
+
+    markup.add(
+        InlineKeyboardButton(
+            text=f"71.0 {weather[0]} Прогноз погоды",
+            callback_data="weather_forecast_radio"
+        ),
+        InlineKeyboardMarkup(
+            text="◀ Назад",
+            callback_data="cancel_action"
+        )
+    )
+
+    await call.message.answer(
+        "<i>📻 К какой радиостанции хотите подключиться?</i>",
+        reply_markup=markup
+    )
+
+
+async def weather_forecast(call: CallbackQuery) -> None:
+    '''
+    Callback for weather forecast phone app
+
+    :param user_id:
+    '''
+    phone = cur.select("phone+radio", "userdata").where(
+        user_id=call.from_user.id).one()
+
+    if phone < 1:
+        return await call.answer(
+            'Вам нужен телефон или радио. Их можно купить в магазине'
+            ' на ул. Генерала Шелби и одноимённой станции метро или в '
+            'торговом центре в Максиграде',
+            show_alert=True
+        )
+
+    weather_texts = ''
+    for day in range(7):
+        now = datetime.fromtimestamp(current_time() + 86400*day)
+        weather_texts += (
+            f"\n<b>{now.day} {month(now.month)}</b> - "
+            f"{str_weather(get_weather(day))}"
+        )
+
+    await call.message.answer(
+        f"<i><b>Погода на ближайшие 7 дней:</b>\n{weather_texts}\n\n"
+        "<b>!!</b> Погода изменяется в 00:00 UTC каждый день</i>",
+        reply_markup=InlineKeyboardMarkup().add(
+            cancel_button()
+        )
+    )
+
+
+async def radio_frequency(call: CallbackQuery, frequency: int,
+                          speech: str) -> None:
+    '''
+    Callback for weather forecast phone radio program text
+
+    :param call - callback:
+    :param frequency - radio station frequency:
+    :param speech - radio station text:
+    '''
+    now = datetime.now(timezone.utc)
+    file_name = f"radio_{frequency}.mp3"
+    speech = (
+        f"Слушайте Голос Котая! Вас встречает радиостанция {frequency}...\n"
+        f"В Котае {now.day} {month(now.month)}, {now.hour} часов {now.minute}"
+        f" минут...\n{speech}...\n\nДо встречи!"
+    )
+    gTTS(speech, lang='ru').save(file_name)
+
+    with open(file_name, "rb") as audio_file:
+        await call.message.answer_audio(
+            audio_file,
+            caption=f"<i>В эфире Голос Котая, частота <b>{frequency}.0</b>\n\n"
+                    f"<code>{speech}</code></i>",
+            reply_markup=InlineKeyboardMarkup().add(cancel_button())
+        )
+    os.remove(file_name)
+
+
+def weather_forecast_radio_program() -> None:
+    '''
+    Callback for weather forecast phone radio program text
+    '''
+    weather_texts = 'Прогноз погоды на ближайшие семь дней...\n'
+    for day in range(7):
+        now = datetime.fromtimestamp(current_time() + 86400*day)
+        weather_texts += (
+            f"\n{now.day} {month(now.month)} - "
+            f"{str_weather(get_weather(day))[2:]}..."
+        )
+
+    return weather_texts
+
+
+async def give_state(call: CallbackQuery, amount) -> None:
+    '''
+    Callback for clan joining
+
+    :param call - callback:
+    :param user_id:
+    '''
     amount = int(call.data[11:])
     user_id = call.from_user.id
-    place = cur.execute(f"SELECT current_place FROM userdata WHERE user_id={user_id}").fetchone()[0]
-    balance = cur.execute(f"SELECT balance FROM userdata WHERE user_id={user_id}").fetchone()[0]
-    treasury = cur.execute(f"SELECT treasury FROM globaldata").fetchone()[0]
-    
+    place = cur.select("current_place", "userdata").where(
+        user_id=user_id).one()
+    balance = cur.select("balance", "userdata").where(user_id=user_id).one()
+    # treasury = cur.select("treasury", "globaldata").one()
+
     if place != "Живбанк":
         return
 
-    if balance>=amount:
-        cur.execute(f"UPDATE globaldata SET treasury=treasury+{amount}"); conn.commit()
-        cur.execute(f"UPDATE userdata SET balance=balance-{amount} WHERE user_id={user_id}"); conn.commit()
-        await call.answer('success.', show_alert=True) #todo better answer
+    if balance >= amount:
+        cur.execute(f"UPDATE globaldata SET treasury=treasury+{amount}")
+        conn.commit()
+        cur.update("userdata").add(balance=-amount).where(
+            user_id=user_id).commit()
+        await call.answer('success.', show_alert=True)  # todo better answer
     else:
-        await call.message.answer("&#10060; У вас недостаточно средств</i>", parse_mode="html")
+        await call.message.answer("&#10060; У вас недостаточно средств</i>")
 
     await state_balance(call)
     await bot.delete_message(call.message.chat.id, call.message.message_id)
 
-async def economics(call: CallbackQuery):
+
+async def economics(call: CallbackQuery) -> None:
+    '''
+    Callback for jivopolis economics menu
+
+    :param call - callback:
+    '''
     treasury = cur.execute("SELECT treasury FROM globaldata").fetchone()[0]
     try:
-        balance = cur.execute(f"SELECT clan_balance FROM clandata WHERE clan_id=-1001395868701").fetchone()[0] #todo group id
+        balance = cur.execute(
+            "SELECT clan_balance FROM clandata WHERE clan_id=-1001395868701"
+        ).fetchone()[0]
     except TypeError:
-        logger.warning('game club does not exists or bot not added to the chat')
+        logger.warning(
+            'Game club does not exists or bot not added to the chat'
+        )
         balance = 0
     lastfill = cur.execute("SELECT lastfill FROM globaldata").fetchone()[0]
-    coef = 1.5 #todo cur.execute("SELECT coef FROM globaldata").fetchone()[0]
+    coef = 1.5  # todo cur.execute("SELECT coef FROM globaldata").fetchone()[0]
 
     diff = time.time() - lastfill
-    h = floor(diff/3600)
-    m = floor(diff%3600/60)
-    s = floor(diff%3600%60)
+    h = floor(diff / 3600)
+    m = floor(diff % 3600 / 60)
+    s = floor(diff % 3600 % 60)
 
     limits = ''
-    
-    for item in limeteds:
-        limits += f'\n{ITEMS[item][0]} {ITEMS[item][2]} - '
-        item_left = cur.execute(f"SELECT {item} FROM globaldata").fetchone()[0]
-        
-        if item_left <= 0:
-            limits += 'дефицит'
-        else:
-            limits += str(item_left)
 
-    return await call.message.answer(f'<i><b>&#128202; ЭКОНОМИКА ЖИВОПОЛИСА</b>\n\
-    \n&#128184; <b>Финансы</b>\
-    \n&#128176; Государственная казна - <b>${treasury}</b>\
-    \n&#127918; Баланс Игрового клуба - <b>${balance}</b>\n\
-    \n&#127978; <b>Количество товара в Круглосуточном</b>{limits}\n\
-    \n&#128666; Завоз товара в Круглосуточный осуществляется каждый день. Последний завоз был {h} часов {m} минут {s} секунд назад\n\n\
-    &#128176; <b>Центральный рынок</b>\
-    \nРыночная ставка: {round(1//coef, 2)}</i>', parse_mode='html')
-            
+    for item in limited_items:
+        limits += f'\n{ITEMS[item].emoji} {ITEMS[item].ru_name} - '
+        item_left = cur.execute(f"SELECT {item} FROM globaldata").fetchone()[0]
+
+        limits += 'дефицит' if item_left <= 0 else str(item_left)
+
+    crypto = await get_crypto()
+    crypto_text = ''
+    for c in crypto:
+        value = cur.select("value", 'cryptodata').where(crypto=c).one()
+        prev_value = cur.select("prev_value", 'cryptodata').where(
+            crypto=c).one()
+        crypto_text += f"{ITEMS[c].emoji}{ITEMS[c].name} - ${value}"
+        crypto_text += (
+            f" 🔻 {round((value-prev_value) / prev_value * 100, 2)}%\n"
+            if value-prev_value < 0 else
+            f" 🔼 +{round((value-prev_value) / prev_value * 100, 2)}%\n"
+        )
+    await call.message.answer(
+        (
+            f"<i><b>📊 ЭКОНОМИКА ЖИВОПОЛИСА</b>\n"
+            "\n💸 <b>Финансы</b>"
+            f"\n💰 Государственная казна - <b>${treasury}</b>"
+            f"\n🎮 Баланс Игрового клуба - <b>${balance}</b>"
+            f"\n\n🏪 <b>Количество товара в Круглосуточном</b>{limits}\n"
+            "\n\n🚚 Завоз товара в Круглосуточный осуществляется каждый день."
+            f" Последний завоз был {h} часов {m} минут {s} секунд назад"
+            "\n\n💰 <b>Центральный рынок</b>"
+            f"\nРыночная ставка: {round(1//coef, 2)}</i>"
+            "\n\n<b>💎 Криптовалюта:</b>\n\n"
+            f"{crypto_text}"
+        )
+    )
+
+
+async def toggle_nonick(call: CallbackQuery) -> None:
+    if await is_allowed_nonick(call.from_user.id):
+        new_mode = 0
+        new_mode_ru = "выключен"
+    else:
+        new_mode = 1
+        new_mode_ru = "включён"
+
+    cur.update("userdata").set(nonick_cmds=new_mode).where(
+        user_id=call.from_user.id).commit()
+
+    await call.answer(f"👁 Nonick теперь {new_mode_ru}", show_alert=True)
+    with contextlib.suppress(MessageCantBeDeleted, MessageToDeleteNotFound):
+        await call.message.delete()
+    await user_settings(call)
+
+
+async def user_settings(call: CallbackQuery):
+    markup = InlineKeyboardMarkup(row_width=1)
+    ready = cur.select("is_ready", "userdata").where(
+        user_id=call.from_user.id).one()
+
+    nonick = (
+        "включён"
+        if await is_allowed_nonick(call.from_user.id)
+        else "выключен"
+    )
+
+    markup.add(
+        InlineKeyboardButton(
+            text=(
+                f"⚔ Боевая готовность: "
+                f"{'Готов' if bool(ready) else 'Не готов'}"
+            ),
+            callback_data='toggle_fightmode'
+        ),
+        InlineKeyboardButton(
+            f"👁️‍🗨️ Nonick: {nonick}",
+            callback_data="toggle_nonick"
+        ),
+        InlineKeyboardButton(
+            text='👨‍🏫 Настройки профиля',
+            callback_data='profile_settings'
+        ),
+        InlineKeyboardButton(
+            text='🔐 Конфиденциальность',
+            callback_data='privacy_settings'
+        ),
+        InlineKeyboardButton(
+            text='◀ Назад',
+            callback_data='cancel_action'
+        )
+    )
+    await call.message.answer('<i><b>Настройки</b></i>', reply_markup=markup)
+
+
+async def exchange_center(call: CallbackQuery) -> None:
+    crypto = await get_crypto()
+    buttons = [
+        InlineKeyboardButton(
+            f"{ITEMS[c].emoji} {ITEMS[c].ru_name}",
+            callback_data=f"exchange_menu_{c}",
+        )
+        for c in crypto
+    ]
+    await call.message.answer(
+        "📊 Добро пожаловать в нашу биржу! Выберите криптовалюту, "
+        "которую вы бы хотели обменять.",
+        reply_markup=InlineKeyboardMarkup(row_width=2).add(*buttons)
+    )
+
+
+async def exchange_menu_(call: CallbackQuery):
+    crypto = call.data.replace("exchange_menu_", "")
+    crypto_value = cur.select("value", from_="cryptodata").where(
+        crypto=crypto).one()
+    crypto = ITEMS[crypto]
+    buttons = [
+        InlineKeyboardButton(
+            "📊 Купить ",
+            callback_data=f"exchange_{crypto.name}:1"
+        ),
+        InlineKeyboardButton(
+            "🔻 Продать ",
+            callback_data=f"exchange_{crypto.name}:-1"
+        )
+    ]
+
+    await call.message.answer(
+        f"{crypto.emoji} {crypto.ru_name}\nТекущее значение: {crypto_value}",
+        reply_markup=InlineKeyboardMarkup(row_width=1).add(*buttons)
+    )
+
+
+async def exchange_(call: CallbackQuery):
+    amount = call.data.split("_")[1]
+    crypto = amount.split(":")[0]
+    amount = int(amount.split(":")[1])
+    user_id = call.from_user.id
+    balance = cur.select("balance", "userdata").where(user_id=user_id).one()
+
+    cur.update("cryptodata")
+
+    if amount > 0:
+        cur.add(bought=amount)
+        text = (
+            f"🍏 Вы успешно приобрели {ITEMS[crypto].emoji}"
+            f" {ITEMS[crypto].ru_name} в количестве {amount}. Ваш баланс: "
+            f"{balance}"
+        )
+    else:
+        cur.add(sold=amount)
+        text = (
+            f"🍎 Вы успешно продали {ITEMS[crypto].emoji} "
+            f"{ITEMS[crypto].ru_name} в количестве {amount}."
+            f"Ваш баланс: {balance}"
+        )
+
+    cur.where(crypto=crypto).commit()
+
+    await call.answer(text, show_alert=True)
