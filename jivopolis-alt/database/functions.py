@@ -264,8 +264,7 @@ async def eat(call: CallbackQuery, food: str) -> None | bool | Message:
         return await call.answer(text="🚫 У вас нет такой еды", show_alert = True)
 
     cur.update("userdata").add(**{food: -1}).where(user_id=user_id).commit()
-    # cur.update("userdata").add(health=heal).where(user_id=user_id).commit()
-    cur.execute("UPDATE userdata SET health=health+? WHERE user_id=?", heal, user_id).commit()
+    cur.update("userdata").add(health=heal).where(user_id=user_id).commit()
 
     if heal > 0:
         await call.answer(f"❤ +{heal} HP на здоровье!", show_alert = True)
