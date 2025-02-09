@@ -924,6 +924,7 @@ async def weather_damage(user_id: int|str, chat_id: int|str) -> bool | None:
             return False
     if random.uniform(0, 100) <= chance:
         await damage_player(user_id, chat_id, damage, message)
+        cur.update("userdata").set(is_in_ride=0).where(user_id=user_id).commit()
         return True
     return False
 
